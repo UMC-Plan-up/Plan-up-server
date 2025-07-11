@@ -6,7 +6,6 @@ import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.web.webauthn.management.UserCredentialRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +19,8 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
+
+    @Override
     public User getUserbyUserId(Long userId) {
         Optional<User> userOptional = userRepository.findById(userId);
         User user = userOptional.orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));

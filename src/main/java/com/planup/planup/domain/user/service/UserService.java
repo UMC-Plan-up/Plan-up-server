@@ -1,6 +1,10 @@
 package com.planup.planup.domain.user.service;
 
+import com.planup.planup.domain.user.entity.User;
+
 public interface UserService {
+    User getUserbyUserId(Long userId);
+
     String getNickname(Long userId);
 
     String updateNickname(Long userId, String nickname);
