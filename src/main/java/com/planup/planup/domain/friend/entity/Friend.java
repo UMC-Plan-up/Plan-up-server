@@ -18,4 +18,11 @@ public class Friend extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "friend_id")
+    private User friend;
+
+    @Enumerated(EnumType.STRING)
+    private FriendStatus status;
 }

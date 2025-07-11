@@ -50,4 +50,20 @@ public class User extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "user")
     private List<Friend> friendList;
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void switchAlarmAllow() {
+        if (this.alarmAllow == true) {
+            this.alarmAllow = false;
+        } else {
+            this.alarmAllow = true;
+        }
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }
