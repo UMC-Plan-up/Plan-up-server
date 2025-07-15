@@ -5,6 +5,7 @@ import com.planup.planup.domain.user.entity.User;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class FriendConverter {
@@ -17,5 +18,16 @@ public class FriendConverter {
                 .isNewPhotoVerify()
                 .build();
 
+    }
+
+    public static FriendResponseDTO.FriendSummaryList toFriendSummeryList(List<User> friends) {
+        List<FriendResponseDTO.FriendInfoSummary> summeryList = friends.stream().map(FriendConverter::toFriendSummery).collect(Collectors.toList());
+        int size = summeryList.size();
+
+        return FriendResponseDTO.FriendSummaryList
+                .builder()
+                .cnt(size)
+                .friendInfoSummeryList(summeryList)
+                .build();
     }
 }

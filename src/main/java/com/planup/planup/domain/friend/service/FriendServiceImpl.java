@@ -26,9 +26,11 @@ public class FriendServiceImpl implements FriendService {
 
         List<Friend> friendList = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(FriendStatus.ACCEPTED, user, FriendStatus.ACCEPTED user);
 
+        //Friend 객체의 friend, user 중 내가 아닌 친구를 뽑는다.
         List<User> list = friendList.stream()
                 .map(f -> f.getFriend().equals(user) ? f.getUser() : f.getFriend())
                 .collect(Collectors.toList());
+
 
 
     }
