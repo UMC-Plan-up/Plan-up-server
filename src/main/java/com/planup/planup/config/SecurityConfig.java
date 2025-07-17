@@ -14,19 +14,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf().disable()
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/",
-                                "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**",
+                                "/api-docs",
+
                                 "/swagger-resources/**",
-                                "/webjars/**"
+                                "/webjars/**",
+                                "/v3/api-docs/**"
                         ).permitAll()
-                        .anyRequest().authenticated()
-                )
-                .formLogin(Customizer.withDefaults());
+                        .anyRequest().permitAll() // << 여기를 바꿔야 인증 없이 접근됨
+                );
 
         return http.build();
     }
