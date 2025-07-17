@@ -14,8 +14,8 @@ public class FriendConverter {
         return FriendResponseDTO.FriendInfoSummary
                 .builder()
                 .id(friend.getId())
-                .goalCnt()
-                .isNewPhotoVerify()
+                .goalCnt(0)
+                .isNewPhotoVerify(true)
                 .build();
 
     }
