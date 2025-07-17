@@ -65,6 +65,7 @@ jobs:
           path: build/libs/
 
       - name: Deploy to EC2
+        shell: bash
         env:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
