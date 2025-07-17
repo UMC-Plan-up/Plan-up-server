@@ -17,11 +17,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/", // 홈도 열어두고 싶다면 추가
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**"
+                                "/api/v1/users/login", "/api/v1/users", "/api/v1/users/duplicate", "/api/v1/users/check-nickname",
+                                "/swagger-ui/**", "/api-docs/**", "/api/v1/oauth2/**", "/login/oauth2/**", "/oauth2/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
