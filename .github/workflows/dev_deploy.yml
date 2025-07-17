@@ -72,30 +72,23 @@ jobs:
         run: |
           echo "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
-          
+
           # 최신 JAR 파일 찾기
           JAR_FILE=$(ls -t build/libs/*.jar | grep -v plain | head -n 1)
-          
+
           # JAR 파일 전송
           rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" \
-            "$JAR_FILE" ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/yourunServer.jar
-          
-          # 실행 스크립트 생성 (여기서 EOF를 따옴표로 묶지 않아 변수 확장이 가능하게 함)
-          cat << EOF > start_server.sh
+            "$JAR_FILE" ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/planupServer.jar
+
+          # 실행 스크립트 생성
+          cat <<EOF > start_server.sh
           #!/bin/bash
-          # 로그 디렉토리 생성 및 권한 설정
           mkdir -p /home/${EC2_USERNAME}/logs
           chmod 755 /home/${EC2_USERNAME}/logs
-          
-          # 기존 프로세스 종료
           kill -9 \$(pgrep -f 'java -jar') || true
           sleep 5
-          
-          # 서버 시작
           cd /home/${EC2_USERNAME}
-          nohup java -jar yourunServer.jar > /home/${EC2_USERNAME}/logs/app.log 2>&1 </dev/null &
-          
-          # 서버 시작 확인
+          nohup java -jar planupServer.jar > /home/${EC2_USERNAME}/logs/app.log 2>&1 </dev/null &
           sleep 10
           if pgrep -f 'java -jar' > /dev/null; then
             echo "Server started successfully"
@@ -106,18 +99,8 @@ jobs:
             exit 1
           fi
           EOF
-  
-          # 실행 권한 부여 및 전송
+
           chmod +x start_server.sh
-          scp -i private_key.pem -o StrictHostKeyChecking=no \
-          start_server.sh ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/
-          
-          # logs 디렉토리 생성 및 권한 설정
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} \
-          "mkdir -p /home/${EC2_USERNAME}/logs && chmod 755 /home/${EC2_USERNAME}/logs"
-        
-          # 스크립트 실행
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} \
-          "bash /home/${EC2_USERNAME}/start_server.sh"
-        
+          scp -i private_key.pem -o StrictHostKeyChecking=no start_server.sh ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} "bash /home/${EC2_USERNAME}/start_server.sh"
           rm -f private_key.pem
