@@ -13,17 +13,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests((authz) -> authz
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/", // 홈도 열어두고 싶다면 추가
                                 "/swagger-ui/**",
+                                "/swagger-ui.html",
                                 "/v3/api-docs/**",
-                                "/swagger-ui.html"
+                                "/swagger-resources/**",
+                                "/webjars/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .formLogin() // 폼 로그인 설정 유지
-                .and()
-                .csrf().disable(); // Swagger 테스트를 위해 csrf 일단 비활성화
+                .formLogin(form -> form
+                        .loginPage("/login") // 커스텀 로그인 페이지를 쓰지 않으면 생략해도 됨
+                        .permitAll()
+                );
 
         return http.build();
     }

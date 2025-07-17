@@ -15,7 +15,7 @@ spring:
   jpa:
     hibernate:
       dialect: org.hibernate.dialect.MySQLDialect
-      ddl-auto: none
+      ddl-auto: update
     properties:
       hibernate:
         jdbc:
