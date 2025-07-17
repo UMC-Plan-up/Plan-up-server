@@ -50,7 +50,7 @@ jobs:
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: yourunServer
+          name: planupServer
           path: build/libs/*.jar
 
   deploy:
