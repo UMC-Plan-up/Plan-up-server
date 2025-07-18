@@ -1,6 +1,7 @@
 package com.planup.planup.domain.report.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
+import com.planup.planup.domain.report.dto.WeeklyRepoortResponseDTO;
 import com.planup.planup.domain.report.service.WeeklyReportService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -13,5 +14,7 @@ public class WeeklyReportController {
 
     private final WeeklyReportService weeklyReportService;
 
-    public ApiResponse<>
+    public ApiResponse<WeeklyRepoortResponseDTO.achievementResponse> getAchievementPage(Long userId) {
+
+    }
 }

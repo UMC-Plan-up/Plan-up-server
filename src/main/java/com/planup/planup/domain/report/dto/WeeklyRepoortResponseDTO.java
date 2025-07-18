@@ -38,6 +38,6 @@ public class WeeklyRepoortResponseDTO {
 
             @Schema(description = "알림 내용", example = "친구 1님의 댓글 '벌써 이만큼 함?'")
             String alarmText
-    )
+    ) {}
 
 }
