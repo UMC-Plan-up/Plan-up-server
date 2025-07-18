@@ -3,6 +3,7 @@ package com.planup.planup.domain.user.entity;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
+import com.planup.planup.domain.report.entity.WeeklyReport;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -50,6 +51,9 @@ public class User extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "user")
     private List<Friend> friendList;
+
+    @OneToMany(mappedBy = "user")
+    private List<WeeklyReport> weeklyReportList;
 
     public void setNickname(String nickname) {
         this.nickname = nickname;
