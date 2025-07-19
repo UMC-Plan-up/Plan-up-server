@@ -3,14 +3,14 @@ package com.planup.planup.domain.notification.entity;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.hibernate.tool.schema.TargetType;
+import lombok.*;
+
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor
 public class Notification extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,7 +48,7 @@ public class Notification extends BaseTimeEntity {
         return n;
     }
 
-    public void setRead(boolean isRead) {
+    public void markAsRead(boolean isRead) {
         this.isRead = isRead;
     }
 }
