@@ -4,6 +4,7 @@ import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.repository.UserRepository;
+import com.planup.planup.domain.user.dto.UserInfoResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+
 
 @Service
 @Slf4j
@@ -99,5 +101,16 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             throw new RuntimeException("프로필 이미지 저장 실패", e);
         }
+    }
+
+    @Override
+    public UserInfoResponseDTO getUserInfo(Long userId) {
+        User user = getUserbyUserId(userId);
+        return UserInfoResponseDTO.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .profileImg(user.getProfileImg())
+                .build();
     }
 }

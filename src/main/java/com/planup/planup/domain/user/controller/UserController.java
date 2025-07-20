@@ -1,6 +1,7 @@
 package com.planup.planup.domain.user.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
+import com.planup.planup.domain.user.dto.UserInfoResponseDTO;
 import com.planup.planup.domain.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
@@ -64,5 +65,12 @@ public class UserController {
             @RequestPart MultipartFile imageFile) {
         String imageUrl = userService.updateProfileImage(userId, imageFile);
         return ApiResponse.onSuccess(imageUrl);
+    }
+
+    @Operation(summary = "유저 정보 조회", description = "유저의 상세 정보 조회")
+    @GetMapping("/users/info")
+    public ApiResponse<UserInfoResponseDTO> getUserInfo(@RequestParam Long userId) {
+        UserInfoResponseDTO userInfo = userService.getUserInfo(userId);
+        return ApiResponse.onSuccess(userInfo);
     }
 }
