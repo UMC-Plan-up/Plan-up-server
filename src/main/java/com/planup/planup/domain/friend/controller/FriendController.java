@@ -73,4 +73,13 @@ public class FriendController {
         List<FriendResponseDTO.FriendInfoSummary> requestedFriends = friendService.getRequestedFriends(userId);
         return ApiResponse.onSuccess(requestedFriends);
     }
+
+    @Operation(summary = "친구 신청 거절", description = "친구 신청 거절")
+    @PostMapping("/reject")
+    public ApiResponse<Boolean> rejectFriendRequest(
+            @RequestParam Long userId,
+            @RequestParam Long friendId) {
+        boolean result = friendService.rejectFriendRequest(userId, friendId);
+        return ApiResponse.onSuccess(result);
+    }
 }

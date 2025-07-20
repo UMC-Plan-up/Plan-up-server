@@ -110,4 +110,22 @@ public class FriendServiceImpl implements FriendService {
                 .map(f -> FriendConverter.toFriendSummary(f.getUser()))
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public boolean rejectFriendRequest(Long userId, Long friendId) {
+        // 나(userId)에게 친구 신청한 친구(friendId)를 찾음
+        List<Friend> requests = friendRepository.findByStatusAndFriendIdOrderByCreatedAtDesc(
+            FriendStatus.REQUESTED, userId);
+
+        Friend friend = requests.stream()
+            .filter(f -> f.getUser().getId().equals(friendId))
+            .findFirst()
+            .orElse(null);
+
+        if (friend != null) {
+            friendRepository.delete(friend); // 엔티티 삭제
+            return true;
+        }
+        return false;
+    }
 }

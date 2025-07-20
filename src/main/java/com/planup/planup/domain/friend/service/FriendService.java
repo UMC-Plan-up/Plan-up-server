@@ -18,4 +18,7 @@ public interface FriendService {
 
     // 받은 친구 신청 목록 조회
     List<FriendResponseDTO.FriendInfoSummary> getRequestedFriends(Long userId);
+
+    // 친구 신청 거절
+    boolean rejectFriendRequest(Long userId, Long friendId);
 }
