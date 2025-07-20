@@ -1,6 +1,7 @@
 package com.planup.planup.domain.user.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
+import com.planup.planup.domain.user.dto.UserInfoResponseDTO;
 import com.planup.planup.domain.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.RestController;
+
 
 @Controller
 @AllArgsConstructor
@@ -49,5 +56,29 @@ public class UserController {
     public ApiResponse<Boolean> updatePassword(Long userId, String password) {
         userService.updatePassword(userId, password);
         return ApiResponse.onSuccess(true);
+    }
+
+    @Operation(summary = "프로필 사진 변경", description = "마이페이지에서 프로필 사진 변경")
+    @PostMapping("/mypage/profile/image")
+    public ApiResponse<String> updateProfileImage(
+            @RequestParam Long userId,
+            @RequestPart MultipartFile imageFile) {
+        String imageUrl = userService.updateProfileImage(userId, imageFile);
+        return ApiResponse.onSuccess(imageUrl);
+    }
+
+    @Operation(summary = "유저 정보 조회", description = "유저의 상세 정보 조회")
+    @GetMapping("/users/info")
+    public ApiResponse<UserInfoResponseDTO> getUserInfo(@RequestParam Long userId) {
+        UserInfoResponseDTO userInfo = userService.getUserInfo(userId);
+        return ApiResponse.onSuccess(userInfo);
+    }
+    @Operation(summary = "이메일 변경", description = "유저 이메일 변경")
+    @PostMapping("/mypage/profile/email")
+    public ApiResponse<String> updateEmail(
+            @RequestParam Long userId,
+            @RequestParam String newEmail) {
+        String email = userService.updateEmail(userId, newEmail);
+        return ApiResponse.onSuccess(email);
     }
 }
