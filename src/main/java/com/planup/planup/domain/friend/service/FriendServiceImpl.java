@@ -34,4 +34,26 @@ public class FriendServiceImpl implements FriendService {
 
         return null;
     }
+
+    @Override
+public boolean deleteFriend(Long userId, Long friendId) {
+    // 1. userId와 friendId로 Friend 엔티티를 찾는다.
+    // 2. 해당 Friend 엔티티를 삭제한다.
+    // 3. 성공적으로 삭제했으면 true, 아니면 false 반환
+
+    // 예시 (실제 로직은 상황에 맞게 수정)
+    List<Friend> friends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
+        FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
+
+    Friend friend = friends.stream()
+        .filter(f -> (f.getUser().getId().equals(friendId) || f.getFriend().getId().equals(friendId)))
+        .findFirst()
+        .orElse(null);
+
+    if (friend != null) {
+        friendRepository.delete(friend);
+        return true;
+    }
+    return false;
+}
 }

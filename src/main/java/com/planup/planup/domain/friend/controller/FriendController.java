@@ -9,6 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 import java.util.List;
 
@@ -31,5 +34,12 @@ public class FriendController {
         List<FriendResponseDTO.FriendSummaryList> friendSummaryList = friendService.getFriendSummeryList(userId);
         return ApiResponse.onSuccess(friendSummaryList);
     }
-
+    @Operation(summary = "친구 삭제", description = "친구 삭제")
+    @PostMapping("/delete")
+    public ApiResponse<Boolean> deleteFriend(
+            @RequestParam Long userId,
+            @RequestParam Long friendId) {
+        boolean result = friendService.deleteFriend(userId, friendId);
+        return ApiResponse.onSuccess(result);
+    }
 }
