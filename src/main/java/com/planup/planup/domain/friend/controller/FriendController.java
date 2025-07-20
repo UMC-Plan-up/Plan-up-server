@@ -82,4 +82,13 @@ public class FriendController {
         boolean result = friendService.rejectFriendRequest(userId, friendId);
         return ApiResponse.onSuccess(result);
     }
+
+    @Operation(summary = "친구 신청 수락", description = "친구 신청 수락")
+    @PostMapping("/accept")
+    public ApiResponse<Boolean> acceptFriendRequest(
+            @RequestParam Long userId,
+            @RequestParam Long friendId) {
+        boolean result = friendService.acceptFriendRequest(userId, friendId);
+        return ApiResponse.onSuccess(result);
+    }
 }

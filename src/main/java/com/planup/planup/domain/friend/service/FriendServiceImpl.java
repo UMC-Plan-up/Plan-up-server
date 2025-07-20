@@ -128,4 +128,23 @@ public class FriendServiceImpl implements FriendService {
         }
         return false;
     }
+
+    @Override
+    public boolean acceptFriendRequest(Long userId, Long friendId) {
+        // 나(userId)에게 친구 신청한 친구(friendId)를 찾음
+        List<Friend> requests = friendRepository.findByStatusAndFriendIdOrderByCreatedAtDesc(
+            FriendStatus.REQUESTED, userId);
+
+        Friend friend = requests.stream()
+            .filter(f -> f.getUser().getId().equals(friendId))
+            .findFirst()
+            .orElse(null);
+
+        if (friend != null) {
+            friend.setStatus(FriendStatus.ACCEPTED); // 상태를 ACCEPTED로 변경
+            friendRepository.save(friend);
+            return true;
+        }
+        return false;
+    }
 }
