@@ -15,4 +15,7 @@ public interface FriendService {
 
     // 친구 신고
     boolean reportFriend(Long userId, Long friendId, String reason, boolean block);
+
+    // 받은 친구 신청 목록 조회
+    List<FriendResponseDTO.FriendInfoSummary> getRequestedFriends(Long userId);
 }

@@ -14,6 +14,7 @@ public class FriendConverter {
         return FriendResponseDTO.FriendInfoSummary
                 .builder()
                 .id(friend.getId())
+                .nickname(friend.getNickname()) 
                 .goalCnt(0)
                 .isNewPhotoVerify(true)
                 .build();

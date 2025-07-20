@@ -30,7 +30,7 @@ public class FriendController {
         friendService.getFriendSummeryList(userId);
         return null;
     } */
-    @Operation(summary = "친구 화면", description = "친구 화면에 진입했을 때 필요한 정보 호출")
+    @Operation(summary = "친구 화면 조회", description = "친구 화면에 진입했을 때 필요한 정보 조회")
     @GetMapping("")
     public ApiResponse<List<FriendResponseDTO.FriendSummaryList>> updateNicknameReq(Long userId) {
         List<FriendResponseDTO.FriendSummaryList> friendSummaryList = friendService.getFriendSummeryList(userId);
@@ -65,5 +65,12 @@ public class FriendController {
             request.isBlock()
         );
         return ApiResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "나에게 친구 신청한 친구 목록", description = "나에게 친구 신청한 친구 목록 조회")
+    @GetMapping("/requests")
+    public ApiResponse<List<FriendResponseDTO.FriendInfoSummary>> getRequestedFriends(@RequestParam Long userId) {
+        List<FriendResponseDTO.FriendInfoSummary> requestedFriends = friendService.getRequestedFriends(userId);
+        return ApiResponse.onSuccess(requestedFriends);
     }
 }

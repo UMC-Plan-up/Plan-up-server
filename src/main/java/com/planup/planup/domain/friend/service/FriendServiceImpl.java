@@ -8,7 +8,7 @@ import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
+import com.planup.planup.domain.friend.converter.FriendConverter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -98,5 +98,16 @@ public class FriendServiceImpl implements FriendService {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public List<FriendResponseDTO.FriendInfoSummary> getRequestedFriends(Long userId) {
+        List<Friend> friendRequests = friendRepository.findByStatusAndFriendIdOrderByCreatedAtDesc(
+            FriendStatus.REQUESTED, userId);
+
+        // 신청한 친구(User) 정보 추출
+        return friendRequests.stream()
+                .map(f -> FriendConverter.toFriendSummary(f.getUser()))
+                .collect(Collectors.toList());
     }
 }
