@@ -9,4 +9,6 @@ public interface FriendService {
 
     // 친구 삭제
     boolean deleteFriend(Long userId, Long friendId);
+
+    boolean blockFriend(Long userId, Long friendId);
 }

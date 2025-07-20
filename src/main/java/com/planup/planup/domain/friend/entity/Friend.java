@@ -25,4 +25,8 @@ public class Friend extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private FriendStatus status;
+
+    public void setStatus(FriendStatus status) {
+        this.status = status;
+    }
 }

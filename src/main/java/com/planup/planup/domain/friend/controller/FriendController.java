@@ -34,12 +34,22 @@ public class FriendController {
         List<FriendResponseDTO.FriendSummaryList> friendSummaryList = friendService.getFriendSummeryList(userId);
         return ApiResponse.onSuccess(friendSummaryList);
     }
+
     @Operation(summary = "친구 삭제", description = "친구 삭제")
     @PostMapping("/delete")
     public ApiResponse<Boolean> deleteFriend(
             @RequestParam Long userId,
             @RequestParam Long friendId) {
         boolean result = friendService.deleteFriend(userId, friendId);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "친구 차단", description = "친구 차단")
+    @PostMapping("/block")
+    public ApiResponse<Boolean> blockFriend(
+            @RequestParam Long userId,
+            @RequestParam Long friendId) {
+        boolean result = friendService.blockFriend(userId, friendId);
         return ApiResponse.onSuccess(result);
     }
 }
