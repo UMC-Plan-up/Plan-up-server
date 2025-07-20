@@ -8,7 +8,10 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.web.multipart.MultipartFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 @Service
@@ -75,5 +78,26 @@ public class UserServiceImpl implements UserService {
         //TODO: password 인코딩 해야 함
 
         user.setPassword(user.getPassword());
+    }
+
+    @Override
+    public String updateProfileImage(Long userId, MultipartFile imageFile) {
+        User user = getUserbyUserId(userId);
+
+        // 파일 저장 경로 설정 (예: /uploads/profile/)
+        String uploadDir = "/uploads/profile/";
+        String fileName = userId + "_" + imageFile.getOriginalFilename();
+        Path filePath = Paths.get(uploadDir + fileName);
+
+        try {
+            Files.createDirectories(filePath.getParent());
+            imageFile.transferTo(filePath.toFile());
+            // DB에 경로 저장
+            user.setProfileImg(filePath.toString());
+            // userRepository.save(user); // 필요시 저장
+            return filePath.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("프로필 이미지 저장 실패", e);
+        }
     }
 }

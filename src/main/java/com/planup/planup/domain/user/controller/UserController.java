@@ -9,6 +9,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.RestController;
+
 
 @Controller
 @AllArgsConstructor
@@ -49,5 +55,14 @@ public class UserController {
     public ApiResponse<Boolean> updatePassword(Long userId, String password) {
         userService.updatePassword(userId, password);
         return ApiResponse.onSuccess(true);
+    }
+
+    @Operation(summary = "프로필 사진 변경", description = "마이페이지에서 프로필 사진 변경")
+    @PostMapping("/profile/image")
+    public ApiResponse<String> updateProfileImage(
+            @RequestParam Long userId,
+            @RequestPart MultipartFile imageFile) {
+        String imageUrl = userService.updateProfileImage(userId, imageFile);
+        return ApiResponse.onSuccess(imageUrl);
     }
 }
