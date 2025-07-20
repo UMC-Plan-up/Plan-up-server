@@ -25,6 +25,9 @@ public class FriendResponseDTO {
             @Schema(description = "친구 기본키", example = "1")
             Long id,
 
+            @Schema(description = "친구 닉네임", example = "홍길동")
+            String nickname, 
+
             @Schema(description = "목표 수행 수", example = "3")
             int goalCnt,
 
