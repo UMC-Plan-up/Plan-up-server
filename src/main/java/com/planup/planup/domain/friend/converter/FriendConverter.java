@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class FriendConverter {
 
-    public static FriendResponseDTO.FriendInfoSummary toFriendSummery(User friend) {
+    public static FriendResponseDTO.FriendInfoSummary toFriendSummary(User friend) {
         return FriendResponseDTO.FriendInfoSummary
                 .builder()
                 .id(friend.getId())
@@ -20,14 +20,14 @@ public class FriendConverter {
 
     }
 
-    public static FriendResponseDTO.FriendSummaryList toFriendSummeryList(List<User> friends) {
-        List<FriendResponseDTO.FriendInfoSummary> summeryList = friends.stream().map(FriendConverter::toFriendSummery).collect(Collectors.toList());
+    public static FriendResponseDTO.FriendSummaryList toFriendSummaryList(List<User> friends) {
+        List<FriendResponseDTO.FriendInfoSummary> summeryList = friends.stream().map(FriendConverter::toFriendSummary).collect(Collectors.toList());
         int size = summeryList.size();
 
         return FriendResponseDTO.FriendSummaryList
                 .builder()
                 .cnt(size)
-                .friendInfoSummeryList(summeryList)
+                .friendInfoSummaryList(summeryList)
                 .build();
     }
 }
