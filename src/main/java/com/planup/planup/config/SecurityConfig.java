@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -12,19 +13,30 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .authorizeHttpRequests((authz) -> authz
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
-                        .anyRequest().authenticated()
+        return http
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .formLogin() // 폼 로그인 설정 유지
-                .and()
-                .csrf().disable(); // Swagger 테스트를 위해 csrf 일단 비활성화
-
-        return http.build();
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/signin", "/signup", "/api/auth/**").permitAll()
+                        // Swagger 관련 경로
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
+                        //리소스
+                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                        //구체적인 경로 설정 전까지는 임시로 모든 Api 경로 허용
+                        .requestMatchers("/api/**").permitAll()
+                        .requestMatchers("/", "/login/**").permitAll()
+                        .anyRequest().permitAll()
+                )
+                .formLogin(form -> form.disable())
+                .httpBasic(httpBasic -> httpBasic.disable())
+                .build();
     }
 }
