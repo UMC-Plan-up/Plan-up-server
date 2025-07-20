@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
+import com.planup.planup.domain.friend.dto.FriendReportRequestDTO;
 
 
 import java.util.List;
@@ -50,6 +52,18 @@ public class FriendController {
             @RequestParam Long userId,
             @RequestParam Long friendId) {
         boolean result = friendService.blockFriend(userId, friendId);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "친구 신고", description = "친구 신고 및 차단")
+    @PostMapping("/report")
+    public ApiResponse<Boolean> reportFriend(@RequestBody FriendReportRequestDTO request) {
+        boolean result = friendService.reportFriend(
+            request.getUserId(),
+            request.getFriendId(),
+            request.getReason(),
+            request.isBlock()
+        );
         return ApiResponse.onSuccess(result);
     }
 }

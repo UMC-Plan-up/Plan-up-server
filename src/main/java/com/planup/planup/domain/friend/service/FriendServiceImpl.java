@@ -74,4 +74,29 @@ public class FriendServiceImpl implements FriendService {
         }
         return false;
     }
+
+    @Override
+    public boolean reportFriend(Long userId, Long friendId, String reason, boolean block) {
+        // 1. Friend 엔티티 찾기
+        List<Friend> friends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
+            FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
+
+        Friend friend = friends.stream()
+            .filter(f -> (f.getUser().getId().equals(friendId) || f.getFriend().getId().equals(friendId)))
+            .findFirst()
+            .orElse(null);
+
+        if (friend != null) {
+            // 신고 사유 저장 (별도 테이블이 있다면 Report 엔티티에 저장, 없다면 로그 등)
+            System.out.println("신고 사유: " + reason);
+
+            // 차단 여부에 따라 상태 변경
+            if (block) {
+                friend.setStatus(FriendStatus.BLOCKED);
+                friendRepository.save(friend);
+            }
+            return true;
+        }
+        return false;
+    }
 }
