@@ -20,4 +20,6 @@ public interface UserService {
     String updateProfileImage(Long userId, MultipartFile imageFile);
 
     UserInfoResponseDTO getUserInfo(Long userId);
+
+    String updateEmail(Long userId, String newEmail);
 }

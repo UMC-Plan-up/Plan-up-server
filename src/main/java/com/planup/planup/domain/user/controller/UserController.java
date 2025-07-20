@@ -59,7 +59,7 @@ public class UserController {
     }
 
     @Operation(summary = "프로필 사진 변경", description = "마이페이지에서 프로필 사진 변경")
-    @PostMapping("/profile/image")
+    @PostMapping("/mypage/profile/image")
     public ApiResponse<String> updateProfileImage(
             @RequestParam Long userId,
             @RequestPart MultipartFile imageFile) {
@@ -72,5 +72,13 @@ public class UserController {
     public ApiResponse<UserInfoResponseDTO> getUserInfo(@RequestParam Long userId) {
         UserInfoResponseDTO userInfo = userService.getUserInfo(userId);
         return ApiResponse.onSuccess(userInfo);
+    }
+    @Operation(summary = "이메일 변경", description = "유저 이메일 변경")
+    @PostMapping("/mypage/profile/email")
+    public ApiResponse<String> updateEmail(
+            @RequestParam Long userId,
+            @RequestParam String newEmail) {
+        String email = userService.updateEmail(userId, newEmail);
+        return ApiResponse.onSuccess(email);
     }
 }

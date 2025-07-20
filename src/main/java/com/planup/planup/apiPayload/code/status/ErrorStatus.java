@@ -19,7 +19,8 @@ public enum ErrorStatus implements BaseErrorCode {
 
     //User 에러
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "USER4001", "존재하지 않는 유저입니다"),
-    EXIST_NICKNAME(HttpStatus.CONFLICT, "USER4002", "이미 존재하는 닉네임입니다")
+    EXIST_NICKNAME(HttpStatus.CONFLICT, "USER4002", "이미 존재하는 닉네임입니다"),
+    EXIST_EMAIL(HttpStatus.CONFLICT, "USER4003", "이미 존재하는 이메일입니다")
     ;
 
     private final HttpStatus httpStatus;
