@@ -21,4 +21,10 @@ public class UserBadgeServiceImpl implements UserBadgeService {
         List<UserBadge> badgeList = userBadgeRepository.findByUserAndCreatedAtBetween(user, from, to);
         return badgeList;
     }
+
+    @Override
+    public List<UserBadge> getTop5Recent(User user) {
+        List<UserBadge> list = userBadgeRepository.findTop5ByUserOrderByCreatedAtDesc(user);
+        return list;
+    }
 }

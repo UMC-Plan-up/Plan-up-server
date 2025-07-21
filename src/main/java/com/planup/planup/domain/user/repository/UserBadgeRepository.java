@@ -13,4 +13,6 @@ import java.util.List;
 public interface UserBadgeRepository extends JpaRepository<UserBadge, Long> {
 
     List<UserBadge> findByUserAndCreatedAtBetween(User user, LocalDateTime from, LocalDateTime to);
+
+    List<UserBadge> findTop5ByUserOrderByCreatedAtDesc(User user);
 }
