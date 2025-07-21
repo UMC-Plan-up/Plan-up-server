@@ -1,6 +1,5 @@
 package com.planup.planup.domain.bedge.entity;
 
-
 import com.planup.planup.domain.user.entity.UserBadge;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,3 +25,4 @@ public class Badge {
     @OneToMany(mappedBy = "badge", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserBadge> userBadges = new ArrayList<>();
 }
+

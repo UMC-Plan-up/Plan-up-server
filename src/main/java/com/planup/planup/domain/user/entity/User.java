@@ -54,6 +54,7 @@ public class User extends BaseTimeEntity {
     @OneToMany(mappedBy = "user")
     private List<Friend> friendList;
 
+
     @OneToMany(mappedBy = "user")
     private List<WeeklyReport> weeklyReportList;
 
