@@ -94,6 +94,7 @@ jobs:
           if pgrep -f 'java -jar' > /dev/null; then
             echo "Server started successfully"
             exit 0
+            exit 0
           else
             echo "Server failed to start"
             tail -n 50 /home/${EC2_USERNAME}/logs/app.log

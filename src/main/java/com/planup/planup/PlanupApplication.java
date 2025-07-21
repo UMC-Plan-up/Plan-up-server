@@ -4,11 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
-@SpringBootApplication( scanBasePackages = {"com.planup.planup.domain"})
+@SpringBootApplication
 public class PlanupApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(PlanupApplication.class, args);
 	}
-//exclude = {DataSourceAutoConfiguration.class},
 }
