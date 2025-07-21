@@ -1,0 +1,28 @@
+# ========== Build ==========
+/build/
+/.gradle/
+/out/
+/test-output/
+/reports/
+
+# ========== IntelliJ IDEA ==========
+/.idea/
+/*.iml
+
+# ========== Gradle Wrapper ==========
+/gradlew
+/gradlew.bat
+/gradle/
+
+# ========== OS & System ==========
+.DS_Store
+Thumbs.db
+
+# ========== Logs & Temp ==========
+*.log
+*.tmp
+*.swp
+
+# ========== Application Config (환경파일 등) ==========
+application-*.yml
+.env
