@@ -1,6 +1,5 @@
 package com.planup.planup.domain.user.service;
 
-import com.planup.planup.domain.bedge.entity.Badge;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserBadge;
 import com.planup.planup.domain.user.repository.UserBadgeRepository;
@@ -18,7 +17,6 @@ public class UserBadgeServiceImpl implements UserBadgeService {
 
     @Override
     public List<UserBadge> getUserBadgeInPeriod(User user, LocalDateTime from, LocalDateTime to) {
-        List<UserBadge> badgeList = userBadgeRepository.findByUserAndCreatedAtBetween(user, from, to);
-        return badgeList;
+        return userBadgeRepository.findByUserAndCreatedAtBetween(user, from, to);
     }
 }
