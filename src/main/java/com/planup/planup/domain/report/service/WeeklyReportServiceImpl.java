@@ -6,6 +6,8 @@ import com.planup.planup.domain.notification.entity.Notification;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.report.converter.WeeklyReportResponseConverter;
 import com.planup.planup.domain.report.dto.WeeklyRepoortResponseDTO;
+import com.planup.planup.domain.report.entity.WeeklyReport;
+import com.planup.planup.domain.report.repository.WeeklyReportRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserBadge;
 import com.planup.planup.domain.user.service.UserBadgeService;
@@ -13,6 +15,7 @@ import com.planup.planup.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,11 +26,20 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
     private final BadgeService badgeService;
     private final UserBadgeService userBadgeService;
     private final NotificationService notificationService;
+    private final WeeklyReportRepository weeklyReportRepository;
 
 
     @Override
-    public List<Integer> searchWeeklyReport(int year, int week) {
-        return null;
+    public List<Integer> searchWeeklyReport(Long userId, int year, int week) {
+        User user = userService.getUserbyUserId(userId);
+
+        ArrayList<Integer> weeks = new ArrayList<>();
+        List<WeeklyReport> reports = weeklyReportRepository.findByUserAndYearAndMonth(user, year, week);
+        for (WeeklyReport report : reports) {
+            weeks.add(report.getWeekNumber());
+        }
+
+        return weeks;
     }
 
     @Override

@@ -37,7 +37,13 @@ public class WeeklyRepoortResponseDTO {
             Long id,
 
             @Schema(description = "알림 내용", example = "친구 1님의 댓글 '벌써 이만큼 함?'")
-            String notificationText;
+            String notificationText
+    ) {}
+
+    @Builder
+    public record existWeek(
+            @Schema(description = "존재하는 주차 리포트가 있는 주", example = "{1,2,3}")
+            List<Integer> weeks
     ) {}
 
 }

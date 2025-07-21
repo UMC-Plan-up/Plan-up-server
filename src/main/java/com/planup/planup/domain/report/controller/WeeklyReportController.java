@@ -30,7 +30,8 @@ public class WeeklyReportController {
     @Operation(summary = "년/월을 기준으로 존재하는 리포트 리스트 반환",
             description = "목표 달성 페이지 접근 시, 년/월을 기준으로 주간 리포트를 검색하고 화면에 표시")
     @GetMapping("/reports/{year}/{week}")
-    public ApiResponse<List<Integer>> searchWeeklyRepost(@PathVariable int year, @PathVariable int week) {
-        weeklyReportService.searchWeeklyReport(year, week);
+    public ApiResponse<List<Integer>> searchWeeklyRepost(Long userId, @PathVariable int year, @PathVariable int week) {
+        List<Integer> weeks = weeklyReportService.searchWeeklyReport(userId, year, week);
+        return ApiResponse.onSuccess(weeks);
     }
 }
