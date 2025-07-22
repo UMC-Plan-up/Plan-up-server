@@ -22,16 +22,22 @@ public class GoalReport {
     private String goalTitle;
     private String goalCriteria;
 
+
+
+    @Enumerated(EnumType.STRING)
+    private ReportType reportType;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "weekly_report_id")
     private WeeklyReport weeklyReport;
 
     @Builder
-    public GoalReport(Long goalId, Long achievementRate, String goalTitle, String goalCriteria, WeeklyReport weeklyReport) {
+    public GoalReport(Long goalId, Long achievementRate, String goalTitle, String goalCriteria, WeeklyReport weeklyReport, ReportType reportType) {
         this.goalId = goalId;
         this.achievementRate = achievementRate;
         this.goalTitle = goalTitle;
         this.goalCriteria = goalCriteria;
         this.weeklyReport = weeklyReport;
+        this.reportType = reportType;
     }
 }

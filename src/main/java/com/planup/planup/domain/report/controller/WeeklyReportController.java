@@ -5,7 +5,6 @@ import com.planup.planup.domain.report.dto.WeeklyRepoortResponseDTO;
 import com.planup.planup.domain.report.service.WeeklyReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,11 +28,15 @@ public class WeeklyReportController {
 
     @Operation(summary = "년/월을 기준으로 존재하는 리포트 리스트 반환",
             description = "목표 달성 페이지 접근 시, 년/월을 기준으로 주간 리포트를 검색하고 화면에 표시")
-    @GetMapping("/reports/{year}/{week}")
-    public ApiResponse<List<Integer>> searchWeeklyRepost(Long userId, @PathVariable int year, @PathVariable int week) {
-        List<Integer> weeks = weeklyReportService.searchWeeklyReport(userId, year, week);
+    @GetMapping("/reports/{year}/{month}")
+    public ApiResponse<List<Integer>> searchExistWeeklyReportList(Long userId, @PathVariable int year, @PathVariable int month) {
+        List<Integer> weeks = weeklyReportService.searchWeeklyReport(userId, year, month);
         return ApiResponse.onSuccess(weeks);
     }
 
-    @Operation(summary = "")
+    @Operation(summary = "주간 리포트 조회", description = "주간 리포트를 찾아 반환한다.")
+    @GetMapping("/reports/{year}/{month}/{week}")
+    public ApiResponse<WeeklyRepoortResponseDTO.weeklyReport> searchWeeklyReport(Long userId, @PathVariable int year, int month, int week) {
+        week
+    }
 }

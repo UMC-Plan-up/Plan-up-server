@@ -29,7 +29,7 @@ public class UserBadgeServiceImpl implements UserBadgeService {
     }
 
     @Override
-    public List<Badge> geBadgeByUser(User user) {
+    public List<Badge> getBadgeByUser(User user) {
         List<UserBadge> userbadges = userBadgeRepository.findByUserOrderByCreatedAtDesc(user);
         return userbadges.stream().map(UserBadge::getBadge).collect(Collectors.toList());
     }

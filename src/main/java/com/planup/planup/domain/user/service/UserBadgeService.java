@@ -14,5 +14,5 @@ public interface UserBadgeService {
 
     List<UserBadge> getTop5Recent(User user);
 
-    List<Badge> geBadgeByUser(User user);
+    List<Badge> getBadgeByUser(User user);
 }
