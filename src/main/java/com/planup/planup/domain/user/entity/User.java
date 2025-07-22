@@ -33,6 +33,10 @@ public class User extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private UserLevel userLevel;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
     @Lob
     private String profileImg;
 
