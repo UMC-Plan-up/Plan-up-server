@@ -37,7 +37,7 @@ public class GoalResponseDto {
         String goalName;
         GoalCategory goalCategory;
         GoalType goalType;
-        VerificationType verificationType;
+
         int frequency;
         String oneDose;
         String currentAmount;
@@ -66,7 +66,7 @@ public class GoalResponseDto {
         int limitFriendCount;
         Status myStatus;
         Boolean isActive;
-        VerificationType verificationType;
+
         int participantCount;
         LocalDateTime createdAt;
     }

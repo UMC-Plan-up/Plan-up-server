@@ -12,6 +12,7 @@ import com.planup.planup.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import com.planup.planup.domain.user.entity.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +24,7 @@ public class GoalServiceImpl implements GoalService{
     private final UserGoalRepository userGoalRepository;
     private final UserRepository userRepository;
 
+    @Transactional
     public GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto createGoalDto){
         Goal goal = GoalConvertor.toGoal(createGoalDto);
         Goal savedGoal = goalRepository.save(goal);
@@ -38,6 +40,7 @@ public class GoalServiceImpl implements GoalService{
         return GoalConvertor.toGoalResultDto(savedGoal);
     }
 
+    @Transactional(readOnly = true)
     public List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));

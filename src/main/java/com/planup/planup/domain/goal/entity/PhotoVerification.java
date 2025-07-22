@@ -17,6 +17,6 @@ public class PhotoVerification extends BaseTimeEntity {
     private String photoDescription;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "community_id")
-    private UserGoal community;
+    @JoinColumn(name = "usergoal_id")
+    private UserGoal userGoal;
 }

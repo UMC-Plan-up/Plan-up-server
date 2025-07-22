@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.sql.Time;
+import java.time.Duration;
 
 @Entity
 @Getter
@@ -17,10 +18,11 @@ public class TimerVerification extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Time goalTime;
-    private Time spentTime;
+    //타입 통일
+    private int goalTime;
+    private Duration spentTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "community_id")
-    private UserGoal community;
+    @JoinColumn(name = "usergoal_id")
+    private UserGoal userGoal;
 }
