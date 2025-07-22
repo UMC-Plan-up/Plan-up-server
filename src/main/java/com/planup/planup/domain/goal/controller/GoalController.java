@@ -12,6 +12,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/goals")
@@ -44,4 +46,31 @@ public class GoalController {
 
         return ApiResponse.onSuccess(result);
     }
+
+    @GetMapping("/my")
+    @Operation(summary = "내 목표 조회 API", description = "사용자의 목표 목록을 조회하는 API입니다.")
+    public ApiResponse<List<GoalResponseDto.MyGoalListDto>> getMyGoals(
+            HttpServletRequest request) {
+
+        String authHeader = request.getHeader("Authorization");
+        Long userId;
+
+        //테스트용, 로그인 구현 완료 후 토큰 발행 시 주석 처리된 코드로 되돌리기
+        //중복 너무 많음 -> 추후 커스텀 어노테이션으로 수정
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            userId = 1L;
+        } else {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            String username = jwtUtil.extractUsername(token);
+            userId = Long.parseLong(username);
+        }
+//        String token = jwtUtil.extractTokenFromHeader(authHeader);
+//        String username = jwtUtil.extractUsername(token);
+//        Long userId = Long.parseLong(username);
+
+        List<GoalResponseDto.MyGoalListDto> result = goalService.getMyGoals(userId);
+
+        return ApiResponse.onSuccess(result);
+    }
 }
+
