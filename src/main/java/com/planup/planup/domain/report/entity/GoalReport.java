@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -22,6 +24,14 @@ public class GoalReport {
     private String goalTitle;
     private String goalCriteria;
 
+    @Embedded
+    private ThreeWeekAhcievementRate threeWeekAhcievementRate;
+
+    @Embedded
+    private DailyAchievementRate daliyAchievementRate;
+
+    @OneToMany(mappedBy = "goalReport", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReportUser> reportUsers;
 
 
     @Enumerated(EnumType.STRING)
