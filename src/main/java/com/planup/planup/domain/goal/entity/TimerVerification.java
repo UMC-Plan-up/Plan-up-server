@@ -18,12 +18,6 @@ public class TimerVerification extends BaseTimeEntity {
     private Long id;
 
     private Time goalTime;
-
-    private int frequency;
-
-    @Enumerated(EnumType.STRING)
-    private GoalPeriod period;
-
     private Time spentTime;
 
     @ManyToOne(fetch = FetchType.LAZY)

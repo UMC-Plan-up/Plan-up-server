@@ -2,6 +2,7 @@ package com.planup.planup.domain.goal.entity;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
+import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,6 +33,10 @@ public class Goal extends BaseTimeEntity {
     @Column(length = 20)
     private GoalType goalType;
 
+    @Enumerated(EnumType.STRING)
+    private GoalPeriod period;
+
+    private int frequency;
     private String oneDose;
     private Date endDate;
 
