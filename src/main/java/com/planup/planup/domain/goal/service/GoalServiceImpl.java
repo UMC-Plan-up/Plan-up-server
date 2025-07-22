@@ -13,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import com.planup.planup.domain.user.entity.User;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class GoalServiceImpl implements GoalService{
@@ -30,9 +33,29 @@ public class GoalServiceImpl implements GoalService{
                 .status(Status.ADMIN)
                 .isActive(true)
                 .build();
-
         userGoalRepository.save(userGoal);
 
         return GoalConvertor.toGoalResultDto(savedGoal);
+    }
+
+    public List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        List<UserGoal> userGoals = userGoalRepository.findByUserIdAndIsActiveTrue(userId);
+
+        List<User> creators = userGoals.stream()
+                .map(userGoal -> {
+                    Long goalId = userGoal.getGoal().getId();
+                    return userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN)
+                            .getUser();
+                })
+                .collect(Collectors.toList());
+
+        List<Integer> participantCounts = userGoals.stream()
+                .map(userGoal -> userGoalRepository.countByGoalIdAndIsActiveTrue(userGoal.getGoal().getId()))
+                .collect(Collectors.toList());
+
+        return GoalConvertor.toMyGoalListDtoList(userGoals, creators, participantCounts);
     }
 }
