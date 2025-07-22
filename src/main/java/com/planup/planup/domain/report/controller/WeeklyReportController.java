@@ -34,4 +34,6 @@ public class WeeklyReportController {
         List<Integer> weeks = weeklyReportService.searchWeeklyReport(userId, year, week);
         return ApiResponse.onSuccess(weeks);
     }
+
+    @Operation(summary = "")
 }
