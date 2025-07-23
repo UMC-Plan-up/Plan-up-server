@@ -87,7 +87,7 @@ public class WeeklyReportResponseConverter {
 
         int mon = 0, tue = 0, wed = 0, thu = 0, fri = 0, sat = 0, sun = 0;
 
-        List<DailyAchievementRate> dailyAchievementRateList = goalReports.stream().map(GoalReport::getDaliyAchievementRate).collect(Collectors.toList());
+        List<DailyAchievementRate> dailyAchievementRateList = goalReports.stream().map(GoalReport::getDailyAchievementRate).collect(Collectors.toList());
 
         for (DailyAchievementRate dailyAchievementRate : dailyAchievementRateList) {
             mon += dailyAchievementRate.getMon();

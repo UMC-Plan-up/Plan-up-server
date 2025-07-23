@@ -18,10 +18,6 @@ public class GoalReport {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
-
     private Long goalId;
 
     private Long achievementRate;
@@ -33,7 +29,7 @@ public class GoalReport {
     private ThreeWeekAhcievementRate threeWeekAhcievementRate;
 
     @Embedded
-    private DailyAchievementRate daliyAchievementRate;
+    private DailyAchievementRate dailyAchievementRate;
 
     @OneToMany(mappedBy = "goalReport", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReportUser> reportUsers;

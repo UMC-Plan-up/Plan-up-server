@@ -27,11 +27,9 @@ import java.util.List;
 public class WeeklyReportServiceImpl implements WeeklyReportService {
 
     private final UserService userService;
-    private final BadgeService badgeService;
     private final UserBadgeService userBadgeService;
     private final NotificationService notificationService;
     private final WeeklyReportRepository weeklyReportRepository;
-    private final GoalReportService goalReportService;
 
 
     @Override

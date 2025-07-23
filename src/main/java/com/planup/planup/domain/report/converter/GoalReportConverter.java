@@ -22,7 +22,7 @@ public class GoalReportConverter {
                 entity.getAchievementRate(),
                 entity.getReportType(),
                 toThreeWeekAchievementRateResponse(entity.getThreeWeekAhcievementRate()),
-                toDailyAchievementRateResponse(entity.getDaliyAchievementRate()),
+                toDailyAchievementRateResponse(entity.getDailyAchievementRate()),
                 toReportUserResponseList(entity.getReportUsers())
         );
     }

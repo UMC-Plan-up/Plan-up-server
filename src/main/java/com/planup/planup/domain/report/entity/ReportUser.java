@@ -1,14 +1,13 @@
 package com.planup.planup.domain.report.entity;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@NoArgsConstructor
 public class ReportUser {
 
     @Id
@@ -18,4 +17,8 @@ public class ReportUser {
     private String userName;
 
     private int rate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "goal_report_id") // FK 이름은 DB 컬럼과 일치시켜야 함
+    private GoalReport goalReport;
 }

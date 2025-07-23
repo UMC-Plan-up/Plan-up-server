@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 
 public class BadgeConverter {
 
-
     public static BadgeResponseDTO.SimpleBadgeDTO toSimpleBadgeDTO(Badge badge) {
         return BadgeResponseDTO.SimpleBadgeDTO.builder()
                 .id(badge.getId())
