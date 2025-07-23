@@ -1,10 +1,9 @@
 package com.planup.planup.domain.report.converter;
 
-import com.planup.planup.domain.report.dto.GoalReportResponseDTO;
 import com.planup.planup.domain.report.entity.DailyAchievementRate;
 import com.planup.planup.domain.report.entity.GoalReport;
 import com.planup.planup.domain.report.entity.ReportUser;
-import com.planup.planup.domain.report.entity.ThreeWeekAhcievementRate;
+import com.planup.planup.domain.report.entity.ThreeWeekAchievementRate;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,7 +26,7 @@ public class GoalReportConverter {
         );
     }
 
-    private static ThreeWeekAchievementRateResponse toThreeWeekAchievementRateResponse(ThreeWeekAhcievementRate rate) {
+    private static ThreeWeekAchievementRateResponse toThreeWeekAchievementRateResponse(ThreeWeekAchievementRate rate) {
         if (rate == null) return null;
 
         return new ThreeWeekAchievementRateResponse(

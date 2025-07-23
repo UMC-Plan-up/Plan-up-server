@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ThreeWeekAhcievementRate {
+public class ThreeWeekAchievementRate {
 
     private int thisWeek;
     private int oneWeekBefore;

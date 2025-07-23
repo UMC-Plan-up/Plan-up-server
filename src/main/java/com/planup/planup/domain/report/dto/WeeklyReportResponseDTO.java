@@ -2,14 +2,13 @@ package com.planup.planup.domain.report.dto;
 
 import com.planup.planup.domain.bedge.dto.BadgeResponseDTO;
 import com.planup.planup.domain.report.entity.DailyAchievementRate;
-import com.planup.planup.domain.report.entity.DailyRecord;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class WeeklyRepoortResponseDTO {
+public class WeeklyReportResponseDTO {
 
     @Builder
     public record achievementResponse(

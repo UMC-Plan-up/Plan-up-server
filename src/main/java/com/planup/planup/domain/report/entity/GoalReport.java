@@ -1,6 +1,5 @@
 package com.planup.planup.domain.report.entity;
 
-import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -26,7 +25,7 @@ public class GoalReport {
     private String goalCriteria;
 
     @Embedded
-    private ThreeWeekAhcievementRate threeWeekAhcievementRate;
+    private ThreeWeekAchievementRate threeWeekAhcievementRate;
 
     @Embedded
     private DailyAchievementRate dailyAchievementRate;
