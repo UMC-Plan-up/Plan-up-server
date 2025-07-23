@@ -70,9 +70,7 @@ public class UserServiceImpl implements UserService {
     public boolean checkPassword(Long userId, String password) {
         User user = getUserbyUserId(userId);
 
-        //TODO: password 인코딩 해야 함
-
-        if (user.getPassword().equals(password)) {
+        if (passwordEncoder.matches(password, user.getPassword())) {
             return true;
         } else {
             return false;
@@ -84,9 +82,8 @@ public class UserServiceImpl implements UserService {
     public void updatePassword(Long userId, String password) {
         User user = getUserbyUserId(userId);
 
-        //TODO: password 인코딩 해야 함
-
-        user.setPassword(user.getPassword());
+        String encodedPassword = passwordEncoder.encode(password);
+        user.setPassword(encodedPassword);
     }
 
     @Override
