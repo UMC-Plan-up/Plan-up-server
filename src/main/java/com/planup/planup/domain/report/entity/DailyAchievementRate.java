@@ -23,6 +23,6 @@ public class DailyAchievementRate {
     private int total;
 
     public void calTotal() {
-        this.total = mon + tue + wed + thu + fri + sat + sun;
+        this.total = (mon + tue + wed + thu + fri + sat + sun) / 7;
     }
 }

@@ -23,6 +23,11 @@ public class UserBadgeServiceImpl implements UserBadgeService {
     }
 
     @Override
+    public List<Badge> getBadgeInPeriod(User user, LocalDateTime from, LocalDateTime to) {
+        return userBadgeRepository.findByUserAndCreatedAtBetween(user, from, to).stream().map(UserBadge::getBadge).collect(Collectors.toList());
+    }
+
+    @Override
     public List<UserBadge> getTop5Recent(User user) {
         List<UserBadge> list = userBadgeRepository.findTop5ByUserOrderByCreatedAtDesc(user);
         return list;

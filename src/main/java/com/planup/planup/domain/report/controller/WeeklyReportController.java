@@ -22,7 +22,7 @@ public class WeeklyReportController {
     @Operation(summary = "목표 달성 기록 조회 페이지 데이터 생성", description = "목표 달성 페이지의 알림, 메시지, 뱃지 내용을 조회")
     @GetMapping("/reports")
     public ApiResponse<WeeklyRepoortResponseDTO.achievementResponse> getAchievementPage(Long userId) {
-        WeeklyRepoortResponseDTO.achievementResponse weeklyReport = weeklyReportService.getWeeklyReport(userId);
+        WeeklyRepoortResponseDTO.achievementResponse weeklyReport = weeklyReportService.getWeeklyGoalAchievements(userId);
         return ApiResponse.onSuccess(weeklyReport);
     }
 
@@ -34,9 +34,6 @@ public class WeeklyReportController {
         return ApiResponse.onSuccess(weeks);
     }
 
-    @Operation(summary = "주간 리포트 조회", description = "주간 리포트를 찾아 반환한다.")
-    @GetMapping("/reports/{year}/{month}/{week}")
-    public ApiResponse<WeeklyRepoortResponseDTO.weeklyReport> searchWeeklyReport(Long userId, @PathVariable int year, int month, int week) {
-        week
-    }
+    @Operation(summary = "각 주차별 종합 리포트 반환", description = "목표 달성 페이지에서 주차별 리포트를 선택하면 해당 주차 리포트를 반환한다.")
+    pulibc ApiResponse<List<>>
 }

@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface WeeklyReportService {
 
-    WeeklyRepoortResponseDTO.achievementResponse getWeeklyReport(Long userId);
+    WeeklyRepoortResponseDTO.achievementResponse getWeeklyGoalAchievements(Long userId);
 
     List<Integer> searchWeeklyReport(Long userId, int year, int week);
 }

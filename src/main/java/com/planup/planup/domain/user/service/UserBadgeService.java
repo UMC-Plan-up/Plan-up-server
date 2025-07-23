@@ -12,6 +12,8 @@ public interface UserBadgeService {
 
     List<UserBadge> getUserBadgeInPeriod(User user, LocalDateTime from, LocalDateTime to);
 
+    List<Badge> getBadgeInPeriod(User user, LocalDateTime from, LocalDateTime to);
+
     List<UserBadge> getTop5Recent(User user);
 
     List<Badge> getBadgeByUser(User user);

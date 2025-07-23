@@ -6,6 +6,7 @@ import com.planup.planup.domain.notification.entity.Notification;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.report.converter.WeeklyReportResponseConverter;
 import com.planup.planup.domain.report.dto.WeeklyRepoortResponseDTO;
+import com.planup.planup.domain.report.entity.GoalReport;
 import com.planup.planup.domain.report.entity.WeeklyReport;
 import com.planup.planup.domain.report.repository.WeeklyReportRepository;
 import com.planup.planup.domain.user.entity.User;
@@ -27,14 +28,15 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
     private final UserBadgeService userBadgeService;
     private final NotificationService notificationService;
     private final WeeklyReportRepository weeklyReportRepository;
+    private final GoalReportService goalReportService;
 
 
     @Override
-    public List<Integer> searchWeeklyReport(Long userId, int year, int week) {
+    public List<Integer> searchWeeklyReport(Long userId, int year, int month) {
         User user = userService.getUserbyUserId(userId);
 
         ArrayList<Integer> weeks = new ArrayList<>();
-        List<WeeklyReport> reports = weeklyReportRepository.findByUserAndYearAndMonth(user, year, week);
+        List<WeeklyReport> reports = weeklyReportRepository.findByUserAndYearAndMonth(user, year, month);
         for (WeeklyReport report : reports) {
             weeks.add(report.getWeekNumber());
         }
@@ -43,7 +45,7 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
     }
 
     @Override
-    public WeeklyRepoortResponseDTO.achievementResponse getWeeklyReport(Long userId) {
+    public WeeklyRepoortResponseDTO.achievementResponse getWeeklyGoalAchievements(Long userId) {
         User user = userService.getUserbyUserId(userId);
 
         List<Notification> notificationList = notificationService.getTop5RecentByUser(userId);
@@ -52,6 +54,14 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
         List<Badge> badges = userBadgeList.stream().map(UserBadge::getBadge).toList();
 
         return WeeklyReportResponseConverter.toAchievementDTO(badges, notificationList);
+
+    }
+
+    public WeeklyRepoortResponseDTO.WeeklyReportResponse getWeeklyReport(Long userId, int year, int month, int week) {
+        User user = userService.getUserbyUserId(userId);
+
+        weeklyReportRepository.findByUserAndYearAndMonthAndWeekNumber(user, year, month, week).orElseThrow(new )
+        List<Badge> badges = userBadgeService.getBadgeInPeriod(weeklyReport.getUser(), weeklyReport.getStartDate(), weeklyReport.getEndDate());
 
     }
 }
