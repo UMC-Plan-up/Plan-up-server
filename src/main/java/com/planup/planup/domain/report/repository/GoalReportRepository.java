@@ -11,5 +11,5 @@ import java.util.Optional;
 @Repository
 public interface GoalReportRepository extends JpaRepository<GoalReport, Long> {
 
-    Optional<GoalReport> findByUserAnd
+    Optional<GoalReport> findById(Long id);
 }

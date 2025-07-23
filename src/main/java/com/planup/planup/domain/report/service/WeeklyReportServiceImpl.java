@@ -16,11 +16,13 @@ import com.planup.planup.domain.user.service.UserBadgeService;
 import com.planup.planup.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class WeeklyReportServiceImpl implements WeeklyReportService {
 

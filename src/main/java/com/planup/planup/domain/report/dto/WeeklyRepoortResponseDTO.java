@@ -90,6 +90,9 @@ public class WeeklyRepoortResponseDTO {
         @Schema(description = "간단한 목표 리포트 DTO")
         public record SimpleGoalReport(
 
+                @Schema(description = "goal Id", example = "1")
+                Long id,
+
                 @Schema(description = "목표 제목", example = "하루 3시간 공부하기")
                 String goalTitle,
 

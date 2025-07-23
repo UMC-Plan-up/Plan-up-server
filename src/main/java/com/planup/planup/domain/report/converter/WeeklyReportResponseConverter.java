@@ -75,6 +75,7 @@ public class WeeklyReportResponseConverter {
 
         return goalReports.stream()
                 .map(gr -> WeeklyRepoortResponseDTO.WeeklyReportResponse.SimpleGoalReport.builder()
+                        .id(gr.getId())
                         .goalTitle(gr.getGoalTitle())
                         .goalCriteria(gr.getGoalCriteria())
                         .achievementRate(gr.getAchievementRate())

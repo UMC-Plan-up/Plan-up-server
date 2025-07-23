@@ -50,8 +50,7 @@ public class GoalReportResponseDTO {
 
             @Schema(description = "2주 전 성취율", example = "65")
             int twoWeekBefore
-    ) {
-    }
+    ) {}
 
     @Schema(description = "요일별 성취율 응답 DTO")
     public record DailyAchievementRateResponse(
