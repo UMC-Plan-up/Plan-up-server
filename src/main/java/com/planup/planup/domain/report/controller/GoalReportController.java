@@ -15,9 +15,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/report")
 public class GoalReportController {
 
-    @Operation(summary = "주간 리포트 조회", description = "주간 리포트를 찾아 반환한다.")
-    @GetMapping("/reports/{year}/{month}/{week}")
-    public ApiResponse<GoalReportResponseDTO.GoalReportResponse> searchWeeklyReport(Long userId, @PathVariable int year, int month, int week) {
 
-    }
 }

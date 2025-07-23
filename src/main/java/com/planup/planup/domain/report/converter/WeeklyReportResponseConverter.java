@@ -48,7 +48,7 @@ public class WeeklyReportResponseConverter {
                 .build();
     }
 
-    public static WeeklyRepoortResponseDTO.WeeklyReportResponse toWeeklyReportResponse(WeeklyReport weeklyReport) {
+    public static WeeklyRepoortResponseDTO.WeeklyReportResponse toWeeklyReportResponse(WeeklyReport weeklyReport, List<Badge> badgeList) {
 
         return WeeklyRepoortResponseDTO.WeeklyReportResponse.builder()
                 .id(weeklyReport.getId())
@@ -60,8 +60,12 @@ public class WeeklyReportResponseConverter {
                 .nextGoalMessage(weeklyReport.getNextGoalMessage() != null ? weeklyReport.getNextGoalMessage().toString() : null)
                 .goalReports(toSimpleGoalReports(weeklyReport.getGoalReports()))
                 .totalDailyAchievement(calculateTotalDailyAchievement(weeklyReport.getGoalReports()))
-                .dailyRecordList(weeklyReport.getDailyRecords().stream().map(WeeklyReportResponseConverter::toDailyRecordDTO).collect(Collectors.toList()))
-                .badgeList(badgesToDTO(weeklyReport))
+                .dailyRecordList(weeklyReport.getDailyRecords().stream()
+                        .map(WeeklyReportResponseConverter::toDailyRecordDTO)
+                        .collect(Collectors.toList()))
+                .badgeList(badgeList.stream()
+                        .map(WeeklyReportResponseConverter::badgeToDTO)
+                        .collect(Collectors.toList()))
                 .build();
 
     }
@@ -119,8 +123,11 @@ public class WeeklyReportResponseConverter {
                 .build();
     }
 
-    private static List<BadgeResponseDTO.SimpleBadgeDTO> badgesToDTO(WeeklyReport weeklyReport) {
-        List<Badge> badges = userBadgeService.getBadgeInPeriod(weeklyReport.getUser(), weeklyReport.getStartDate(), weeklyReport.getEndDate());
+    private static List<BadgeResponseDTO.SimpleBadgeDTO> badgesToDTO(List<Badge> badges) {
         return badges.stream().map(BadgeConverter::toSimpleBadgeDTO).collect(Collectors.toList());
+    }
+
+    private static BadgeResponseDTO.SimpleBadgeDTO badgeToDTO(Badge badge) {
+        return BadgeConverter.toSimpleBadgeDTO(badge);
     }
 }

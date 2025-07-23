@@ -1,12 +1,13 @@
 package com.planup.planup.domain.report.service;
 
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.ReportException;
 import com.planup.planup.domain.bedge.entity.Badge;
 import com.planup.planup.domain.bedge.service.BadgeService;
 import com.planup.planup.domain.notification.entity.Notification;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.report.converter.WeeklyReportResponseConverter;
 import com.planup.planup.domain.report.dto.WeeklyRepoortResponseDTO;
-import com.planup.planup.domain.report.entity.GoalReport;
 import com.planup.planup.domain.report.entity.WeeklyReport;
 import com.planup.planup.domain.report.repository.WeeklyReportRepository;
 import com.planup.planup.domain.user.entity.User;
@@ -57,11 +58,13 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
 
     }
 
+    @Override
     public WeeklyRepoortResponseDTO.WeeklyReportResponse getWeeklyReport(Long userId, int year, int month, int week) {
         User user = userService.getUserbyUserId(userId);
 
-        weeklyReportRepository.findByUserAndYearAndMonthAndWeekNumber(user, year, month, week).orElseThrow(new )
+        WeeklyReport weeklyReport = weeklyReportRepository.findByUserAndYearAndMonthAndWeekNumber(user, year, month, week).orElseThrow(() -> new ReportException(ErrorStatus.NOT_FOUND_WEEKLY_REPORT));
         List<Badge> badges = userBadgeService.getBadgeInPeriod(weeklyReport.getUser(), weeklyReport.getStartDate(), weeklyReport.getEndDate());
 
+        return WeeklyReportResponseConverter.toWeeklyReportResponse(weeklyReport, badges);
     }
 }

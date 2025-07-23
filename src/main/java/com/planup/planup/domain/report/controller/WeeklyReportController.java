@@ -5,14 +5,14 @@ import com.planup.planup.domain.report.dto.WeeklyRepoortResponseDTO;
 import com.planup.planup.domain.report.service.WeeklyReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Controller
+@RestController
 @AllArgsConstructor
 @RequestMapping("/report")
 public class WeeklyReportController {
@@ -35,5 +35,9 @@ public class WeeklyReportController {
     }
 
     @Operation(summary = "각 주차별 종합 리포트 반환", description = "목표 달성 페이지에서 주차별 리포트를 선택하면 해당 주차 리포트를 반환한다.")
-    pulibc ApiResponse<List<>>
+    @GetMapping("/reports/{year}/{month}/{week}")
+    public ApiResponse<WeeklyRepoortResponseDTO.WeeklyReportResponse> getWeeklyReport(Long userId, int year, int month, int week) {
+        WeeklyRepoortResponseDTO.WeeklyReportResponse weeklyReport = weeklyReportService.getWeeklyReport(userId, year, month, week);
+        return ApiResponse.onSuccess(weeklyReport);
+    }
 }

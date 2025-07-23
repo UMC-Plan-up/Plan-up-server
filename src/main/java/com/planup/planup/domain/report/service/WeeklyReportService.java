@@ -9,4 +9,6 @@ public interface WeeklyReportService {
     WeeklyRepoortResponseDTO.achievementResponse getWeeklyGoalAchievements(Long userId);
 
     List<Integer> searchWeeklyReport(Long userId, int year, int week);
+
+    WeeklyRepoortResponseDTO.WeeklyReportResponse getWeeklyReport(Long userId, int year, int month, int week);
 }
