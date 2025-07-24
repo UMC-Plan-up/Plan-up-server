@@ -45,6 +45,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.markAsRead(true);
     }
 
+    //해당 변경을 할 수 있는 권한이 있는지 확인
     private void validateReceiver(Notification notification, Long userId) {
         User user = userService.getUserbyUserId(userId);
         if (!notification.getReceiver().equals(user)) {
