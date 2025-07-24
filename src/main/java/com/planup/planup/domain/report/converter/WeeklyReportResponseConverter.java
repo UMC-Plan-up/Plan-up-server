@@ -15,6 +15,10 @@ import java.util.stream.Collectors;
 
 public class WeeklyReportResponseConverter {
 
+    /**
+     * 목표 달성 페이질 생성을 위한 DTO 생성
+     */
+
     public static WeeklyReportResponseDTO.achievementResponse toAchievementDTO(List<Badge> badges, List<Notification> notifications) {
         List<WeeklyReportResponseDTO.badgeDTO> badgeDTOS = toBadgeDTOs(badges);
         List<WeeklyReportResponseDTO.NotificationDTO> notificationDTOS = toNotificationDTOs(notifications);
@@ -48,6 +52,9 @@ public class WeeklyReportResponseConverter {
                 .build();
     }
 
+    /**
+     * weekly 리포트를 찾아서 반환하는 DTO를 위한 컨버터
+     */
     public static WeeklyReportResponseDTO.WeeklyReportResponse toWeeklyReportResponse(WeeklyReport weeklyReport, List<Badge> badgeList) {
 
         return WeeklyReportResponseDTO.WeeklyReportResponse.builder()
