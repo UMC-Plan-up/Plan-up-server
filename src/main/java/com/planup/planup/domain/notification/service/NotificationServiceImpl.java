@@ -3,6 +3,8 @@ package com.planup.planup.domain.notification.service;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.NotificationError;
 import com.planup.planup.domain.notification.entity.Notification;
+import com.planup.planup.domain.notification.entity.NotificationType;
+import com.planup.planup.domain.notification.entity.TargetType;
 import com.planup.planup.domain.notification.repository.NotificationRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
@@ -55,9 +57,29 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
+    //유저에 따라 가장 최근의 5개 알림을 반환한다. (읽음 여부와 상관없이)
     @Override
     public List<Notification> getTop5RecentByUser(Long userId) {
         User receiver = userService.getUserbyUserId(userId);
         return notificationRepository.findTop3ByReceiverOrderByCreatedAtDesc(receiver);
     }
+
+    //새로운 알림을 만든다.
+    @Override
+    public Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId) {
+
+        User receiver = userService.getUserbyUserId(receiverId);
+        User sender = userService.getUserbyUserId(senderId);
+
+        return Notification.builder()
+                .receiver(receiver)
+                .sender(sender)
+                .type(notificationType)
+                .targetType(targetType)
+                .targetId(targetId)
+                .build();
+    }
+
+//    @Override
+//    public String createNotificationMessage()
 }
