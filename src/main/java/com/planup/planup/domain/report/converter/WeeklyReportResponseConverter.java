@@ -4,6 +4,7 @@ import com.planup.planup.domain.bedge.converter.BadgeConverter;
 import com.planup.planup.domain.bedge.dto.BadgeResponseDTO;
 import com.planup.planup.domain.bedge.entity.Badge;
 import com.planup.planup.domain.notification.entity.Notification;
+import com.planup.planup.domain.notification.message.NotificationMessageProvider;
 import com.planup.planup.domain.report.dto.WeeklyReportResponseDTO;
 import com.planup.planup.domain.report.entity.DailyAchievementRate;
 import com.planup.planup.domain.report.entity.DailyRecord;
@@ -47,7 +48,7 @@ public class WeeklyReportResponseConverter {
 
     public static WeeklyReportResponseDTO.NotificationDTO toNotificationDTO(Notification notification) {
         return WeeklyReportResponseDTO.NotificationDTO.builder()
-                .notificationText(notification.getContent())
+                .notificationText(NotificationMessageProvider.generate(notification.getType(), notification.getSender().getNickname(), notification.getReceiver().getNickname()))
                 .id(notification.getId())
                 .build();
     }

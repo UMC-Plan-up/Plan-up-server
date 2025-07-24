@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class NotificationMessageProvider {
 
-    public String generate(NotificationType type, String senderName, String receiverName) {
+    public static String generate(NotificationType type, String senderName, String receiverName) {
         return switch (type) {
             case CHALLENGE_REQUEST_SENT ->
                     String.format("[%s]님에게 챌린지 참여 요청을 보냈어요.", receiverName);

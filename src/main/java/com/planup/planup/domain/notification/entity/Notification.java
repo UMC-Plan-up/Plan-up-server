@@ -27,8 +27,6 @@ public class Notification extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private NotificationType type;
 
-    private String content;
-
     @Enumerated(EnumType.STRING)
     private TargetType targetType; // POST, COMMENT, USER 등
 
@@ -36,12 +34,11 @@ public class Notification extends BaseTimeEntity {
 
     private boolean isRead;
 
-    public static Notification create(User sender, User receiver, NotificationType type, String content, TargetType targetType, Long targetId) {
+    public static Notification create(User sender, User receiver, NotificationType type, TargetType targetType, Long targetId) {
         Notification n = new Notification();
         n.sender = sender;
         n.receiver = receiver;
         n.type = type;
-        n.content = content;
         n.targetType = targetType;
         n.targetId = targetId;
         n.isRead = false;
