@@ -24,13 +24,15 @@ public class NotificationServiceImpl implements NotificationService {
     //유저의 읽지 않은 알림을 시간 순 대로 가져온다
     @Override
     public List<Notification> getUnreadNotifications(Long receiverId) {
-        return notificationRepository.findByReceiverIdAndIsReadFalseOrderByCreatedAtDesc(receiverId);
+        User receiver = userService.getUserbyUserId(receiverId);
+        return notificationRepository.findByReceiverAndIsReadFalseOrderByCreatedAtDesc(receiver);
     }
 
     //유저의 모든 알림을 조회한다. (시간 순대로)
     @Override
     public List<Notification> getAllNotifications(Long receiverId) {
-        return notificationRepository.findByReceiverIdOrderByCreatedAtDesc(receiverId);
+        User receiver = userService.getUserbyUserId(receiverId);
+        return notificationRepository.findByReceiverIdOrderByCreatedAtDesc(receiver);
     }
 
     //유저가 읽었음으로 변경한다.
@@ -51,5 +53,11 @@ public class NotificationServiceImpl implements NotificationService {
         if (!notification.getReceiver().equals(user)) {
             throw new NotificationError(ErrorStatus.UNAUTHORIZED_NOTIFICATION_ACCESS);
         }
+    }
+
+    @Override
+    public List<Notification> getTop5RecentByUser(Long userId) {
+        User receiver = userService.getUserbyUserId(userId);
+        return notificationRepository.findTop3ByReceiverOrderByCreatedAtDesc(receiver);
     }
 }
