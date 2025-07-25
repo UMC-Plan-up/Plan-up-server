@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
 
@@ -25,6 +24,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     //유저의 읽지 않은 알림을 시간 순 대로 가져온다
     @Override
+    @Transactional(readOnly = true)
     public List<Notification> getUnreadNotifications(Long receiverId) {
         User receiver = userService.getUserbyUserId(receiverId);
         return notificationRepository.findByReceiverAndIsReadFalseOrderByCreatedAtDesc(receiver);
@@ -32,6 +32,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     //유저의 모든 알림을 조회한다. (시간 순대로)
     @Override
+    @Transactional(readOnly = true)
     public List<Notification> getAllNotifications(Long receiverId) {
         User receiver = userService.getUserbyUserId(receiverId);
         return notificationRepository.findByReceiverIdOrderByCreatedAtDesc(receiver);
@@ -59,6 +60,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     //유저에 따라 가장 최근의 5개 알림을 반환한다. (읽음 여부와 상관없이)
     @Override
+    @Transactional(readOnly = true)
     public List<Notification> getTop5RecentByUser(Long userId) {
         User receiver = userService.getUserbyUserId(userId);
         return notificationRepository.findTop3ByReceiverOrderByCreatedAtDesc(receiver);
@@ -66,6 +68,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     //새로운 알림을 만든다.
     @Override
+    @Transactional
     public Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId) {
 
         User receiver = userService.getUserbyUserId(receiverId);
