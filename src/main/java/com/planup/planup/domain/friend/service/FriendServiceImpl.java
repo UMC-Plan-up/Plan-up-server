@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.planup.planup.domain.friend.converter.FriendConverter;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @Service
 @AllArgsConstructor
@@ -151,10 +152,18 @@ public class FriendServiceImpl implements FriendService {
     @Override
     public boolean sendFriendRequest(Long userId, Long friendId) {
         // 이미 친구 관계가 있는지, 이미 신청했는지 체크(중복 방지)
-        List<Friend> existing = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
+        List<Friend> existingAccepted = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
             FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
 
-        boolean alreadyRequested = existing.stream()
+        List<Friend> existingRequested = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
+            FriendStatus.REQUESTED, userId, FriendStatus.REQUESTED, userId);
+
+        // 두 리스트 합치기
+        List<Friend> allExisting = new ArrayList<>();
+        allExisting.addAll(existingAccepted);
+        allExisting.addAll(existingRequested);
+
+        boolean alreadyRequested = allExisting.stream()
             .anyMatch(f -> (f.getUser().getId().equals(friendId) || f.getFriend().getId().equals(friendId)));
 
         if (alreadyRequested) {
