@@ -24,4 +24,6 @@ public interface FriendService {
 
     // 친구 신청 수락
     boolean acceptFriendRequest(Long userId, Long friendId);
+
+    boolean sendFriendRequest(Long userId, Long friendId);
 }
