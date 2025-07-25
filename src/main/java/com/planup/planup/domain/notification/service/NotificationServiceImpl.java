@@ -71,12 +71,14 @@ public class NotificationServiceImpl implements NotificationService {
         User receiver = userService.getUserbyUserId(receiverId);
         User sender = userService.getUserbyUserId(senderId);
 
-        return Notification.builder()
+        Notification notification = Notification.builder()
                 .receiver(receiver)
                 .sender(sender)
                 .type(notificationType)
                 .targetType(targetType)
                 .targetId(targetId)
                 .build();
+
+        return notificationRepository.save(notification);
     }
 }

@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class WeeklyReportResponseConverter {
 
     /**
-     * 목표 달성 페이질 생성을 위한 DTO 생성
+     * 목표 달성 페이지 생성을 위한 DTO 생성
      */
 
     public static WeeklyReportResponseDTO.achievementResponse toAchievementDTO(List<Badge> badges, List<Notification> notifications) {
