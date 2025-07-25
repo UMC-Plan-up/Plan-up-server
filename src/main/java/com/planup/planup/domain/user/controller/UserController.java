@@ -1,16 +1,17 @@
 package com.planup.planup.domain.user.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
+import com.planup.planup.domain.user.dto.LoginRequestDTO;
+import com.planup.planup.domain.user.dto.LoginResponseDTO;
+import com.planup.planup.domain.user.dto.SignupRequestDTO;
+import com.planup.planup.domain.user.dto.SignupResponseDTO;
 import com.planup.planup.domain.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
 @AllArgsConstructor
 public class UserController {
 
@@ -49,5 +50,26 @@ public class UserController {
     public ApiResponse<Boolean> updatePassword(Long userId, String password) {
         userService.updatePassword(userId, password);
         return ApiResponse.onSuccess(true);
+    }
+
+    @Operation(summary = "회원가입", description = "이메일/비밀번호로 새 계정을 생성합니다")
+    @PostMapping("/users/signup")
+    public ApiResponse<SignupResponseDTO> signup(@Valid @RequestBody SignupRequestDTO request) {
+        SignupResponseDTO result = userService.signup(request);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "로그인", description = "이메일/비밀번호로 로그인하여 JWT 토큰을 발급받습니다")
+    @PostMapping("/users/login")
+    public ApiResponse<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
+        LoginResponseDTO result = userService.login(request);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "로그아웃", description = "현재 세션을 종료합니다")
+    @PostMapping("/users/logout")
+    public ApiResponse<String> logout() {
+        // 간단한 로그아웃 구현 (JWT는 클라이언트에서 삭제)
+        return ApiResponse.onSuccess("로그아웃이 완료되었습니다");
     }
 }

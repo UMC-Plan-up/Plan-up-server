@@ -90,7 +90,7 @@ public class JwtUtil {
                 .subject(subject)  //
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)//위조 방지를 위한 비밀키로 서명 생성
+                .signWith(getSigningKey())//위조 방지를 위한 비밀키로 서명 생성
                 .compact();
     }
 
