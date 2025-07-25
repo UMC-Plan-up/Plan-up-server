@@ -32,7 +32,7 @@ public class FriendServiceImpl implements FriendService {
                 .collect(Collectors.toList());
 
 
-        return null;
+        return List.of(FriendConverter.toFriendSummaryList(list));
     }
 
     @Override
