@@ -8,6 +8,7 @@ import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.planup.planup.domain.friend.converter.FriendConverter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ public class FriendServiceImpl implements FriendService {
     private final UserService userService;
 
     @Override
+    @Transactional(readOnly = true) 
     public List<FriendResponseDTO.FriendSummaryList> getFriendSummeryList(Long userId) {
 
         User user = userService.getUserbyUserId(userId);
@@ -37,6 +39,7 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
+    @Transactional
     public boolean deleteFriend(Long userId, Long friendId) {
     // 1. userId와 friendId로 Friend 엔티티를 찾는다.
     // 2. 해당 Friend 엔티티를 삭제한다.
@@ -58,6 +61,7 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
+    @Transactional
     public boolean blockFriend(Long userId, Long friendId) {
         // 1. userId와 friendId로 Friend 엔티티를 찾는다.
         List<Friend> friends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
@@ -77,6 +81,7 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
+    @Transactional
     public boolean reportFriend(Long userId, Long friendId, String reason, boolean block) {
         // 1. Friend 엔티티 찾기
         List<Friend> friends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
@@ -102,6 +107,7 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<FriendResponseDTO.FriendInfoSummary> getRequestedFriends(Long userId) {
         List<Friend> friendRequests = friendRepository.findByStatusAndFriendIdOrderByCreatedAtDesc(
             FriendStatus.REQUESTED, userId);
@@ -113,6 +119,7 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
+    @Transactional
     public boolean rejectFriendRequest(Long userId, Long friendId) {
         // 나(userId)에게 친구 신청한 친구(friendId)를 찾음
         List<Friend> requests = friendRepository.findByStatusAndFriendIdOrderByCreatedAtDesc(
@@ -131,6 +138,7 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
+    @Transactional
     public boolean acceptFriendRequest(Long userId, Long friendId) {
         // 나(userId)에게 친구 신청한 친구(friendId)를 찾음
         List<Friend> requests = friendRepository.findByStatusAndFriendIdOrderByCreatedAtDesc(
@@ -150,6 +158,7 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
+    @Transactional
     public boolean sendFriendRequest(Long userId, Long friendId) {
         // 이미 친구 관계가 있는지, 이미 신청했는지 체크(중복 방지)
         List<Friend> existingAccepted = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
