@@ -79,7 +79,4 @@ public class NotificationServiceImpl implements NotificationService {
                 .targetId(targetId)
                 .build();
     }
-
-//    @Override
-//    public String createNotificationMessage()
 }
