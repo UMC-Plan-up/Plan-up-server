@@ -147,4 +147,31 @@ public class FriendServiceImpl implements FriendService {
         }
         return false;
     }
+
+    @Override
+    public boolean sendFriendRequest(Long userId, Long friendId) {
+        // 이미 친구 관계가 있는지, 이미 신청했는지 체크(중복 방지)
+        List<Friend> existing = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
+            FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
+
+        boolean alreadyRequested = existing.stream()
+            .anyMatch(f -> (f.getUser().getId().equals(friendId) || f.getFriend().getId().equals(friendId)));
+
+        if (alreadyRequested) {
+            return false; // 이미 친구거나 신청함
+        }
+
+        // 유저 엔티티 조회
+        User user = userService.getUserbyUserId(userId);
+        User friend = userService.getUserbyUserId(friendId);
+
+        // Friend 엔티티 생성
+        Friend friendRequest = new Friend();
+        friendRequest.setUser(user);
+        friendRequest.setFriend(friend);
+        friendRequest.setStatus(FriendStatus.REQUESTED);
+
+        friendRepository.save(friendRequest);
+        return true;
+    }
 }

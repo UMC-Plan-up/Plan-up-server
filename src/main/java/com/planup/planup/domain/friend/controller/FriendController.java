@@ -91,4 +91,13 @@ public class FriendController {
         boolean result = friendService.acceptFriendRequest(userId, friendId);
         return ApiResponse.onSuccess(result);
     }
+
+    @Operation(summary = "친구 신청 보내기", description = "타 유저에게 친구 신청을 보냅니다")
+    @PostMapping("/request")
+    public ApiResponse<Boolean> sendFriendRequest(
+            @RequestParam Long userId,
+            @RequestParam Long friendId) {
+        boolean result = friendService.sendFriendRequest(userId, friendId);
+        return ApiResponse.onSuccess(result);
+    }
 }
