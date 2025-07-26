@@ -45,4 +45,18 @@ public class UserGoal extends BaseTimeEntity {
             throw new GeneralException(ErrorStatus._NOT_ALLOWED);
         }
     }
+
+    public void setUser(User user) {
+        this.user = user;
+        if (!user.getUserGoals().contains(this)) {
+            user.getUserGoals().add(this);
+        }
+    }
+
+    public void setGoal(Goal goal) {
+        this.goal = goal;
+        if (!goal.getUserGoals().contains(this)) {
+            goal.getUserGoals().add(this);
+        }
+    }
 }

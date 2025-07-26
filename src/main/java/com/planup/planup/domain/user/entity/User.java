@@ -2,6 +2,7 @@ package com.planup.planup.domain.user.entity;
 
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
+import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
 import com.planup.planup.domain.report.entity.GoalReport;
 import com.planup.planup.domain.report.entity.WeeklyReport;
@@ -65,6 +66,9 @@ public class User extends BaseTimeEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserBadge> userBadges = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserGoal> userGoals = new ArrayList<>();
+
     public void setNickname(String nickname) {
         this.nickname = nickname;
     }
@@ -79,5 +83,10 @@ public class User extends BaseTimeEntity {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void addUserGoal(UserGoal userGoal) {
+        userGoals.add(userGoal);
+        userGoal.setUser(this);
     }
 }

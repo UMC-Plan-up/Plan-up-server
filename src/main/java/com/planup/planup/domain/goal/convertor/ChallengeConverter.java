@@ -20,7 +20,6 @@ public class ChallengeConverter {
                 .limitFriendCount(1)
                 .status(dto.status())
                 .penalty(dto.penalty())
-                .rePenalty(dto.rePenalty())
                 .timePerPeriod(dto.photoChallenge().timePerPeriod())
                 .frequency(dto.photoChallenge().frequency())
                 .build();
@@ -37,7 +36,6 @@ public class ChallengeConverter {
                 .limitFriendCount(1)
                 .status(dto.status())
                 .penalty(dto.penalty())
-                .rePenalty(dto.rePenalty())
                 .targetTime(dto.timeChallenge().getTargetTime())
                 .build();
     }
@@ -45,6 +43,7 @@ public class ChallengeConverter {
     public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoPhotoVer(PhotoChallenge photoChallenge) {
         return ChallengeResponseDTO.ChallengeResponseInfo.builder()
                 .id(photoChallenge.getId())
+                .name(photoChallenge.getU)
                 .goalName(photoChallenge.getGoalName())
                 .goalType(photoChallenge.getGoalType())
                 .goalAmount(photoChallenge.getGoalAmount())

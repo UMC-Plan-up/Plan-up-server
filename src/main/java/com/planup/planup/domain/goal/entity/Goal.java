@@ -3,6 +3,7 @@ package com.planup.planup.domain.goal.entity;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
+import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -45,4 +46,13 @@ public class Goal extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL)
     private List<Comment> commentList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserGoal> userGoals = new ArrayList<>();
+
+    public void addUserGoal(UserGoal userGoal) {
+        userGoals.add(userGoal);
+        userGoal.setGoal(this);
+    }
+
 }

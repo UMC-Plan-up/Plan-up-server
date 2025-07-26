@@ -17,6 +17,9 @@ public class ChallengeResponseDTO {
             @Schema(description = "id", example = "1")
             Long id,
 
+            @Schema(description = "요청한 사람 이름", example = "홍길도")
+            String name,
+
             @Schema(description = "목표 이름", example = "매일 물 2L 마시기")
             String goalName,
 

@@ -47,10 +47,6 @@ public class ChallengeRequestDTO {
             @Schema(description = "챌린지 실패 시 벌칙", example = "물 4L 마시기")
             String penalty,
 
-            @NotBlank
-            @Schema(description = "챌린지 재도전 시 벌칙", example = "3일간 운동 금지")
-            String rePenalty,
-
             @Size(min = 1)
             @Schema(description = "같이 할 친구 선택", example = "1")
             List<Long> friendIdList,

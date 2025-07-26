@@ -101,6 +101,7 @@ public class ChallengeServiceImpl implements ChallengeService{
 
     public ChallengeResponseDTO.ChallengeResponseInfo getChallengeInfo(Long challengeId) {
         Goal goal = goalService.getGoalById(challengeId);
+
         if (goal.getGoalType() == GoalType.CHALLENGE_PHOTO) {
             if (goal instanceof PhotoChallenge) {
                 PhotoChallenge photoChallenge = (PhotoChallenge) goal;
