@@ -13,6 +13,9 @@ import com.planup.planup.domain.friend.converter.FriendConverter;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.UserException;
+import java.util.Collections;
 
 @Service
 @AllArgsConstructor
@@ -57,7 +60,8 @@ public class FriendServiceImpl implements FriendService {
             friendRepository.delete(friend);
             return true;
         }
-        return false;
+        // 친구를 찾지 못했을 때
+        throw new UserException(ErrorStatus._BAD_REQUEST);
     }
 
     @Override
@@ -77,7 +81,8 @@ public class FriendServiceImpl implements FriendService {
             friendRepository.save(friend);          // 저장
             return true;
         }
-        return false;
+        // 친구를 찾지 못했을 때
+        throw new UserException(ErrorStatus._BAD_REQUEST);
     }
 
     @Override
@@ -103,7 +108,8 @@ public class FriendServiceImpl implements FriendService {
             }
             return true;
         }
-        return false;
+        // 친구를 찾지 못했을 때
+        throw new UserException(ErrorStatus._BAD_REQUEST);
     }
 
     @Override
@@ -113,6 +119,11 @@ public class FriendServiceImpl implements FriendService {
             FriendStatus.REQUESTED, userId);
 
         // 신청한 친구(User) 정보 추출
+        // 친구 신청이 없을 때 빈 리스트 반환
+        if (friendRequests.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         return friendRequests.stream()
                 .map(f -> FriendConverter.toFriendSummary(f.getUser()))
                 .collect(Collectors.toList());
@@ -134,7 +145,8 @@ public class FriendServiceImpl implements FriendService {
             friendRepository.delete(friend); // 엔티티 삭제
             return true;
         }
-        return false;
+        // 친구 신청을 찾지 못했을 때
+        throw new UserException(ErrorStatus._BAD_REQUEST);
     }
 
     @Override
@@ -154,7 +166,8 @@ public class FriendServiceImpl implements FriendService {
             friendRepository.save(friend);
             return true;
         }
-        return false;
+        // 친구 신청을 찾지 못했을 때
+        throw new UserException(ErrorStatus._BAD_REQUEST);
     }
 
     @Override
