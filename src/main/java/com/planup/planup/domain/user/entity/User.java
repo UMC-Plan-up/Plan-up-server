@@ -3,8 +3,11 @@ package com.planup.planup.domain.user.entity;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
+import com.planup.planup.domain.report.entity.GoalReport;
+import com.planup.planup.domain.report.entity.WeeklyReport;
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +33,10 @@ public class User extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private UserLevel userLevel;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
     @Lob
     private String profileImg;
 
@@ -49,6 +56,10 @@ public class User extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "user")
     private List<Friend> friendList;
+
+
+    @OneToMany(mappedBy = "user")
+    private List<WeeklyReport> weeklyReportList;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserBadge> userBadges = new ArrayList<>();

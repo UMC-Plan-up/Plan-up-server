@@ -30,7 +30,7 @@ public class GoalServiceImpl implements GoalService{
         Goal savedGoal = goalRepository.save(goal);
 
         UserGoal userGoal = UserGoal.builder()
-                .user(User.builder().id(userId).build())
+                 .user(User.builder().id(userId).build())
                 .goal(savedGoal)
                 .status(Status.ADMIN)
                 .isActive(true)

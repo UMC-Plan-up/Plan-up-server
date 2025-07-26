@@ -1,5 +1,6 @@
 package com.planup.planup.domain.user.service;
 
+import com.planup.planup.domain.bedge.entity.Badge;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserBadge;
 
@@ -10,4 +11,10 @@ public interface UserBadgeService {
 
 
     List<UserBadge> getUserBadgeInPeriod(User user, LocalDateTime from, LocalDateTime to);
+
+    List<Badge> getBadgeInPeriod(User user, LocalDateTime from, LocalDateTime to);
+
+    List<UserBadge> getTop5Recent(User user);
+
+    List<Badge> getBadgeByUser(User user);
 }
