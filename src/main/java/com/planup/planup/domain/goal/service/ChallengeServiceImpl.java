@@ -22,6 +22,9 @@ import com.planup.planup.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class ChallengeServiceImpl implements ChallengeService{
@@ -37,7 +40,7 @@ public class ChallengeServiceImpl implements ChallengeService{
     public Challenge createChallenge(Long userId, ChallengeRequestDTO.create dto) {
 
         User user = userService.getUserbyUserId(userId);
-        User friend = userService.getUserbyUserId(dto.friendId());
+        List<User> friendList = dto.friendIdList().stream().map(userService::getUserbyUserId).toList();
 
         //challenge type이 아닌 경우 예외 처리
         if (dto.goalType() == GoalType.FRIEND || dto.goalType() == GoalType.COMMUNITY) {
@@ -51,7 +54,7 @@ public class ChallengeServiceImpl implements ChallengeService{
             }
 
             TimeChallenge timeChallenge = ChallengeConverter.toTimeChallenge(dto);
-            createUserGoal(user, friend, timeChallenge, VerificationType.TIMER);
+            createUserGoal(user, friendList, timeChallenge, VerificationType.TIMER);
 
             return timeChallengeRepository.save(timeChallenge);
         }
@@ -63,7 +66,7 @@ public class ChallengeServiceImpl implements ChallengeService{
             }
 
             PhotoChallenge photoChallenge = ChallengeConverter.toPhotoChallenge(dto);
-            createUserGoal(user, friend, photoChallenge, VerificationType.PHOTO);
+            createUserGoal(user, friendList, photoChallenge, VerificationType.PHOTO);
 
             return photoChallengeRepository.save(photoChallenge);
         }
@@ -71,7 +74,7 @@ public class ChallengeServiceImpl implements ChallengeService{
         throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_TYPE);
     }
 
-    private void createUserGoal(User user, User friend, Goal timeChallenge, VerificationType type) {
+    private void createUserGoal(User user, List<User> friends, Goal timeChallenge, VerificationType type) {
         //TODO: 별도의 서비스 로직으로 이전
         UserGoal userGoalAdmin = UserGoal.builder()
                 .user(user)
@@ -83,15 +86,17 @@ public class ChallengeServiceImpl implements ChallengeService{
 
         userGoalRepository.save(userGoalAdmin);
 
-        UserGoal userGoalMember = UserGoal.builder()
-                .user(friend)
-                .isActive(false)
-                .verificationType(type)
-                .status(Status.MEMBER)
-                .goal(timeChallenge)
-                .build();
+        for (User friend : friends) {
+            UserGoal userGoalMember = UserGoal.builder()
+                    .user(friend)
+                    .isActive(false)
+                    .verificationType(type)
+                    .status(Status.MEMBER)
+                    .goal(timeChallenge)
+                    .build();
 
-        userGoalRepository.save(userGoalMember);
+            userGoalRepository.save(userGoalMember);
+        }
     }
 
     public ChallengeResponseDTO.ChallengeResponseInfo getChallengeInfo(Long challengeId) {
@@ -123,6 +128,7 @@ public class ChallengeServiceImpl implements ChallengeService{
         } else throw new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE);
     }
 
+    //챌린지 요청을 거절한다
     @Override
     public void rejectChallengeRequest(Long userId, Long challengeId) {
         User user = userService.getUserbyUserId(userId);
@@ -133,6 +139,7 @@ public class ChallengeServiceImpl implements ChallengeService{
         challenge.setChallengeStatus(ChallengeStatus.REJECTED);
     }
 
+    //챌린지 요청을 수락한다.
     @Override
     public void acceptChallengeRequest(Long userId, Long challengeId) {
         User user = userService.getUserbyUserId(userId);
