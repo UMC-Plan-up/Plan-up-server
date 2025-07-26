@@ -3,6 +3,7 @@ package com.planup.planup.domain.goal.controller;
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
 import com.planup.planup.domain.goal.service.ChallengeService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,8 @@ public class ChallengeController {
     private final ChallengeService challengeService;
 
     @PostMapping("/create")
-    public ApiResponse<null> craeteChallenge (Long userId, @RequestBody ChallengeRequestDTO.create requestDTO) {
-        challengeService.create()
+    public ApiResponse<Void> craeteChallenge (Long userId, @RequestBody @Valid ChallengeRequestDTO.create createDTO) {
+        challengeService.createChallenge(userId, createDTO);
+        return ApiResponse.onSuccess(null);
     }
 }

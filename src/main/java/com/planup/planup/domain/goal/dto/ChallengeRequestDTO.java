@@ -4,6 +4,7 @@ import com.planup.planup.domain.goal.entity.Enum.ChallengeStatus;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -18,7 +19,7 @@ public class ChallengeRequestDTO {
 
     @Builder
     @Schema(description = "챌린지 생성 요청의 공통 필드")
-    public record crete(
+    public record create(
             @NotBlank
             @Schema(description = "목표 이름", example = "매일 물 2L 마시기")
             String goalName,
@@ -65,7 +66,11 @@ public class ChallengeRequestDTO {
 
             @NotBlank
             @Schema(description = "챌린지 재도전 시 벌칙", example = "3일간 운동 금지")
-            String rePenalty
+            String rePenalty,
+
+            //선택 필듣
+            @Valid createPhoto photoChallenge,
+            @Valid createTime timeChallenge
 
     ) {}
 
