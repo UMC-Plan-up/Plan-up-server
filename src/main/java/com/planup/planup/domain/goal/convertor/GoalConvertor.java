@@ -4,6 +4,10 @@ import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Goal;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+
 public class GoalConvertor {
 
     //목표 생성 Dto를 받아 goal 엔터티에 저장하도록 변환
@@ -14,7 +18,7 @@ public class GoalConvertor {
                 .goalCategory(createGoalDto.getGoalCategory())
                 .goalType(createGoalDto.getGoalType())
                 .oneDose(createGoalDto.getOneDose())
-                .endDate(createGoalDto.getEndDate())
+                .endDate(convertToLocalDateTime(createGoalDto.getEndDate()))
                 .isChallenge(createGoalDto.getIsChallenge())
                 .limitFriendCount(createGoalDto.getLimitFriendCount())
                 .build();
@@ -28,9 +32,17 @@ public class GoalConvertor {
                 .goalCategory(goal.getGoalCategory())
                 .goalType(goal.getGoalType())
                 .oneDose(goal.getOneDose())
-                .endDate(goal.getEndDate())
+                .endDate(convertToDate(goal.getEndDate()))
                 .isChallenge(goal.getIsChallenge())
                 .limitFriendCount(goal.getLimitFriendCount())
                 .build();
+    }
+
+    public static LocalDateTime convertToLocalDateTime(Date date) {
+        return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+    }
+
+    public static Date convertToDate(LocalDateTime dateTime) {
+        return Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 }

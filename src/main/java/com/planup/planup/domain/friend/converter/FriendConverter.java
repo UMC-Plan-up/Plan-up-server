@@ -21,7 +21,18 @@ public class FriendConverter {
 
     }
 
-    public static FriendResponseDTO.FriendSummaryList toFriendSummaryList(List<User> friends) {
+    public static FriendResponseDTO.FriendInfoInChallengeCreate toFriendInfoChallenge(User friend) {
+        return FriendResponseDTO.FriendInfoInChallengeCreate
+                .builder()
+                .id(friend.getId())
+                .nickname(friend.getNickname())
+                //TODO: GoalCount 조회 메서드 추가
+                .goalCnt(0)
+                .build();
+
+    }
+
+        public static FriendResponseDTO.FriendSummaryList toFriendSummaryList(List<User> friends) {
         List<FriendResponseDTO.FriendInfoSummary> summeryList = friends.stream().map(FriendConverter::toFriendSummary).collect(Collectors.toList());
         int size = summeryList.size();
 

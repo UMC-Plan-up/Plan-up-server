@@ -1,6 +1,7 @@
 package com.planup.planup.domain.friend.service;
 
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,4 +28,7 @@ public interface FriendService {
 
     // 친구 신청
     boolean sendFriendRequest(Long userId, Long friendId);
+
+    @Transactional(readOnly = true)
+    List<FriendResponseDTO.FriendInfoInChallengeCreate> getFrinedListInChallenge(Long userId);
 }

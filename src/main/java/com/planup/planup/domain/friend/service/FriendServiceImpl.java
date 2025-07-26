@@ -205,4 +205,15 @@ public class FriendServiceImpl implements FriendService {
         friendRepository.save(friendRequest);
         return true;
     }
+
+    //챌린지에서 사용할 friend dto를 만들어 반환한다.
+    @Override
+    @Transactional(readOnly = true)
+    public List<FriendResponseDTO.FriendInfoInChallengeCreate> getFrinedListInChallenge(Long userId) {
+        List<Friend> friendList = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
+        List<FriendResponseDTO.FriendInfoInChallengeCreate> dtoList = friendList.stream()
+                .map(friend -> FriendConverter.toFriendInfoChallenge(friend.getFriend())) // 또는 getUser()
+                .collect(Collectors.toList());
+        return dtoList;
+    }
 }
