@@ -5,6 +5,7 @@ import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.Status;
+import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.PhotoVerification;
 import com.planup.planup.domain.goal.entity.TimerVerification;
@@ -121,6 +122,48 @@ public class GoalServiceImpl implements GoalService{
         List<Comment> commentList = commentService.getComments(goalId);
 
         return GoalConvertor.toMyGoalDetailsDto(userGoal, todayTime, commentList);
+    }
+
+    //친구 목표 수정
+    @Transactional(readOnly = true)
+    public GoalRequestDto.CreateGoalDto getGoalInfoToUpdate(Long goalId, Long userId) {
+        Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
+
+        Integer goalTime = null;
+        if (goal.getVerificationType() == VerificationType.TIMER) {
+            UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+            if (userGoal != null && !userGoal.getTimerVerifications().isEmpty()) {
+                goalTime = userGoal.getTimerVerifications().get(0).getGoalTime();
+            }
+        }
+
+        return GoalConvertor.toUpdateGoalDto(goal, goalTime);
+    }
+
+    @Transactional
+    public void updateGoal(Long goalId, Long userId, GoalRequestDto.CreateGoalDto dto) {
+        Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
+
+        goal.setGoalName(dto.getGoalName());
+        goal.setGoalAmount(dto.getGoalAmount());
+        goal.setGoalCategory(dto.getGoalCategory());
+        goal.setGoalType(dto.getGoalType());
+        goal.setOneDose(dto.getOneDose());
+        goal.setFrequency(dto.getFrequency());
+        goal.setPeriod(dto.getPeriod());
+        goal.setEndDate(dto.getEndDate());
+        goal.setVerificationType(dto.getVerificationType());
+        goal.setLimitFriendCount(dto.getLimitFriendCount());
+
+        if (dto.getVerificationType() == VerificationType.TIMER && dto.getGoalTime() != null) {
+            UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+            if (userGoal != null) {
+                // Repository 쿼리로 한 번에 업데이트
+                timerVerificationRepository.updateGoalTimeByUserGoalId(dto.getGoalTime(), userGoal.getId());
+            }
+        }
     }
 
     //목표 삭제

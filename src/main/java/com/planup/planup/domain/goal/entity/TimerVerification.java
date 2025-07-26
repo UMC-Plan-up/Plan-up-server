@@ -1,20 +1,15 @@
 package com.planup.planup.domain.goal.entity;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
-import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import jakarta.persistence.*;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-import java.sql.Time;
+import lombok.*;
 import java.time.Duration;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor

@@ -4,15 +4,16 @@ import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.Date;
 
 public class GoalRequestDto {
 
     @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CreateGoalDto {
         String goalName;
         String goalAmount;
@@ -23,7 +24,6 @@ public class GoalRequestDto {
         GoalPeriod period;
         Date endDate;
         VerificationType verificationType;
-        Boolean isChallenge;
         int limitFriendCount;
         Integer goalTime;
     }

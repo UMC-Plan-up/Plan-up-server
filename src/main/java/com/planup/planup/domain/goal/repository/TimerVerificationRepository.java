@@ -2,6 +2,7 @@ package com.planup.planup.domain.goal.repository;
 
 import com.planup.planup.domain.goal.entity.TimerVerification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -16,4 +17,8 @@ public interface TimerVerificationRepository extends JpaRepository<TimerVerifica
     //오늘 날짜와 기록된 날짜 비교 쿼리
     @Query("SELECT t FROM TimerVerification t WHERE t.userGoal.id = :userGoalId " +
             "AND DATE(t.createdAt) = CURRENT_DATE")
-    List<TimerVerification> findTodayVerificationsByUserGoalId(@Param("userGoalId") Long userGoalId);}
+    List<TimerVerification> findTodayVerificationsByUserGoalId(@Param("userGoalId") Long userGoalId);
+
+    @Modifying
+    @Query("UPDATE TimerVerification tv SET tv.goalTime = :goalTime WHERE tv.userGoal.id = :userGoalId")
+    void updateGoalTimeByUserGoalId(@Param("goalTime") Integer goalTime, @Param("userGoalId") Long userGoalId);}

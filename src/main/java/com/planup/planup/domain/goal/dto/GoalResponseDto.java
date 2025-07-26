@@ -29,7 +29,6 @@ public class GoalResponseDto {
         GoalPeriod period;
         Date endDate;
         VerificationType verificationType;
-        Boolean isChallenge;
         int limitFriendCount;
     }
 

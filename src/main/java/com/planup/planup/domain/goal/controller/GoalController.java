@@ -126,6 +126,53 @@ public class GoalController {
         return ApiResponse.onSuccess(result);
     }
 
+    @GetMapping("/{goalId}/edit")
+    @Operation(summary = "목표 수정 페이지 정보 조회 API", description = "수정을 위한 기존 목표 정보를 조회합니다.")
+    public ApiResponse<GoalRequestDto.CreateGoalDto> getGoalForEdit(
+            @PathVariable Long goalId,
+            HttpServletRequest request) {
+
+        String authHeader = request.getHeader("Authorization");
+        Long userId;
+
+        // 테스트용 userId 추출
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            userId = 1L;
+        } else {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            String username = jwtUtil.extractUsername(token);
+            userId = Long.parseLong(username);
+        }
+
+        GoalRequestDto.CreateGoalDto result = goalService.getGoalInfoToUpdate(goalId, userId);
+
+        return ApiResponse.onSuccess(result);
+    }
+
+    @PutMapping("/{goalId}")
+    @Operation(summary = "목표 수정 API", description = "기존 목표를 수정합니다.")
+    public ApiResponse<Void> updateGoal(
+            @PathVariable Long goalId,
+            @Valid @RequestBody GoalRequestDto.CreateGoalDto dto,
+            HttpServletRequest request) {
+
+        String authHeader = request.getHeader("Authorization");
+        Long userId;
+
+        // 테스트용 userId 추출
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            userId = 1L;
+        } else {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            String username = jwtUtil.extractUsername(token);
+            userId = Long.parseLong(username);
+        }
+
+        goalService.updateGoal(goalId, userId, dto);
+
+        return ApiResponse.onSuccess(null);
+    }
+
     @DeleteMapping("/{goalId}")
     @Operation(summary = "목표 삭제 API", description = "목표를 삭제합니다.")
     public ApiResponse<String> deleteGoal(

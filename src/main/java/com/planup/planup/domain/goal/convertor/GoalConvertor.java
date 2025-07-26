@@ -28,7 +28,6 @@ public class GoalConvertor {
                 .period(createGoalDto.getPeriod())
                 .verificationType(createGoalDto.getVerificationType())
                 .frequency(createGoalDto.getFrequency())
-                .isChallenge(createGoalDto.getIsChallenge())
                 .limitFriendCount(createGoalDto.getLimitFriendCount())
                 .build();
     }
@@ -45,7 +44,6 @@ public class GoalConvertor {
                 .frequency(goal.getFrequency())
                 .endDate(goal.getEndDate())
                 .verificationType(goal.getVerificationType())
-                .isChallenge(goal.isChallenge())
                 .limitFriendCount(goal.getLimitFriendCount())
                 .build();
     }
@@ -99,6 +97,7 @@ public class GoalConvertor {
                 .collect(Collectors.toList());
     }
 
+    //세부 목표 조회 DTO 변환
     public static GoalResponseDto.MyGoalDetailDto toMyGoalDetailsDto(
             UserGoal userGoal,
             LocalTime todayTime,
@@ -113,6 +112,23 @@ public class GoalConvertor {
                 .isActive(userGoal.isActive())
                 .todayTime(todayTime)
                 .commentList(commentList)
+                .build();
+    }
+
+    //목표 수정을 위해 기존 정보 조회 DTO 변환
+    public static GoalRequestDto.CreateGoalDto toUpdateGoalDto(Goal goal, Integer goalTime) {
+        return GoalRequestDto.CreateGoalDto.builder()
+                .goalName(goal.getGoalName())
+                .goalAmount(goal.getGoalAmount())
+                .goalCategory(goal.getGoalCategory())
+                .goalType(goal.getGoalType())
+                .oneDose(goal.getOneDose())
+                .frequency(goal.getFrequency())
+                .period(goal.getPeriod())
+                .endDate(goal.getEndDate())
+                .verificationType(goal.getVerificationType())
+                .limitFriendCount(goal.getLimitFriendCount())
+                .goalTime(goalTime)
                 .build();
     }
 }

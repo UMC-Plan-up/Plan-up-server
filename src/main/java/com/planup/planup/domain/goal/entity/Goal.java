@@ -14,6 +14,7 @@ import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -54,8 +55,6 @@ public class Goal extends BaseTimeEntity {
     @Column(length = 20)
     private VerificationType verificationType;
 
-    //챌린지 여부
-    private boolean isChallenge;
     //친구수 제한
     private int limitFriendCount;
 
