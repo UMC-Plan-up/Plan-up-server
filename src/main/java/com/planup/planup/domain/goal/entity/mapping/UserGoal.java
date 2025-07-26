@@ -28,7 +28,8 @@ public class UserGoal extends BaseTimeEntity {
     private Long id;
 
     private Status status;
-    private Boolean isActive;
+    private boolean isActive;
+    private String currentAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
