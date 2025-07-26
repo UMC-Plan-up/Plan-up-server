@@ -2,6 +2,7 @@ package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
+import com.planup.planup.domain.goal.convertor.ChallengeConverter;
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
@@ -32,22 +33,9 @@ public class ChallengeServiceImpl implements ChallengeService{
                 throw new ChallengeException(ErrorStatus.MISSING_TIME_CHALLENGE_INFO);
             }
 
-            PhotoChallenge photoChallenge = photoChallengeRepository.save(PhotoChallenge.builder()
-                    .goalName(dto.goalName())
-                    .goalAmount(dto.goalAmount())
-                    .goalCategory(dto.goalCategory())
-                    .goalType(dto.goalType())
-                    .oneDose(dto.oneDose())
-                    .endDate(dto.endDate())
-                    .limitFriendCount(1)
-                    .status(dto.status())
-                    .penalty(dto.penalty())
-                    .rePenalty(dto.rePenalty())
-                    .timePerPeriod(dto.photoChallenge().timePerPeriod())
-                    .frequency(dto.photoChallenge().frequency())
-                    .build());
+            TimeChallenge timeChallenge = ChallengeConverter.toTimeChallenge(dto);
 
-            return photoChallengeRepository.save(photoChallenge);
+            return timeChallengeRepository.save(timeChallenge);
         }
 
         if (dto.goalType() == GoalType.CHALLENGE_PHOTO) {
@@ -55,20 +43,8 @@ public class ChallengeServiceImpl implements ChallengeService{
                 throw new ChallengeException(ErrorStatus.MISSING_PHOTO_CHALLENGE_INFO);
             }
 
-            TimeChallenge timeChallenge = timeChallengeRepository.save(TimeChallenge.builder()
-                    .goalName(dto.goalName())
-                    .goalAmount(dto.goalAmount())
-                    .goalCategory(dto.goalCategory())
-                    .goalType(dto.goalType())
-                    .oneDose(dto.oneDose())
-                    .endDate(dto.endDate())
-                    .limitFriendCount(1)
-                    .status(dto.status())
-                    .penalty(dto.penalty())
-                    .rePenalty(dto.rePenalty())
-                    .targetTime(dto.timeChallenge().getTargetTime())
-                    .build());
-            return timeChallengeRepository.save(timeChallenge);
+            PhotoChallenge photoChallenge = ChallengeConverter.toPhotoChallenge(dto);
+            return photoChallengeRepository.save(photoChallenge);
         }
 
         throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_TYPE);
