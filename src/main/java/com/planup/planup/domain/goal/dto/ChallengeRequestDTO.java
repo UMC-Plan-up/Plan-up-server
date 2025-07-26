@@ -81,4 +81,21 @@ public class ChallengeRequestDTO {
             Long targetTime
     ) {}
 
+    @Builder
+    @Schema(description = "챌린지 패널티 제안")
+    @Getter
+    public record ReRequestPenalty(
+            @NotBlank
+            @Schema(description = "id", example = "1")
+            Long id,
+
+            @NotBlank
+            @Schema(description = "챌린지 실패 시 벌칙", example = "물 4L 마시기")
+            String penalty,
+
+            @Size(min = 1)
+            @Schema(description = "같이 할 친구 선택", example = "1")
+            List<Long> friendIdList
+    ) {}
+
 }

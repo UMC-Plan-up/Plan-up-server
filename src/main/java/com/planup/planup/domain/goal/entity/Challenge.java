@@ -20,9 +20,14 @@ public class Challenge extends Goal {
     private ChallengeStatus status;  // 거절/수락 상태
 
     private String penalty;
-    private String rePenalty;
+    private boolean isRePenalty = false;
 
     public void setChallengeStatus(ChallengeStatus status) {
         this.status = status;
+    }
+
+    public void setPenalty(String penalty) {
+        this.penalty = penalty;
+        this.isRePenalty = true;
     }
 }

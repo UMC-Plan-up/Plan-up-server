@@ -76,27 +76,23 @@ public class ChallengeServiceImpl implements ChallengeService{
 
     private void createUserGoal(User user, List<User> friends, Goal timeChallenge, VerificationType type) {
         //TODO: 별도의 서비스 로직으로 이전
-        UserGoal userGoalAdmin = UserGoal.builder()
-                .user(user)
+        createPerUserGoal(user, type, Status.ADMIN, timeChallenge);
+
+        for (User friend : friends) {
+            createPerUserGoal(friend, type, Status.MEMBER, timeChallenge);
+        }
+    }
+
+    private void createPerUserGoal(User friend, VerificationType type, Status member, Goal timeChallenge) {
+        UserGoal userGoalMember = UserGoal.builder()
+                .user(friend)
                 .isActive(false)
                 .verificationType(type)
-                .status(Status.ADMIN)
+                .status(member)
                 .goal(timeChallenge)
                 .build();
 
-        userGoalRepository.save(userGoalAdmin);
-
-        for (User friend : friends) {
-            UserGoal userGoalMember = UserGoal.builder()
-                    .user(friend)
-                    .isActive(false)
-                    .verificationType(type)
-                    .status(Status.MEMBER)
-                    .goal(timeChallenge)
-                    .build();
-
-            userGoalRepository.save(userGoalMember);
-        }
+        userGoalRepository.save(userGoalMember);
     }
 
     public ChallengeResponseDTO.ChallengeResponseInfo getChallengeInfo(Long challengeId) {
@@ -150,5 +146,40 @@ public class ChallengeServiceImpl implements ChallengeService{
 
         challenge.setChallengeStatus(ChallengeStatus.ACCEPTED);
         userGoal.setActive(true, user);
+    }
+
+    //챌린지에 대한 새로운 패널티 제안
+    @Override
+    public void reRequestPenalty(Long userId, ChallengeRequestDTO.ReRequestPenalty dto) {
+        User user = userService.getUserbyUserId(userId);
+
+        Challenge challenge = getChallengeById(dto.getId());
+
+        //기존에 제안받은 사람 아니면 예외처리
+        if (!isChallengeMember(user, challenge)) {
+            throw new ChallengeException(ErrorStatus._NOT_ALLOWED);
+        }
+
+        challenge.setPenalty(dto.getPenalty());
+        c
+    }
+
+    private boolean isChallengeMember(User user, Challenge challenge) {
+        List<UserGoal> userGoalList = userGoalService.getUserGoalListByGoal(challenge);
+        for (UserGoal userGoal : userGoalList) {
+            if (userGoal.getUser().equals(user)) return true;
+        }
+        return false;
+    }
+
+    private boolean addChallengeMember(List<Long> friendList, Challenge challenge) {
+        List<UserGoal> userGoalList = userGoalService.getUserGoalListByGoal(challenge);
+        for (UserGoal userGoal : userGoalList) {
+
+        }
+        for (UserGoal userGoal : userGoalList) {
+            if (userGoal.getUser().getId().equals()) return true;
+        }
+        return false;
     }
 }
