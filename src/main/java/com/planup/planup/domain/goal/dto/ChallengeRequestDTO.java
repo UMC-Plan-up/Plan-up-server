@@ -19,6 +19,7 @@ public class ChallengeRequestDTO {
 
     @Builder
     @Schema(description = "챌린지 생성 요청의 공통 필드")
+    @Getter
     public record create(
             @NotBlank
             @Schema(description = "목표 이름", example = "매일 물 2L 마시기")
@@ -45,18 +46,6 @@ public class ChallengeRequestDTO {
             LocalDateTime endDate,
 
             @NotNull
-            @Schema(description = "챌린지 여부", example = "true")
-            Boolean isChallenge,
-
-            @NotBlank
-            @Schema(description = "현재 진행량", example = "0ml")
-            String currentAmount,
-
-            @Min(1)
-            @Schema(description = "친구 초대 제한 인원", example = "5")
-            int limitFriendCount,
-
-            @NotNull
             @Schema(description = "챌린지 상태", example = "PENDING")
             ChallengeStatus status,
 
@@ -76,10 +65,8 @@ public class ChallengeRequestDTO {
 
     @Builder
     @Schema(description = "사진 챌린지 생성 요청")
+    @Getter
     public record createPhoto(
-            @NotNull
-            @Schema(description = "챌린지 종료 시간", example = "2025-08-01T23:59:59")
-            LocalDateTime endDate,
 
             @Min(1)
             @Schema(description = "주기(며칠마다 1회)", example = "7")
@@ -92,6 +79,7 @@ public class ChallengeRequestDTO {
 
     @Builder
     @Schema(description = "시간 챌린지 생성 요청")
+    @Getter
     public record createTime(
             @NotNull
             @Positive

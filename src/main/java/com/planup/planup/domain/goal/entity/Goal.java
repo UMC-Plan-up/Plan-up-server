@@ -5,14 +5,16 @@ import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @Entity
 @Getter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -35,7 +37,7 @@ public class Goal extends BaseTimeEntity {
     private GoalType goalType;
 
     private String oneDose;
-    private Date endDate;
+    private LocalDateTime endDate;
 
     private Boolean isChallenge;
     private String currentAmount;

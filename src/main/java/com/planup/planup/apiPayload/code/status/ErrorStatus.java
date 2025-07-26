@@ -30,6 +30,7 @@ public enum ErrorStatus implements BaseErrorCode {
     MISSING_TIME_CHALLENGE_INFO(HttpStatus.BAD_REQUEST, "CHALLENGE4001", "시간 챌린지 정보가 필요합니다."),
     MISSING_PHOTO_CHALLENGE_INFO(HttpStatus.BAD_REQUEST, "CHALLENGE4002", "사진 챌린지 정보가 필요합니다."),
     INVALID_HTTP_CHALLENGE_METHOD(HttpStatus.METHOD_NOT_ALLOWED, "CHALLENGE4007", "챌린지 생성 요청이 아닙니다."),
+    INVALID_CHALLENGE_TYPE(HttpStatus.BAD_REQUEST, "CHALLENGE4003", "올바르지 않는 챌리지 타입입니다"),
 
 
     //Report 관련 에러
