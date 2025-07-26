@@ -99,5 +99,31 @@ public class GoalController {
 
         return ApiResponse.onSuccess(result);
     }
+
+    @PatchMapping("/{goalId}/active")
+    @Operation(summary = "목표 활성화/비활성화 API", description = "목표의 활성 상태를 전환합니다.")
+    public ApiResponse<GoalResponseDto.MyGoalDetailDto> updateActiveGoal(
+            @PathVariable Long goalId,
+            HttpServletRequest request) {
+
+        String authHeader = request.getHeader("Authorization");
+        Long userId;
+
+        //테스트용, 로그인 구현 완료 후 토큰 발행 시 주석 처리된 코드로 되돌리기
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            userId = 1L;
+        } else {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            String username = jwtUtil.extractUsername(token);
+            userId = Long.parseLong(username);
+        }
+//        String token = jwtUtil.extractTokenFromHeader(authHeader);
+//        String username = jwtUtil.extractUsername(token);
+//        Long userId = Long.parseLong(username);
+
+        GoalResponseDto.MyGoalDetailDto result = goalService.updateActiveGoal(goalId, userId);
+
+        return ApiResponse.onSuccess(result);
+    }
 }
 
