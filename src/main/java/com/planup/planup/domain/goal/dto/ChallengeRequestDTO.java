@@ -30,10 +30,6 @@ public class ChallengeRequestDTO {
             String goalAmount,
 
             @NotNull
-            @Schema(description = "목표 카테고리", example = "HEALTH")
-            GoalCategory goalCategory,
-
-            @NotNull
             @Schema(description = "목표 유형", example = "TIME")
             GoalType goalType,
 

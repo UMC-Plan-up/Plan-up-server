@@ -36,4 +36,6 @@ public class ChallengeController {
         return ApiResponse.onSuccess(frinedListInChallenge);
     }
 
+    @GetMapping("/{challengeId}")
+    public ApiResponse<Ch>
 }

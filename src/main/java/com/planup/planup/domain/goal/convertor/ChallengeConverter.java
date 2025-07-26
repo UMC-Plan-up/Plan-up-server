@@ -2,6 +2,7 @@ package com.planup.planup.domain.goal.convertor;
 
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
+import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.PhotoChallenge;
 import com.planup.planup.domain.goal.entity.TimeChallenge;
 
@@ -11,7 +12,7 @@ public class ChallengeConverter {
         return PhotoChallenge.builder()
                 .goalName(dto.goalName())
                 .goalAmount(dto.goalAmount())
-                .goalCategory(dto.goalCategory())
+                .goalCategory(GoalCategory.CHALLENGE)
                 .goalType(dto.goalType())
                 .oneDose(dto.oneDose())
                 .endDate(dto.endDate())
@@ -28,7 +29,7 @@ public class ChallengeConverter {
         return TimeChallenge.builder()
                 .goalName(dto.goalName())
                 .goalAmount(dto.goalAmount())
-                .goalCategory(dto.goalCategory())
+                .goalCategory(GoalCategory.CHALLENGE)
                 .goalType(dto.goalType())
                 .oneDose(dto.oneDose())
                 .endDate(dto.endDate())
