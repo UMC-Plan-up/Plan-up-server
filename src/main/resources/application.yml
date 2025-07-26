@@ -15,7 +15,7 @@ spring:
       maximum-pool-size: 10         # 최대 커넥션 개수
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
