@@ -53,6 +53,10 @@ public class ChallengeRequestDTO {
             @Schema(description = "챌린지 재도전 시 벌칙", example = "3일간 운동 금지")
             String rePenalty,
 
+            @NotBlank
+            @Schema(description = "같이 할 친구 선택", example = "1")
+            Long friendId,
+
             //선택 필듣
             @Valid createPhoto photoChallenge,
             @Valid createTime timeChallenge

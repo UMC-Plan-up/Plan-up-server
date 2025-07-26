@@ -1,5 +1,7 @@
 package com.planup.planup.domain.goal.entity.mapping;
 
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.GeneralException;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
@@ -35,4 +37,12 @@ public class UserGoal extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "goal_id")
     private Goal goal;
+
+    public void setActive(boolean set, User user) {
+        if (user.getId().equals(user.getId())) {
+            isActive = set;
+        } else {
+            throw new GeneralException(ErrorStatus._NOT_ALLOWED);
+        }
+    }
 }

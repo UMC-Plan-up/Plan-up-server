@@ -21,4 +21,8 @@ public class Challenge extends Goal {
 
     private String penalty;
     private String rePenalty;
+
+    public void setChallengeStatus(ChallengeStatus status) {
+        this.status = status;
+    }
 }

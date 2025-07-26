@@ -15,6 +15,7 @@ public enum ErrorStatus implements BaseErrorCode {
     _BAD_REQUEST(HttpStatus.BAD_REQUEST,"COMMON400","잘못된 요청입니다."),
     _UNAUTHORIZED(HttpStatus.UNAUTHORIZED,"COMMON401","인증이 필요합니다."),
     _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
+    _NOT_ALLOWED(HttpStatus.FORBIDDEN, "COMMON404", "권한이 없는 요청입니다"),
 
 
     // User 에러
@@ -40,7 +41,11 @@ public enum ErrorStatus implements BaseErrorCode {
 
     //GOAL
     NOT_FOUND_GOAL(HttpStatus.NOT_FOUND, "GOAL4001", "존재하지 않는 목표입니다."),
-    NOT_FOUND_CHALLENGE(HttpStatus.NOT_FOUND, "CHALLENGE4001", "존재하지 않는 팰린지입니다.")
+    NOT_FOUND_CHALLENGE(HttpStatus.NOT_FOUND, "CHALLENGE4001", "존재하지 않는 팰린지입니다."),
+
+    //UserGoal
+    NOT_FOUND_USERGOAL(HttpStatus.NOT_FOUND, "USERGOAL4001", "존재하지 않는 userGoal입니다.")
+
     ;
 
 

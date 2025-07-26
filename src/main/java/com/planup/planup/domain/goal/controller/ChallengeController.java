@@ -32,15 +32,34 @@ public class ChallengeController {
         return ApiResponse.onSuccess(null);
     }
 
+
     @GetMapping("/friends")
+    @Operation(summary = "챌린지에서 친구 조회", description = "친구에게 신청하기 위해 친구 정보 찾기")
     public ApiResponse<List<FriendResponseDTO.FriendInfoInChallengeCreate>> getFriendList(Long userId) {
         List<FriendResponseDTO.FriendInfoInChallengeCreate> frinedListInChallenge = friendService.getFrinedListInChallenge(userId);
         return ApiResponse.onSuccess(frinedListInChallenge);
     }
 
+
     @GetMapping("/{challengeId}")
+    @Operation(summary = "챌린지 정보 조회", description = "친구가 신청한 챌린지의 자세한 정보 확인")
     public ApiResponse<ChallengeResponseDTO.ChallengeResponseInfo> getChallengeInfo(Long challengeId) {
-        ChallengeResponseDTO.ChallengeResponseInfo challenge = challengeService.getChallenge(challengeId);
+        ChallengeResponseDTO.ChallengeResponseInfo challenge = challengeService.getChallengeInfo(challengeId);
         return ApiResponse.onSuccess(challenge);
+    }
+
+    @GetMapping("/{challengeId}/reject")
+    @Operation(summary = "챌린지 거절")
+    public ApiResponse<Void> rejectChallengeRequest(Long userId, @PathVariable Long challengeId) {
+        challengeService.rejectChallengeRequest(userId, challengeId);
+        return ApiResponse.onSuccess(null);
+    }
+
+
+    @GetMapping("/{challengeId}/accept")
+    @Operation(summary = "챌린지 수락")
+    public ApiResponse<Void> acceptChallengeRequest(Long userId, @PathVariable Long challengeId) {
+        challengeService.acceptChallengeRequest(userId, challengeId);
+        return ApiResponse.onSuccess(null);
     }
 }
