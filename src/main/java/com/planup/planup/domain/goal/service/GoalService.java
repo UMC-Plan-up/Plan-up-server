@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface GoalService {
     GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto dto);
-    public List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId);
+    List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId);
+    GoalResponseDto.MyGoalDetailDto getMyGoalDetails(Long goalId, Long userId);
 }
