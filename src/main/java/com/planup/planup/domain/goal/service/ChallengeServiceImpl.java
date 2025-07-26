@@ -4,8 +4,10 @@ import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
 import com.planup.planup.domain.goal.convertor.ChallengeConverter;
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
+import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
+import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.PhotoChallenge;
 import com.planup.planup.domain.goal.entity.TimeChallenge;
 import com.planup.planup.domain.goal.repository.PhotoChallengeRepository;
@@ -19,6 +21,7 @@ public class ChallengeServiceImpl implements ChallengeService{
 
     private final TimeChallengeRepository timeChallengeRepository;
     private final PhotoChallengeRepository photoChallengeRepository;
+    private final GoalService goalService;
 
     @Override
     public Challenge createChallenge(Long userId, ChallengeRequestDTO.create dto) {
@@ -48,5 +51,26 @@ public class ChallengeServiceImpl implements ChallengeService{
         }
 
         throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_TYPE);
+    }
+
+    @Override
+    public ChallengeResponseDTO.ChallengeResponseInfo getChallenge(Long challengeId) {
+        Goal goal = goalService.getGoalById(challengeId);
+        if (goal.getGoalType() == GoalType.CHALLENGE_PHOTO) {
+            if (goal instanceof PhotoChallenge) {
+                PhotoChallenge photoChallenge = (PhotoChallenge) goal;
+                ChallengeResponseDTO.ChallengeResponseInfo challengeResponseInfo = ChallengeConverter.toChallengeResponseInfoPhotoVer(photoChallenge);
+                return challengeResponseInfo;
+
+            }
+        } else if (goal.getGoalType() == GoalType.CHALLENGE_TIME) {
+            if (goal instanceof TimeChallenge) {
+                TimeChallenge timeChallenge = (TimeChallenge) goal;
+                ChallengeResponseDTO.ChallengeResponseInfo challengeResponseInfo = ChallengeConverter.toChallengeResponseInfoTimeVer(timeChallenge);
+                return challengeResponseInfo;
+            }
+        }
+
+        throw new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE);
     }
 }

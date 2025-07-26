@@ -10,7 +10,7 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@MappedSuperclass
+@Entity
 @SuperBuilder
 @AllArgsConstructor
 public class Challenge extends Goal {

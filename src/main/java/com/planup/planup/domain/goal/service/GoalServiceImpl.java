@@ -1,5 +1,7 @@
 package com.planup.planup.domain.goal.service;
 
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.GoalException;
 import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
@@ -34,5 +36,10 @@ public class GoalServiceImpl implements GoalService{
         userGoalRepository.save(userGoal);
 
         return GoalConvertor.toGoalResultDto(savedGoal);
+    }
+
+    @Override
+    public Goal getGoalById(Long id) {
+        return goalRepository.findById(id).orElseThrow(() -> new GoalException(ErrorStatus.NOT_FOUND_CHALLENGE));
     }
 }

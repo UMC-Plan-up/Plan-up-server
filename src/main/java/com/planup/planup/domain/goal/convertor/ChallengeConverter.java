@@ -1,6 +1,7 @@
 package com.planup.planup.domain.goal.convertor;
 
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
+import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.PhotoChallenge;
@@ -38,6 +39,32 @@ public class ChallengeConverter {
                 .penalty(dto.penalty())
                 .rePenalty(dto.rePenalty())
                 .targetTime(dto.timeChallenge().getTargetTime())
+                .build();
+    }
+
+    public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoPhotoVer(PhotoChallenge photoChallenge) {
+        return ChallengeResponseDTO.ChallengeResponseInfo.builder()
+                .id(photoChallenge.getId())
+                .goalName(photoChallenge.getGoalName())
+                .goalType(photoChallenge.getGoalType())
+                .goalAmount(photoChallenge.getGoalAmount())
+                .endDate(photoChallenge.getEndDate())
+                .timePerPeriod(photoChallenge.getTimePerPeriod())
+                .frequency(photoChallenge.getFrequency())
+                .targetTime(null)
+                .build();
+    }
+
+    public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoTimeVer(TimeChallenge timeChallenge) {
+        return ChallengeResponseDTO.ChallengeResponseInfo.builder()
+                .id(timeChallenge.getId())
+                .goalName(timeChallenge.getGoalName())
+                .goalType(timeChallenge.getGoalType())
+                .goalAmount(timeChallenge.getGoalAmount())
+                .endDate(timeChallenge.getEndDate())
+                .timePerPeriod(0)
+                .frequency(0)
+                .targetTime(timeChallenge.getTargetTime())
                 .build();
     }
 }

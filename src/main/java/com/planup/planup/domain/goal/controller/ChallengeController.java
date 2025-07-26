@@ -4,6 +4,8 @@ import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.friend.service.FriendService;
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
+import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
+import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.service.ChallengeService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -37,5 +39,8 @@ public class ChallengeController {
     }
 
     @GetMapping("/{challengeId}")
-    public ApiResponse<Ch>
+    public ApiResponse<ChallengeResponseDTO.ChallengeResponseInfo> getChallengeInfo(Long challengeId) {
+        ChallengeResponseDTO.ChallengeResponseInfo challenge = challengeService.getChallenge(challengeId);
+        return ApiResponse.onSuccess(challenge);
+    }
 }
