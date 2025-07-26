@@ -125,5 +125,31 @@ public class GoalController {
 
         return ApiResponse.onSuccess(result);
     }
+
+    @DeleteMapping("/{goalId}")
+    @Operation(summary = "목표 삭제 API", description = "목표를 삭제합니다.")
+    public ApiResponse<String> deleteGoal(
+            @PathVariable Long goalId,
+            HttpServletRequest request) {
+
+        String authHeader = request.getHeader("Authorization");
+        Long userId;
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            userId = 1L;
+        } else {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            String username = jwtUtil.extractUsername(token);
+            userId = Long.parseLong(username);
+        }
+
+        goalService.deleteGoal(goalId, userId);
+
+        return ApiResponse.onSuccess(null);
+    }
+
+    //랭킹 조회는 인증 서비스 만들고나서야 가능
+
+
 }
 

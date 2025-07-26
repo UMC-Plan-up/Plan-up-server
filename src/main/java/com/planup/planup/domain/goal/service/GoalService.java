@@ -13,4 +13,6 @@ public interface GoalService {
     List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId);
     GoalResponseDto.MyGoalDetailDto getMyGoalDetails(Long goalId, Long userId);
     GoalResponseDto.MyGoalDetailDto updateActiveGoal(Long goalId, Long userId);
+    void deleteGoal(Long goalId, Long userId);
+
 }

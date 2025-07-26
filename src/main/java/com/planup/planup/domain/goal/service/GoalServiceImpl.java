@@ -122,4 +122,18 @@ public class GoalServiceImpl implements GoalService{
 
         return GoalConvertor.toMyGoalDetailsDto(userGoal, todayTime, commentList);
     }
+
+    //목표 삭제
+    @Transactional
+    public void deleteGoal(Long goalId, Long userId) {
+        Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
+
+        UserGoal userGoal = userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN);
+        if (!userGoal.getUser().getId().equals(userId)) {
+            throw new RuntimeException("목표를 삭제할 권한이 없습니다.");
+        }
+
+        goalRepository.delete(goal);
+    }
 }

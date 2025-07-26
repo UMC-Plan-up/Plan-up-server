@@ -37,9 +37,9 @@ public class UserGoal extends BaseTimeEntity {
     @JoinColumn(name = "goal_id")
     private Goal goal;
 
-    @OneToMany(mappedBy = "userGoal", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "userGoal", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TimerVerification> timerVerifications = new ArrayList<>();
 
-    @OneToMany(mappedBy = "userGoal", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "userGoal", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PhotoVerification> photoVerifications = new ArrayList<>();
 }
