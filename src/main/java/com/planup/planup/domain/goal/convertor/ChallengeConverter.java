@@ -4,8 +4,14 @@ import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
 import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
+import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.PhotoChallenge;
 import com.planup.planup.domain.goal.entity.TimeChallenge;
+import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.user.entity.User;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ChallengeConverter {
 
@@ -41,9 +47,13 @@ public class ChallengeConverter {
     }
 
     public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoPhotoVer(PhotoChallenge photoChallenge) {
+
+        List<UserGoal> userGoals = photoChallenge.getUserGoals().stream().filter(userGoal -> userGoal.getStatus().equals(Status.ADMIN)).toList();
+        UserGoal userGoal = userGoals.get(0);
+
         return ChallengeResponseDTO.ChallengeResponseInfo.builder()
                 .id(photoChallenge.getId())
-                .name(photoChallenge.getU)
+                .name(userGoal.getUser().getNickname())
                 .goalName(photoChallenge.getGoalName())
                 .goalType(photoChallenge.getGoalType())
                 .goalAmount(photoChallenge.getGoalAmount())
@@ -55,8 +65,13 @@ public class ChallengeConverter {
     }
 
     public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoTimeVer(TimeChallenge timeChallenge) {
+
+        List<UserGoal> userGoals = timeChallenge.getUserGoals().stream().filter(userGoal -> userGoal.getStatus().equals(Status.ADMIN)).toList();
+        UserGoal userGoal = userGoals.get(0);
+
         return ChallengeResponseDTO.ChallengeResponseInfo.builder()
                 .id(timeChallenge.getId())
+                .name(userGoal.getUser().getNickname())
                 .goalName(timeChallenge.getGoalName())
                 .goalType(timeChallenge.getGoalType())
                 .goalAmount(timeChallenge.getGoalAmount())
