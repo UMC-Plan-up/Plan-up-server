@@ -89,11 +89,19 @@ public class FriendServiceImpl implements FriendService {
     @Override
     @Transactional
     public boolean reportFriend(Long userId, Long friendId, String reason, boolean block) {
-        // 1. Friend 엔티티 찾기
-        List<Friend> friends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
+        // 1. Friend 엔티티 찾기 (ACCEPTED 또는 BLOCKED 상태의 친구 관계)
+        List<Friend> acceptedFriends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
             FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
+        
+        List<Friend> blockedFriends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
+            FriendStatus.BLOCKED, userId, FriendStatus.BLOCKED, userId);
 
-        Friend friend = friends.stream()
+        // 두 리스트 합치기
+        List<Friend> allFriends = new ArrayList<>();
+        allFriends.addAll(acceptedFriends);
+        allFriends.addAll(blockedFriends);
+
+        Friend friend = allFriends.stream()
             .filter(f -> (f.getUser().getId().equals(friendId) || f.getFriend().getId().equals(friendId)))
             .findFirst()
             .orElse(null);
@@ -102,8 +110,8 @@ public class FriendServiceImpl implements FriendService {
             // 신고 사유 저장 (별도 테이블이 있다면 Report 엔티티에 저장, 없다면 로그 등)
             System.out.println("신고 사유: " + reason);
 
-            // 차단 여부에 따라 상태 변경
-            if (block) {
+            // 차단 여부에 따라 상태 변경 (이미 차단된 상태라면 상태 변경하지 않음)
+            if (block && friend.getStatus() != FriendStatus.BLOCKED) {
                 friend.setStatus(FriendStatus.BLOCKED);
                 friendRepository.save(friend);
             }
