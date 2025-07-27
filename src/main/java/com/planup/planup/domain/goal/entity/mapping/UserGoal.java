@@ -27,6 +27,7 @@ public class UserGoal extends BaseTimeEntity {
 
     private Status status;
     private boolean isActive;
+    private boolean isPublic;
     private String currentAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
