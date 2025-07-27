@@ -214,16 +214,11 @@ public class UserServiceImpl implements UserService {
     public KakaoAccountResponseDTO getKakaoAccountStatus(Long userId) {
         User user = getUserbyUserId(userId);
         
-        // 카카오톡 계정 연동 여부 확인
-        boolean isLinked = oAuthAccountRepository.existsByUserAndProvider(user, AuthProvideerEnum.KAKAO);
+        // 카카오톡 계정 정보 조회 (한 번에 조회)
+        var oauthAccount = oAuthAccountRepository.findByUserAndProvider(user, AuthProvideerEnum.KAKAO);
         
-        String kakaoEmail = null;
-        if (isLinked) {
-            // 연동된 카카오톡 계정의 이메일 조회
-            kakaoEmail = oAuthAccountRepository.findByUserAndProvider(user, AuthProvideerEnum.KAKAO)
-                    .map(oauthAccount -> oauthAccount.getEmail())
-                    .orElse(null);
-        }
+        boolean isLinked = oauthAccount.isPresent();
+        String kakaoEmail = oauthAccount.map(account -> account.getEmail()).orElse(null);
         
         return KakaoAccountResponseDTO.builder()
                 .isLinked(isLinked)
