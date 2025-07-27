@@ -12,6 +12,8 @@ import com.planup.planup.domain.user.entity.UserActivate;
 import com.planup.planup.domain.user.entity.UserLevel;
 import com.planup.planup.domain.user.repository.UserRepository;
 import com.planup.planup.domain.user.dto.UserInfoResponseDTO;
+import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
+import com.planup.planup.domain.oauth.repository.OAuthAccountRepository;
 import com.planup.planup.validation.JwtUtil;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.planup.planup.domain.user.dto.KakaoAccountResponseDTO;
 import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,6 +38,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final OAuthAccountRepository oAuthAccountRepository;
 
 
     @Override
@@ -205,5 +209,24 @@ public class UserServiceImpl implements UserService {
                 .profileImgUrl(user.getProfileImg())
                 .build();
     }
-
+    @Override
+    public KakaoAccountResponseDTO getKakaoAccountStatus(Long userId) {
+        User user = getUserbyUserId(userId);
+        
+        // 카카오톡 계정 연동 여부 확인
+        boolean isLinked = oAuthAccountRepository.existsByUserAndProvider(user, AuthProvideerEnum.KAKAO);
+        
+        String kakaoEmail = null;
+        if (isLinked) {
+            // 연동된 카카오톡 계정의 이메일 조회
+            kakaoEmail = oAuthAccountRepository.findByUserAndProvider(user, AuthProvideerEnum.KAKAO)
+                    .map(oauthAccount -> oauthAccount.getEmail())
+                    .orElse(null);
+        }
+        
+        return KakaoAccountResponseDTO.builder()
+                .isLinked(isLinked)
+                .kakaoEmail(kakaoEmail)
+                .build();
+    }
 }
