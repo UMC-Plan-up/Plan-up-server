@@ -57,7 +57,8 @@ public class UserServiceImpl implements UserService {
     public String updateNickname(Long userId, String nickname) {
         User user = getUserbyUserId(userId);
 
-        if (!userRepository.existsByNickname(nickname)) {
+        // 닉네임 중복 체크 (다른 사용자가 이미 사용 중인 닉네임인지 확인)
+        if (userRepository.existsByNickname(nickname)) {
             throw new UserException(ErrorStatus.EXIST_NICKNAME);
         }
         user.setNickname(nickname);
