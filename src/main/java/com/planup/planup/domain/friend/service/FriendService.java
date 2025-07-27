@@ -31,4 +31,7 @@ public interface FriendService {
 
     // 차단된 친구 목록 조회
     List<BlockedFriendResponseDTO> getBlockedFriends(Long userId);
+
+    // 친구 차단 해제 (닉네임으로)
+    boolean unblockFriend(Long userId, String friendNickname);
 }
