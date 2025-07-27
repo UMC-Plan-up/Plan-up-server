@@ -82,21 +82,6 @@ public class GoalConvertor {
                 .build();
     }
 
-    //내 목표 리스트 조회 변환(DTO -> List 변환)
-    public static List<GoalResponseDto.MyGoalListDto> toMyGoalListDtoList(
-            List<UserGoal> userGoals,
-            List<User> creators,
-            List<Integer> participantCounts) {
-
-        return IntStream.range(0, userGoals.size())
-                .mapToObj(i -> toMyGoalListDto(
-                        userGoals.get(i),
-                        creators.get(i),
-                        participantCounts.get(i)
-                ))
-                .collect(Collectors.toList());
-    }
-
     //세부 목표 조회 DTO 변환
     public static GoalResponseDto.MyGoalDetailDto toMyGoalDetailsDto(
             UserGoal userGoal,
