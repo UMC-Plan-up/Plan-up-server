@@ -195,12 +195,12 @@ public class FriendServiceImpl implements FriendService {
 
         // 유저 엔티티 조회
         User user = userService.getUserbyUserId(userId);
-        User friend = userService.getUserbyUserId(friendId);
+        User friendUser = userService.getUserbyUserId(friendId);
 
         // Friend 엔티티 생성
         Friend friendRequest = new Friend();
         friendRequest.setUser(user);
-        friendRequest.setFriend(friend);
+        friendRequest.setFriend(friendUser);
         friendRequest.setStatus(FriendStatus.REQUESTED);
 
         friendRepository.save(friendRequest);
