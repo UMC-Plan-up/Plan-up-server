@@ -3,6 +3,7 @@ package com.planup.planup.domain.friend.controller;
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
+import com.planup.planup.domain.friend.dto.UnblockFriendRequestDTO;
 import com.planup.planup.domain.friend.service.FriendService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
@@ -107,5 +108,12 @@ public class FriendController {
     public ApiResponse<List<BlockedFriendResponseDTO>> getBlockedFriends(@RequestParam Long userId) {
         List<BlockedFriendResponseDTO> blockedFriends = friendService.getBlockedFriends(userId);
         return ApiResponse.onSuccess(blockedFriends);
+    }
+
+    @Operation(summary = "친구 차단 해제", description = "친구 이름으로 차단된 친구를 차단 해제합니다")
+    @PostMapping("/unblock")
+    public ApiResponse<Boolean> unblockFriend(@RequestBody UnblockFriendRequestDTO request) {
+        boolean result = friendService.unblockFriend(request.getUserId(), request.getFriendNickname());
+        return ApiResponse.onSuccess(result);
     }
 }
