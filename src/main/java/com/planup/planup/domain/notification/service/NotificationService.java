@@ -1,6 +1,9 @@
 package com.planup.planup.domain.notification.service;
 
 import com.planup.planup.domain.notification.entity.Notification;
+import com.planup.planup.domain.notification.entity.NotificationType;
+import com.planup.planup.domain.notification.entity.TargetType;
+import com.planup.planup.domain.user.entity.User;
 
 import java.util.List;
 
@@ -13,5 +16,9 @@ public interface NotificationService {
     List<Notification> getAllNotifications(Long receiverId);
 
     // 읽음 처리
-    void markAsRead(Long notificationId);
+    void markAsRead(Long notificationId, Long userId);
+
+    List<Notification> getTop5RecentByUser(Long userId);
+
+    Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId);
 }

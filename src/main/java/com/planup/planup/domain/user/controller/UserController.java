@@ -1,10 +1,19 @@
 package com.planup.planup.domain.user.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
+<<<<<<< HEAD
 import com.planup.planup.domain.user.dto.UserInfoResponseDTO;
+=======
+import com.planup.planup.domain.user.dto.LoginRequestDTO;
+import com.planup.planup.domain.user.dto.LoginResponseDTO;
+import com.planup.planup.domain.user.dto.SignupRequestDTO;
+import com.planup.planup.domain.user.dto.SignupResponseDTO;
+>>>>>>> 4c1817c1fd3a4d5ba7f3a3742725f5d6d30b0e8f
 import com.planup.planup.domain.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+<<<<<<< HEAD
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -16,8 +25,11 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RestController;
 
+=======
+import org.springframework.web.bind.annotation.*;
+>>>>>>> 4c1817c1fd3a4d5ba7f3a3742725f5d6d30b0e8f
 
-@Controller
+@RestController
 @AllArgsConstructor
 public class UserController {
 
@@ -58,6 +70,7 @@ public class UserController {
         return ApiResponse.onSuccess(true);
     }
 
+<<<<<<< HEAD
     @Operation(summary = "프로필 사진 변경", description = "마이페이지에서 프로필 사진 변경")
     @PostMapping("/mypage/profile/image")
     public ApiResponse<String> updateProfileImage(
@@ -80,5 +93,26 @@ public class UserController {
             @RequestParam String newEmail) {
         String email = userService.updateEmail(userId, newEmail);
         return ApiResponse.onSuccess(email);
+=======
+    @Operation(summary = "회원가입", description = "이메일/비밀번호로 새 계정을 생성합니다")
+    @PostMapping("/users/signup")
+    public ApiResponse<SignupResponseDTO> signup(@Valid @RequestBody SignupRequestDTO request) {
+        SignupResponseDTO result = userService.signup(request);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "로그인", description = "이메일/비밀번호로 로그인하여 JWT 토큰을 발급받습니다")
+    @PostMapping("/users/login")
+    public ApiResponse<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
+        LoginResponseDTO result = userService.login(request);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "로그아웃", description = "현재 세션을 종료합니다")
+    @PostMapping("/users/logout")
+    public ApiResponse<String> logout() {
+        // 간단한 로그아웃 구현 (JWT는 클라이언트에서 삭제)
+        return ApiResponse.onSuccess("로그아웃이 완료되었습니다");
+>>>>>>> 4c1817c1fd3a4d5ba7f3a3742725f5d6d30b0e8f
     }
 }
