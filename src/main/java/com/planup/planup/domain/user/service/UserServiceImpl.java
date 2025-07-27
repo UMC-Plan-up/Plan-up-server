@@ -11,11 +11,8 @@ import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserActivate;
 import com.planup.planup.domain.user.entity.UserLevel;
 import com.planup.planup.domain.user.repository.UserRepository;
-<<<<<<< HEAD
 import com.planup.planup.domain.user.dto.UserInfoResponseDTO;
-=======
 import com.planup.planup.validation.JwtUtil;
->>>>>>> 4c1817c1fd3a4d5ba7f3a3742725f5d6d30b0e8f
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -95,7 +92,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-<<<<<<< HEAD
     public String updateProfileImage(Long userId, MultipartFile imageFile) {
         User user = getUserbyUserId(userId);
 
@@ -124,7 +120,10 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .profileImg(user.getProfileImg())
-=======
+                .build();
+    }
+
+    @Override
     @Transactional
     public SignupResponseDTO signup(SignupRequestDTO request) {
         // 1. 이메일 중복 체크
@@ -161,13 +160,11 @@ public class UserServiceImpl implements UserService {
         return SignupResponseDTO.builder()
                 .id(savedUser.getId())
                 .email(savedUser.getEmail())
->>>>>>> 4c1817c1fd3a4d5ba7f3a3742725f5d6d30b0e8f
                 .build();
     }
 
     @Override
     @Transactional
-<<<<<<< HEAD
     public String updateEmail(Long userId, String newEmail) {
         User user = getUserbyUserId(userId);
 
@@ -180,7 +177,9 @@ public class UserServiceImpl implements UserService {
         // userRepository.save(user); // JPA 영속성 컨텍스트에 의해 자동 저장됨
         return user.getEmail();
     }
-=======
+
+    @Override
+    @Transactional
     public LoginResponseDTO login(LoginRequestDTO request) {
         // 1. 이메일로 사용자 조회
         User user = userRepository.findByEmail(request.getEmail())
@@ -207,5 +206,4 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
->>>>>>> 4c1817c1fd3a4d5ba7f3a3742725f5d6d30b0e8f
 }
