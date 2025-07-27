@@ -50,6 +50,7 @@ public class GoalServiceImpl implements GoalService{
                 .currentAmount(null)
                 .isActive(true)
                 .isPublic(true)
+                .verificationCount(0)
                 .build();
         UserGoal savedUserGoal = userGoalRepository.save(userGoal);
 
@@ -75,24 +76,21 @@ public class GoalServiceImpl implements GoalService{
     @Transactional(readOnly = true)
     public List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        //N+1 문제 성능 개선
-        List<UserGoal> userGoals = userGoalRepository.findByUserIdAndIsActiveTrueWithVerifications(userId);
+        List<UserGoal> userGoals = userGoalRepository.findByUserId(userId);
 
-        List<User> creators = userGoals.stream()
+        return userGoals.stream()
                 .map(userGoal -> {
-                    Long goalId = userGoal.getGoal().getId();
-                    return userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN)
-                            .getUser();
+                    User creator = userGoalRepository.findByGoalIdAndStatus(
+                            userGoal.getGoal().getId(), Status.ADMIN).getUser();
+
+                    int participantCount = userGoalRepository.countByGoalIdAndActiveTrue(
+                            userGoal.getGoal().getId());
+
+                    return GoalConvertor.toMyGoalListDto(userGoal, creator, participantCount);
                 })
                 .collect(Collectors.toList());
-
-        List<Integer> participantCounts = userGoals.stream()
-                .map(userGoal -> userGoalRepository.countByGoalIdAndActiveTrue(userGoal.getGoal().getId()))
-                .collect(Collectors.toList());
-
-        return GoalConvertor.toMyGoalListDtoList(userGoals, creators, participantCounts);
     }
 
     //내 목표 조회(세부 내용 조회)
