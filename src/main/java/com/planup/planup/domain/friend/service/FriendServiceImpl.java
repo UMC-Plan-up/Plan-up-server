@@ -3,6 +3,7 @@ package com.planup.planup.domain.friend.service;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
+import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
@@ -204,5 +205,23 @@ public class FriendServiceImpl implements FriendService {
 
         friendRepository.save(friendRequest);
         return true;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BlockedFriendResponseDTO> getBlockedFriends(Long userId) {
+        User user = userService.getUserbyUserId(userId);
+        
+        // 사용자가 차단한 친구 목록 조회
+        List<Friend> blockedFriends = friendRepository.findByUserAndStatusOrderByCreatedAtDesc(user, FriendStatus.BLOCKED);
+        
+        return blockedFriends.stream()
+                .map(friend -> {
+                    User blockedUser = friend.getFriend();
+                    return BlockedFriendResponseDTO.builder()
+                            .friendNickname(blockedUser.getNickname())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }
