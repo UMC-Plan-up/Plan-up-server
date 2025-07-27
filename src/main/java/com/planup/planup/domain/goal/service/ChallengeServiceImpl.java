@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -161,6 +162,7 @@ public class ChallengeServiceImpl implements ChallengeService{
         }
 
         challenge.setPenalty(dto.getPenalty());
+        //새롭게 챌린지에 추가한 유저에 대해 usergoal을 추가한다. (기존에 없어야 한다.)
         addChallengeMember(dto.friendIdList(), challenge);
     }
 
@@ -172,19 +174,25 @@ public class ChallengeServiceImpl implements ChallengeService{
         return false;
     }
 
-    private boolean addChallengeMember(List<Long> friendList, Challenge challenge) {
+    private void addChallengeMember(List<Long> friendList, Challenge challenge) {
         List<UserGoal> userGoalList = userGoalService.getUserGoalListByGoal(challenge);
         List<User> users = userGoalList.stream().map(UserGoal::getUser).toList();
 
-        for (Long newFriend : friendList) {
-            for (User user : users) {
-                if (user.getId().equals(newFriend)) {
-                    continue;
-                }
+        Set<Long> existingUserIds = users.stream()
+                .map(User::getId)
+                .collect(Collectors.toSet());
+
+        VerificationType type = challenge.getGoalType().equals(GoalType.CHALLENGE_PHOTO)
+                ? VerificationType.PHOTO
+                : VerificationType.TIMER;
+
+        for (Long friendId : friendList) {
+            if (existingUserIds.contains(friendId)) {
+                continue; // 이미 존재하는 유저면 건너뜀
             }
-            VerificationType type = challenge.getGoalType().equals(GoalType.CHALLENGE_PHOTO) ? VerificationType.PHOTO : VerificationType.TIMER;
-            createPerUserGoal(userService.getUserbyUserId(newFriend), type, Status.MEMBER, challenge);
+            User user = userService.getUserbyUserId(friendId);
+            createPerUserGoal(user, type, Status.MEMBER, challenge);
         }
-        return false;
+
     }
 }
