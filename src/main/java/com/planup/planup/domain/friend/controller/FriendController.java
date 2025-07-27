@@ -2,6 +2,7 @@ package com.planup.planup.domain.friend.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
+import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
 import com.planup.planup.domain.friend.service.FriendService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
@@ -99,5 +100,12 @@ public class FriendController {
             @RequestParam Long friendId) {
         boolean result = friendService.sendFriendRequest(userId, friendId);
         return ApiResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "차단된 친구 목록 조회", description = "내가 차단한 친구들의 이름 목록을 조회합니다")
+    @GetMapping("/blocked")
+    public ApiResponse<List<BlockedFriendResponseDTO>> getBlockedFriends(@RequestParam Long userId) {
+        List<BlockedFriendResponseDTO> blockedFriends = friendService.getBlockedFriends(userId);
+        return ApiResponse.onSuccess(blockedFriends);
     }
 }
