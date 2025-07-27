@@ -12,11 +12,11 @@ import java.util.List;
 @Repository
 public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     //Query Service
-    List<UserGoal> findByUserIdAndIsActiveTrue(Long userId);
+    List<UserGoal> findByUserIdAndActiveTrue(Long userId);
 
     UserGoal findByGoalIdAndStatus(Long goalId, Status status);
 
-    int countByGoalIdAndIsActiveTrue(Long goalId);
+    int countByGoalIdAndActiveTrue(Long goalId);
 
     @Query("SELECT ug FROM UserGoal ug " +
             "JOIN FETCH ug.goal g " +
