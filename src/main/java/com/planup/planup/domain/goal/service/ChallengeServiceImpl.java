@@ -161,7 +161,7 @@ public class ChallengeServiceImpl implements ChallengeService{
         }
 
         challenge.setPenalty(dto.getPenalty());
-        c
+        addChallengeMember(dto.friendIdList(), challenge);
     }
 
     private boolean isChallengeMember(User user, Challenge challenge) {
@@ -174,11 +174,16 @@ public class ChallengeServiceImpl implements ChallengeService{
 
     private boolean addChallengeMember(List<Long> friendList, Challenge challenge) {
         List<UserGoal> userGoalList = userGoalService.getUserGoalListByGoal(challenge);
-        for (UserGoal userGoal : userGoalList) {
+        List<User> users = userGoalList.stream().map(UserGoal::getUser).toList();
 
-        }
-        for (UserGoal userGoal : userGoalList) {
-            if (userGoal.getUser().getId().equals()) return true;
+        for (Long newFriend : friendList) {
+            for (User user : users) {
+                if (user.getId().equals(newFriend)) {
+                    continue;
+                }
+            }
+            VerificationType type = challenge.getGoalType().equals(GoalType.CHALLENGE_PHOTO) ? VerificationType.PHOTO : VerificationType.TIMER;
+            createPerUserGoal(userService.getUserbyUserId(newFriend), type, Status.MEMBER, challenge);
         }
         return false;
     }
