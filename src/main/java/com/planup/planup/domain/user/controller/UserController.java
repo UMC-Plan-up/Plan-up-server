@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PostMapping;
+import com.planup.planup.domain.user.dto.KakaoAccountResponseDTO;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
@@ -107,5 +108,12 @@ public class UserController {
     public ApiResponse<String> logout() {
         // 간단한 로그아웃 구현 (JWT는 클라이언트에서 삭제)
         return ApiResponse.onSuccess("로그아웃이 완료되었습니다");
+    }
+
+    @Operation(summary = "카카오톡 계정 연동 상태 확인", description = "사용자의 카카오톡 계정 연동 여부와 연동된 이메일을 확인합니다")
+    @GetMapping("/mypage/kakao-account")
+    public ApiResponse<KakaoAccountResponseDTO> getKakaoAccountStatus(@RequestParam Long userId) {
+        KakaoAccountResponseDTO kakaoAccountStatus = userService.getKakaoAccountStatus(userId);
+        return ApiResponse.onSuccess(kakaoAccountStatus);
     }
 }
