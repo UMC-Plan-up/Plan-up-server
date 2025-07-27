@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FriendRepository extends JpaRepository<Friend, Long> {
@@ -18,4 +19,7 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
 
     // 사용자가 차단한 친구 목록 조회
     List<Friend> findByUserAndStatusOrderByCreatedAtDesc(User user, FriendStatus status);
+
+    // 특정 사용자가 특정 친구를 차단한 관계 조회 (닉네임으로)
+    Optional<Friend> findByUserAndFriend_NicknameAndStatus(User user, String friendNickname, FriendStatus status);
 }
