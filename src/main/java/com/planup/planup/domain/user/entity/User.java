@@ -65,6 +65,9 @@ public class User extends BaseTimeEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserBadge> userBadges = new ArrayList<>();
 
+    @OneToOne(mappedBy = "user")
+    private UserStat userStat;
+
     public void setNickname(String nickname) {
         this.nickname = nickname;
     }
