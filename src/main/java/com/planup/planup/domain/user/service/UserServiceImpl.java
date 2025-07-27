@@ -96,6 +96,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public String updateProfileImage(Long userId, MultipartFile imageFile) {
         User user = getUserbyUserId(userId);
 
@@ -172,13 +173,17 @@ public class UserServiceImpl implements UserService {
     public String updateEmail(Long userId, String newEmail) {
         User user = getUserbyUserId(userId);
 
-        // 이메일 중복 체크 (이미 사용 중인 이메일이면 예외)
+        // 현재 사용자가 이미 같은 이메일을 사용하고 있는지 확인
+        if (user.getEmail().equals(newEmail)) {
+            return newEmail; // 같은 이메일이면 그대로 반환
+        }
+
+        // 다른 사용자가 이미 사용 중인 이메일인지 확인
         if (userRepository.existsByEmail(newEmail)) {
-            throw new UserException(ErrorStatus.EXIST_EMAIL); // 적절한 에러코드 사용
+            throw new UserException(ErrorStatus.EXIST_EMAIL);
         }
 
         user.setEmail(newEmail);
-        // userRepository.save(user); // JPA 영속성 컨텍스트에 의해 자동 저장됨
         return user.getEmail();
     }
 
