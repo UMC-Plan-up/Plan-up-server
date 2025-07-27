@@ -29,6 +29,8 @@ public class UserGoal extends BaseTimeEntity {
     private boolean isActive;
     private boolean isPublic;
     private String currentAmount;
+    private int verificationCount;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
