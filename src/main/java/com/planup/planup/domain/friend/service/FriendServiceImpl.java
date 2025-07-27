@@ -225,4 +225,22 @@ public class FriendServiceImpl implements FriendService {
                 })
                 .collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional
+    public boolean unblockFriend(Long userId, String friendNickname) {
+        User user = userService.getUserbyUserId(userId);
+
+        // 사용자가 해당 닉네임의 친구를 차단한 관계를 찾음
+        var blockedFriend = friendRepository.findByUserAndFriend_NicknameAndStatus(user, friendNickname, FriendStatus.BLOCKED);
+
+        if (blockedFriend.isPresent()) {
+            // 차단 관계를 삭제
+            friendRepository.delete(blockedFriend.get());
+            return true;
+        }
+
+        // 차단 관계를 찾지 못했을 때
+        throw new UserException(ErrorStatus._BAD_REQUEST);
+    }
 }
