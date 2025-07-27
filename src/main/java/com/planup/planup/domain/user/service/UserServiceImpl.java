@@ -210,6 +210,7 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
     @Override
+    @Transactional(readOnly = true)
     public KakaoAccountResponseDTO getKakaoAccountStatus(Long userId) {
         User user = getUserbyUserId(userId);
         
