@@ -7,17 +7,16 @@ import com.planup.planup.domain.report.entity.GoalReport;
 import com.planup.planup.domain.report.entity.WeeklyReport;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Getter
-@Builder
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
 @AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseTimeEntity {
 
     @Id
@@ -65,9 +64,6 @@ public class User extends BaseTimeEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserBadge> userBadges = new ArrayList<>();
 
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
 
     public void switchAlarmAllow() {
         if (this.alarmAllow == true) {
@@ -75,9 +71,5 @@ public class User extends BaseTimeEntity {
         } else {
             this.alarmAllow = true;
         }
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 }

@@ -5,7 +5,6 @@ import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -30,6 +29,8 @@ public class Notification extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private TargetType targetType; // POST, COMMENT, USER 등
 
+    //서비스 단에서 URL 제작해서 넘겨주기
+    //유저가 유저에게 넘겨주는 알림 같은 경우에만 URL 제공 나머지 시스템에서 처리하는 경우는 URL 제외
     private Long targetId;
 
     private boolean isRead;
