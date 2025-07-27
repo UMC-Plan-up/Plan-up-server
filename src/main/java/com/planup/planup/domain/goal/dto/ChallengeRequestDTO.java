@@ -17,7 +17,6 @@ public class ChallengeRequestDTO {
 
     @Builder
     @Schema(description = "챌린지 생성 요청의 공통 필드")
-    @Getter
     public record create(
             @NotBlank
             @Schema(description = "목표 이름", example = "매일 물 2L 마시기")
@@ -59,7 +58,6 @@ public class ChallengeRequestDTO {
 
     @Builder
     @Schema(description = "사진 챌린지 생성 요청")
-    @Getter
     public record createPhoto(
 
             @Min(1)
@@ -73,7 +71,6 @@ public class ChallengeRequestDTO {
 
     @Builder
     @Schema(description = "시간 챌린지 생성 요청")
-    @Getter
     public record createTime(
             @NotNull
             @Positive
@@ -83,7 +80,6 @@ public class ChallengeRequestDTO {
 
     @Builder
     @Schema(description = "챌린지 패널티 제안")
-    @Getter
     public record ReRequestPenalty(
             @NotBlank
             @Schema(description = "id", example = "1")
