@@ -1,7 +1,6 @@
 package com.planup.planup.domain.goal.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
-import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.service.GoalService;
@@ -101,8 +100,8 @@ public class GoalController {
     }
 
     @PatchMapping("/{goalId}/active")
-    @Operation(summary = "목표 활성화/비활성화 API", description = "목표의 활성 상태를 전환합니다.")
-    public ApiResponse<GoalResponseDto.MyGoalDetailDto> updateActiveGoal(
+    @Operation(summary = "목표 활성화/비활성화 API", description = "목표의 활성화 상태를 전환합니다.")
+    public ApiResponse<Void> updateActiveGoal(
             @PathVariable Long goalId,
             HttpServletRequest request) {
 
@@ -121,9 +120,35 @@ public class GoalController {
 //        String username = jwtUtil.extractUsername(token);
 //        Long userId = Long.parseLong(username);
 
-        GoalResponseDto.MyGoalDetailDto result = goalService.updateActiveGoal(goalId, userId);
+        goalService.updateActiveGoal(goalId, userId);
 
-        return ApiResponse.onSuccess(result);
+        return ApiResponse.onSuccess(null);
+    }
+
+    @PatchMapping("/{goalId}/public")
+    @Operation(summary = "목표 공개/비공개 API", description = "목표의 공개 상태를 전환합니다.")
+    public ApiResponse<Void> updatePublicGoal(
+            @PathVariable Long goalId,
+            HttpServletRequest request) {
+
+        String authHeader = request.getHeader("Authorization");
+        Long userId;
+
+        //테스트용, 로그인 구현 완료 후 토큰 발행 시 주석 처리된 코드로 되돌리기
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            userId = 1L;
+        } else {
+            String token = jwtUtil.extractTokenFromHeader(authHeader);
+            String username = jwtUtil.extractUsername(token);
+            userId = Long.parseLong(username);
+        }
+//        String token = jwtUtil.extractTokenFromHeader(authHeader);
+//        String username = jwtUtil.extractUsername(token);
+//        Long userId = Long.parseLong(username);
+
+        goalService.updatePublicGoal(goalId, userId);
+
+        return ApiResponse.onSuccess(null);
     }
 
     @GetMapping("/{goalId}/edit")
