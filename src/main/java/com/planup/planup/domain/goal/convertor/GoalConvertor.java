@@ -109,7 +109,7 @@ public class GoalConvertor {
                 .goalId(goal.getId())
                 .goalName(goal.getGoalName())
                 .oneDose(goal.getOneDose())
-                .isActive(userGoal.isActive())
+                .isPublic(userGoal.isPublic())
                 .todayTime(todayTime)
                 .commentList(commentList)
                 .build();
