@@ -212,11 +212,12 @@ public class FriendServiceImpl implements FriendService {
     public List<BlockedFriendResponseDTO> getBlockedFriends(Long userId) {
         User user = userService.getUserbyUserId(userId);
         
-        // 사용자가 차단한 친구 목록 조회
+        // 사용자가 차단한 친구 목록 조회 (user가 차단한 경우만)
         List<Friend> blockedFriends = friendRepository.findByUserAndStatusOrderByCreatedAtDesc(user, FriendStatus.BLOCKED);
         
         return blockedFriends.stream()
                 .map(friend -> {
+                    // user가 차단한 대상은 friend 필드에 있음
                     User blockedUser = friend.getFriend();
                     return BlockedFriendResponseDTO.builder()
                             .friendNickname(blockedUser.getNickname())
