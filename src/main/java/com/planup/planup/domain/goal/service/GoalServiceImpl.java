@@ -108,7 +108,7 @@ public class GoalServiceImpl implements GoalService{
         return GoalConvertor.toMyGoalDetailsDto(userGoal, todayTime, commentList);
     }
 
-    //내 목표 조회(세부 내용 조회)
+    //활성화/비활성화
     @Transactional
     public GoalResponseDto.MyGoalDetailDto updateActiveGoal(Long goalId, Long userId) {
         UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
@@ -124,7 +124,7 @@ public class GoalServiceImpl implements GoalService{
         return GoalConvertor.toMyGoalDetailsDto(userGoal, todayTime, commentList);
     }
 
-    //친구 목표 수정
+    //친구 목표 수정(정보 조회)
     @Transactional(readOnly = true)
     public GoalRequestDto.CreateGoalDto getGoalInfoToUpdate(Long goalId, Long userId) {
         Goal goal = goalRepository.findById(goalId)
