@@ -41,12 +41,14 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public User getUserbyUserId(Long userId) {
         Optional<User> userOptional = userRepository.findById(userId);
         return userOptional.orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String getNickname(Long userId) {
         User user = getUserbyUserId(userId);
         return user.getNickname();
@@ -118,6 +120,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserInfoResponseDTO getUserInfo(Long userId) {
         User user = getUserbyUserId(userId);
         return UserInfoResponseDTO.builder()
