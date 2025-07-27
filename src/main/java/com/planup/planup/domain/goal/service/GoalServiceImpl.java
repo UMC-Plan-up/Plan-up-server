@@ -49,6 +49,7 @@ public class GoalServiceImpl implements GoalService{
                 .status(Status.ADMIN)
                 .currentAmount(null)
                 .isActive(true)
+                .isPublic(true)
                 .build();
         UserGoal savedUserGoal = userGoalRepository.save(userGoal);
 
@@ -88,7 +89,7 @@ public class GoalServiceImpl implements GoalService{
                 .collect(Collectors.toList());
 
         List<Integer> participantCounts = userGoals.stream()
-                .map(userGoal -> userGoalRepository.countByGoalIdAndIsActiveTrue(userGoal.getGoal().getId()))
+                .map(userGoal -> userGoalRepository.countByGoalIdAndActiveTrue(userGoal.getGoal().getId()))
                 .collect(Collectors.toList());
 
         return GoalConvertor.toMyGoalListDtoList(userGoals, creators, participantCounts);
@@ -110,18 +111,18 @@ public class GoalServiceImpl implements GoalService{
 
     //활성화/비활성화
     @Transactional
-    public GoalResponseDto.MyGoalDetailDto updateActiveGoal(Long goalId, Long userId) {
+    public void updateActiveGoal(Long goalId, Long userId) {
         UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
 
-        //활성화 상태 변경
         userGoal.setActive(!userGoal.isActive());
+    }
 
-        //오늘 기록 시간 조회
-        LocalTime todayTime = timerVerificationService.getTodayTotalTime(userGoal.getId());
-        //댓글 조회
-        List<Comment> commentList = commentService.getComments(goalId);
-
-        return GoalConvertor.toMyGoalDetailsDto(userGoal, todayTime, commentList);
+    //공개/비공개
+    @Transactional
+    public void updatePublicGoal(Long goalId, Long userId) {
+        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        //공개 상태 변경
+        userGoal.setPublic(!userGoal.isPublic());
     }
 
     //친구 목표 수정(정보 조회)
