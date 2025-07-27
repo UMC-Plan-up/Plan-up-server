@@ -7,6 +7,7 @@ import com.planup.planup.domain.user.dto.LoginResponseDTO;
 import com.planup.planup.domain.user.dto.SignupRequestDTO;
 import com.planup.planup.domain.user.dto.SignupResponseDTO;
 import com.planup.planup.domain.user.entity.User;
+import com.planup.planup.domain.user.dto.KakaoAccountResponseDTO;
 
 public interface UserService {
     User getUserbyUserId(Long userId);
@@ -30,4 +31,6 @@ public interface UserService {
     SignupResponseDTO signup(SignupRequestDTO request);
 
     LoginResponseDTO login(LoginRequestDTO request);
+
+    KakaoAccountResponseDTO getKakaoAccountStatus(Long userId);
 }
