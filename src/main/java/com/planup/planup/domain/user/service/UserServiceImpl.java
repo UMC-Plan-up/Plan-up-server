@@ -57,7 +57,12 @@ public class UserServiceImpl implements UserService {
     public String updateNickname(Long userId, String nickname) {
         User user = getUserbyUserId(userId);
 
-        // 닉네임 중복 체크 (다른 사용자가 이미 사용 중인 닉네임인지 확인)
+        // 현재 사용자가 이미 같은 닉네임을 사용하고 있는지 확인
+        if (user.getNickname().equals(nickname)) {
+            return nickname; // 같은 닉네임이면 그대로 반환
+        }
+
+        // 다른 사용자가 이미 사용 중인 닉네임인지 확인
         if (userRepository.existsByNickname(nickname)) {
             throw new UserException(ErrorStatus.EXIST_NICKNAME);
         }
@@ -78,11 +83,7 @@ public class UserServiceImpl implements UserService {
     public boolean checkPassword(Long userId, String password) {
         User user = getUserbyUserId(userId);
 
-        if (passwordEncoder.matches(password, user.getPassword())) {
-            return true;
-        } else {
-            return false;
-        }
+        return passwordEncoder.matches(password, user.getPassword());
     }
 
     @Override
