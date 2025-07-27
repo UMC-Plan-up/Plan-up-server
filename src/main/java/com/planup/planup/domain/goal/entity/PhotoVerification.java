@@ -3,10 +3,16 @@ package com.planup.planup.domain.goal.entity;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PhotoVerification extends BaseTimeEntity {
 
     @Id
@@ -17,6 +23,6 @@ public class PhotoVerification extends BaseTimeEntity {
     private String photoDescription;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "community_id")
-    private UserGoal community;
+    @JoinColumn(name = "usergoal_id")
+    private UserGoal userGoal;
 }
