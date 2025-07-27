@@ -18,14 +18,9 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
 
     int countByGoalIdAndActiveTrue(Long goalId);
 
-    @Query("SELECT ug FROM UserGoal ug " +
-            "JOIN FETCH ug.goal g " +
-            "LEFT JOIN FETCH ug.timerVerifications tv " +
-            "LEFT JOIN FETCH ug.photoVerifications pv " +
-            "WHERE ug.user.id = :userId AND ug.isActive = true")
-    List<UserGoal> findByUserIdAndIsActiveTrueWithVerifications(Long userId);
-
     UserGoal findByGoalIdAndUserId(Long goalId, Long userId);
+
+    List<UserGoal> findByUserId(Long userId);
 
     //Command Service
 
