@@ -7,7 +7,7 @@ import com.planup.planup.domain.friend.service.FriendService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,7 +18,7 @@ import com.planup.planup.domain.friend.dto.FriendReportRequestDTO;
 
 import java.util.List;
 
-@Controller
+@RestController
 @AllArgsConstructor
 @Slf4j
 @RequestMapping("/friends")
@@ -33,7 +33,7 @@ public class FriendController {
     } */
     @Operation(summary = "친구 화면 조회", description = "친구 화면에 진입했을 때 필요한 정보 조회")
     @GetMapping("")
-    public ApiResponse<List<FriendResponseDTO.FriendSummaryList>> updateNicknameReq(Long userId) {
+    public ApiResponse<List<FriendResponseDTO.FriendSummaryList>> getFriendList(Long userId) {
         List<FriendResponseDTO.FriendSummaryList> friendSummaryList = friendService.getFriendSummeryList(userId);
         return ApiResponse.onSuccess(friendSummaryList);
     }
