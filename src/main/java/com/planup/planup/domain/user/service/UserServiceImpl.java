@@ -2,23 +2,20 @@ package com.planup.planup.domain.user.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
-import com.planup.planup.domain.user.dto.LoginRequestDTO;
-import com.planup.planup.domain.user.dto.LoginResponseDTO;
-import com.planup.planup.domain.user.dto.SignupRequestDTO;
-import com.planup.planup.domain.user.dto.SignupResponseDTO;
-import com.planup.planup.domain.user.entity.Role;
-import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.entity.UserActivate;
-import com.planup.planup.domain.user.entity.UserLevel;
+import com.planup.planup.domain.user.dto.*;
+import com.planup.planup.domain.user.entity.*;
+import com.planup.planup.domain.user.repository.TermsRepository;
 import com.planup.planup.domain.user.repository.UserRepository;
+import com.planup.planup.domain.user.repository.UserTermsRepository;
 import com.planup.planup.validation.JwtUtil;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -30,7 +27,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-
+    private final TermsRepository termsRepository;
+    private final UserTermsRepository userTermsRepository;
 
     @Override
     public User getUserbyUserId(Long userId) {
@@ -68,12 +66,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public boolean checkPassword(Long userId, String password) {
         User user = getUserbyUserId(userId);
-
-        if (passwordEncoder.matches(password, user.getPassword())) {
-            return true;
-        } else {
-            return false;
-        }
+        return passwordEncoder.matches(password, user.getPassword());
     }
 
     @Override
@@ -93,32 +86,34 @@ public class UserServiceImpl implements UserService {
             throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
         }
 
-        // 2. 비밀번호 확인 검증
+        // 비밀번호 확인 검증
         if (!request.getPassword().equals(request.getPasswordCheck())) {
             throw new UserException(ErrorStatus.PASSWORD_MISMATCH);
         }
 
-        // 3. 비밀번호 암호화
+        // 필수 약관 동의 검증
+        validateRequiredTerms(request.getAgreements());
+
+        // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
-        // 4. User 엔티티 생성 및 저장
+        // User 엔티티 생성
         User user = User.builder()
                 .email(request.getEmail())
                 .password(encodedPassword)
                 .nickname(request.getNickname())
-                .role(Role.USER)  // 기본 역할
-                .userActivate(UserActivate.ACTIVE)  // 활성 상태
-                .userLevel(UserLevel.LEVEL_1)  // 기본 레벨
-                .alarmAllow(true)  // 기본 알림 허용
+                .role(Role.USER)
+                .userActivate(UserActivate.ACTIVE)
+                .userLevel(UserLevel.LEVEL_1)
+                .alarmAllow(true)
                 .profileImg(request.getProfileImg())
                 .build();
 
         User savedUser = userRepository.save(user);
 
-        // 5. 약관 동의 처리 (추후 구현)
-        // TODO: 약관 동의 저장 로직 구현 필요
+        // 약관 동의 추가
+        addTermsAgreements(savedUser, request.getAgreements());
 
-        // 6. 응답 DTO 생성
         return SignupResponseDTO.builder()
                 .id(savedUser.getId())
                 .email(savedUser.getEmail())
@@ -128,24 +123,24 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public LoginResponseDTO login(LoginRequestDTO request) {
-        // 1. 이메일로 사용자 조회
+        //  이메일로 사용자 조회
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
 
-        // 2. 비밀번호 검증
+        // 비밀번호 검증
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new UserException(ErrorStatus.INVALID_CREDENTIALS);
         }
 
-        // 3. 사용자 상태 확인
+        // 사용자 상태 확인
         if (user.getUserActivate() != UserActivate.ACTIVE) {
             throw new UserException(ErrorStatus.USER_INACTIVE);
         }
 
-        // 4. JWT 토큰 생성
+        // JWT 토큰 생성
         String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString());
 
-        // 5. 응답 DTO 생성
+        // 응답 DTO 생성
         return LoginResponseDTO.builder()
                 .accessToken(accessToken)
                 .nickname(user.getNickname())
@@ -153,4 +148,40 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+    private void validateRequiredTerms(List<TermsAgreementRequestDTO> agreements) {
+
+        // 필수 약관 목록 조회
+        List<Terms> requiredTerms = termsRepository.findByIsRequiredTrue();
+
+        // 동의한 필수 약관 ID 목록
+        List<Long> agreedRequiredTermsIds = agreements.stream()
+                .filter(TermsAgreementRequestDTO::isAgreed)
+                .map(TermsAgreementRequestDTO::getTermsId)
+                .toList();
+
+        // 필수 약관 중 동의하지 않은 것이 있는지 확인
+        for (Terms requiredTerm : requiredTerms) {
+            if (!agreedRequiredTermsIds.contains(requiredTerm.getId())) {
+                throw new UserException(ErrorStatus.REQUIRED_TERMS_NOT_AGREED);
+            }
+        }
+    }
+
+    private void addTermsAgreements(User user, List<TermsAgreementRequestDTO> agreements) {
+
+        for (TermsAgreementRequestDTO agreement : agreements) {
+
+            Terms terms = termsRepository.findById(agreement.getTermsId())
+                    .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_TERMS));
+
+            UserTerms userTerms = UserTerms.builder()
+                    .user(user)
+                    .terms(terms)
+                    .isAgreed(agreement.isAgreed())
+                    .agreedAt(agreement.isAgreed() ? LocalDateTime.now() : null)
+                    .build();
+
+            UserTerms saved = userTermsRepository.save(userTerms);
+        }
+    }
 }
