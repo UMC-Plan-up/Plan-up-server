@@ -82,7 +82,6 @@ public class GoalConvertor {
     //세부 목표 조회 DTO 변환
     public static GoalResponseDto.MyGoalDetailDto toMyGoalDetailsDto(
             UserGoal userGoal,
-            LocalTime todayTime,
             List<Comment> commentList) {
 
         Goal goal = userGoal.getGoal();
@@ -92,7 +91,6 @@ public class GoalConvertor {
                 .goalName(goal.getGoalName())
                 .oneDose(goal.getOneDose())
                 .isPublic(userGoal.isPublic())
-                .todayTime(todayTime)
                 .commentList(commentList)
                 .build();
     }

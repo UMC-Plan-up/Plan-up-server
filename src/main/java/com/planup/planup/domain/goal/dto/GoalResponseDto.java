@@ -62,7 +62,6 @@ public class GoalResponseDto {
         private String goalName;
         private String oneDose;
         private boolean isPublic;
-        private LocalTime todayTime;
         private List<Comment> commentList;
     }
 }

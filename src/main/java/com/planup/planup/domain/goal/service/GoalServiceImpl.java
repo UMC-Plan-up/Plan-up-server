@@ -97,13 +97,10 @@ public class GoalServiceImpl implements GoalService{
     public GoalResponseDto.MyGoalDetailDto getMyGoalDetails(Long goalId, Long userId) {
         UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
 
-        //오늘 기록 시간 조회
-        LocalTime todayTime = timerVerificationService.getTodayTotalTime(userGoal.getId());
-
         //댓글 조회
         List<Comment> commentList = commentService.getComments(goalId);
 
-        return GoalConvertor.toMyGoalDetailsDto(userGoal, todayTime, commentList);
+        return GoalConvertor.toMyGoalDetailsDto(userGoal, commentList);
     }
 
     //활성화/비활성화
