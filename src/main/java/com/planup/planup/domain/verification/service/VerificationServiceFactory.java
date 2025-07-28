@@ -1,4 +1,4 @@
-package com.planup.planup.domain.goal.service.verification;
+package com.planup.planup.domain.verification.service;
 
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import lombok.RequiredArgsConstructor;

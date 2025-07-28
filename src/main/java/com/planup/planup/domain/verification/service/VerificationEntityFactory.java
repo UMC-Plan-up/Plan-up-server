@@ -1,12 +1,12 @@
-package com.planup.planup.domain.goal.service.verification;
+package com.planup.planup.domain.verification.service;
 
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
-import com.planup.planup.domain.goal.entity.PhotoVerification;
-import com.planup.planup.domain.goal.entity.TimerVerification;
+import com.planup.planup.domain.verification.entity.PhotoVerification;
+import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
-import com.planup.planup.domain.goal.repository.PhotoVerificationRepository;
-import com.planup.planup.domain.goal.repository.TimerVerificationRepository;
+import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
+import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -33,9 +33,9 @@ public class VerificationEntityFactory {
 
     private TimerVerification createTimerVerification(UserGoal userGoal, GoalRequestDto.CreateGoalDto goalDto) {
         TimerVerification verification = TimerVerification.builder()
-                .goalTime(goalDto.getGoalTime() != null ? goalDto.getGoalTime() : 0)
                 .spentTime(Duration.ZERO)
                 .userGoal(userGoal)
+                .endTime(null)
                 .build();
 
         return timerVerificationRepository.save(verification);
