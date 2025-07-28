@@ -10,6 +10,8 @@ import java.util.List;
 public interface UserBadgeService {
 
 
+    UserBadge createUserBadge(User user, Badge badge);
+
     List<UserBadge> getUserBadgeInPeriod(User user, LocalDateTime from, LocalDateTime to);
 
     List<Badge> getBadgeInPeriod(User user, LocalDateTime from, LocalDateTime to);
