@@ -1,5 +1,6 @@
 package com.planup.planup.domain.user.repository;
 
+import com.planup.planup.domain.bedge.entity.BadgeType;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserBadge;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +17,6 @@ public interface UserBadgeRepository extends JpaRepository<UserBadge, Long> {
     List<UserBadge> findTop5ByUserOrderByCreatedAtDesc(User user);
 
     List<UserBadge> findByUserOrderByCreatedAtDesc(User user);
+
+    List<UserBadge> findByUserAndBadgeType(User user, BadgeType badgeType);
 }

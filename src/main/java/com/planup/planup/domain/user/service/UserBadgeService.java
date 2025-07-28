@@ -1,6 +1,6 @@
 package com.planup.planup.domain.user.service;
 
-import com.planup.planup.domain.bedge.entity.Badge;
+import com.planup.planup.domain.bedge.entity.BadgeType;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserBadge;
 
@@ -10,13 +10,14 @@ import java.util.List;
 public interface UserBadgeService {
 
 
-    UserBadge createUserBadge(User user, Badge badge);
+    UserBadge createUserBadge(User user, BadgeType badgeType);
 
     List<UserBadge> getUserBadgeInPeriod(User user, LocalDateTime from, LocalDateTime to);
 
-    List<Badge> getBadgeInPeriod(User user, LocalDateTime from, LocalDateTime to);
+    List<BadgeType> getBadgeInPeriod(User user, LocalDateTime from, LocalDateTime to);
 
     List<UserBadge> getTop5Recent(User user);
 
-    List<Badge> getBadgeByUser(User user);
+    List<BadgeType> getBadgeByUser(User user);
+
 }

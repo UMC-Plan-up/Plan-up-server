@@ -1,6 +1,6 @@
 package com.planup.planup.domain.user.service;
 
-import com.planup.planup.domain.bedge.entity.Badge;
+import com.planup.planup.domain.bedge.entity.BadgeType;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserBadge;
 import com.planup.planup.domain.user.repository.UserBadgeRepository;
@@ -20,10 +20,16 @@ public class UserBadgeServiceImpl implements UserBadgeService {
 
     @Override
     @Transactional
-    public UserBadge createUserBadge(User user, Badge badge) {
+    public UserBadge createUserBadge(User user, BadgeType badge) {
+
+        List<UserBadge> isExist = userBadgeRepository.findByUserAndBadgeType(user, badge);
+        if (isExist.size() != 0) {
+            return isExist.get(0);
+        }
+
         return userBadgeRepository.save(UserBadge.builder()
                 .user(user)
-                .badge(badge)
+                .badgeType(badge)
                 .build());
     }
 
@@ -35,8 +41,8 @@ public class UserBadgeServiceImpl implements UserBadgeService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Badge> getBadgeInPeriod(User user, LocalDateTime from, LocalDateTime to) {
-        return userBadgeRepository.findByUserAndCreatedAtBetween(user, from, to).stream().map(UserBadge::getBadge).collect(Collectors.toList());
+    public List<BadgeType> getBadgeInPeriod(User user, LocalDateTime from, LocalDateTime to) {
+        return userBadgeRepository.findByUserAndCreatedAtBetween(user, from, to).stream().map(UserBadge::getBadgeType).collect(Collectors.toList());
     }
 
     @Override
@@ -48,8 +54,8 @@ public class UserBadgeServiceImpl implements UserBadgeService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Badge> getBadgeByUser(User user) {
+    public List<BadgeType> getBadgeByUser(User user) {
         List<UserBadge> userbadges = userBadgeRepository.findByUserOrderByCreatedAtDesc(user);
-        return userbadges.stream().map(UserBadge::getBadge).collect(Collectors.toList());
+        return userbadges.stream().map(UserBadge::getBadgeType).collect(Collectors.toList());
     }
 }
