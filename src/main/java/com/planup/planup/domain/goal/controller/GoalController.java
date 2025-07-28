@@ -4,7 +4,7 @@ import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.service.GoalService;
-import com.planup.planup.validation.JwtUtil;
+import com.planup.planup.validation.jwt.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
