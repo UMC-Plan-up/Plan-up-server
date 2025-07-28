@@ -1,6 +1,5 @@
 package com.planup.planup.domain.user.entity;
 
-import com.planup.planup.domain.bedge.entity.Badge;
 import com.planup.planup.domain.bedge.entity.BadgeType;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
