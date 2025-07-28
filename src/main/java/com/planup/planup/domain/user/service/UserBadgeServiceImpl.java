@@ -20,17 +20,18 @@ public class UserBadgeServiceImpl implements UserBadgeService {
 
     @Override
     @Transactional
-    public UserBadge createUserBadge(User user, BadgeType badge) {
+    public boolean createUserBadge(User user, BadgeType badge) {
 
         List<UserBadge> isExist = userBadgeRepository.findByUserAndBadgeType(user, badge);
         if (isExist.size() != 0) {
-            return isExist.get(0);
+            return false;
         }
 
-        return userBadgeRepository.save(UserBadge.builder()
+        userBadgeRepository.save(UserBadge.builder()
                 .user(user)
                 .badgeType(badge)
                 .build());
+        return true;
     }
 
     @Override

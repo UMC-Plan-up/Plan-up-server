@@ -23,8 +23,9 @@ public class UserStat {
     private int encourageCnt = 0;               // ‘분발해요’
     private int goalRecordCnt = 0;              // 목표 기록 수
     private int pushOpenCnt = 0;                // 푸시 열람 수
-    private int complete3goal = 0;              // 하루에 3개 이상의 목표 완료
+    private int completeGoalCnt= 0;            // 하루에 3개 이상의 목표 완료
     private int requestFriendOneDay = 0;        // 하루에 3번 이상 친구 신청
+    private boolean completeGoalFlag = false;               // 이전에 하루에 100% 3개 이상한 날이 있는가
 
     /* ========= 일주일 기준 ========= */
     private int reactionCntWeek = 0;                        // 전체 반응 버튼
@@ -50,8 +51,8 @@ public class UserStat {
         this.encourageCnt = 0;
         this.goalRecordCnt = 0;
         this.pushOpenCnt = 0;
-        this.complete3goal = 0;
         this.requestFriendOneDay = 0;
+        this.completeGoalCnt = 0;
         this.markedChange = false;
 
         if (recordAllGoal7DaysFlag) {
