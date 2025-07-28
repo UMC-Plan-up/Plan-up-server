@@ -11,8 +11,7 @@ import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserActivate;
 import com.planup.planup.domain.user.entity.UserLevel;
 import com.planup.planup.domain.user.repository.UserRepository;
-import com.planup.planup.validation.JwtUtil;
-import lombok.AllArgsConstructor;
+import com.planup.planup.validation.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -143,7 +142,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // 4. JWT 토큰 생성
-        String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString());
+        String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
 
         // 5. 응답 DTO 생성
         return LoginResponseDTO.builder()

@@ -1,9 +1,8 @@
-package com.planup.planup.validation;
+package com.planup.planup.validation.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
@@ -40,6 +39,18 @@ public class JwtUtil {
         return extractClaim(token, Claims::getSubject);
     }
 
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> {
+            Object userIdObj = claims.get("userId");
+            if (userIdObj instanceof Integer) {
+                return ((Integer) userIdObj).longValue();
+            } else if (userIdObj instanceof Long) {
+                return (Long) userIdObj;
+            }
+            throw new RuntimeException("Invalid userId format in token");
+        });
+    }
+
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
@@ -71,9 +82,11 @@ public class JwtUtil {
     }
 
     //Access Token 생성
-    public String generateToken(String username, String role) {
+    public String generateToken(String username, String role, Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
+        claims.put("userId", userId);
+
         return createToken(claims, username, accessTokenExpiration);
     }
 
@@ -87,7 +100,7 @@ public class JwtUtil {
     private String createToken(Map<String, Object> claims, String subject, Long expiration) {
         return Jwts.builder()
                 .claims(claims) //기타 정보들 설정
-                .subject(subject)  //
+                .subject(subject)  //이메일
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey())//위조 방지를 위한 비밀키로 서명 생성
