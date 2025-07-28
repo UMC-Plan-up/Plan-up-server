@@ -23,9 +23,9 @@ public class UserStat {
     private int encourageCnt = 0;               // ‘분발해요’
     private int goalRecordCnt = 0;              // 목표 기록 수
     private int pushOpenCnt = 0;                // 푸시 열람 수
-    private int completeGoalCnt= 0;            // 하루에 3개 이상의 목표 완료
+    private int completeGoalCnt= 0;             // 하루에 3개 이상의 목표 완료
     private int requestFriendOneDay = 0;        // 하루에 3번 이상 친구 신청
-    private boolean completeGoalFlag = false;               // 이전에 하루에 100% 3개 이상한 날이 있는가
+    private int sendVerityCntDay = 0;            // 하루에 인증을 보낸 갯수
 
     /* ========= 일주일 기준 ========= */
     private int reactionCntWeek = 0;                        // 전체 반응 버튼
@@ -42,6 +42,7 @@ public class UserStat {
     private long totalInviteAcceptedCnt = 0;    // 초대한 친구 중 가입 수
     private long totalGoalCreatedCnt = 0;       // 목표 생성 수
     private long totalCommentCnt = 0;           // 총 댓글 수
+    private boolean completeGoalCntFlag = false;               // 이전에 하루에 100% 3개 이상한 날이 있는가
 
 
     public void resetDailyStats() {
@@ -54,6 +55,7 @@ public class UserStat {
         this.requestFriendOneDay = 0;
         this.completeGoalCnt = 0;
         this.markedChange = false;
+        this.sendVerityCntDay = 0;
 
         if (recordAllGoal7DaysFlag) {
             this.recordAllGoal7Days = 0;
@@ -102,6 +104,7 @@ public class UserStat {
     //인증을 추가한 경우
     @StatChanging
     public void addVerify() {
+        this.sendVerityCntDay += 1;
         this.totalRecordCnt += 1;
     }
 
@@ -178,7 +181,7 @@ public class UserStat {
     //하루에 3개 이상의 목표를 완료한 경우: 7일 연속 목표 달성 로직도 체크
     @StatChanging
     public void addComplete3Goal() {
-        this.complete3goal += 1;
+        this.completeGoalCnt += 1;
         setRecordSpecificGoalDaysIfNeeded();
     }
 

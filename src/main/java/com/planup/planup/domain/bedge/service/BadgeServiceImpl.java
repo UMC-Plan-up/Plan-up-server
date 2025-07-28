@@ -123,19 +123,51 @@ public class BadgeServiceImpl implements BadgeService {
         return false;
     }
 
-//    //하루에 3개 이상의 목표 기록
-//    public boolean checkRoutinerBadge(UserStat userStat) {
-//        if (userStat.getCompleteGoalCnt() >= 3) {
-//            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.ROUTINER);
-//        }
-//        return false;
-//    }
-//
-//    //3개 이상의 목표를 처음으로 100% 완수한 날
-//    public boolean checkImmersionDayBadge(UserStat userStat) {
-//        if (!userStat.getCompleteGoalFlag() && userStat.getComplete3goal() >= 3) {
-//            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.IMMERSION_DAY);
-//        }
-//        return false;
-//    }
+    //하루에 3개 이상의 목표 기록
+    public boolean checkRoutinerBadge(UserStat userStat) {
+        if (userStat.getSendVerityCntDay() >= 3) {
+            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.ROUTINER);
+        }
+        return false;
+    }
+
+    //3개 이상의 목표를 처음으로 100% 완수한 날
+    public boolean checkImmersionDayBadge(UserStat userStat) {
+        if (!userStat.isCompleteGoalCntFlag() && userStat.getCompleteGoalCnt() >= 3) {
+            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.IMMERSION_DAY);
+        }
+        return false;
+    }
+
+    //5개 이상 목표 생성
+    public boolean checkGoalCollectorBadge(UserStat userStat) {
+        if (userStat.getTotalGoalCreatedCnt() >= 5) {
+            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.GOAL_COLLECTOR);
+        }
+        return false;
+    }
+
+    //알림 게시
+    public boolean checkNotificationStarterBadge(UserStat userStat) {
+        if (userStat.getPushOpenCnt() >= 3) {
+            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.NOTIFICATION_STARTER);
+        }
+        return false;
+    }
+
+    //분석가
+    public boolean checkAnalystBadge(UserStat userStat) {
+        if (userStat.getWeeklyStatViewCnt() >= 4) {
+            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.ANALYST);
+        }
+        return false;
+    }
+
+    //꾸준한 기록가
+    public boolean checkConsistentRecorderBadge(UserStat userStat) {
+        if (userStat.getRecordAllGoal7Days() >= 7) {
+            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.CONSISTENT_RECORDER);
+        }
+        return false;
+    }
 }
