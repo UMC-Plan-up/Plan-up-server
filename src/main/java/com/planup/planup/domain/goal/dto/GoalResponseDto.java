@@ -2,11 +2,8 @@ package com.planup.planup.domain.goal.dto;
 
 import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.*;
-import com.planup.planup.domain.goal.entity.PhotoVerification;
-import com.planup.planup.domain.goal.entity.TimerVerification;
 import lombok.*;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;

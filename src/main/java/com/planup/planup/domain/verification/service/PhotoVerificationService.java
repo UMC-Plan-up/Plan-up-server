@@ -1,6 +1,6 @@
-package com.planup.planup.domain.goal.service.verification;
+package com.planup.planup.domain.verification.service;
 
-import com.planup.planup.domain.goal.repository.PhotoVerificationRepository;
+import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

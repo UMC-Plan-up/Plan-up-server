@@ -5,14 +5,11 @@ import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
-import com.planup.planup.domain.goal.entity.TimerVerification;
+import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.user.entity.User;
-
 import java.time.LocalTime;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class GoalConvertor {
 
@@ -61,7 +58,7 @@ public class GoalConvertor {
         if (goal.getVerificationType() == VerificationType.TIMER) {
             if (!userGoal.getTimerVerifications().isEmpty()) {
                 TimerVerification timerVerification = userGoal.getTimerVerifications().get(0);
-                goalTime = timerVerification.getGoalTime();
+                goalTime = userGoal.getGoalTime();
             }
         }
 

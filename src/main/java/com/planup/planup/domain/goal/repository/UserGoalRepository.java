@@ -12,8 +12,6 @@ import java.util.List;
 @Repository
 public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     //Query Service
-    List<UserGoal> findByUserIdAndActiveTrue(Long userId);
-
     UserGoal findByGoalIdAndStatus(Long goalId, Status status);
 
     int countByGoalIdAndActiveTrue(Long goalId);

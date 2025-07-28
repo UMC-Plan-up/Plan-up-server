@@ -7,14 +7,14 @@ import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
-import com.planup.planup.domain.goal.entity.PhotoVerification;
-import com.planup.planup.domain.goal.entity.TimerVerification;
+import com.planup.planup.domain.verification.entity.PhotoVerification;
+import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.GoalRepository;
-import com.planup.planup.domain.goal.repository.PhotoVerificationRepository;
-import com.planup.planup.domain.goal.repository.TimerVerificationRepository;
+import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
+import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
-import com.planup.planup.domain.goal.service.verification.TimerVerificationService;
+import com.planup.planup.domain.verification.service.TimerVerificationService;
 import com.planup.planup.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import com.planup.planup.domain.user.entity.User;
@@ -56,7 +56,6 @@ public class GoalServiceImpl implements GoalService{
 
         //Refactor : 인증 테이블 자동 생성
         TimerVerification timerVerification = TimerVerification.builder()
-                .goalTime(createGoalDto.getGoalTime() != null ? createGoalDto.getGoalTime() : 0)
                 .spentTime(Duration.ZERO)
                 .userGoal(savedUserGoal)
                 .build();
@@ -85,7 +84,7 @@ public class GoalServiceImpl implements GoalService{
                     User creator = userGoalRepository.findByGoalIdAndStatus(
                             userGoal.getGoal().getId(), Status.ADMIN).getUser();
 
-                    int participantCount = userGoalRepository.countByGoalIdAndActiveTrue(
+                    int participantCount = userGoalRepository.countByGoalIdAndIsActiveTrue(
                             userGoal.getGoal().getId());
 
                     return GoalConvertor.toMyGoalListDto(userGoal, creator, participantCount);
@@ -133,7 +132,7 @@ public class GoalServiceImpl implements GoalService{
         if (goal.getVerificationType() == VerificationType.TIMER) {
             UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
             if (userGoal != null && !userGoal.getTimerVerifications().isEmpty()) {
-                goalTime = userGoal.getTimerVerifications().get(0).getGoalTime();
+                goalTime = userGoal.getGoalTime();
             }
         }
 
@@ -159,8 +158,7 @@ public class GoalServiceImpl implements GoalService{
         if (dto.getVerificationType() == VerificationType.TIMER && dto.getGoalTime() != null) {
             UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
             if (userGoal != null) {
-                // Repository 쿼리로 한 번에 업데이트
-                timerVerificationRepository.updateGoalTimeByUserGoalId(dto.getGoalTime(), userGoal.getId());
+                userGoal.setGoalTime(dto.getGoalTime());
             }
         }
     }
