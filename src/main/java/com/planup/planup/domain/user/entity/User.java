@@ -45,8 +45,8 @@ public class User extends BaseTimeEntity {
     private String inviteCode;
 
     // 연관 관계
-    @OneToMany(mappedBy = "user")
-    private List<UserTerms> userTermList;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<UserTerms> userTermList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
     private List<InvitedUser> invitedUserList;
