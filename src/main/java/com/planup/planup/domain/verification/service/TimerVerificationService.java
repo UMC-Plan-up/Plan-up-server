@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -30,8 +31,8 @@ public class TimerVerificationService implements VerificationService{
         }
 
         Duration total = todayVerifications.stream()
-                .filter(tv -> tv.getSpentTime() != null)
                 .map(TimerVerification::getSpentTime)
+                .filter(spentTime -> spentTime != null)
                 .reduce(Duration.ZERO, Duration::plus);
 
         return LocalTime.of(
@@ -64,4 +65,45 @@ public class TimerVerificationService implements VerificationService{
         return TimerVerificationConverter.toTimerStartResponse(savedTimer);
     }
 
+    public TimerVerificationResponseDto.TimerStopResponseDto stopTimer(Long timerId, Long userId) {
+        TimerVerification timer = timerVerificationRepository.findById(timerId)
+                .orElseThrow(() -> new RuntimeException("타이머를 찾을 수 없습니다."));
+
+        if (!timer.getUserGoal().getUser().getId().equals(userId)) {
+            throw new RuntimeException("다른 사용자의 타이머는 종료할 수 없습니다.");
+        }
+
+        if (timer.getEndTime() != null) {
+            throw new RuntimeException("이미 종료된 타이머입니다.");
+        }
+        // DB에 종료시간 업데이트
+        LocalDateTime endTime = LocalDateTime.now();
+        timer.setEndTime(endTime);
+        // DB에 실제 지속 시간 업데이트
+        Duration spentTime = Duration.between(timer.getCreatedAt(), endTime);
+        timer.setSpentTime(spentTime);
+
+        UserGoal userGoal = timer.getUserGoal();
+        boolean achieved = isGoalAchieved(spentTime, userGoal.getGoalTime());
+
+
+        if (achieved) { //achieved == true
+            userGoal.setVerificationCount(userGoal.getVerificationCount() + 1);
+            userGoalRepository.save(userGoal);
+        }
+
+        TimerVerification savedTimer = timerVerificationRepository.save(timer);
+
+        return TimerVerificationConverter.toTimerStopResponse(savedTimer, achieved);
+    }
+
+    //인증 횟수 증가 로직
+    public boolean isGoalAchieved(Duration spentTime, int goalTimeMinutes) {
+        //진행 중인 타이머의 경우
+        if (spentTime == null) {
+            return false;
+        }
+        //true 반환
+        return spentTime.toMinutes() >= goalTimeMinutes;
+    }
 }

@@ -7,10 +7,7 @@ import com.planup.planup.validation.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,6 +27,20 @@ public class VerificationController {
 
         TimerVerificationResponseDto.TimerStartResponseDto result =
                 timerVerificationService.startTimer(userId, goalId);
+
+        return ApiResponse.onSuccess(result);
+    }
+
+    @PutMapping("/timer/stop/{timerId}")
+    @Operation(summary = "타이머 종료 API", description = "진행 중인 타이머를 종료합니다.")
+    public ApiResponse<TimerVerificationResponseDto.TimerStopResponseDto> stopTimer(
+            @PathVariable Long timerId,
+            HttpServletRequest request) {
+
+        Long userId = extractUserId(request);
+
+        TimerVerificationResponseDto.TimerStopResponseDto result =
+                timerVerificationService.stopTimer(timerId, userId);
 
         return ApiResponse.onSuccess(result);
     }

@@ -14,11 +14,11 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     //Query Service
     UserGoal findByGoalIdAndStatus(Long goalId, Status status);
 
-    int countByGoalIdAndActiveTrue(Long goalId);
-
     UserGoal findByGoalIdAndUserId(Long goalId, Long userId);
 
     List<UserGoal> findByUserId(Long userId);
+
+    int countByGoalIdAndIsActiveTrue(Long id);
 
     //Command Service
 

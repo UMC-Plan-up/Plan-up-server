@@ -19,4 +19,20 @@ public class TimerVerificationConverter {
                 .build();
     }
 
+    public static TimerVerificationResponseDto.TimerStopResponseDto toTimerStopResponse(
+            TimerVerification timerVerification, boolean isGoalAchieved) {
+
+        UserGoal userGoal = timerVerification.getUserGoal();
+
+        return TimerVerificationResponseDto.TimerStopResponseDto.builder()
+                .timerId(timerVerification.getId())
+                .userGoalId(userGoal.getId())
+                .totalSpentTime(timerVerification.getSpentTime())
+                .goalTimeMinutes(userGoal.getGoalTime())
+                .isGoalAchieved(isGoalAchieved)
+                .endTime(timerVerification.getEndTime())
+                .startTime(timerVerification.getCreatedAt())
+                .currentVerificationCount(userGoal.getVerificationCount())
+                .build();
+    }
 }
