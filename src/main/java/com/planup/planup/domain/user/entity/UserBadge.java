@@ -1,6 +1,7 @@
 package com.planup.planup.domain.user.entity;
 
 import com.planup.planup.domain.bedge.entity.Badge;
+import com.planup.planup.domain.bedge.entity.BadgeType;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -23,17 +24,15 @@ public class UserBadge extends BaseTimeEntity {
     private User user;
 
     // 뱃지와 매핑
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "badge_id", nullable = false)
-    private Badge badge;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "badge_id", nullable = false)
+//    private Badge badge;
+
+    @Enumerated(EnumType.STRING)
+    private BadgeType badgeType;
 
     public void setUser(User user) {
         this.user = user;
         user.getUserBadges().add(this);
-    }
-
-    public void setBadge(Badge badge) {
-        this.badge = badge;
-        badge.getUserBadges().add(this);
     }
 }
