@@ -4,6 +4,8 @@ import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;
 import com.planup.planup.domain.verification.entity.TimerVerification;
 
+import java.time.LocalTime;
+
 public class TimerVerificationConverter {
 
     public static TimerVerificationResponseDto.TimerStartResponseDto toTimerStartResponse(
@@ -33,6 +35,19 @@ public class TimerVerificationConverter {
                 .endTime(timerVerification.getEndTime())
                 .startTime(timerVerification.getCreatedAt())
                 .currentVerificationCount(userGoal.getVerificationCount())
+                .build();
+    }
+
+    public static TimerVerificationResponseDto.TodayTotalTimeResponseDto toTodayTotalTimeResponse(
+            LocalTime totalTime) {
+
+        String formattedTime = String.format("%02d:%02d:%02d",
+                totalTime.getHour(),
+                totalTime.getMinute(),
+                totalTime.getSecond());
+
+        return TimerVerificationResponseDto.TodayTotalTimeResponseDto.builder()
+                .formattedTime(formattedTime)
                 .build();
     }
 }

@@ -1,6 +1,7 @@
 package com.planup.planup.domain.verification.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
+import com.planup.planup.domain.verification.convertor.TimerVerificationConverter;
 import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import com.planup.planup.validation.JwtUtil;
@@ -8,6 +9,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalTime;
 
 @RestController
 @RequiredArgsConstructor
@@ -41,6 +44,22 @@ public class VerificationController {
 
         TimerVerificationResponseDto.TimerStopResponseDto result =
                 timerVerificationService.stopTimer(timerId, userId);
+
+        return ApiResponse.onSuccess(result);
+    }
+
+    @GetMapping("/timer/today-total")
+    @Operation(summary = "오늘 총 타이머 시간 조회 API", description = "특정 목표의 오늘 총 타이머 시간을 조회합니다.")
+    public ApiResponse<TimerVerificationResponseDto.TodayTotalTimeResponseDto> getTodayTotalTime(
+            @RequestParam("userGoalId") Long userGoalId,
+            HttpServletRequest request) {
+
+        Long userId = extractUserId(request);
+
+        LocalTime totalTime = timerVerificationService.getTodayTotalTime(userGoalId);
+
+        TimerVerificationResponseDto.TodayTotalTimeResponseDto result =
+                TimerVerificationConverter.toTodayTotalTimeResponse(totalTime);
 
         return ApiResponse.onSuccess(result);
     }

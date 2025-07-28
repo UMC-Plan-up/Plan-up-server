@@ -31,4 +31,13 @@ public class TimerVerificationResponseDto {
         private LocalDateTime startTime;
         private int currentVerificationCount;
     }
+
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TodayTotalTimeResponseDto {
+
+        private String formattedTime;
+    }
 }
