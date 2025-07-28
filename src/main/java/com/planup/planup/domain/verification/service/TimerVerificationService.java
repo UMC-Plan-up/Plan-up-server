@@ -22,9 +22,11 @@ public class TimerVerificationService implements VerificationService{
     private final UserGoalRepository userGoalRepository;
     private final TimerVerificationRepository timerVerificationRepository;
 
-    public LocalTime getTodayTotalTime(Long userGoalId) {
+    public LocalTime getTodayTotalTime(Long userId, Long goalId) {
+        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(userId, goalId);
+
         List<TimerVerification> todayVerifications = timerVerificationRepository
-                .findTodayVerificationsByUserGoalId(userGoalId);
+                .findTodayVerificationsByUserGoalId(userGoal.getId());
 
         if (todayVerifications.isEmpty()) {
             return LocalTime.of(0, 0, 0);
