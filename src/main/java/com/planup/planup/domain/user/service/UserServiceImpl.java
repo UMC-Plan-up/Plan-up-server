@@ -253,6 +253,7 @@ public class UserServiceImpl implements UserService {
 
             UserTerms saved = userTermsRepository.save(userTerms);
         }
+    }
       
     @Override
     @Transactional(readOnly = true)
