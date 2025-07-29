@@ -13,10 +13,10 @@ import java.util.List;
 
 @Entity
 @Getter
-@Builder
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
 @AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseTimeEntity {
 
     @Id
@@ -77,9 +77,5 @@ public class User extends BaseTimeEntity {
         } else {
             this.alarmAllow = true;
         }
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 }

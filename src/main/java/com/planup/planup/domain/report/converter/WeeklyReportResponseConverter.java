@@ -4,6 +4,7 @@ import com.planup.planup.domain.bedge.converter.BadgeConverter;
 import com.planup.planup.domain.bedge.dto.BadgeResponseDTO;
 import com.planup.planup.domain.bedge.entity.BadgeType;
 import com.planup.planup.domain.notification.entity.Notification;
+import com.planup.planup.domain.notification.message.NotificationMessageProvider;
 import com.planup.planup.domain.report.dto.WeeklyReportResponseDTO;
 import com.planup.planup.domain.report.entity.DailyAchievementRate;
 import com.planup.planup.domain.report.entity.DailyRecord;
@@ -16,6 +17,11 @@ import java.util.stream.Collectors;
 public class WeeklyReportResponseConverter {
 
     public static WeeklyReportResponseDTO.achievementResponse toAchievementDTO(List<BadgeType> badges, List<Notification> notifications) {
+    /**
+     * 목표 달성 페이지 생성을 위한 DTO 생성
+     */
+
+    public static WeeklyReportResponseDTO.achievementResponse toAchievementDTO(List<Badge> badges, List<Notification> notifications) {
         List<WeeklyReportResponseDTO.badgeDTO> badgeDTOS = toBadgeDTOs(badges);
         List<WeeklyReportResponseDTO.NotificationDTO> notificationDTOS = toNotificationDTOs(notifications);
 
@@ -43,11 +49,14 @@ public class WeeklyReportResponseConverter {
 
     public static WeeklyReportResponseDTO.NotificationDTO toNotificationDTO(Notification notification) {
         return WeeklyReportResponseDTO.NotificationDTO.builder()
-                .notificationText(notification.getContent())
+                .notificationText(NotificationMessageProvider.generate(notification.getType(), notification.getSender().getNickname(), notification.getReceiver().getNickname()))
                 .id(notification.getId())
                 .build();
     }
 
+    /**
+     * weekly 리포트를 찾아서 반환하는 DTO를 위한 컨버터
+     */
     public static WeeklyReportResponseDTO.WeeklyReportResponse toWeeklyReportResponse(WeeklyReport weeklyReport, List<BadgeType> badgeList) {
 
         return WeeklyReportResponseDTO.WeeklyReportResponse.builder()

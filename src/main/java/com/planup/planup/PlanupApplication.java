@@ -10,7 +10,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableJpaAuditing
 @EnableScheduling
 public class PlanupApplication {
-
 	public static void main(String[] args) {
 		SpringApplication.run(PlanupApplication.class, args);
 	}
