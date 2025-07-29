@@ -55,3 +55,11 @@ logging:
     com.zaxxer.hikari: OFF  # HikariCP 관련 로그
     org.hibernate: OFF
 
+aws:
+  credentials:
+    access-key: ${AWS_ACCESS_KEY}
+    secret-key: ${AWS_SECRET_KEY}
+  s3:
+    bucket: umc-planup-2025
+    region: ap-northeast-2
+
