@@ -11,15 +11,22 @@ import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserActivate;
 import com.planup.planup.domain.user.entity.UserLevel;
 import com.planup.planup.domain.user.repository.UserRepository;
+import com.planup.planup.domain.user.dto.UserInfoResponseDTO;
+import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
+import com.planup.planup.domain.oauth.repository.OAuthAccountRepository;
 import com.planup.planup.validation.JwtUtil;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.planup.planup.domain.user.dto.KakaoAccountResponseDTO;
+import org.springframework.web.multipart.MultipartFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
+
 
 @Service
 @Slf4j
@@ -30,15 +37,18 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final OAuthAccountRepository oAuthAccountRepository;
 
 
     @Override
+    @Transactional(readOnly = true)
     public User getUserbyUserId(Long userId) {
         Optional<User> userOptional = userRepository.findById(userId);
         return userOptional.orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String getNickname(Long userId) {
         User user = getUserbyUserId(userId);
         return user.getNickname();
@@ -49,7 +59,13 @@ public class UserServiceImpl implements UserService {
     public String updateNickname(Long userId, String nickname) {
         User user = getUserbyUserId(userId);
 
-        if (!userRepository.existsByNickname(nickname)) {
+        // 현재 사용자가 이미 같은 닉네임을 사용하고 있는지 확인
+        if (user.getNickname().equals(nickname)) {
+            return nickname; // 같은 닉네임이면 그대로 반환
+        }
+
+        // 다른 사용자가 이미 사용 중인 닉네임인지 확인
+        if (userRepository.existsByNickname(nickname)) {
             throw new UserException(ErrorStatus.EXIST_NICKNAME);
         }
         user.setNickname(nickname);
@@ -69,11 +85,7 @@ public class UserServiceImpl implements UserService {
     public boolean checkPassword(Long userId, String password) {
         User user = getUserbyUserId(userId);
 
-        if (passwordEncoder.matches(password, user.getPassword())) {
-            return true;
-        } else {
-            return false;
-        }
+        return passwordEncoder.matches(password, user.getPassword());
     }
 
     @Override
@@ -83,6 +95,40 @@ public class UserServiceImpl implements UserService {
 
         String encodedPassword = passwordEncoder.encode(password);
         user.setPassword(encodedPassword);
+    }
+
+    @Override
+    @Transactional
+    public String updateProfileImage(Long userId, MultipartFile imageFile) {
+        User user = getUserbyUserId(userId);
+
+        // 파일 저장 경로 설정 (예: /uploads/profile/)
+        String uploadDir = "/uploads/profile/";
+        String fileName = userId + "_" + imageFile.getOriginalFilename();
+        Path filePath = Paths.get(uploadDir + fileName);
+
+        try {
+            Files.createDirectories(filePath.getParent());
+            imageFile.transferTo(filePath.toFile());
+            // DB에 경로 저장
+            user.setProfileImg(filePath.toString());
+            // userRepository.save(user); // 필요시 저장
+            return filePath.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("프로필 이미지 저장 실패", e);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserInfoResponseDTO getUserInfo(Long userId) {
+        User user = getUserbyUserId(userId);
+        return UserInfoResponseDTO.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .profileImg(user.getProfileImg())
+                .build();
     }
 
     @Override
@@ -127,6 +173,25 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    public String updateEmail(Long userId, String newEmail) {
+        User user = getUserbyUserId(userId);
+
+        // 현재 사용자가 이미 같은 이메일을 사용하고 있는지 확인
+        if (user.getEmail().equals(newEmail)) {
+            return newEmail; // 같은 이메일이면 그대로 반환
+        }
+
+        // 다른 사용자가 이미 사용 중인 이메일인지 확인
+        if (userRepository.existsByEmail(newEmail)) {
+            throw new UserException(ErrorStatus.EXIST_EMAIL);
+        }
+
+        user.setEmail(newEmail);
+        return user.getEmail();
+    }
+
+    @Override
+    @Transactional
     public LoginResponseDTO login(LoginRequestDTO request) {
         // 1. 이메일로 사용자 조회
         User user = userRepository.findByEmail(request.getEmail())
@@ -152,5 +217,20 @@ public class UserServiceImpl implements UserService {
                 .profileImgUrl(user.getProfileImg())
                 .build();
     }
-
+    @Override
+    @Transactional(readOnly = true)
+    public KakaoAccountResponseDTO getKakaoAccountStatus(Long userId) {
+        User user = getUserbyUserId(userId);
+        
+        // 카카오톡 계정 정보 조회 (한 번에 조회)
+        var oauthAccount = oAuthAccountRepository.findByUserAndProvider(user, AuthProvideerEnum.KAKAO);
+        
+        boolean isLinked = oauthAccount.isPresent();
+        String kakaoEmail = oauthAccount.map(account -> account.getEmail()).orElse(null);
+        
+        return KakaoAccountResponseDTO.builder()
+                .isLinked(isLinked)
+                .kakaoEmail(kakaoEmail)
+                .build();
+    }
 }
