@@ -154,14 +154,15 @@ public class ChallengeServiceImpl implements ChallengeService{
     public void reRequestPenalty(Long userId, ChallengeRequestDTO.ReRequestPenalty dto) {
         User user = userService.getUserbyUserId(userId);
 
-        Challenge challenge = getChallengeById(dto.getId());
+        Challenge challenge = getChallengeById(dto.id());
 
         //기존에 제안받은 사람 아니면 예외처리
         if (!isChallengeMember(user, challenge)) {
             throw new ChallengeException(ErrorStatus._NOT_ALLOWED);
         }
 
-        challenge.setPenalty(dto.getPenalty());
+        challenge.setPenalty(dto.penalty());
+
         //새롭게 챌린지에 추가한 유저에 대해 usergoal을 추가한다. (기존에 없어야 한다.)
         addChallengeMember(dto.friendIdList(), challenge);
     }
