@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class BadgeServiceImpl implements BadgeService {
 
-    private final BadgeRepository badgeRepository;
     private final UserBadgeService userBadgeService;
 
     //가입 후 3일 이내 초대 코드 공유
@@ -48,7 +47,7 @@ public class BadgeServiceImpl implements BadgeService {
     //하루에 친구 신청 3회 이상
     @Override
     public boolean checkFriendlyMaxBadge(UserStat userStat) {
-        if (userStat.getFriendRequestCnt() >= 3) {
+        if (userStat.getRequestFriendOneDay() >= 3) {
             return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.FRIENDLY_MAX);
         }
         return false;
