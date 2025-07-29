@@ -6,15 +6,12 @@ import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.entity.*;
 import com.planup.planup.domain.user.repository.TermsRepository;
 import com.planup.planup.domain.user.repository.UserRepository;
-<<<<<<< HEAD
 import com.planup.planup.validation.jwt.JwtUtil;
-=======
 import com.planup.planup.domain.user.repository.UserTermsRepository;
 import com.planup.planup.domain.user.dto.UserInfoResponseDTO;
 import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
 import com.planup.planup.domain.oauth.repository.OAuthAccountRepository;
-import com.planup.planup.validation.JwtUtil;
->>>>>>> 10e0a813c32662ef2bb051027295bf86e6f7b9c5
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -211,13 +208,8 @@ public class UserServiceImpl implements UserService {
             throw new UserException(ErrorStatus.USER_INACTIVE);
         }
 
-<<<<<<< HEAD
         // 4. JWT 토큰 생성
         String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
-=======
-        // JWT 토큰 생성
-        String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString());
->>>>>>> 10e0a813c32662ef2bb051027295bf86e6f7b9c5
 
         // 응답 DTO 생성
         return LoginResponseDTO.builder()
