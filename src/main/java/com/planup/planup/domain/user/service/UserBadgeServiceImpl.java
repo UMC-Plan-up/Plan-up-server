@@ -23,7 +23,7 @@ public class UserBadgeServiceImpl implements UserBadgeService {
     public boolean createUserBadge(User user, BadgeType badge) {
 
         List<UserBadge> isExist = userBadgeRepository.findByUserAndBadgeType(user, badge);
-        if (isExist.size() != 0) {
+        if (!isExist.isEmpty()) {
             return false;
         }
 
