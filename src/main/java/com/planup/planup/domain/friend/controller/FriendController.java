@@ -2,11 +2,13 @@ package com.planup.planup.domain.friend.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
+import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
+import com.planup.planup.domain.friend.dto.UnblockFriendRequestDTO;
 import com.planup.planup.domain.friend.service.FriendService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +19,7 @@ import com.planup.planup.domain.friend.dto.FriendReportRequestDTO;
 
 import java.util.List;
 
-@Controller
+@RestController
 @AllArgsConstructor
 @Slf4j
 @RequestMapping("/friends")
@@ -32,7 +34,7 @@ public class FriendController {
     } */
     @Operation(summary = "친구 화면 조회", description = "친구 화면에 진입했을 때 필요한 정보 조회")
     @GetMapping("")
-    public ApiResponse<List<FriendResponseDTO.FriendSummaryList>> updateNicknameReq(Long userId) {
+    public ApiResponse<List<FriendResponseDTO.FriendSummaryList>> getFriendList(Long userId) {
         List<FriendResponseDTO.FriendSummaryList> friendSummaryList = friendService.getFriendSummeryList(userId);
         return ApiResponse.onSuccess(friendSummaryList);
     }
@@ -55,7 +57,7 @@ public class FriendController {
         return ApiResponse.onSuccess(result);
     }
 
-    @Operation(summary = "친구 신고", description = "친구 신고 및 차단")
+    @Operation(summary = "친구 신고", description = "친구 또는 차단된 친구를 신고하고 필요시 차단합니다")
     @PostMapping("/report")
     public ApiResponse<Boolean> reportFriend(@RequestBody FriendReportRequestDTO request) {
         boolean result = friendService.reportFriend(
@@ -98,6 +100,20 @@ public class FriendController {
             @RequestParam Long userId,
             @RequestParam Long friendId) {
         boolean result = friendService.sendFriendRequest(userId, friendId);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "차단된 친구 목록 조회", description = "내가 차단한 친구들의 이름 목록을 조회합니다")
+    @GetMapping("/blocked")
+    public ApiResponse<List<BlockedFriendResponseDTO>> getBlockedFriends(@RequestParam Long userId) {
+        List<BlockedFriendResponseDTO> blockedFriends = friendService.getBlockedFriends(userId);
+        return ApiResponse.onSuccess(blockedFriends);
+    }
+
+    @Operation(summary = "친구 차단 해제", description = "친구 이름으로 차단된 친구를 차단 해제합니다")
+    @PostMapping("/unblock")
+    public ApiResponse<Boolean> unblockFriend(@RequestBody UnblockFriendRequestDTO request) {
+        boolean result = friendService.unblockFriend(request.getUserId(), request.getFriendNickname());
         return ApiResponse.onSuccess(result);
     }
 }
