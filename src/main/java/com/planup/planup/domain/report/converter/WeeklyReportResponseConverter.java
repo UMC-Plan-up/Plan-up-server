@@ -2,7 +2,7 @@ package com.planup.planup.domain.report.converter;
 
 import com.planup.planup.domain.bedge.converter.BadgeConverter;
 import com.planup.planup.domain.bedge.dto.BadgeResponseDTO;
-import com.planup.planup.domain.bedge.entity.Badge;
+import com.planup.planup.domain.bedge.entity.BadgeType;
 import com.planup.planup.domain.notification.entity.Notification;
 import com.planup.planup.domain.notification.message.NotificationMessageProvider;
 import com.planup.planup.domain.report.dto.WeeklyReportResponseDTO;
@@ -16,11 +16,12 @@ import java.util.stream.Collectors;
 
 public class WeeklyReportResponseConverter {
 
+
     /**
      * 목표 달성 페이지 생성을 위한 DTO 생성
      */
 
-    public static WeeklyReportResponseDTO.achievementResponse toAchievementDTO(List<Badge> badges, List<Notification> notifications) {
+    public static WeeklyReportResponseDTO.achievementResponse toAchievementDTO(List<BadgeType> badges, List<Notification> notifications) {
         List<WeeklyReportResponseDTO.badgeDTO> badgeDTOS = toBadgeDTOs(badges);
         List<WeeklyReportResponseDTO.NotificationDTO> notificationDTOS = toNotificationDTOs(notifications);
 
@@ -31,14 +32,14 @@ public class WeeklyReportResponseConverter {
 
     }
 
-    public static List<WeeklyReportResponseDTO.badgeDTO> toBadgeDTOs(List<Badge> badges) {
+    public static List<WeeklyReportResponseDTO.badgeDTO> toBadgeDTOs(List<BadgeType> badges) {
         return badges.stream().map(WeeklyReportResponseConverter::toBadgeDto).collect(Collectors.toList());
     }
 
-    public static WeeklyReportResponseDTO.badgeDTO toBadgeDto(Badge badge) {
+    public static WeeklyReportResponseDTO.badgeDTO toBadgeDto(BadgeType badge) {
         return WeeklyReportResponseDTO.badgeDTO.builder()
-                .badgeId(badge.getId())
-                .badgeName(badge.getBadgeName())
+                .badgeName(badge.getDisplayName())
+                .badgeType(badge)
                 .build();
     }
 
@@ -56,7 +57,7 @@ public class WeeklyReportResponseConverter {
     /**
      * weekly 리포트를 찾아서 반환하는 DTO를 위한 컨버터
      */
-    public static WeeklyReportResponseDTO.WeeklyReportResponse toWeeklyReportResponse(WeeklyReport weeklyReport, List<Badge> badgeList) {
+    public static WeeklyReportResponseDTO.WeeklyReportResponse toWeeklyReportResponse(WeeklyReport weeklyReport, List<BadgeType> badgeList) {
 
         return WeeklyReportResponseDTO.WeeklyReportResponse.builder()
                 .id(weeklyReport.getId())
@@ -132,11 +133,11 @@ public class WeeklyReportResponseConverter {
                 .build();
     }
 
-    private static List<BadgeResponseDTO.SimpleBadgeDTO> badgesToDTO(List<Badge> badges) {
+    private static List<BadgeResponseDTO.SimpleBadgeDTO> badgesToDTO(List<BadgeType> badges) {
         return badges.stream().map(BadgeConverter::toSimpleBadgeDTO).collect(Collectors.toList());
     }
 
-    private static BadgeResponseDTO.SimpleBadgeDTO badgeToDTO(Badge badge) {
+    private static BadgeResponseDTO.SimpleBadgeDTO badgeToDTO(BadgeType badge) {
         return BadgeConverter.toSimpleBadgeDTO(badge);
     }
 }
