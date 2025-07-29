@@ -4,7 +4,7 @@ import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.domain.bedge.event.UserStatChangedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.core.ApplicationPushBuilder;
+import org.springframework.context.ApplicationEventPublisher;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;

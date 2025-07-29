@@ -1,7 +1,6 @@
 package com.planup.planup.domain.bedge.service;
 
 import com.planup.planup.domain.bedge.entity.BadgeType;
-import com.planup.planup.domain.bedge.repository.BadgeRepository;
 import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.domain.user.service.UserBadgeService;
 import lombok.RequiredArgsConstructor;
