@@ -1,6 +1,7 @@
-package com.planup.planup.domain.user.entity;
+package com.planup.planup.domain.bedge.entity;
 
 import com.planup.planup.domain.global.annotation.StatChanging;
+import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -17,7 +18,6 @@ public class UserStat {
     private boolean markedChange = false;
 
     /* ========= 하루 기준 ========= */
-    private int friendRequestCnt = 0;           // 친구신청 수
     private int commentCntInFriendDay = 0;      // 하루에 친구 글에서 댓글 수
     private int likeCnt = 0;                    // ‘응원해요’
     private int encourageCnt = 0;               // ‘분발해요’
@@ -25,7 +25,7 @@ public class UserStat {
     private int pushOpenCnt = 0;                // 푸시 열람 수
     private int completeGoalCnt= 0;             // 하루에 3개 이상의 목표 완료
     private int requestFriendOneDay = 0;        // 하루에 3번 이상 친구 신청
-    private int sendVerityCntDay = 0;            // 하루에 인증을 보낸 갯수
+    private int sendVerityCntDay = 0;           // 하루에 인증을 보낸 갯수
 
     /* ========= 일주일 기준 ========= */
     private int reactionCntWeek = 0;                        // 전체 반응 버튼
@@ -36,17 +36,16 @@ public class UserStat {
 
     /* ========= 누적 카운터 ========= */
     private int totalProfileClickCnt = 0;            // 친구 프로필 클릭
-    private int weeklyStatViewCnt = 0;          // 주간 통계 조회
-    private long totalRecordCnt = 0;            // 총 기록 수
-    private long totalInviteShareCnt = 0;       // 초대 코드 공유 수
-    private long totalInviteAcceptedCnt = 0;    // 초대한 친구 중 가입 수
-    private long totalGoalCreatedCnt = 0;       // 목표 생성 수
-    private long totalCommentCnt = 0;           // 총 댓글 수
-    private boolean completeGoalCntFlag = false;               // 이전에 하루에 100% 3개 이상한 날이 있는가
+    private int weeklyStatViewCnt = 0;               // 주간 통계 조회
+    private long totalRecordCnt = 0;                 // 총 기록 수
+    private long totalInviteShareCnt = 0;            // 초대 코드 공유 수
+    private long totalInviteAcceptedCnt = 0;         // 초대한 친구 중 가입 수
+    private long totalGoalCreatedCnt = 0;            // 목표 생성 수
+    private long totalCommentCnt = 0;                // 총 댓글 수
+    private boolean completeGoalCntFlag = false;     // 이전에 하루에 100% 3개 이상한 날이 있는가
 
 
     public void resetDailyStats() {
-        this.friendRequestCnt = 0;
         this.commentCntInFriendDay = 0;
         this.likeCnt = 0;
         this.encourageCnt = 0;
@@ -77,6 +76,11 @@ public class UserStat {
         this.markedChange = true;
     }
 
+    @StatChanging
+    public void addReactionButton() {
+        this.reactionCntWeek +=1;
+    }
+
     //댓글을 추가한 경우
     @StatChanging
     public void addComment() {
@@ -104,8 +108,12 @@ public class UserStat {
     //인증을 추가한 경우
     @StatChanging
     public void addVerify() {
+        //하루에 인증 보낸 수
         this.sendVerityCntDay += 1;
+        //전체 인증 수
         this.totalRecordCnt += 1;
+        //7일 연속 증가하는지 확인
+        addRecordAllGoal7DaysIfNeeded();
     }
 
     //친구 프로필을 선택한 경우
@@ -122,7 +130,7 @@ public class UserStat {
 
     //인증을 추가한 경우
     @StatChanging
-    public void addRecordAllGoal7DaysIfNeeded() {
+    private void addRecordAllGoal7DaysIfNeeded() {
         if (recordAllGoal7DaysFlag) {
             return;
         } else {
@@ -133,6 +141,7 @@ public class UserStat {
 
     @StatChanging
     public void setRecordSpecificGoalDaysIfNeeded() {
+        //오늘 아직 업데이트 하지 않았다면 1을 더한다.
         if (recordSpecificGoalDaysFlag) {
             return;
         } else {
@@ -141,11 +150,6 @@ public class UserStat {
         }
     }
 
-    //친구 신청을 한 경우
-    @StatChanging
-    public void addFriendRequestCnt() {
-        this.friendRequestCnt += 1;
-    }
 
     //친구 글에서 댓글을 단 경우
     @StatChanging

@@ -1,7 +1,7 @@
 package com.planup.planup.domain.user.repository;
 
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.entity.UserStat;
+import com.planup.planup.domain.bedge.entity.UserStat;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

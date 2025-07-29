@@ -1,6 +1,6 @@
 package com.planup.planup.domain.global.scheduler;
 
-import com.planup.planup.domain.user.entity.UserStat;
+import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.domain.user.repository.UserStatRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
