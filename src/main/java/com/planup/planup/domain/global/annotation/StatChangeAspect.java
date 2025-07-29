@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class StatChangeAspect {
 
-    private final ApplicationPushBuilder eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Before("@annotation(com.planup.planup.domain.global.annotation.StatChanging)")
     public void markUserStatChanged(JoinPoint joinPoint) {
