@@ -4,13 +4,14 @@ import com.planup.planup.domain.bedge.entity.Badge;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "user_badge")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class UserBadge extends BaseTimeEntity {
 
     @Id

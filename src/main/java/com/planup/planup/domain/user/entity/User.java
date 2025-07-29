@@ -8,6 +8,7 @@ import com.planup.planup.domain.report.entity.GoalReport;
 import com.planup.planup.domain.report.entity.WeeklyReport;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import java.util.List;
 
 @Entity
 @Getter
-@Builder
+@SuperBuilder
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor

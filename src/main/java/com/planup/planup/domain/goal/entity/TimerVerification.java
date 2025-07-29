@@ -5,12 +5,18 @@ import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import jakarta.persistence.*;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.sql.Time;
 
 @Entity
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder
 public class TimerVerification extends BaseTimeEntity {
 
     @Id

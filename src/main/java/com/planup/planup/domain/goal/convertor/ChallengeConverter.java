@@ -42,7 +42,7 @@ public class ChallengeConverter {
                 .limitFriendCount(1)
                 .status(dto.status())
                 .penalty(dto.penalty())
-                .targetTime(dto.timeChallenge().getTargetTime())
+                .targetTime(dto.timeChallenge().targetTime())
                 .build();
     }
 

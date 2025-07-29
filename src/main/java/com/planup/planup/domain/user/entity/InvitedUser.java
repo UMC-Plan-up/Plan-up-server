@@ -3,9 +3,11 @@ package com.planup.planup.domain.user.entity;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @NoArgsConstructor
+@SuperBuilder
 public class InvitedUser extends BaseTimeEntity {
 
     @Id

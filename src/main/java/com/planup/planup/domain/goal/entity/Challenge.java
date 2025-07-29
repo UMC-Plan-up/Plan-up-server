@@ -9,10 +9,9 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Entity
 @SuperBuilder
-@AllArgsConstructor
 public class Challenge extends Goal {
 
     @Enumerated(EnumType.STRING)
