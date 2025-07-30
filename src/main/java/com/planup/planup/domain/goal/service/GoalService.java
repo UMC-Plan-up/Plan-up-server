@@ -19,7 +19,5 @@ public interface GoalService {
     void updateGoal(Long goalId, Long userId, GoalRequestDto.CreateGoalDto dto);
     void updateActiveGoal(Long goalId, Long userId);
 
-    }
-
     Goal getGoalById(Long id);
 }

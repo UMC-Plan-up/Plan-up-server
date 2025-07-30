@@ -42,13 +42,14 @@ public enum ErrorStatus implements BaseErrorCode {
     //Report 관련 에러
     NOT_FOUND_WEEKLY_REPORT(HttpStatus.NOT_FOUND, "WEEKLY_REPORT4001", "존재하지 않는 주간 리포트입니다"),
     NOT_FOUND_GOAL_REPORT(HttpStatus.NOT_FOUND, "GOAL_REPORT4001", "존재하지 않는 목표 리포트입니다"),
+    NOT_FOUND_CHALLENGE(HttpStatus.NOT_FOUND, "CHALLENGE4004", "존재하지 않는 챌린지 입니다."),
+
 
 
     // 약관 관련 에러
     NOT_FOUND_TERMS(HttpStatus.NOT_FOUND, "4004", "존재하지 않는 약관입니다."),
     REQUIRED_TERMS_NOT_AGREED(HttpStatus.BAD_REQUEST, "4005", "필수 약관에 동의해야 합니다."),
-    TERMS_AGREEMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "5001", "약관 동의 처리 중 오류가 발생했습니다.")
-    ;
+    TERMS_AGREEMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "5001", "약관 동의 처리 중 오류가 발생했습니다.");
 
 
     private final HttpStatus httpStatus;

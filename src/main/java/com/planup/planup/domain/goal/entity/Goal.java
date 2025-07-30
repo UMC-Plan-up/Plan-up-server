@@ -12,6 +12,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -46,6 +47,9 @@ public class Goal extends BaseTimeEntity {
     //목표 빈도 기간(하루, 1주, 1달/ 하루에 __, 1주일에 __하기)
     @Enumerated(EnumType.STRING)
     private GoalPeriod period;
+
+    @OneToMany
+    private List<UserGoal> userGoals;
 
     //빈도
     private int frequency;
