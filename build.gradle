@@ -45,4 +45,5 @@ dependencies {
 
 	// AWS S3 의존성
 	implementation 'software.amazon.awssdk:s3:2.21.29'
-	implementation 'software.amazon.awssdk:auth:2.21.29'}
+	implementation 'software.amazon.awssdk:auth:2.21.29'
+}
