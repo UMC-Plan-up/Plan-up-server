@@ -5,13 +5,15 @@ import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import jakarta.persistence.*;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 public class TimerVerification extends BaseTimeEntity {

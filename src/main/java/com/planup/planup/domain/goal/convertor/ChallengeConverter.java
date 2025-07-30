@@ -10,6 +10,9 @@ import com.planup.planup.domain.goal.entity.TimeChallenge;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.user.entity.User;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,7 +25,7 @@ public class ChallengeConverter {
                 .goalCategory(GoalCategory.CHALLENGE)
                 .goalType(dto.goalType())
                 .oneDose(dto.oneDose())
-                .endDate(dto.endDate())
+                .endDate(convertToDate(dto.endDate()))
                 .limitFriendCount(1)
                 .status(dto.status())
                 .penalty(dto.penalty())
@@ -38,7 +41,7 @@ public class ChallengeConverter {
                 .goalCategory(GoalCategory.CHALLENGE)
                 .goalType(dto.goalType())
                 .oneDose(dto.oneDose())
-                .endDate(dto.endDate())
+                .endDate(convertToDate(dto.endDate()))
                 .limitFriendCount(1)
                 .status(dto.status())
                 .penalty(dto.penalty())
@@ -57,7 +60,7 @@ public class ChallengeConverter {
                 .goalName(photoChallenge.getGoalName())
                 .goalType(photoChallenge.getGoalType())
                 .goalAmount(photoChallenge.getGoalAmount())
-                .endDate(photoChallenge.getEndDate())
+                .endDate(convertToLocalDateTime(photoChallenge.getEndDate()))
                 .timePerPeriod(photoChallenge.getTimePerPeriod())
                 .frequency(photoChallenge.getFrequency())
                 .targetTime(null)
@@ -75,10 +78,22 @@ public class ChallengeConverter {
                 .goalName(timeChallenge.getGoalName())
                 .goalType(timeChallenge.getGoalType())
                 .goalAmount(timeChallenge.getGoalAmount())
-                .endDate(timeChallenge.getEndDate())
+                .endDate(convertToLocalDateTime(timeChallenge.getEndDate()))
                 .timePerPeriod(0)
                 .frequency(0)
                 .targetTime(timeChallenge.getTargetTime())
                 .build();
+    }
+
+    public static LocalDateTime convertToLocalDateTime(Date date) {
+        return date.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+    }
+
+    public static Date convertToDate(LocalDateTime localDateTime) {
+        return Date.from(
+                localDateTime.atZone(ZoneId.systemDefault()).toInstant()
+        );
     }
 }

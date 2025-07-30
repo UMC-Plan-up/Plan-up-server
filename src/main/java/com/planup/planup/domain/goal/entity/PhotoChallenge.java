@@ -8,6 +8,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 import java.util.Calendar;
+import java.util.Date;
 
 @Entity
 @Getter
@@ -15,7 +16,7 @@ import java.util.Calendar;
 @SuperBuilder
 public class PhotoChallenge extends Challenge {
 
-    private LocalDateTime endDate;
+    private Date endDate;
     private int timePerPeriod;  // 기준 기간 (예: 7일)
     private int frequency;      // 빈도
 }
