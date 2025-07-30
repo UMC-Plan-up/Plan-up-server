@@ -85,25 +85,49 @@ jobs:
             "$JAR_FILE" ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/planupServer.jar
 
           # 실행 스크립트 생성
-          cat <<EOF > start_server.sh
-          #!/bin/bash
-          mkdir -p /home/${EC2_USERNAME}/logs
-          chmod 755 /home/${EC2_USERNAME}/logs
-          kill -9 \$(pgrep -f 'java -jar') || true
-          sleep 5
-          cd /home/${EC2_USERNAME}
-          nohup java -jar planupServer.jar > /home/${EC2_USERNAME}/logs/app.log 2>&1 </dev/null &
-          sleep 10
-          if pgrep -f 'java -jar' > /dev/null; then
-            echo "Server started successfully"
-            exit 0
-            exit 0
-          else
-            echo "Server failed to start"
-            tail -n 50 /home/${EC2_USERNAME}/logs/app.log
-            exit 1
-          fi
-          EOF
+#          cat <<EOF > start_server.sh
+#          #!/bin/bash
+#          mkdir -p /home/${EC2_USERNAME}/logs
+#          chmod 755 /home/${EC2_USERNAME}/logs
+#          kill -9 \$(pgrep -f 'java -jar') || true
+#          sleep 5
+#          cd /home/${EC2_USERNAME}
+#          nohup java -jar planupServer.jar > /home/${EC2_USERNAME}/logs/app.log 2>&1 </dev/null &
+#          sleep 10
+#          if pgrep -f 'java -jar' > /dev/null; then
+#            echo "Server started successfully"
+#            exit 0
+#            exit 0
+#          else
+#            echo "Server failed to start"
+#            tail -n 50 /home/${EC2_USERNAME}/logs/app.log
+#            exit 1
+#          fi
+#          EOF
+           cat <<EOF > application.yml
+           ${{ secrets.APPLICATION_YML }}
+           EOF
+           scp -i private_key.pem -o StrictHostKeyChecking=no application.yml ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/
+
+           # Modify start_server.sh (only this part changed)
+           cat <<EOF > start_server.sh
+           #!/bin/bash
+           mkdir -p /home/${EC2_USERNAME}/logs
+           chmod 755 /home/${EC2_USERNAME}/logs
+           kill -9 \$(pgrep -f 'java -jar') || true
+           sleep 5
+           cd /home/${EC2_USERNAME}
+           nohup java -jar planupServer.jar --spring.config.location=file:/home/${EC2_USERNAME}/application.yml > /home/${EC2_USERNAME}/logs/app.log 2>&1 </dev/null &
+           sleep 10
+           if pgrep -f 'java -jar' > /dev/null; then
+           echo "Server started successfully"
+           exit 0
+           else
+           echo "Server failed to start"
+           tail -n 50 /home/${EC2_USERNAME}/logs/app.log
+           exit 1
+           fi
+           EOF
 
           chmod +x start_server.sh
           scp -i private_key.pem -o StrictHostKeyChecking=no start_server.sh ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/
