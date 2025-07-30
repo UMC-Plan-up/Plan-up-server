@@ -41,7 +41,7 @@ public class Goal extends BaseTimeEntity {
 
     //목표 타입(친구, 커뮤니티, 챌린지)
     @Enumerated(EnumType.STRING)
-    @Column(length = 20)
+    @Column(length = 20, name = "goal_type_enum")
     private GoalType goalType;
 
     //목표 빈도 기간(하루, 1주, 1달/ 하루에 __, 1주일에 __하기)
