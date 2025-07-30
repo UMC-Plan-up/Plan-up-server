@@ -70,9 +70,6 @@ jobs:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
-#          AWS_ACCESS_KEY : ${{ secrets.AWS_ACCESS_KEY }}
-#          AWS_SECRET_KEY : ${{ secrets.AWS_SECRET_KEY }}
-#          JWT_SECRET : ${{ secrets.JWT_SECRET }}
         run: |
           echo "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
@@ -95,13 +92,12 @@ jobs:
           nohup java -jar planupServer.jar > /home/${EC2_USERNAME}/logs/app.log 2>&1 </dev/null &
           sleep 10
           if pgrep -f 'java -jar' > /dev/null; then
-            echo "Server started successfully"
-            exit 0
-            exit 0
+          echo "Server started successfully"
+          exit 0
           else
-            echo "Server failed to start"
-            tail -n 50 /home/${EC2_USERNAME}/logs/app.log
-            exit 1
+          echo "Server failed to start"
+          tail -n 50 /home/${EC2_USERNAME}/logs/app.log
+          exit 1
           fi
           EOF
 
