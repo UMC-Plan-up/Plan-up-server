@@ -3,24 +3,22 @@ server:
 
 spring:
   datasource:
-#    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&useLegacyDatetimeCode=false
-#    driverClassName: com.mysql.cj.jdbc.Driver
-#    username: ${DB_USER}
-#    password: ${DB_PASSWORD}
-    url: jdbc:mysql://localhost:3306/plan_up?serverTimezone=Asia/Seoul&useSSL=false&allowPublicKeyRetrieval=true
-    username: root
-    password: 1234
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&useLegacyDatetimeCode=false
+    driverClassName: com.mysql.cj.jdbc.Driver
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
     hikari:
       maximum-pool-size: 10         # 최대 커넥션 개수
+
   jpa:
     hibernate:
+      dialect: org.hibernate.dialect.MySQLDialect
       ddl-auto: update
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
         jdbc:
-          time_zone: Asia/Seoul
+        time_zone: Asia/Seoul
 
   application:
     name: planup
@@ -31,7 +29,7 @@ spring:
       port: 6379
 
 jwt:
-  secret: myVerySecretKeyThatIsAtLeast256BitsLongForHS256Algorithm
+  secret: ${JWT_SECRET}
   accessTokenExpiration: 86400000
   refreshTokenExpiration: 604800000
 
@@ -54,4 +52,12 @@ logging:
     org.apache.catalina: OFF
     com.zaxxer.hikari: OFF  # HikariCP 관련 로그
     org.hibernate: OFF
+
+aws:
+  credentials:
+    access-key: ${AWS_ACCESS_KEY}
+    secret-key: ${AWS_SECRET_KEY}
+  s3:
+    bucket: umc-planup-2025
+    region: ap-northeast-2
 

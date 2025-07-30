@@ -39,6 +39,6 @@ public class SignupRequestDTO {
 
     @Schema(description = "약관 동의 목록")
     @NotEmpty
-    private List<TermsAgreementDTO> agreements;
+    private List<TermsAgreementRequestDTO> agreements;
 }
 
