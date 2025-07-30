@@ -1,4 +1,4 @@
-package com.planup.planup.validation;
+package com.planup.planup.validation.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

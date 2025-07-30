@@ -2,11 +2,8 @@ package com.planup.planup.domain.goal.dto;
 
 import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.*;
-import com.planup.planup.domain.goal.entity.PhotoVerification;
-import com.planup.planup.domain.goal.entity.TimerVerification;
 import lombok.*;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
@@ -38,20 +35,21 @@ public class GoalResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class MyGoalListDto {
-        Long goalId;
-        String goalName;
-        GoalCategory goalCategory;
-        GoalType goalType;
-        VerificationType verificationType;
-        Integer goalTime;
-        Long spentTimeMinutes;
-        int frequency;
-        String oneDose;
-        String creatorNickname;
-        String creatorProfileImg;
-        Status myStatus;
-        int participantCount;
-        boolean isActive;
+        private Long goalId;
+        private String goalName;
+        private GoalCategory goalCategory;
+        private GoalType goalType;
+        private VerificationType verificationType;
+        private Integer goalTime;
+        private Long spentTimeMinutes;
+        private int frequency;
+        private String oneDose;
+        private String creatorNickname;
+        private String creatorProfileImg;
+        private Status myStatus;
+        private int participantCount;
+        private boolean isActive;
+        private boolean isPublic;
     }
 
     //목표 세부 조회 Dto
@@ -63,8 +61,7 @@ public class GoalResponseDto {
         private Long goalId;
         private String goalName;
         private String oneDose;
-        private boolean isActive;
-        private LocalTime todayTime;
+        private boolean isPublic;
         private List<Comment> commentList;
     }
 }

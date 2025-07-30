@@ -7,14 +7,14 @@ import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
-import com.planup.planup.domain.goal.entity.PhotoVerification;
-import com.planup.planup.domain.goal.entity.TimerVerification;
+import com.planup.planup.domain.verification.entity.PhotoVerification;
+import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.GoalRepository;
-import com.planup.planup.domain.goal.repository.PhotoVerificationRepository;
-import com.planup.planup.domain.goal.repository.TimerVerificationRepository;
+import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
+import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
-import com.planup.planup.domain.goal.service.verification.TimerVerificationService;
+import com.planup.planup.domain.verification.service.TimerVerificationService;
 import com.planup.planup.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import com.planup.planup.domain.user.entity.User;
@@ -49,12 +49,13 @@ public class GoalServiceImpl implements GoalService{
                 .status(Status.ADMIN)
                 .currentAmount(null)
                 .isActive(true)
+                .isPublic(true)
+                .verificationCount(0)
                 .build();
         UserGoal savedUserGoal = userGoalRepository.save(userGoal);
 
         //Refactor : 인증 테이블 자동 생성
         TimerVerification timerVerification = TimerVerification.builder()
-                .goalTime(createGoalDto.getGoalTime() != null ? createGoalDto.getGoalTime() : 0)
                 .spentTime(Duration.ZERO)
                 .userGoal(savedUserGoal)
                 .build();
@@ -74,24 +75,21 @@ public class GoalServiceImpl implements GoalService{
     @Transactional(readOnly = true)
     public List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        //N+1 문제 성능 개선
-        List<UserGoal> userGoals = userGoalRepository.findByUserIdAndIsActiveTrueWithVerifications(userId);
+        List<UserGoal> userGoals = userGoalRepository.findByUserId(userId);
 
-        List<User> creators = userGoals.stream()
+        return userGoals.stream()
                 .map(userGoal -> {
-                    Long goalId = userGoal.getGoal().getId();
-                    return userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN)
-                            .getUser();
+                    User creator = userGoalRepository.findByGoalIdAndStatus(
+                            userGoal.getGoal().getId(), Status.ADMIN).getUser();
+
+                    int participantCount = userGoalRepository.countByGoalIdAndIsActiveTrue(
+                            userGoal.getGoal().getId());
+
+                    return GoalConvertor.toMyGoalListDto(userGoal, creator, participantCount);
                 })
                 .collect(Collectors.toList());
-
-        List<Integer> participantCounts = userGoals.stream()
-                .map(userGoal -> userGoalRepository.countByGoalIdAndIsActiveTrue(userGoal.getGoal().getId()))
-                .collect(Collectors.toList());
-
-        return GoalConvertor.toMyGoalListDtoList(userGoals, creators, participantCounts);
     }
 
     //내 목표 조회(세부 내용 조회)
@@ -99,29 +97,26 @@ public class GoalServiceImpl implements GoalService{
     public GoalResponseDto.MyGoalDetailDto getMyGoalDetails(Long goalId, Long userId) {
         UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
 
-        //오늘 기록 시간 조회
-        LocalTime todayTime = timerVerificationService.getTodayTotalTime(userGoal.getId());
-
         //댓글 조회
         List<Comment> commentList = commentService.getComments(goalId);
 
-        return GoalConvertor.toMyGoalDetailsDto(userGoal, todayTime, commentList);
+        return GoalConvertor.toMyGoalDetailsDto(userGoal, commentList);
     }
 
     //활성화/비활성화
     @Transactional
-    public GoalResponseDto.MyGoalDetailDto updateActiveGoal(Long goalId, Long userId) {
+    public void updateActiveGoal(Long goalId, Long userId) {
         UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
 
-        //활성화 상태 변경
         userGoal.setActive(!userGoal.isActive());
+    }
 
-        //오늘 기록 시간 조회
-        LocalTime todayTime = timerVerificationService.getTodayTotalTime(userGoal.getId());
-        //댓글 조회
-        List<Comment> commentList = commentService.getComments(goalId);
-
-        return GoalConvertor.toMyGoalDetailsDto(userGoal, todayTime, commentList);
+    //공개/비공개
+    @Transactional
+    public void updatePublicGoal(Long goalId, Long userId) {
+        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        //공개 상태 변경
+        userGoal.setPublic(!userGoal.isPublic());
     }
 
     //친구 목표 수정(정보 조회)
@@ -134,7 +129,7 @@ public class GoalServiceImpl implements GoalService{
         if (goal.getVerificationType() == VerificationType.TIMER) {
             UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
             if (userGoal != null && !userGoal.getTimerVerifications().isEmpty()) {
-                goalTime = userGoal.getTimerVerifications().get(0).getGoalTime();
+                goalTime = userGoal.getGoalTime();
             }
         }
 
@@ -160,8 +155,7 @@ public class GoalServiceImpl implements GoalService{
         if (dto.getVerificationType() == VerificationType.TIMER && dto.getGoalTime() != null) {
             UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
             if (userGoal != null) {
-                // Repository 쿼리로 한 번에 업데이트
-                timerVerificationRepository.updateGoalTimeByUserGoalId(dto.getGoalTime(), userGoal.getId());
+                userGoal.setGoalTime(dto.getGoalTime());
             }
         }
     }

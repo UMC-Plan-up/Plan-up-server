@@ -1,6 +1,6 @@
 package com.planup.planup.config;
 
-import com.planup.planup.validation.JwtAuthenticationFilter;
+import com.planup.planup.validation.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,7 +27,7 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/signin", "/users/signup", "/users/login").permitAll()
+                        .requestMatchers("/users/signup", "/users/login").permitAll()
                         // Swagger 관련 경로
                         .requestMatchers(
                                 "/v3/api-docs/**",
@@ -38,9 +38,13 @@ public class SecurityConfig {
                         ).permitAll()
                         //리소스
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
-                        //구체적인 경로 설정 전까지는 임시로 모든 Api 경로 허용
-                        .requestMatchers("/api/**").permitAll()
-                        .requestMatchers("/", "/login/**").permitAll()
+                        .requestMatchers("/goals/**").authenticated()
+                        .requestMatchers("/verification/**").authenticated()
+                        .requestMatchers("/mypage/**").authenticated()
+                        .requestMatchers("/friends/**").authenticated()
+                        .requestMatchers("/report/**").authenticated()
+                        .requestMatchers("/notification/**").authenticated()
+                        // 기타 경로는 임시 허용 (점진적으로 authenticated()로 변경)
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

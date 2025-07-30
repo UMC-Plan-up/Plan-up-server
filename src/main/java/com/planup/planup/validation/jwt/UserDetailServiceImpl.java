@@ -1,4 +1,4 @@
-package com.planup.planup.validation;
+package com.planup.planup.validation.jwt;
 
 
 import com.planup.planup.domain.user.entity.User;
