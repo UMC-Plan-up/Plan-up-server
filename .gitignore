@@ -59,6 +59,7 @@ application-local.yml
 application-local.properties
 application-dev.yml
 application-dev.properties
+application-secret.yml
 
 # Temporary files
 *.tmp

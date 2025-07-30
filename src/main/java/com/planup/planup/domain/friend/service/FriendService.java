@@ -1,7 +1,7 @@
 package com.planup.planup.domain.friend.service;
 
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
-import org.springframework.transaction.annotation.Transactional;
+import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
 
 import java.util.List;
 
@@ -29,6 +29,11 @@ public interface FriendService {
     // 친구 신청
     boolean sendFriendRequest(Long userId, Long friendId);
 
-    @Transactional(readOnly = true)
+    // 차단된 친구 목록 조회
+    List<BlockedFriendResponseDTO> getBlockedFriends(Long userId);
+
+    // 친구 차단 해제 (닉네임으로)
+    boolean unblockFriend(Long userId, String friendNickname);
+
     List<FriendResponseDTO.FriendInfoInChallengeCreate> getFrinedListInChallenge(Long userId);
 }

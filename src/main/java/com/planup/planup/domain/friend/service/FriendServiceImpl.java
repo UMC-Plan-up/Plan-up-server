@@ -3,6 +3,7 @@ package com.planup.planup.domain.friend.service;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
+import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
@@ -88,11 +89,19 @@ public class FriendServiceImpl implements FriendService {
     @Override
     @Transactional
     public boolean reportFriend(Long userId, Long friendId, String reason, boolean block) {
-        // 1. Friend 엔티티 찾기
-        List<Friend> friends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
+        // 1. Friend 엔티티 찾기 (ACCEPTED 또는 BLOCKED 상태의 친구 관계)
+        List<Friend> acceptedFriends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
             FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
 
-        Friend friend = friends.stream()
+        List<Friend> blockedFriends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
+            FriendStatus.BLOCKED, userId, FriendStatus.BLOCKED, userId);
+
+        // 두 리스트 합치기
+        List<Friend> allFriends = new ArrayList<>();
+        allFriends.addAll(acceptedFriends);
+        allFriends.addAll(blockedFriends);
+
+        Friend friend = allFriends.stream()
             .filter(f -> (f.getUser().getId().equals(friendId) || f.getFriend().getId().equals(friendId)))
             .findFirst()
             .orElse(null);
@@ -101,8 +110,8 @@ public class FriendServiceImpl implements FriendService {
             // 신고 사유 저장 (별도 테이블이 있다면 Report 엔티티에 저장, 없다면 로그 등)
             System.out.println("신고 사유: " + reason);
 
-            // 차단 여부에 따라 상태 변경
-            if (block) {
+            // 차단 여부에 따라 상태 변경 (이미 차단된 상태라면 상태 변경하지 않음)
+            if (block && friend.getStatus() != FriendStatus.BLOCKED) {
                 friend.setStatus(FriendStatus.BLOCKED);
                 friendRepository.save(friend);
             }
@@ -194,12 +203,12 @@ public class FriendServiceImpl implements FriendService {
 
         // 유저 엔티티 조회
         User user = userService.getUserbyUserId(userId);
-        User friend = userService.getUserbyUserId(friendId);
+        User friendUser = userService.getUserbyUserId(friendId);
 
         // Friend 엔티티 생성
         Friend friendRequest = new Friend();
         friendRequest.setUser(user);
-        friendRequest.setFriend(friend);
+        friendRequest.setFriend(friendUser);
         friendRequest.setStatus(FriendStatus.REQUESTED);
 
         friendRepository.save(friendRequest);
@@ -215,5 +224,42 @@ public class FriendServiceImpl implements FriendService {
                 .map(friend -> FriendConverter.toFriendInfoChallenge(friend.getFriend())) // 또는 getUser()
                 .collect(Collectors.toList());
         return dtoList;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BlockedFriendResponseDTO> getBlockedFriends(Long userId) {
+        User user = userService.getUserbyUserId(userId);
+
+        // 사용자가 차단한 친구 목록 조회 (user가 차단한 경우만)
+        List<Friend> blockedFriends = friendRepository.findByUserAndStatusOrderByCreatedAtDesc(user, FriendStatus.BLOCKED);
+
+        return blockedFriends.stream()
+                .map(friend -> {
+                    // user가 차단한 대상은 friend 필드에 있음
+                    User blockedUser = friend.getFriend();
+                    return BlockedFriendResponseDTO.builder()
+                            .friendNickname(blockedUser.getNickname())
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public boolean unblockFriend(Long userId, String friendNickname) {
+        User user = userService.getUserbyUserId(userId);
+
+        // 사용자가 해당 닉네임의 친구를 차단한 관계를 찾음
+        var blockedFriend = friendRepository.findByUserAndFriend_NicknameAndStatus(user, friendNickname, FriendStatus.BLOCKED);
+
+        if (blockedFriend.isPresent()) {
+            // 차단 관계를 삭제
+            friendRepository.delete(blockedFriend.get());
+            return true;
+        }
+
+        // 차단 관계를 찾지 못했을 때
+        throw new UserException(ErrorStatus._BAD_REQUEST);
     }
 }

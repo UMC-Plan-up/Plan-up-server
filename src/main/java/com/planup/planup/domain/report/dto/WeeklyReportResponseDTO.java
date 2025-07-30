@@ -1,6 +1,7 @@
 package com.planup.planup.domain.report.dto;
 
 import com.planup.planup.domain.bedge.dto.BadgeResponseDTO;
+import com.planup.planup.domain.bedge.entity.BadgeType;
 import com.planup.planup.domain.report.entity.DailyAchievementRate;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -25,8 +26,8 @@ public class WeeklyReportResponseDTO {
 
     @Builder
     public record badgeDTO(
-            @Schema(description = "뱃지 id", example = "5")
-            Long badgeId,
+            @Schema(description = "뱃지 타입")
+            BadgeType badgeType,
 
             @Schema(description = "뱃지 이름", example = "영향력 있는 시작")
             String badgeName

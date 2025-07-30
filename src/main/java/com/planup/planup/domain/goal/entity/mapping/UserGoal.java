@@ -4,8 +4,9 @@ import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.GeneralException;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.Enum.Status;
-import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
+import com.planup.planup.domain.verification.entity.PhotoVerification;
+import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -13,10 +14,16 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
 @SuperBuilder
+@Builder
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserGoal extends BaseTimeEntity {
@@ -25,11 +32,12 @@ public class UserGoal extends BaseTimeEntity {
     private Long id;
 
     private Status status;
-    private Boolean isActive;
+    private boolean isActive;
+    private boolean isPublic;
+    private String currentAmount;
+    private int verificationCount;
+    private int goalTime;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    private VerificationType verificationType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -60,4 +68,10 @@ public class UserGoal extends BaseTimeEntity {
             goal.getUserGoals().add(this);
         }
     }
+
+    @OneToMany(mappedBy = "userGoal", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TimerVerification> timerVerifications = new ArrayList<>();
+
+    @OneToMany(mappedBy = "userGoal", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PhotoVerification> photoVerifications = new ArrayList<>();
 }

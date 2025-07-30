@@ -4,8 +4,22 @@ import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Goal;
 
+import java.util.List;
+
 public interface GoalService {
+    //Query Service
+
+    //Command Service
     GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto dto);
+    List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId);
+    GoalResponseDto.MyGoalDetailDto getMyGoalDetails(Long goalId, Long userId);
+    void updatePublicGoal(Long goalId, Long userId);
+    void deleteGoal(Long goalId, Long userId);
+    GoalRequestDto.CreateGoalDto getGoalInfoToUpdate(Long goalId, Long userId);
+    void updateGoal(Long goalId, Long userId, GoalRequestDto.CreateGoalDto dto);
+    void updateActiveGoal(Long goalId, Long userId);
+
+    }
 
     Goal getGoalById(Long id);
 }
