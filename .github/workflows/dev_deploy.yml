@@ -70,6 +70,9 @@ jobs:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
+          AWS_ACCESS_KEY : ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY : ${{ secrets.AWS_SECRET_KEY }}
+          JWT_SECRET : ${{ secrets.JWT_SECRET }}
         run: |
           echo "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
