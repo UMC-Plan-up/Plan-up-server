@@ -3,14 +3,15 @@ package com.planup.planup.domain.verification.controller;
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.verification.convertor.TimerVerificationConverter;
 import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;
+import com.planup.planup.domain.verification.service.PhotoVerificationService;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import com.planup.planup.validation.annotation.CurrentUser;
 import com.planup.planup.validation.jwt.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalTime;
 
@@ -20,6 +21,7 @@ import java.time.LocalTime;
 public class VerificationController {
 
     private final TimerVerificationService timerVerificationService;
+    private final PhotoVerificationService photoVerificationService;
     private final JwtUtil jwtUtil;
 
     @PostMapping("/timer/start")
@@ -58,5 +60,28 @@ public class VerificationController {
                 TimerVerificationConverter.toTodayTotalTimeResponse(totalTime);
 
         return ApiResponse.onSuccess(result);
+    }
+
+    @PostMapping("/photo/upload")
+    @Operation(summary = "사진 인증 업로드 API", description = "선택한 목표에 대한 사진 인증을 업로드합니다.")
+    public ApiResponse<Void> uploadPhotoVerification(
+            @RequestParam("goalId") Long goalId,
+            @RequestPart("photoFile") MultipartFile photoFile,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        photoVerificationService.uploadPhotoVerification(userId, goalId, photoFile);
+
+        return ApiResponse.onSuccess(null);
+    }
+
+    @DeleteMapping("/photo/{verificationId}")
+    @Operation(summary = "사진 인증 삭제 API", description = "특정 사진 인증을 삭제합니다.")
+    public ApiResponse<Void> deletePhotoVerification(
+            @PathVariable Long verificationId,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        photoVerificationService.deletePhotoVerification(userId, verificationId);
+
+        return ApiResponse.onSuccess(null);
     }
 }
