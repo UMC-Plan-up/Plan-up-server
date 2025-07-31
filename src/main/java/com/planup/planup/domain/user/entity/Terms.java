@@ -22,5 +22,6 @@ public class Terms extends BaseTimeEntity {
 
     private Boolean isRequired;
 
+    @Column(name = "`order`")
     private Integer order;
 }
