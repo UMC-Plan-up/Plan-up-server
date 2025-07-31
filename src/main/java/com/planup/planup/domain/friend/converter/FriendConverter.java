@@ -26,8 +26,7 @@ public class FriendConverter {
                 .builder()
                 .id(friend.getId())
                 .nickname(friend.getNickname())
-                //TODO: GoalCount 조회 메서드 추가
-                .goalCnt(0)
+                .goalCnt(friend.getUserGoals().size())
                 .build();
 
     }
