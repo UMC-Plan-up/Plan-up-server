@@ -9,14 +9,14 @@ import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
-import com.planup.planup.domain.verification.entity.PhotoVerification;
-import com.planup.planup.domain.verification.entity.TimerVerification;
+import com.planup.planup.domain.user.verification.entity.PhotoVerification;
+import com.planup.planup.domain.user.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.GoalRepository;
-import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
-import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
+import com.planup.planup.domain.user.verification.repository.PhotoVerificationRepository;
+import com.planup.planup.domain.user.verification.repository.TimerVerificationRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
-import com.planup.planup.domain.verification.service.TimerVerificationService;
+import com.planup.planup.domain.user.verification.service.TimerVerificationService;
 import com.planup.planup.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import com.planup.planup.domain.user.entity.User;
@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 

@@ -1,12 +1,12 @@
-package com.planup.planup.domain.verification.service;
+package com.planup.planup.domain.user.verification.service;
 
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
-import com.planup.planup.domain.verification.entity.PhotoVerification;
-import com.planup.planup.domain.verification.entity.TimerVerification;
+import com.planup.planup.domain.user.verification.entity.PhotoVerification;
+import com.planup.planup.domain.user.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
-import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
-import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
+import com.planup.planup.domain.user.verification.repository.PhotoVerificationRepository;
+import com.planup.planup.domain.user.verification.repository.TimerVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

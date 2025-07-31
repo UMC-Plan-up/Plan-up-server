@@ -1,11 +1,10 @@
-package com.planup.planup.domain.verification.service;
+package com.planup.planup.domain.user.verification.service;
 
-import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
-import com.planup.planup.domain.verification.convertor.TimerVerificationConverter;
-import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;
-import com.planup.planup.domain.verification.entity.TimerVerification;
-import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
+import com.planup.planup.domain.user.verification.convertor.TimerVerificationConverter;
+import com.planup.planup.domain.user.verification.repository.TimerVerificationRepository;
+import com.planup.planup.domain.user.verification.dto.TimerVerificationResponseDto;
+import com.planup.planup.domain.user.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,7 +13,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
