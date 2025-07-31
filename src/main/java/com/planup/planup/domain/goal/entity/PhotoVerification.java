@@ -1,6 +1,7 @@
-package com.planup.planup.domain.user.entity;
+package com.planup.planup.domain.goal.entity;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
+import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,22 +10,19 @@ import lombok.experimental.SuperBuilder;
 
 @Entity
 @Getter
-@Table(name = "terms")
-@NoArgsConstructor
 @SuperBuilder
+@NoArgsConstructor
 @AllArgsConstructor
-public class Terms extends BaseTimeEntity {
+public class PhotoVerification extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String summary;
+    private String photoImg;
+    private String photoDescription;
 
-    @Lob
-    private String content;
-
-    private Boolean isRequired;
-
-    private Integer order;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "community_id")
+    private UserGoal community;
 }

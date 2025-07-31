@@ -1,5 +1,7 @@
 package com.planup.planup.domain.goal.service;
 
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.GoalException;
 import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
@@ -7,14 +9,14 @@ import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
-import com.planup.planup.domain.verification.entity.PhotoVerification;
-import com.planup.planup.domain.verification.entity.TimerVerification;
+import com.planup.planup.domain.user.verification.entity.PhotoVerification;
+import com.planup.planup.domain.user.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.GoalRepository;
-import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
-import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
+import com.planup.planup.domain.user.verification.repository.PhotoVerificationRepository;
+import com.planup.planup.domain.user.verification.repository.TimerVerificationRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
-import com.planup.planup.domain.verification.service.TimerVerificationService;
+import com.planup.planup.domain.user.verification.service.TimerVerificationService;
 import com.planup.planup.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import com.planup.planup.domain.user.entity.User;
@@ -22,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -69,6 +70,11 @@ public class GoalServiceImpl implements GoalService{
         photoVerificationRepository.save(photoVerification);
 
         return GoalConvertor.toGoalResultDto(savedGoal);
+    }
+
+    @Override
+    public Goal getGoalById(Long id) {
+        return goalRepository.findById(id).orElseThrow(() -> new GoalException(ErrorStatus.NOT_FOUND_CHALLENGE));
     }
 
     //내 목표 리스트 조회(세부 내용 조회X)

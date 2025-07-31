@@ -1,8 +1,8 @@
-package com.planup.planup.domain.verification.convertor;
+package com.planup.planup.domain.user.verification.convertor;
 
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
-import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;
-import com.planup.planup.domain.verification.entity.TimerVerification;
+import com.planup.planup.domain.user.verification.dto.TimerVerificationResponseDto;
+import com.planup.planup.domain.user.verification.entity.TimerVerification;
 
 import java.time.LocalTime;
 

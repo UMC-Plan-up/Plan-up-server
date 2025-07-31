@@ -1,26 +1,30 @@
-package com.planup.planup.domain.verification.entity;
+package com.planup.planup.domain.user.verification.entity;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Builder
-@NoArgsConstructor
+@Setter
+@SuperBuilder
 @AllArgsConstructor
-public class PhotoVerification extends BaseTimeEntity {
+@NoArgsConstructor
+public class TimerVerification extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String photoImg;
-    private String photoDescription;
+    //타입 통일
+    private LocalDateTime endTime;
+    private Duration spentTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usergoal_id")

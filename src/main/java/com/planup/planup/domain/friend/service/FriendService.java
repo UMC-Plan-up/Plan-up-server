@@ -34,4 +34,6 @@ public interface FriendService {
 
     // 친구 차단 해제 (닉네임으로)
     boolean unblockFriend(Long userId, String friendNickname);
+
+    List<FriendResponseDTO.FriendInfoInChallengeCreate> getFrinedListInChallenge(Long userId);
 }

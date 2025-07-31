@@ -5,11 +5,15 @@ import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
-import com.planup.planup.domain.verification.entity.TimerVerification;
+import com.planup.planup.domain.user.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.user.entity.User;
-import java.time.LocalTime;
+
 import java.util.List;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 
 public class GoalConvertor {
 
@@ -110,5 +114,13 @@ public class GoalConvertor {
                 .limitFriendCount(goal.getLimitFriendCount())
                 .goalTime(goalTime)
                 .build();
+    }
+
+    public static LocalDateTime convertToLocalDateTime(Date date) {
+        return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+    }
+
+    public static Date convertToDate(LocalDateTime dateTime) {
+        return Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
     }
 }
