@@ -15,6 +15,7 @@ public enum ErrorStatus implements BaseErrorCode {
     _BAD_REQUEST(HttpStatus.BAD_REQUEST,"COMMON400","잘못된 요청입니다."),
     _UNAUTHORIZED(HttpStatus.UNAUTHORIZED,"COMMON401","인증이 필요합니다."),
     _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
+    _NOT_ALLOWED(HttpStatus.FORBIDDEN, "COMMON404", "권한이 없는 요청입니다"),
 
     //Notification 관련 에러
     UNAUTHORIZED_NOTIFICATION_ACCESS(HttpStatus.FORBIDDEN, "NOTIFICATION4001", "알림을 읽을 권한이 없습니다."),
@@ -31,16 +32,26 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "USER4005", "이메일 또는 비밀번호가 잘못되었습니다"),
     USER_INACTIVE(HttpStatus.FORBIDDEN, "USER4006", "비활성화된 계정입니다"),
 
+    //Challenge 에러
+    MISSING_TIME_CHALLENGE_INFO(HttpStatus.BAD_REQUEST, "CHALLENGE4001", "시간 챌린지 정보가 필요합니다."),
+    MISSING_PHOTO_CHALLENGE_INFO(HttpStatus.BAD_REQUEST, "CHALLENGE4002", "사진 챌린지 정보가 필요합니다."),
+    INVALID_HTTP_CHALLENGE_METHOD(HttpStatus.METHOD_NOT_ALLOWED, "CHALLENGE4007", "챌린지 생성 요청이 아닙니다."),
+    INVALID_CHALLENGE_TYPE(HttpStatus.BAD_REQUEST, "CHALLENGE4003", "올바르지 않는 챌리지 타입입니다"),
+
+
     //Report 관련 에러
     NOT_FOUND_WEEKLY_REPORT(HttpStatus.NOT_FOUND, "WEEKLY_REPORT4001", "존재하지 않는 주간 리포트입니다"),
     NOT_FOUND_GOAL_REPORT(HttpStatus.NOT_FOUND, "GOAL_REPORT4001", "존재하지 않는 목표 리포트입니다"),
+    NOT_FOUND_CHALLENGE(HttpStatus.NOT_FOUND, "CHALLENGE4004", "존재하지 않는 챌린지 입니다."),
+
 
 
     // 약관 관련 에러
     NOT_FOUND_TERMS(HttpStatus.NOT_FOUND, "4004", "존재하지 않는 약관입니다."),
     REQUIRED_TERMS_NOT_AGREED(HttpStatus.BAD_REQUEST, "4005", "필수 약관에 동의해야 합니다."),
-    TERMS_AGREEMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "5001", "약관 동의 처리 중 오류가 발생했습니다.")
-    ;
+    TERMS_AGREEMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "5001", "약관 동의 처리 중 오류가 발생했습니다."),
+    NOT_FOUND_USERGOAL(HttpStatus.NOT_FOUND, "CHALLENGE4009", "찾지 못함");
+
 
 
     private final HttpStatus httpStatus;

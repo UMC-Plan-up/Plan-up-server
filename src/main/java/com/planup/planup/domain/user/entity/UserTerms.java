@@ -3,6 +3,7 @@ package com.planup.planup.domain.user.entity;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
@@ -11,9 +12,9 @@ import java.time.LocalDateTime;
 @Table(name = "user_terms")
 @Getter
 @Setter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@SuperBuilder
 public class UserTerms extends BaseTimeEntity {
 
     @Id

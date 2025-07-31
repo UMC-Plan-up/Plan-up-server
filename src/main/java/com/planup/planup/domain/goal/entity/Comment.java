@@ -4,11 +4,17 @@ import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.Enum.CommentStatus;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Getter
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Comment extends BaseTimeEntity {
 
     @Id

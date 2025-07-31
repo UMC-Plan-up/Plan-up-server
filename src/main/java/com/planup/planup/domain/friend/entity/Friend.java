@@ -6,11 +6,13 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
+@SuperBuilder
 public class Friend extends BaseTimeEntity {
 
     @Id

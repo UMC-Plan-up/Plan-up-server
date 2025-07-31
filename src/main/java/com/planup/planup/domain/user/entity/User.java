@@ -1,22 +1,25 @@
 package com.planup.planup.domain.user.entity;
 
 import com.planup.planup.domain.bedge.entity.UserStat;
+import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
+import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
 import com.planup.planup.domain.report.entity.WeeklyReport;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Getter
+@SuperBuilder
 @Setter
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class User extends BaseTimeEntity {
 
     @Id
@@ -64,6 +67,9 @@ public class User extends BaseTimeEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserBadge> userBadges = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserGoal> userGoals = new ArrayList<>();
+
     @OneToOne(mappedBy = "user")
     private UserStat userStat;
 
@@ -77,5 +83,14 @@ public class User extends BaseTimeEntity {
         } else {
             this.alarmAllow = true;
         }
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void addUserGoal(UserGoal userGoal) {
+        userGoals.add(userGoal);
+        userGoal.setUser(this);
     }
 }
