@@ -4,9 +4,11 @@ import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Comment;
+import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
+import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.domain.verification.entity.PhotoVerification;
 import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,7 +66,6 @@ public class GoalServiceImpl implements GoalService{
 
         PhotoVerification photoVerification = PhotoVerification.builder()
                 .photoImg(null)
-                .photoDescription(null)
                 .userGoal(savedUserGoal)
                 .build();
         photoVerificationRepository.save(photoVerification);
@@ -71,25 +73,37 @@ public class GoalServiceImpl implements GoalService{
         return GoalConvertor.toGoalResultDto(savedGoal);
     }
 
-    //내 목표 리스트 조회(세부 내용 조회X)
+    //목표 리스트 조회(세부 내용 조회X)
     @Transactional(readOnly = true)
-    public List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId) {
+    public List<GoalResponseDto.MyGoalListDto> getGoalList(Long userId, GoalCategory goalCategory) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        List<UserGoal> userGoals = userGoalRepository.findByUserId(userId);
+        List<GoalResponseDto.MyGoalListDto> result = new ArrayList<>();
 
-        return userGoals.stream()
-                .map(userGoal -> {
-                    User creator = userGoalRepository.findByGoalIdAndStatus(
-                            userGoal.getGoal().getId(), Status.ADMIN).getUser();
+        List<UserGoal> friendGoals = userGoalRepository.findFriendGoalsByCategory(userId, goalCategory);
+        for (UserGoal userGoal : friendGoals) {
+            User creator = userGoalRepository.findByGoalIdAndStatus(
+                    userGoal.getGoal().getId(), Status.ADMIN).getUser();
 
-                    int participantCount = userGoalRepository.countByGoalIdAndIsActiveTrue(
-                            userGoal.getGoal().getId());
+            int currentParticipants = userGoalRepository.countByGoalId(userGoal.getGoal().getId());
+            int remainingSlots = userGoal.getGoal().getLimitFriendCount() - currentParticipants;
 
-                    return GoalConvertor.toMyGoalListDto(userGoal, creator, participantCount);
-                })
-                .collect(Collectors.toList());
+            result.add(GoalConvertor.toMyGoalListDto(userGoal, creator, remainingSlots));
+        }
+
+        List<UserGoal> communityGoals = userGoalRepository.findCommunityGoalsByCategory(goalCategory);
+        for (UserGoal userGoal : communityGoals) {
+            User creator = userGoalRepository.findByGoalIdAndStatus(
+                    userGoal.getGoal().getId(), Status.ADMIN).getUser();
+
+            int currentParticipants = userGoalRepository.countByGoalId(userGoal.getGoal().getId());
+            int remainingSlots = userGoal.getGoal().getLimitFriendCount() - currentParticipants;
+
+            result.add(GoalConvertor.toMyGoalListDto(userGoal, creator, remainingSlots));
+        }
+
+        return result;
     }
 
     //내 목표 조회(세부 내용 조회)
@@ -172,5 +186,22 @@ public class GoalServiceImpl implements GoalService{
         }
 
         goalRepository.delete(goal);
+    }
+
+    //사진 조회
+    @Transactional(readOnly = true)
+    public List<PhotoVerificationResponseDto.uploadPhotoResponseDto> getGoalPhotos(Long userId, Long goalId) {
+        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        if (userGoal == null) {
+            throw new RuntimeException("해당 목표를 찾을 수 없거나 접근 권한이 없습니다.");
+        }
+
+        return userGoal.getPhotoVerifications().stream()
+                .map(verification -> PhotoVerificationResponseDto.uploadPhotoResponseDto.builder()
+                        .verificationId(verification.getId())
+                        .goalId(goalId)
+                        .photoImg(verification.getPhotoImg())
+                        .build())
+                .collect(Collectors.toList());
     }
 }
