@@ -1,13 +1,8 @@
 package com.planup.planup.domain.user.service;
 
-import com.planup.planup.domain.user.dto.UserInfoResponseDTO;
+import com.planup.planup.domain.user.dto.*;
 import org.springframework.web.multipart.MultipartFile;
-import com.planup.planup.domain.user.dto.LoginRequestDTO;
-import com.planup.planup.domain.user.dto.LoginResponseDTO;
-import com.planup.planup.domain.user.dto.SignupRequestDTO;
-import com.planup.planup.domain.user.dto.SignupResponseDTO;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.dto.KakaoAccountResponseDTO;
 
 public interface UserService {
     User getUserbyUserId(Long userId);
@@ -33,4 +28,6 @@ public interface UserService {
     LoginResponseDTO login(LoginRequestDTO request);
 
     KakaoAccountResponseDTO getKakaoAccountStatus(Long userId);
+
+    ImageUploadResponseDTO uploadProfileImage(MultipartFile file, User currentUser);
 }

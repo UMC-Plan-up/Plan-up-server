@@ -2,6 +2,7 @@ package com.planup.planup.domain.user.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
+import com.planup.planup.domain.global.service.ImageUploadService;
 import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.entity.*;
 import com.planup.planup.domain.user.repository.TermsRepository;
@@ -39,6 +40,8 @@ public class UserServiceImpl implements UserService {
     private final TermsRepository termsRepository;
     private final UserTermsRepository userTermsRepository;
     private final OAuthAccountRepository oAuthAccountRepository;
+    private final ImageUploadService imageUploadService;
+
 
     @Override
     @Transactional(readOnly = true)
@@ -270,6 +273,20 @@ public class UserServiceImpl implements UserService {
         return KakaoAccountResponseDTO.builder()
                 .isLinked(isLinked)
                 .kakaoEmail(kakaoEmail)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public ImageUploadResponseDTO uploadProfileImage(MultipartFile file, User currentUser) {
+
+        String imageUrl = imageUploadService.uploadImage(file, "profile");
+
+        currentUser.updateProfileImage(imageUrl);
+        userRepository.save(currentUser);
+
+        return ImageUploadResponseDTO.builder()
+                .imageUrl(imageUrl)
                 .build();
     }
 }

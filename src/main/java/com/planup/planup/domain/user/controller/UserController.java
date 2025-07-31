@@ -1,25 +1,18 @@
 package com.planup.planup.domain.user.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
-import com.planup.planup.domain.user.dto.UserInfoResponseDTO;
-import com.planup.planup.domain.user.dto.LoginRequestDTO;
-import com.planup.planup.domain.user.dto.LoginResponseDTO;
-import com.planup.planup.domain.user.dto.SignupRequestDTO;
-import com.planup.planup.domain.user.dto.SignupResponseDTO;
+import com.planup.planup.domain.user.dto.*;
+import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import com.planup.planup.domain.user.dto.KakaoAccountResponseDTO;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
@@ -112,5 +105,16 @@ public class UserController {
     public ApiResponse<KakaoAccountResponseDTO> getKakaoAccountStatus(@RequestParam Long userId) {
         KakaoAccountResponseDTO kakaoAccountStatus = userService.getKakaoAccountStatus(userId);
         return ApiResponse.onSuccess(kakaoAccountStatus);
+    }
+
+    @Operation(summary = "프로필 사진 업로드 및 변경", description = "회원가입 시 프로필 사진을 업로드하거나 변경합니다.")
+    @PostMapping(value = "/profile/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<ImageUploadResponseDTO> uploadProfileImage(
+            @Parameter(description = "업로드할 이미지 파일", required = true)
+            @RequestPart("file") MultipartFile file,
+            @Parameter(hidden = true) @CurrentUser User currentUser) {
+
+        ImageUploadResponseDTO response = userService.uploadProfileImage(file, currentUser);
+        return ApiResponse.onSuccess(response);
     }
 }

@@ -78,4 +78,8 @@ public class User extends BaseTimeEntity {
             this.alarmAllow = true;
         }
     }
+
+    public void updateProfileImage(String profileImg) {
+        this.profileImg = profileImg;
+    }
 }
