@@ -1,4 +1,4 @@
-package com.planup.planup.domain.goal.convertor;
+package com.planup.planup.domain.goal.dto.convertor;
 
 import lombok.Data;
 

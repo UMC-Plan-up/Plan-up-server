@@ -1,4 +1,4 @@
-package com.planup.planup.domain.goal.convertor;
+package com.planup.planup.domain.goal.dto.convertor;
 
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
