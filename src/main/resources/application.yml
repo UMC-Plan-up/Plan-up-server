@@ -27,7 +27,7 @@ spring:
     redis:
       host: localhost
       port: 6379
-
+      timeout: 3000ms
 jwt:
   secret: K6R92t7pMerAta8dxni0acT0JnObAawWgfOJdBTbkGIX4OxwxmcjEPQQusSpyVsI
   accessTokenExpiration: 86400000
