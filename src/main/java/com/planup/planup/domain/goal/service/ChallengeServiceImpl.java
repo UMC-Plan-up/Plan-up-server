@@ -88,7 +88,6 @@ public class ChallengeServiceImpl implements ChallengeService{
         UserGoal userGoalMember = UserGoal.builder()
                 .user(friend)
                 .isActive(false)
-
                 .status(member)
                 .goal(timeChallenge)
                 .build();

@@ -70,6 +70,15 @@ jobs:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           echo "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
@@ -81,7 +90,7 @@ jobs:
           rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" \
             "$JAR_FILE" ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/planupServer.jar
 
-          # 실행 스크립트 생성
+          # 실행 스크립트 생성 (환경변수와 함께)
           cat <<EOF > start_server.sh
           #!/bin/bash
           mkdir -p /home/${EC2_USERNAME}/logs
@@ -89,20 +98,38 @@ jobs:
           kill -9 \$(pgrep -f 'java -jar') || true
           sleep 5
           cd /home/${EC2_USERNAME}
-          nohup java -jar planupServer.jar > /home/${EC2_USERNAME}/logs/app.log 2>&1 </dev/null &
+          
+          # 환경변수와 함께 Java 애플리케이션 실행
+          nohup java -jar \
+            -DDB_HOST="${DB_HOST}" \
+            -DDB_PORT="${DB_PORT}" \
+            -DDB_NAME="${DB_NAME}" \
+            -DDB_USER="${DB_USER}" \
+            -DDB_PASSWORD="${DB_PASSWORD}" \
+            -DJWT_SECRET="${JWT_SECRET}" \
+            -DAWS_ACCESS_KEY="${AWS_ACCESS_KEY}" \
+            -DAWS_SECRET_KEY="${AWS_SECRET_KEY}" \
+            -DAWS_S3_BUCKET="${AWS_S3_BUCKET}" \
+            planupServer.jar > /home/${EC2_USERNAME}/logs/app.log 2>&1 </dev/null &
+          
           sleep 10
           if pgrep -f 'java -jar' > /dev/null; then
-            echo "Server started successfully"
-            exit 0
-            exit 0
+          echo "Server started successfully"
+          exit 0
           else
-            echo "Server failed to start"
-            tail -n 50 /home/${EC2_USERNAME}/logs/app.log
-            exit 1
+          echo "Server failed to start"
+          tail -n 50 /home/${EC2_USERNAME}/logs/app.log
+          exit 1
           fi
           EOF
 
           chmod +x start_server.sh
+
+          # 스크립트를 EC2에 전송
           scp -i private_key.pem -o StrictHostKeyChecking=no start_server.sh ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/
-          ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} "bash /home/${EC2_USERNAME}/start_server.sh"
+
+          # 환경변수와 함께 EC2에서 스크립트 실행
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} \
+            "DB_HOST='${DB_HOST}' DB_PORT='${DB_PORT}' DB_NAME='${DB_NAME}' DB_USER='${DB_USER}' DB_PASSWORD='${DB_PASSWORD}' JWT_SECRET='${JWT_SECRET}' AWS_ACCESS_KEY='${AWS_ACCESS_KEY}' AWS_SECRET_KEY='${AWS_SECRET_KEY}' AWS_S3_BUCKET='${AWS_S3_BUCKET}' bash /home/${EC2_USERNAME}/start_server.sh"
+          
           rm -f private_key.pem
