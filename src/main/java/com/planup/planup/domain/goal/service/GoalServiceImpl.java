@@ -2,7 +2,7 @@ package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.GoalException;
-import com.planup.planup.domain.goal.convertor.GoalConvertor;
+import com.planup.planup.domain.goal.dto.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Comment;
