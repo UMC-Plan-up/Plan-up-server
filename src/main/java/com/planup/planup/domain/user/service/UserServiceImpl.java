@@ -84,7 +84,10 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public boolean checkPassword(Long userId, String password) {
         User user = getUserbyUserId(userId);
-        return passwordEncoder.matches(password, user.getPassword());
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new UserException(ErrorStatus.PASSWORD_MISMATCH);
+        }
+        return true;
     }
 
     @Override
