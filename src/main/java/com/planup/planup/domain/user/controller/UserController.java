@@ -117,4 +117,12 @@ public class UserController {
         ImageUploadResponseDTO response = userService.uploadProfileImage(file, currentUser);
         return ApiResponse.onSuccess(response);
     }
+
+    @Operation(summary = "내 초대코드 조회", description = "내 초대코드를 조회하거나 새로 생성합니다")
+    @GetMapping("/users/me/invite-code")
+    public ApiResponse<InviteCodeResponseDTO> getMyInviteCode(
+            @Parameter(hidden = true) @CurrentUser User currentUser) {
+        InviteCodeResponseDTO response = userService.getMyInviteCode(currentUser.getId());
+        return ApiResponse.onSuccess(response);
+    }
 }

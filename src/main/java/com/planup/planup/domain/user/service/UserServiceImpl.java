@@ -41,6 +41,7 @@ public class UserServiceImpl implements UserService {
     private final UserTermsRepository userTermsRepository;
     private final OAuthAccountRepository oAuthAccountRepository;
     private final ImageUploadService imageUploadService;
+    private final InviteCodeService inviteCodeService;
 
 
     @Override
@@ -149,9 +150,17 @@ public class UserServiceImpl implements UserService {
         // 필수 약관 동의 검증
         validateRequiredTerms(request.getAgreements());
 
+        // 초대코드 처리 (있을 때만)
+        Long inviterId = null;
+        if (request.getInviteCode() != null && !request.getInviteCode().trim().isEmpty()) {
+            inviterId = inviteCodeService.findInviterByCode(request.getInviteCode());
+            if (inviterId == null) {
+                throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
+            }
+        }
+
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
-
         // User 엔티티 생성
         User user = User.builder()
                 .email(request.getEmail())
@@ -168,6 +177,16 @@ public class UserServiceImpl implements UserService {
 
         // 약관 동의 추가
         addTermsAgreements(savedUser, request.getAgreements());
+
+        // 초대 관계 처리 (초대코드가 있었다면)
+        if (inviterId != null) {
+            // TODO
+            log.info("사용자 {}가 초대코드 {}를 사용하여 가입. 초대자: {}",
+                    savedUser.getId(), request.getInviteCode(), inviterId);
+
+            // 초대코드 사용 완료
+            inviteCodeService.useInviteCode(request.getInviteCode());
+        }
 
         return SignupResponseDTO.builder()
                 .id(savedUser.getId())
@@ -288,5 +307,11 @@ public class UserServiceImpl implements UserService {
         return ImageUploadResponseDTO.builder()
                 .imageUrl(imageUrl)
                 .build();
+    }
+
+    // 내 초대코드 조회 메서드
+    @Override
+    public InviteCodeResponseDTO getMyInviteCode(Long userId) {
+        return inviteCodeService.getMyInviteCode(userId);
     }
 }
