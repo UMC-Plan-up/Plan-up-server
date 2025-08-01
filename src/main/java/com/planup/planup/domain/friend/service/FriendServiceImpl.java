@@ -92,7 +92,7 @@ public class FriendServiceImpl implements FriendService {
         // 1. Friend 엔티티 찾기 (ACCEPTED 또는 BLOCKED 상태의 친구 관계)
         List<Friend> acceptedFriends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
             FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
-        
+
         List<Friend> blockedFriends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
             FriendStatus.BLOCKED, userId, FriendStatus.BLOCKED, userId);
 
@@ -215,14 +215,25 @@ public class FriendServiceImpl implements FriendService {
         return true;
     }
 
+    //챌린지에서 사용할 friend dto를 만들어 반환한다.
+    @Override
+    @Transactional(readOnly = true)
+    public List<FriendResponseDTO.FriendInfoInChallengeCreate> getFrinedListInChallenge(Long userId) {
+        List<Friend> friendList = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
+        List<FriendResponseDTO.FriendInfoInChallengeCreate> dtoList = friendList.stream()
+                .map(friend -> FriendConverter.toFriendInfoChallenge(friend.getFriend())) // 또는 getUser()
+                .collect(Collectors.toList());
+        return dtoList;
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<BlockedFriendResponseDTO> getBlockedFriends(Long userId) {
         User user = userService.getUserbyUserId(userId);
-        
+
         // 사용자가 차단한 친구 목록 조회 (user가 차단한 경우만)
         List<Friend> blockedFriends = friendRepository.findByUserAndStatusOrderByCreatedAtDesc(user, FriendStatus.BLOCKED);
-        
+
         return blockedFriends.stream()
                 .map(friend -> {
                     // user가 차단한 대상은 friend 필드에 있음

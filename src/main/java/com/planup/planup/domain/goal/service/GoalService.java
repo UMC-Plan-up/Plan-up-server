@@ -2,6 +2,7 @@ package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
+import com.planup.planup.domain.goal.entity.Goal;
 
 import java.util.List;
 
@@ -18,4 +19,5 @@ public interface GoalService {
     void updateGoal(Long goalId, Long userId, GoalRequestDto.CreateGoalDto dto);
     void updateActiveGoal(Long goalId, Long userId);
 
-    }
+    Goal getGoalById(Long id);
+}
