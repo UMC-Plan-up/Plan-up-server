@@ -160,6 +160,7 @@ public class UserServiceImpl implements UserService {
 
         // 초대코드 처리 (있을 때만)
         Long inviterId = null;
+        String friendNickname = null;
         if (request.getInviteCode() != null && !request.getInviteCode().trim().isEmpty()) {
             inviterId = inviteCodeService.findInviterByCode(request.getInviteCode());
             if (inviterId == null) {
@@ -191,6 +192,7 @@ public class UserServiceImpl implements UserService {
 
             // 친구 관계 생성 (양방향)
             User inviterUser = getUserbyUserId(inviterId);
+            friendNickname = inviterUser.getNickname();
 
             Friend friendship1 = Friend.builder()
                     .user(savedUser)
@@ -214,6 +216,7 @@ public class UserServiceImpl implements UserService {
         return SignupResponseDTO.builder()
                 .id(savedUser.getId())
                 .email(savedUser.getEmail())
+                .friendNickname(friendNickname)
                 .build();
     }
 
