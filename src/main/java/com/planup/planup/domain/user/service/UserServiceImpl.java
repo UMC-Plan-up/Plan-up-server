@@ -2,9 +2,13 @@ package com.planup.planup.domain.user.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
+import com.planup.planup.domain.friend.entity.Friend;
+import com.planup.planup.domain.friend.entity.FriendStatus;
+import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.global.service.ImageUploadService;
 import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.entity.*;
+import com.planup.planup.domain.user.repository.InvitedUserRepository;
 import com.planup.planup.domain.user.repository.TermsRepository;
 import com.planup.planup.domain.user.repository.UserRepository;
 import com.planup.planup.validation.jwt.JwtUtil;
@@ -13,6 +17,7 @@ import com.planup.planup.domain.user.dto.UserInfoResponseDTO;
 import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
 import com.planup.planup.domain.oauth.repository.OAuthAccountRepository;
 
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +37,7 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Builder
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -42,6 +48,8 @@ public class UserServiceImpl implements UserService {
     private final OAuthAccountRepository oAuthAccountRepository;
     private final ImageUploadService imageUploadService;
     private final InviteCodeService inviteCodeService;
+    private final InvitedUserRepository invitedUserRepository;
+    private final FriendRepository friendRepository;
 
 
     @Override
@@ -180,9 +188,24 @@ public class UserServiceImpl implements UserService {
 
         // 초대 관계 처리 (초대코드가 있었다면)
         if (inviterId != null) {
-            // TODO
-            log.info("사용자 {}가 초대코드 {}를 사용하여 가입. 초대자: {}",
-                    savedUser.getId(), request.getInviteCode(), inviterId);
+
+            // 친구 관계 생성 (양방향)
+            User inviterUser = getUserbyUserId(inviterId);
+
+            Friend friendship1 = Friend.builder()
+                    .user(savedUser)
+                    .friend(inviterUser)
+                    .status(FriendStatus.ACCEPTED)
+                    .build();
+
+            Friend friendship2 = Friend.builder()
+                    .user(inviterUser)
+                    .friend(savedUser)
+                    .status(FriendStatus.ACCEPTED)
+                    .build();
+
+            friendRepository.save(friendship1);
+            friendRepository.save(friendship2);
 
             // 초대코드 사용 완료
             inviteCodeService.useInviteCode(request.getInviteCode());
