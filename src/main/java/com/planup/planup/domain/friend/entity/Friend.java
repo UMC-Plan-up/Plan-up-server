@@ -4,13 +4,14 @@ import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class Friend extends BaseTimeEntity {
 
     @Id
