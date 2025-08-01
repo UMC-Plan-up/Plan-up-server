@@ -18,8 +18,8 @@ import java.util.List;
 @Getter
 @SuperBuilder
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseTimeEntity {
 
     @Id
@@ -92,5 +92,9 @@ public class User extends BaseTimeEntity {
     public void addUserGoal(UserGoal userGoal) {
         userGoals.add(userGoal);
         userGoal.setUser(this);
+    }
+
+    public void updateProfileImage(String profileImg) {
+        this.profileImg = profileImg;
     }
 }

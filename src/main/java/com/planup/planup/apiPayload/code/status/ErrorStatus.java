@@ -50,8 +50,13 @@ public enum ErrorStatus implements BaseErrorCode {
     NOT_FOUND_TERMS(HttpStatus.NOT_FOUND, "4004", "존재하지 않는 약관입니다."),
     REQUIRED_TERMS_NOT_AGREED(HttpStatus.BAD_REQUEST, "4005", "필수 약관에 동의해야 합니다."),
     TERMS_AGREEMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "5001", "약관 동의 처리 중 오류가 발생했습니다."),
-    NOT_FOUND_USERGOAL(HttpStatus.NOT_FOUND, "CHALLENGE4009", "찾지 못함");
+    NOT_FOUND_USERGOAL(HttpStatus.NOT_FOUND, "CHALLENGE4009", "찾지 못함"),
 
+    // 초대코드 관련 에러
+    INVALID_INVITE_CODE(HttpStatus.BAD_REQUEST, "INVITE001", "유효하지 않은 초대코드입니다."),
+    EXPIRED_INVITE_CODE(HttpStatus.BAD_REQUEST, "INVITE002", "만료된 초대코드입니다."),
+    INVITE_CODE_ALREADY_USED(HttpStatus.BAD_REQUEST, "INVITE003", "이미 사용된 초대코드입니다.")
+    ;
 
 
     private final HttpStatus httpStatus;
