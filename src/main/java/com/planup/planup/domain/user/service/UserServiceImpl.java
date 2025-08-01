@@ -314,4 +314,64 @@ public class UserServiceImpl implements UserService {
     public InviteCodeResponseDTO getMyInviteCode(Long userId) {
         return inviteCodeService.getMyInviteCode(userId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode, Long currentUserId) {
+        // 빈 코드 체크
+        if (inviteCode == null || inviteCode.trim().isEmpty()) {
+            return ValidateInviteCodeResponseDTO.builder()
+                    .valid(false)
+                    .message("초대코드를 입력해주세요.")
+                    .build();
+        }
+
+        try {
+            // InviteCodeService를 통해 초대자 찾기
+            Long inviterId = inviteCodeService.findInviterByCode(inviteCode);
+
+            if (inviterId == null) {
+                return ValidateInviteCodeResponseDTO.builder()
+                        .valid(false)
+                        .message("유효하지 않은 초대코드입니다.")
+                        .build();
+            }
+
+            // 본인 코드인지 확인
+            if (inviterId.equals(currentUserId)) {
+                return ValidateInviteCodeResponseDTO.builder()
+                        .valid(false)
+                        .message("본인의 초대코드는 사용할 수 없습니다.")
+                        .build();
+            }
+
+            // 이미 친구인지 확인
+            User currentUser = getUserbyUserId(currentUserId);
+            User inviterUser = getUserbyUserId(inviterId);
+
+            boolean alreadyFriend = friendRepository.findByUserAndFriend_NicknameAndStatus(
+                    currentUser, inviterUser.getNickname(), FriendStatus.ACCEPTED).isPresent() ||
+                    friendRepository.findByUserAndFriend_NicknameAndStatus(
+                            inviterUser, currentUser.getNickname(), FriendStatus.ACCEPTED).isPresent();
+
+            if (alreadyFriend) {
+                return ValidateInviteCodeResponseDTO.builder()
+                        .valid(false)
+                        .message("이미 친구로 등록된 사용자입니다.")
+                        .build();
+            }
+
+            return ValidateInviteCodeResponseDTO.builder()
+                    .valid(true)
+                    .message("유효한 초대코드입니다.")
+                    .targetUserNickname(inviterUser.getNickname())
+                    .build();
+
+        } catch (Exception e) {
+            return ValidateInviteCodeResponseDTO.builder()
+                    .valid(false)
+                    .message("초대코드 검증 중 오류가 발생했습니다.")
+                    .build();
+        }
+    }
 }

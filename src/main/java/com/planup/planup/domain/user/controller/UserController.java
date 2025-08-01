@@ -125,4 +125,13 @@ public class UserController {
         InviteCodeResponseDTO response = userService.getMyInviteCode(currentUser.getId());
         return ApiResponse.onSuccess(response);
     }
+
+    @Operation(summary = "초대코드 실시간 검증", description = "입력된 초대코드가 유효한지 실시간으로 검증합니다")
+    @PostMapping("/users/invite-code/validate")
+    public ApiResponse<ValidateInviteCodeResponseDTO> validateInviteCode(
+            @Valid @RequestBody ValidateInviteCodeRequestDTO request,
+            @Parameter(hidden = true) @CurrentUser User currentUser) {
+        ValidateInviteCodeResponseDTO response = userService.validateInviteCode(request.getInviteCode(), currentUser.getId());
+        return ApiResponse.onSuccess(response);
+    }
 }

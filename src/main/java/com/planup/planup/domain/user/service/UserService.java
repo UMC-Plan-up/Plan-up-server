@@ -32,4 +32,6 @@ public interface UserService {
     ImageUploadResponseDTO uploadProfileImage(MultipartFile file, User currentUser);
 
     InviteCodeResponseDTO getMyInviteCode(Long userId);
+
+    ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode, Long currentUserId);
 }
