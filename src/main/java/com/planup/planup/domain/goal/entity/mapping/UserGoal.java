@@ -31,6 +31,7 @@ public class UserGoal extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Enumerated(EnumType.STRING)
     private Status status;
     private boolean isActive;
     private boolean isPublic;

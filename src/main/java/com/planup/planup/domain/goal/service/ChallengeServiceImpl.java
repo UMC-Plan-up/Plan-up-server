@@ -21,6 +21,7 @@ import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -38,6 +39,7 @@ public class ChallengeServiceImpl implements ChallengeService{
     private final UserGoalService userGoalService;
 
     @Override
+    @Transactional
     public Challenge createChallenge(Long userId, ChallengeRequestDTO.create dto) {
 
         User user = userService.getUserbyUserId(userId);
@@ -95,16 +97,20 @@ public class ChallengeServiceImpl implements ChallengeService{
         userGoalRepository.save(userGoalMember);
     }
 
+    @Transactional
     public ChallengeResponseDTO.ChallengeResponseInfo getChallengeInfo(Long challengeId) {
         Goal goal = goalService.getGoalById(challengeId);
+        System.out.println(goal.getGoalName());
 
         if (goal.getGoalType() == GoalType.CHALLENGE_PHOTO) {
-            if (goal instanceof PhotoChallenge) {
+//            if (goal instanceof PhotoChallenge) {
+                System.out.println("-----1");
                 PhotoChallenge photoChallenge = (PhotoChallenge) goal;
+
                 ChallengeResponseDTO.ChallengeResponseInfo challengeResponseInfo = ChallengeConverter.toChallengeResponseInfoPhotoVer(photoChallenge);
                 return challengeResponseInfo;
 
-            }
+//            }
         } else if (goal.getGoalType() == GoalType.CHALLENGE_TIME) {
             if (goal instanceof TimeChallenge) {
                 TimeChallenge timeChallenge = (TimeChallenge) goal;
@@ -117,6 +123,7 @@ public class ChallengeServiceImpl implements ChallengeService{
     }
 
     //Goal Repo에 가서 challange를 찾아온다
+    @Transactional
     public Challenge getChallengeById(Long challengeId) {
         Goal goal = goalService.getGoalById(challengeId);
 
@@ -127,10 +134,11 @@ public class ChallengeServiceImpl implements ChallengeService{
 
     //챌린지 요청을 거절한다
     @Override
+    @Transactional
     public void rejectChallengeRequest(Long userId, Long challengeId) {
         User user = userService.getUserbyUserId(userId);
         Goal goal = goalService.getGoalById(challengeId);
-        UserGoal userGoal = userGoalService.getUserGoalByUserAndGoal(user, goal);
+//        UserGoal userGoal = userGoalService.getUserGoalByUserAndGoal(user, goal);
         Challenge challenge = getChallengeById(challengeId);
 
         challenge.setChallengeStatus(ChallengeStatus.REJECTED);
@@ -138,6 +146,7 @@ public class ChallengeServiceImpl implements ChallengeService{
 
     //챌린지 요청을 수락한다.
     @Override
+    @Transactional
     public void acceptChallengeRequest(Long userId, Long challengeId) {
         User user = userService.getUserbyUserId(userId);
         Goal goal = goalService.getGoalById(challengeId);
@@ -150,15 +159,19 @@ public class ChallengeServiceImpl implements ChallengeService{
 
     //챌린지에 대한 새로운 패널티 제안
     @Override
+    @Transactional
     public void reRequestPenalty(Long userId, ChallengeRequestDTO.ReRequestPenalty dto) {
         User user = userService.getUserbyUserId(userId);
 
         Challenge challenge = getChallengeById(dto.id());
 
+        System.out.println("111");
         //기존에 제안받은 사람 아니면 예외처리
         if (!isChallengeMember(user, challenge)) {
             throw new ChallengeException(ErrorStatus._NOT_ALLOWED);
         }
+
+        System.out.println("2222");
 
         challenge.setPenalty(dto.penalty());
 

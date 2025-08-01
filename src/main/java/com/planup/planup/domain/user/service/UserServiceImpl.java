@@ -164,7 +164,7 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
 
         // 약관 동의 추가
-        addTermsAgreements(savedUser, request.getAgreements());
+//        addTermsAgreements(savedUser, request.getAgreements());
 
         return SignupResponseDTO.builder()
                 .id(savedUser.getId())

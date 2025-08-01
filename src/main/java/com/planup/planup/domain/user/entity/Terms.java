@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Table(name = "terms")
@@ -21,10 +23,14 @@ public class Terms extends BaseTimeEntity {
 
     private String summary;
 
+    @OneToMany(mappedBy = "terms", cascade = CascadeType.ALL)
+    private List<UserTerms> userTerms;
+
     @Lob
     private String content;
 
     private Boolean isRequired;
 
+    @Column(name = "`order`")
     private Integer order;
 }

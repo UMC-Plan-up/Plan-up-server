@@ -1,5 +1,6 @@
 package com.planup.planup.domain.goal.entity;
 
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -14,6 +15,7 @@ import java.util.Date;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SuperBuilder
+@DiscriminatorValue("CHALLENGE_PHOTO")
 public class PhotoChallenge extends Challenge {
 
     private Date endDate;

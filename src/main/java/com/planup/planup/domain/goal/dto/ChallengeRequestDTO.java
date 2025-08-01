@@ -27,7 +27,7 @@ public class ChallengeRequestDTO {
             String goalAmount,
 
             @NotNull
-            @Schema(description = "목표 유형", example = "TIME")
+            @Schema(description = "목표 유형", example = "CHALLENGE_TIME")
             GoalType goalType,
 
             @NotBlank
@@ -39,7 +39,7 @@ public class ChallengeRequestDTO {
             LocalDateTime endDate,
 
             @NotNull
-            @Schema(description = "챌린지 상태", example = "PENDING")
+            @Schema(description = "챌린지 상태", example = "REQUESTED")
             ChallengeStatus status,
 
             @NotBlank
@@ -47,7 +47,7 @@ public class ChallengeRequestDTO {
             String penalty,
 
             @Size(min = 1)
-            @Schema(description = "같이 할 친구 선택", example = "1")
+            @Schema(description = "같이 할 친구 선택", example = "[1]")
             List<Long> friendIdList,
 
             //선택 필듣
@@ -81,7 +81,6 @@ public class ChallengeRequestDTO {
     @Builder
     @Schema(description = "챌린지 패널티 제안")
     public record ReRequestPenalty(
-            @NotBlank
             @Schema(description = "id", example = "1")
             Long id,
 

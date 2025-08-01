@@ -8,18 +8,21 @@ import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserGoalServiceImpl implements UserGoalService{
 
     private final UserGoalRepository userGoalRepository;
 
     @Override
     public UserGoal getUserGoalByUserAndGoal(User user, Goal goal) {
-        return userGoalRepository.findByUserAndGoal(user, goal).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
+        return userGoalRepository.findAllByUserAndGoal(user, goal).get(0);
+//        return userGoalRepository.findByUserAndGoal(user, goal).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
     }
 
     @Override
