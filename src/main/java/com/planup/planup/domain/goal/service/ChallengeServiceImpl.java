@@ -166,6 +166,12 @@ public class ChallengeServiceImpl implements ChallengeService{
         addChallengeMember(dto.friendIdList(), challenge);
     }
 
+    @Override
+    public String getChallengeName(Long userId, Long challengeId) {
+        Challenge challengeById = getChallengeById(challengeId);
+        return challengeById.getGoalName();
+    }
+
     private boolean isChallengeMember(User user, Challenge challenge) {
         List<UserGoal> userGoalList = userGoalService.getUserGoalListByGoal(challenge);
         for (UserGoal userGoal : userGoalList) {

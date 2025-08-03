@@ -69,4 +69,11 @@ public class ChallengeController {
         challengeService.reRequestPenalty(userId, dto);
         return ApiResponse.onSuccess(null);
     }
+
+    @GetMapping("/{challengeId}/name")
+    @Operation(summary = " 챌린지 이름 조회")
+    public ApiResponse<String> requestChallengeName(Long userId, @PathVariable Long challengeId) {
+        String challengeName = challengeService.getChallengeName(userId, challengeId);
+        return ApiResponse.onSuccess(challengeName);
+    }
 }
