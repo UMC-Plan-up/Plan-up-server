@@ -12,7 +12,7 @@ import lombok.Getter;
 @JsonPropertyOrder({"isSuccess", "code", "message", "result"})
 public class ApiResponse<T> {
 
-    @JsonProperty("isSussess")
+    @JsonProperty("isSuccess")
     private final Boolean isSuccess;
     private final String code;
     private final String message;

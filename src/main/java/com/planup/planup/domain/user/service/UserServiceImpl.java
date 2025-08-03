@@ -2,8 +2,13 @@ package com.planup.planup.domain.user.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
+import com.planup.planup.domain.friend.entity.Friend;
+import com.planup.planup.domain.friend.entity.FriendStatus;
+import com.planup.planup.domain.friend.repository.FriendRepository;
+import com.planup.planup.domain.global.service.ImageUploadService;
 import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.entity.*;
+import com.planup.planup.domain.user.repository.InvitedUserRepository;
 import com.planup.planup.domain.user.repository.TermsRepository;
 import com.planup.planup.domain.user.repository.UserRepository;
 import com.planup.planup.validation.jwt.JwtUtil;
@@ -12,6 +17,7 @@ import com.planup.planup.domain.user.dto.UserInfoResponseDTO;
 import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
 import com.planup.planup.domain.oauth.repository.OAuthAccountRepository;
 
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,6 +37,7 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Builder
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -39,6 +46,11 @@ public class UserServiceImpl implements UserService {
     private final TermsRepository termsRepository;
     private final UserTermsRepository userTermsRepository;
     private final OAuthAccountRepository oAuthAccountRepository;
+    private final ImageUploadService imageUploadService;
+    private final InviteCodeService inviteCodeService;
+    private final InvitedUserRepository invitedUserRepository;
+    private final FriendRepository friendRepository;
+
 
     @Override
     @Transactional(readOnly = true)
@@ -146,9 +158,18 @@ public class UserServiceImpl implements UserService {
         // 필수 약관 동의 검증
         validateRequiredTerms(request.getAgreements());
 
+        // 초대코드 처리 (있을 때만)
+        Long inviterId = null;
+        String friendNickname = null;
+        if (request.getInviteCode() != null && !request.getInviteCode().trim().isEmpty()) {
+            inviterId = inviteCodeService.findInviterByCode(request.getInviteCode());
+            if (inviterId == null) {
+                throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
+            }
+        }
+
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
-
         // User 엔티티 생성
         User user = User.builder()
                 .email(request.getEmail())
@@ -166,9 +187,36 @@ public class UserServiceImpl implements UserService {
         // 약관 동의 추가
         addTermsAgreements(savedUser, request.getAgreements());
 
+        // 초대 관계 처리 (초대코드가 있었다면)
+        if (inviterId != null) {
+
+            // 친구 관계 생성 (양방향)
+            User inviterUser = getUserbyUserId(inviterId);
+            friendNickname = inviterUser.getNickname();
+
+            Friend friendship1 = Friend.builder()
+                    .user(savedUser)
+                    .friend(inviterUser)
+                    .status(FriendStatus.ACCEPTED)
+                    .build();
+
+            Friend friendship2 = Friend.builder()
+                    .user(inviterUser)
+                    .friend(savedUser)
+                    .status(FriendStatus.ACCEPTED)
+                    .build();
+
+            friendRepository.save(friendship1);
+            friendRepository.save(friendship2);
+
+            // 초대코드 사용 완료
+            inviteCodeService.useInviteCode(request.getInviteCode());
+        }
+
         return SignupResponseDTO.builder()
                 .id(savedUser.getId())
                 .email(savedUser.getEmail())
+                .friendNickname(friendNickname)
                 .build();
     }
 
@@ -271,5 +319,85 @@ public class UserServiceImpl implements UserService {
                 .isLinked(isLinked)
                 .kakaoEmail(kakaoEmail)
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public ImageUploadResponseDTO uploadProfileImage(MultipartFile file, User currentUser) {
+
+        String imageUrl = imageUploadService.uploadImage(file, "profile");
+
+        currentUser.updateProfileImage(imageUrl);
+        userRepository.save(currentUser);
+
+        return ImageUploadResponseDTO.builder()
+                .imageUrl(imageUrl)
+                .build();
+    }
+
+    // 내 초대코드 조회 메서드
+    @Override
+    public InviteCodeResponseDTO getMyInviteCode(Long userId) {
+        return inviteCodeService.getMyInviteCode(userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode, Long currentUserId) {
+        // 빈 코드 체크
+        if (inviteCode == null || inviteCode.trim().isEmpty()) {
+            return ValidateInviteCodeResponseDTO.builder()
+                    .valid(false)
+                    .message("초대코드를 입력해주세요.")
+                    .build();
+        }
+
+        try {
+            // InviteCodeService를 통해 초대자 찾기
+            Long inviterId = inviteCodeService.findInviterByCode(inviteCode);
+
+            if (inviterId == null) {
+                return ValidateInviteCodeResponseDTO.builder()
+                        .valid(false)
+                        .message("유효하지 않은 초대코드입니다.")
+                        .build();
+            }
+
+            // 본인 코드인지 확인
+            if (inviterId.equals(currentUserId)) {
+                return ValidateInviteCodeResponseDTO.builder()
+                        .valid(false)
+                        .message("본인의 초대코드는 사용할 수 없습니다.")
+                        .build();
+            }
+
+            // 이미 친구인지 확인
+            User currentUser = getUserbyUserId(currentUserId);
+            User inviterUser = getUserbyUserId(inviterId);
+
+            boolean alreadyFriend = friendRepository.findByUserAndFriend_NicknameAndStatus(
+                    currentUser, inviterUser.getNickname(), FriendStatus.ACCEPTED).isPresent() ||
+                    friendRepository.findByUserAndFriend_NicknameAndStatus(
+                            inviterUser, currentUser.getNickname(), FriendStatus.ACCEPTED).isPresent();
+
+            if (alreadyFriend) {
+                return ValidateInviteCodeResponseDTO.builder()
+                        .valid(false)
+                        .message("이미 친구로 등록된 사용자입니다.")
+                        .build();
+            }
+
+            return ValidateInviteCodeResponseDTO.builder()
+                    .valid(true)
+                    .message("유효한 초대코드입니다.")
+                    .targetUserNickname(inviterUser.getNickname())
+                    .build();
+
+        } catch (Exception e) {
+            return ValidateInviteCodeResponseDTO.builder()
+                    .valid(false)
+                    .message("초대코드 검증 중 오류가 발생했습니다.")
+                    .build();
+        }
     }
 }

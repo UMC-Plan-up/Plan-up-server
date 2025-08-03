@@ -52,6 +52,11 @@ public class ImageUploadService {
     }
 
     private void validateImageFile(MultipartFile file) {
+
+        if (file == null) {
+            throw new IllegalArgumentException("파일이 전달되지 않았습니다.");
+        }
+
         if (file.isEmpty()) {
             throw new IllegalArgumentException("파일이 비어있습니다.");
         }

@@ -1,5 +1,7 @@
 package com.planup.planup.validation.jwt;
 
+import com.planup.planup.domain.user.entity.User;
+import com.planup.planup.domain.user.repository.UserRepository;
 import com.planup.planup.validation.annotation.CurrentUser;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +19,12 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolver {
 
     private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.hasParameterAnnotation(CurrentUser.class)
-                && parameter.getParameterType().equals(Long.class);
+                && parameter.getParameterType().equals(User.class);
     }
 
     @Override
@@ -34,7 +37,7 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return 1L;
+            throw new RuntimeException("인증 토큰이 없습니다");
         }
 
         try {
@@ -52,7 +55,10 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
                 throw new RuntimeException("유효하지 않은 사용자 ID입니다");
             }
 
-            return userId;
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+
+            return user;
 
         } catch (Exception e) {
             log.error("JWT 토큰 처리 중 오류 발생: {}", e.getMessage());
