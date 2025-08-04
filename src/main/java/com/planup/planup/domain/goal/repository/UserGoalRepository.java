@@ -15,12 +15,11 @@ import java.util.List;
 public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     //Query Service
     UserGoal findByGoalIdAndStatus(Long goalId, Status status);
+    List<UserGoal> findByGoalId(Long goalId);
 
     UserGoal findByGoalIdAndUserId(Long goalId, Long userId);
 
     List<UserGoal> findByUserId(Long userId);
-
-    int countByGoalIdAndIsActiveTrue(Long id);
 
     @Query("SELECT ug FROM UserGoal ug " +
             "JOIN ug.goal g " +
