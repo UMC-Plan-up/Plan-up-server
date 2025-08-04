@@ -5,7 +5,9 @@ import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
 import com.planup.planup.domain.friend.dto.UnblockFriendRequestDTO;
 import com.planup.planup.domain.friend.service.FriendService;
+import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,7 +36,7 @@ public class FriendController {
     } */
     @Operation(summary = "친구 화면 조회", description = "친구 화면에 진입했을 때 필요한 정보 조회")
     @GetMapping("")
-    public ApiResponse<List<FriendResponseDTO.FriendSummaryList>> getFriendList(Long userId) {
+    public ApiResponse<List<FriendResponseDTO.FriendSummaryList>> getFriendList(@Parameter(hidden = true) @CurrentUser Long userId) {
         List<FriendResponseDTO.FriendSummaryList> friendSummaryList = friendService.getFriendSummeryList(userId);
         return ApiResponse.onSuccess(friendSummaryList);
     }
@@ -42,7 +44,7 @@ public class FriendController {
     @Operation(summary = "친구 삭제", description = "친구 삭제")
     @PostMapping("/delete")
     public ApiResponse<Boolean> deleteFriend(
-            @RequestParam Long userId,
+            @Parameter(hidden = true) @CurrentUser Long userId,
             @RequestParam Long friendId) {
         boolean result = friendService.deleteFriend(userId, friendId);
         return ApiResponse.onSuccess(result);
@@ -51,7 +53,7 @@ public class FriendController {
     @Operation(summary = "친구 차단", description = "친구 차단")
     @PostMapping("/block")
     public ApiResponse<Boolean> blockFriend(
-            @RequestParam Long userId,
+            @Parameter(hidden = true) @CurrentUser Long userId,
             @RequestParam Long friendId) {
         boolean result = friendService.blockFriend(userId, friendId);
         return ApiResponse.onSuccess(result);
@@ -71,7 +73,7 @@ public class FriendController {
 
     @Operation(summary = "나에게 친구 신청한 친구 목록", description = "나에게 친구 신청한 친구 목록 조회")
     @GetMapping("/requests")
-    public ApiResponse<List<FriendResponseDTO.FriendInfoSummary>> getRequestedFriends(@RequestParam Long userId) {
+    public ApiResponse<List<FriendResponseDTO.FriendInfoSummary>> getRequestedFriends(@Parameter(hidden = true) @CurrentUser Long userId) {
         List<FriendResponseDTO.FriendInfoSummary> requestedFriends = friendService.getRequestedFriends(userId);
         return ApiResponse.onSuccess(requestedFriends);
     }
@@ -79,7 +81,7 @@ public class FriendController {
     @Operation(summary = "친구 신청 거절", description = "친구 신청 거절")
     @PostMapping("/reject")
     public ApiResponse<Boolean> rejectFriendRequest(
-            @RequestParam Long userId,
+            @Parameter(hidden = true) @CurrentUser Long userId,
             @RequestParam Long friendId) {
         boolean result = friendService.rejectFriendRequest(userId, friendId);
         return ApiResponse.onSuccess(result);
@@ -88,7 +90,7 @@ public class FriendController {
     @Operation(summary = "친구 신청 수락", description = "친구 신청 수락")
     @PostMapping("/accept")
     public ApiResponse<Boolean> acceptFriendRequest(
-            @RequestParam Long userId,
+            @Parameter(hidden = true) @CurrentUser Long userId,
             @RequestParam Long friendId) {
         boolean result = friendService.acceptFriendRequest(userId, friendId);
         return ApiResponse.onSuccess(result);
@@ -97,7 +99,7 @@ public class FriendController {
     @Operation(summary = "친구 신청 보내기", description = "타 유저에게 친구 신청을 보냅니다")
     @PostMapping("/request")
     public ApiResponse<Boolean> sendFriendRequest(
-            @RequestParam Long userId,
+            @Parameter(hidden = true) @CurrentUser Long userId,
             @RequestParam Long friendId) {
         boolean result = friendService.sendFriendRequest(userId, friendId);
         return ApiResponse.onSuccess(result);
@@ -105,7 +107,7 @@ public class FriendController {
 
     @Operation(summary = "차단된 친구 목록 조회", description = "내가 차단한 친구들의 이름 목록을 조회합니다")
     @GetMapping("/blocked")
-    public ApiResponse<List<BlockedFriendResponseDTO>> getBlockedFriends(@RequestParam Long userId) {
+    public ApiResponse<List<BlockedFriendResponseDTO>> getBlockedFriends(@Parameter(hidden = true) @CurrentUser Long userId) {
         List<BlockedFriendResponseDTO> blockedFriends = friendService.getBlockedFriends(userId);
         return ApiResponse.onSuccess(blockedFriends);
     }
