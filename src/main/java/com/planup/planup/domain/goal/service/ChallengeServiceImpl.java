@@ -21,6 +21,7 @@ import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -38,6 +39,7 @@ public class ChallengeServiceImpl implements ChallengeService{
     private final UserGoalService userGoalService;
 
     @Override
+    @Transactional
     public Challenge createChallenge(Long userId, ChallengeRequestDTO.create dto) {
 
         User user = userService.getUserbyUserId(userId);
@@ -95,6 +97,7 @@ public class ChallengeServiceImpl implements ChallengeService{
         userGoalRepository.save(userGoalMember);
     }
 
+    @Transactional(readOnly = true)
     public ChallengeResponseDTO.ChallengeResponseInfo getChallengeInfo(Long challengeId) {
         Goal goal = goalService.getGoalById(challengeId);
 
@@ -117,6 +120,7 @@ public class ChallengeServiceImpl implements ChallengeService{
     }
 
     //Goal Repo에 가서 challange를 찾아온다
+    @Transactional(readOnly = true)
     public Challenge getChallengeById(Long challengeId) {
         Goal goal = goalService.getGoalById(challengeId);
 
@@ -127,6 +131,7 @@ public class ChallengeServiceImpl implements ChallengeService{
 
     //챌린지 요청을 거절한다
     @Override
+    @Transactional
     public void rejectChallengeRequest(Long userId, Long challengeId) {
         User user = userService.getUserbyUserId(userId);
         Goal goal = goalService.getGoalById(challengeId);
@@ -138,6 +143,7 @@ public class ChallengeServiceImpl implements ChallengeService{
 
     //챌린지 요청을 수락한다.
     @Override
+    @Transactional
     public void acceptChallengeRequest(Long userId, Long challengeId) {
         User user = userService.getUserbyUserId(userId);
         Goal goal = goalService.getGoalById(challengeId);
@@ -150,6 +156,7 @@ public class ChallengeServiceImpl implements ChallengeService{
 
     //챌린지에 대한 새로운 패널티 제안
     @Override
+    @Transactional
     public void reRequestPenalty(Long userId, ChallengeRequestDTO.ReRequestPenalty dto) {
         User user = userService.getUserbyUserId(userId);
 
@@ -167,6 +174,7 @@ public class ChallengeServiceImpl implements ChallengeService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String getChallengeName(Long userId, Long challengeId) {
         Challenge challengeById = getChallengeById(challengeId);
         return challengeById.getGoalName();
