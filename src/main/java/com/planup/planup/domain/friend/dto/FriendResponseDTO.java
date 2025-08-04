@@ -37,4 +37,18 @@ public class FriendResponseDTO {
             @Schema(description = "새로운 사진 인증 여부", example = "true")
             boolean isNewPhotoVerify
     ) {}
+
+    @Builder
+    @Schema(description = "챌린지 신청 화면에서 친구 요약 정보 DTO")
+    public record FriendInfoInChallengeCreate(
+
+            @Schema(description = "친구 기본키", example = "1")
+            Long id,
+
+            @Schema(description = "친구 닉네임", example = "홍길동")
+            String nickname,
+
+            @Schema(description = "목표 수행 수", example = "3")
+            int goalCnt
+    ) {}
 }

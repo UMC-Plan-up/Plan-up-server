@@ -46,4 +46,7 @@ dependencies {
 	// AWS S3 의존성
 	implementation 'software.amazon.awssdk:s3:2.21.29'
 	implementation 'software.amazon.awssdk:auth:2.21.29'
+
+	// Redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }

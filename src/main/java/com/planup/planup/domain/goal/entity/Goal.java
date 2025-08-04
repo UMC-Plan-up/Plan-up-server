@@ -4,20 +4,25 @@ import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
+import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @Entity
 @Getter
+@SuperBuilder
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = "goal_type")
 public class Goal extends BaseTimeEntity {
 
     @Id
@@ -36,12 +41,15 @@ public class Goal extends BaseTimeEntity {
 
     //목표 타입(친구, 커뮤니티, 챌린지)
     @Enumerated(EnumType.STRING)
-    @Column(length = 20)
+    @Column(length = 20, name = "goal_type_enum")
     private GoalType goalType;
 
     //목표 빈도 기간(하루, 1주, 1달/ 하루에 __, 1주일에 __하기)
     @Enumerated(EnumType.STRING)
     private GoalPeriod period;
+
+    @OneToMany
+    private List<UserGoal> userGoals;
 
     //빈도
     private int frequency;

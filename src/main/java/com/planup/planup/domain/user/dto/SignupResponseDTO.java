@@ -15,4 +15,7 @@ public class SignupResponseDTO {
 
     @Schema(description = "이메일", example = "user@planup.com")
     private String email;
+
+    @Schema(description = "초대코드로 친구가 된 사용자 닉네임", example = "라미")
+    private String friendNickname;
 }
