@@ -17,7 +17,7 @@ public interface UserService {
 
     void updatePassword(Long userId, String password);
 
-    String updateProfileImage(Long userId, MultipartFile imageFile);
+
 
     UserInfoResponseDTO getUserInfo(Long userId);
 
