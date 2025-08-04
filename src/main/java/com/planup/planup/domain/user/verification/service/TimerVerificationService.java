@@ -1,13 +1,17 @@
 package com.planup.planup.domain.user.verification.service;
 
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.verification.convertor.TimerVerificationConverter;
+import com.planup.planup.domain.user.verification.entity.PhotoVerification;
 import com.planup.planup.domain.user.verification.repository.TimerVerificationRepository;
 import com.planup.planup.domain.user.verification.dto.TimerVerificationResponseDto;
 import com.planup.planup.domain.user.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -105,5 +109,10 @@ public class TimerVerificationService implements VerificationService{
         }
         //true 반환
         return spentTime.toMinutes() >= goalTimeMinutes;
+    }
+
+    @Transactional(readOnly = true)
+    public List<TimerVerification> getTimerVerificationListByUserAndDateBetween(User user, LocalDateTime start, LocalDateTime end) {
+        return timerVerificationRepository.findAllByUserGoalAndCreatedAtBetween(user, start, end);
     }
 }

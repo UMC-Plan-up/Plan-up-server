@@ -1,11 +1,13 @@
 package com.planup.planup.domain.user.verification.repository;
 
+import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.verification.entity.TimerVerification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -19,6 +21,8 @@ public interface TimerVerificationRepository extends JpaRepository<TimerVerifica
     List<TimerVerification> findTodayVerificationsByUserGoalId(@Param("userGoalId") Long userGoalId);
 
     List<TimerVerification> findByUserGoal_User_IdAndEndTimeIsNull(Long userId);
+
+    List<TimerVerification> findAllByUserGoalAndCreatedAtBetween(User user, LocalDateTime start, LocalDateTime end);
 }
 
 

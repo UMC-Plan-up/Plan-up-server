@@ -3,6 +3,8 @@ package com.planup.planup.domain.report.service;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ReportException;
 import com.planup.planup.domain.bedge.entity.BadgeType;
+import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.notification.entity.Notification;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.report.converter.WeeklyReportResponseConverter;
@@ -21,17 +23,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class WeeklyReportServiceImpl implements WeeklyReportService {
 
     private final UserService userService;
     private final UserBadgeService userBadgeService;
+    private final UserGoalService userGoalService;
     private final NotificationService notificationService;
     private final WeeklyReportRepository weeklyReportRepository;
 
 
     @Override
+    @Transactional(readOnly = true)
     public List<Integer> searchWeeklyReport(Long userId, int year, int month) {
         User user = userService.getUserbyUserId(userId);
 
@@ -45,6 +48,7 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public WeeklyReportResponseDTO.achievementResponse getWeeklyGoalAchievements(Long userId) {
         User user = userService.getUserbyUserId(userId);
 
@@ -58,6 +62,7 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public WeeklyReportResponseDTO.WeeklyReportResponse getWeeklyReport(Long userId, int year, int month, int week) {
         User user = userService.getUserbyUserId(userId);
 
@@ -65,5 +70,13 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
         List<BadgeType> badges = userBadgeService.getBadgeInPeriod(weeklyReport.getUser(), weeklyReport.getStartDate(), weeklyReport.getEndDate());
 
         return WeeklyReportResponseConverter.toWeeklyReportResponse(weeklyReport, badges);
+    }
+
+    @Transactional
+    public void createWeeklyReport(Long userId) {
+        User user = userService.getUserbyUserId(userId);
+        List<UserGoal> userGoalList = user.getUserGoals();
+
+
     }
 }
