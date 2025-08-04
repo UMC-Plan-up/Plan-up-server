@@ -8,6 +8,7 @@ import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
+import com.planup.planup.domain.goal.repository.CommentRepository;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.domain.verification.entity.PhotoVerification;
 import com.planup.planup.domain.verification.entity.TimerVerification;
@@ -39,6 +40,7 @@ public class GoalServiceImpl implements GoalService{
     private final PhotoVerificationRepository photoVerificationRepository;
     private final TimerVerificationService timerVerificationService;
     private final CommentService commentService;
+    private final CommentRepository commentRepository;
 
     //목표 생성
     @Transactional
@@ -180,11 +182,24 @@ public class GoalServiceImpl implements GoalService{
         Goal goal = goalRepository.findById(goalId)
                 .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
 
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN);
-        if (!userGoal.getUser().getId().equals(userId)) {
+        UserGoal adminUserGoal = userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN);
+        if (adminUserGoal == null) {
+            throw new RuntimeException("목표의 관리자를 찾을 수 없습니다.");
+        }
+
+        if (!adminUserGoal.getUser().getId().equals(userId)) {
             throw new RuntimeException("목표를 삭제할 권한이 없습니다.");
         }
 
+        List<UserGoal> allUserGoals = userGoalRepository.findByGoalId(goalId);
+
+        for (UserGoal userGoal : allUserGoals) {
+            userGoalRepository.delete(userGoal);
+        }
+
+        commentRepository.deleteByGoalId(goalId);
+
+        // 5. 마지막으로 Goal 삭제
         goalRepository.delete(goal);
     }
 
