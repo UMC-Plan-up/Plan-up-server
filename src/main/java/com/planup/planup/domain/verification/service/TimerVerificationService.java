@@ -24,8 +24,10 @@ public class TimerVerificationService implements VerificationService{
 
     //오늘 총 기록시간 조회
     public LocalTime getTodayTotalTime(Long userId, Long goalId) {
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(userId, goalId);
-
+        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId,userId);
+        if (userGoal == null) {
+            return LocalTime.of(0, 0, 0);
+        }
         List<TimerVerification> todayVerifications = timerVerificationRepository
                 .findTodayVerificationsByUserGoalId(userGoal.getId());
 
