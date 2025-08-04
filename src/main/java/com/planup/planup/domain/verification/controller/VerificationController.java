@@ -10,6 +10,7 @@ import com.planup.planup.validation.jwt.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -62,7 +63,7 @@ public class VerificationController {
         return ApiResponse.onSuccess(result);
     }
 
-    @PostMapping("/photo/upload")
+    @PostMapping(value = "/photo/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "사진 인증 업로드 API", description = "선택한 목표에 대한 사진 인증을 업로드합니다.")
     public ApiResponse<Void> uploadPhotoVerification(
             @RequestParam("goalId") Long goalId,
