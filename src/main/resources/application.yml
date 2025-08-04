@@ -7,7 +7,6 @@ spring:
     driverClassName: com.mysql.cj.jdbc.Driver
     username: ${DB_USER}
     password: ${DB_PASSWORD}
-
     hikari:
       maximum-pool-size: 10         # 최대 커넥션 개수
 
@@ -18,7 +17,7 @@ spring:
     properties:
       hibernate:
         jdbc:
-        time_zone: Asia/Seoul
+          time_zone: Asia/Seoul
 
   application:
     name: planup
@@ -60,4 +59,3 @@ aws:
   s3:
     bucket: umc-planup-2025
     region: ap-northeast-2
-
