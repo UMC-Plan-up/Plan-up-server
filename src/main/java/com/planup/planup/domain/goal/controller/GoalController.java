@@ -48,7 +48,8 @@ public class GoalController {
     @GetMapping("/{goalId}")
     @Operation(summary = "내 목표 상세 조회 API", description = "특정 목표의 상세 정보를 조회하는 API입니다.")
     public ApiResponse<GoalResponseDto.MyGoalDetailDto> getGoalDetail(
-            @PathVariable Long goalId,
+            @Parameter(description = "목표 ID", example = "1")
+            @RequestParam Long goalId,
             @Parameter(hidden = true) @CurrentUser Long userId) {
         GoalResponseDto.MyGoalDetailDto result = goalService.getMyGoalDetails(goalId, userId);
 
@@ -58,7 +59,8 @@ public class GoalController {
     @PatchMapping("/{goalId}/active")
     @Operation(summary = "목표 활성화/비활성화 API", description = "목표의 활성화 상태를 전환합니다.")
     public ApiResponse<Void> updateActiveGoal(
-            @PathVariable Long goalId,
+            @Parameter(description = "목표 ID", example = "1")
+            @RequestParam Long goalId,
             @Parameter(hidden = true) @CurrentUser Long userId) {
         goalService.updateActiveGoal(goalId, userId);
 
@@ -68,7 +70,8 @@ public class GoalController {
     @PatchMapping("/{goalId}/public")
     @Operation(summary = "목표 공개/비공개 API", description = "목표의 공개 상태를 전환합니다.")
     public ApiResponse<Void> updatePublicGoal(
-            @PathVariable Long goalId,
+            @Parameter(description = "목표 ID", example = "1")
+            @RequestParam Long goalId,
             @Parameter(hidden = true) @CurrentUser Long userId) {
         goalService.updatePublicGoal(goalId, userId);
 
@@ -78,7 +81,8 @@ public class GoalController {
     @GetMapping("/{goalId}/edit")
     @Operation(summary = "목표 수정 페이지 정보 조회 API", description = "수정을 위한 기존 목표 정보를 조회합니다.")
     public ApiResponse<GoalRequestDto.CreateGoalDto> getGoalForEdit(
-            @PathVariable Long goalId,
+            @Parameter(description = "목표 ID", example = "1")
+            @RequestParam Long goalId,
             @Parameter(hidden = true) @CurrentUser Long userId) {
         GoalRequestDto.CreateGoalDto result = goalService.getGoalInfoToUpdate(goalId, userId);
 
@@ -88,7 +92,8 @@ public class GoalController {
     @PutMapping("/{goalId}")
     @Operation(summary = "목표 수정 API", description = "기존 목표를 수정합니다.")
     public ApiResponse<Void> updateGoal(
-            @PathVariable Long goalId,
+            @Parameter(description = "목표 ID", example = "1")
+            @RequestParam Long goalId,
             @Valid @RequestBody GoalRequestDto.CreateGoalDto dto,
             @Parameter(hidden = true) @CurrentUser Long userId) {
         goalService.updateGoal(goalId, userId, dto);
@@ -99,7 +104,8 @@ public class GoalController {
     @DeleteMapping("/{goalId}")
     @Operation(summary = "목표 삭제 API", description = "목표를 삭제합니다.")
     public ApiResponse<String> deleteGoal(
-            @PathVariable Long goalId,
+            @Parameter(description = "목표 ID", example = "1")
+            @RequestParam Long goalId,
             @Parameter(hidden = true) @CurrentUser Long userId) {
         goalService.deleteGoal(goalId, userId);
 
@@ -111,7 +117,8 @@ public class GoalController {
     @GetMapping("/{goalId}/photos")
     @Operation(summary = "목표별 인증된 사진 조회 API", description = "특정 목표에 업로드한 인증된 사진들을 조회합니다.")
     public ApiResponse<List<PhotoVerificationResponseDto.uploadPhotoResponseDto>> getGoalPhotos(
-            @PathVariable Long goalId,
+            @Parameter(description = "목표 ID", example = "1")
+            @RequestParam Long goalId,
             @Parameter(hidden = true) @CurrentUser Long userId) {
 
         List<PhotoVerificationResponseDto.uploadPhotoResponseDto> result = goalService.getGoalPhotos(userId, goalId);
