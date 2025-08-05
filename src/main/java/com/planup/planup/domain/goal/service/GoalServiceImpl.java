@@ -11,7 +11,6 @@ import com.planup.planup.domain.goal.repository.CommentRepository;
 import com.planup.planup.domain.user.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.user.verification.repository.TimerVerificationRepository;
 import com.planup.planup.domain.user.verification.service.TimerVerificationService;
-import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.domain.user.verification.entity.PhotoVerification;
 import com.planup.planup.domain.user.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
