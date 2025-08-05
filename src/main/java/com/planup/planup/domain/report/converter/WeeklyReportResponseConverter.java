@@ -49,7 +49,7 @@ public class WeeklyReportResponseConverter {
 
     public static WeeklyReportResponseDTO.NotificationDTO toNotificationDTO(Notification notification) {
         return WeeklyReportResponseDTO.NotificationDTO.builder()
-                .notificationText(NotificationMessageProvider.generate(notification.getType(), notification.getSender().getNickname(), notification.getReceiver().getNickname()))
+                .notificationText(notification.getNotificationMessage())
                 .id(notification.getId())
                 .build();
     }

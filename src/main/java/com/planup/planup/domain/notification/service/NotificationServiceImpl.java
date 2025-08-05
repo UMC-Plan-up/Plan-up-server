@@ -27,7 +27,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(readOnly = true)
     public List<Notification> getUnreadNotifications(Long receiverId) {
         User receiver = userService.getUserbyUserId(receiverId);
-        return notificationRepository.findByReceiverAndIsReadFalseOrderByCreatedAtDesc(receiver);
+        List<Notification> notifications = notificationRepository.findByReceiverAndIsReadFalseOrderByCreatedAtDesc(receiver);
+
+        return
     }
 
     //유저의 모든 알림을 조회한다. (시간 순대로)

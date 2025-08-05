@@ -2,6 +2,7 @@ package com.planup.planup.domain.notification.entity;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.notification.message.NotificationMessageProvider;
+import com.planup.planup.domain.notification.service.NotificationUrlProvider;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -54,5 +55,9 @@ public class Notification extends BaseTimeEntity {
 
     public String getNotificationMessage() {
         return NotificationMessageProvider.generate(this);
+    }
+
+    public String getNotificationUrl() {
+        return NotificationUrlProvider.generate(this);
     }
 }

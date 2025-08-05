@@ -17,7 +17,8 @@ public class NotificationConverter {
 
     public static NotificationResponseDTO.NotificationDTO toNotificationDTO(Notification notification) {
         return NotificationResponseDTO.NotificationDTO.builder()
-                .notificationText(NotificationMessageProvider.generate(notification.getType(), notification.getSender().getNickname(), notification.getReceiver().getNickname()))
+                .notificationText(notification.getNotificationMessage())
+                .url(notification.getUrl())
                 .id(notification.getId())
                 .build();
     }
