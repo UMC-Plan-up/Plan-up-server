@@ -1,6 +1,6 @@
-package com.planup.planup.domain.user.verification.repository;
+package com.planup.planup.domain.verification.repository;
 
-import com.planup.planup.domain.user.verification.entity.TimerVerification;
+import com.planup.planup.domain.verification.entity.TimerVerification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

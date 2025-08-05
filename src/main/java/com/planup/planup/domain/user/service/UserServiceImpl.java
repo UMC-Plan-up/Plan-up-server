@@ -111,27 +111,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(encodedPassword);
     }
 
-    @Override
-    @Transactional
-    public String updateProfileImage(Long userId, MultipartFile imageFile) {
-        User user = getUserbyUserId(userId);
 
-        // 파일 저장 경로 설정 (예: /uploads/profile/)
-        String uploadDir = "/uploads/profile/";
-        String fileName = userId + "_" + imageFile.getOriginalFilename();
-        Path filePath = Paths.get(uploadDir + fileName);
-
-        try {
-            Files.createDirectories(filePath.getParent());
-            imageFile.transferTo(filePath.toFile());
-            // DB에 경로 저장
-            user.setProfileImg(filePath.toString());
-            // userRepository.save(user); // 필요시 저장
-            return filePath.toString();
-        } catch (Exception e) {
-            throw new RuntimeException("프로필 이미지 저장 실패", e);
-        }
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -403,4 +383,5 @@ public class UserServiceImpl implements UserService {
                     .build();
         }
     }
+
 }

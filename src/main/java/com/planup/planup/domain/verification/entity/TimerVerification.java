@@ -1,4 +1,4 @@
-package com.planup.planup.domain.user.verification.entity;
+package com.planup.planup.domain.verification.entity;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;

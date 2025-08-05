@@ -2,6 +2,7 @@ package com.planup.planup.validation.jwt;
 
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.repository.UserRepository;
+import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.validation.annotation.CurrentUser;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +24,12 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.hasParameterAnnotation(CurrentUser.class)
-                && parameter.getParameterType().equals(User.class);
+        boolean hasAnnotation = parameter.hasParameterAnnotation(CurrentUser.class);
+        boolean isLongType = parameter.getParameterType().equals(User.class);
+
+        log.debug("supportsParameter - hasAnnotation: {}, isLongType: {}", hasAnnotation, isLongType);
+
+        return hasAnnotation && isLongType;
     }
 
     @Override
@@ -33,8 +38,12 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
                                   NativeWebRequest webRequest,
                                   WebDataBinderFactory binderFactory) {
 
+        log.debug("resolveArgument 호출됨 - parameter: {}", parameter.getParameterName());
+
         HttpServletRequest request = webRequest.getNativeRequest(HttpServletRequest.class);
         String authHeader = request.getHeader("Authorization");
+
+        log.debug("Authorization Header: {}", authHeader);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new RuntimeException("인증 토큰이 없습니다");
@@ -42,16 +51,20 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
 
         try {
             String token = jwtUtil.extractTokenFromHeader(authHeader);
+            log.debug("추출된 토큰: {}", token != null ? "존재" : "null");
 
             // JWT 토큰 유효성 검증
             if (!jwtUtil.validateToken(token)) {
+                log.error("유효하지 않은 토큰");
                 throw new RuntimeException("유효하지 않은 토큰입니다");
             }
 
             Long userId = jwtUtil.extractUserId(token);
+            log.debug("추출된 userId: {}", userId);
 
             //userId가 null이나 0 이하인지 확인
             if (userId == null || userId <= 0) {
+                log.error("유효하지 않은 userId: {}", userId);
                 throw new RuntimeException("유효하지 않은 사용자 ID입니다");
             }
 
@@ -61,7 +74,7 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
             return user;
 
         } catch (Exception e) {
-            log.error("JWT 토큰 처리 중 오류 발생: {}", e.getMessage());
+            log.error("JWT 토큰 처리 중 오류 발생: {}", e.getMessage(), e);
             throw new RuntimeException("인증 토큰 처리에 실패했습니다");
         }
     }
