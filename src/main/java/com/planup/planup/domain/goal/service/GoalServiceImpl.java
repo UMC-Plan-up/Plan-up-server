@@ -4,10 +4,12 @@ import com.planup.planup.domain.goal.dto.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Comment;
+import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.repository.CommentRepository;
+import com.planup.planup.domain.user.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.domain.user.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.user.verification.repository.TimerVerificationRepository;
 import com.planup.planup.domain.user.verification.service.TimerVerificationService;
@@ -65,7 +67,6 @@ public class GoalServiceImpl implements GoalService{
 
         PhotoVerification photoVerification = PhotoVerification.builder()
                 .photoImg(null)
-                .photoDescription(null)
                 .userGoal(savedUserGoal)
                 .build();
         photoVerificationRepository.save(photoVerification);
@@ -216,5 +217,10 @@ public class GoalServiceImpl implements GoalService{
                         .photoImg(verification.getPhotoImg())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Goal getGoalById(Long id) {
+        return null;
     }
 }
