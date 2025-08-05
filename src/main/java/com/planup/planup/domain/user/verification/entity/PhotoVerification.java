@@ -20,7 +20,6 @@ public class PhotoVerification extends BaseTimeEntity {
     private Long id;
 
     private String photoImg;
-    private String photoDescription;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usergoal_id")

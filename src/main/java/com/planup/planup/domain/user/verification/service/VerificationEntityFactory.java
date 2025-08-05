@@ -44,7 +44,6 @@ public class VerificationEntityFactory {
     private PhotoVerification createPhotoVerification(UserGoal userGoal) {
         PhotoVerification verification = PhotoVerification.builder()
                 .photoImg(null)
-                .photoDescription(null)
                 .userGoal(userGoal)
                 .build();
 

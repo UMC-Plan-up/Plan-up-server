@@ -58,10 +58,10 @@ public class GoalConvertor {
         Goal goal = userGoal.getGoal();
 
         Integer goalTime = null;
+        Long spentTimeMinutes = null;
 
         if (goal.getVerificationType() == VerificationType.TIMER) {
             if (!userGoal.getTimerVerifications().isEmpty()) {
-                TimerVerification timerVerification = userGoal.getTimerVerifications().get(0);
                 goalTime = userGoal.getGoalTime();
             }
         }
@@ -73,13 +73,12 @@ public class GoalConvertor {
                 .goalType(goal.getGoalType())
                 .verificationType(goal.getVerificationType())
                 .goalTime(goalTime)
+                .spentTimeMinutes(spentTimeMinutes)
                 .frequency(goal.getFrequency())
                 .oneDose(goal.getOneDose())
                 .creatorNickname(creator.getNickname())
                 .creatorProfileImg(creator.getProfileImg())
-                .myStatus(userGoal.getStatus())
                 .participantCount(participantCount)
-                .isActive(userGoal.isActive())
                 .build();
     }
 
