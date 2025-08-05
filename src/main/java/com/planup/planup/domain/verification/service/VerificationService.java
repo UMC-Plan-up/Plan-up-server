@@ -1,4 +1,4 @@
-package com.planup.planup.domain.user.verification.service;
+package com.planup.planup.domain.verification.service;
 
 public interface VerificationService {
 }

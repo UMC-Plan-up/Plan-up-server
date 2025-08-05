@@ -1,10 +1,10 @@
-package com.planup.planup.domain.user.verification.controller;
+package com.planup.planup.domain.verification.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
-import com.planup.planup.domain.user.verification.convertor.TimerVerificationConverter;
-import com.planup.planup.domain.user.verification.dto.TimerVerificationResponseDto;
-import com.planup.planup.domain.user.verification.service.PhotoVerificationService;
-import com.planup.planup.domain.user.verification.service.TimerVerificationService;
+import com.planup.planup.domain.verification.convertor.TimerVerificationConverter;
+import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;
+import com.planup.planup.domain.verification.service.PhotoVerificationService;
+import com.planup.planup.domain.verification.service.TimerVerificationService;
 import com.planup.planup.validation.annotation.CurrentUser;
 import com.planup.planup.validation.jwt.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;

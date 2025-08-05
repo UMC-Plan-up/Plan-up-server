@@ -4,7 +4,7 @@ import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Goal;
-import com.planup.planup.domain.user.verification.dto.PhotoVerificationResponseDto;
+import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 
 import java.util.List;
 

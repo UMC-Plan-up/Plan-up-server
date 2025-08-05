@@ -1,10 +1,10 @@
-package com.planup.planup.domain.user.verification.service;
+package com.planup.planup.domain.verification.service;
 
 import com.planup.planup.domain.global.service.ImageUploadService;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
-import com.planup.planup.domain.user.verification.entity.PhotoVerification;
-import com.planup.planup.domain.user.verification.repository.PhotoVerificationRepository;
+import com.planup.planup.domain.verification.entity.PhotoVerification;
+import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

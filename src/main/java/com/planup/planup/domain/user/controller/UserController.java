@@ -55,15 +55,6 @@ public class UserController {
         return ApiResponse.onSuccess(true);
     }
 
-    @Operation(summary = "프로필 사진 변경", description = "마이페이지에서 프로필 사진 변경")
-    @PostMapping("/mypage/profile/image")
-    public ApiResponse<String> updateProfileImage(
-            @Parameter(hidden = true) @CurrentUser Long userId,
-            @RequestPart MultipartFile imageFile) {
-        String imageUrl = userService.updateProfileImage(userId, imageFile);
-        return ApiResponse.onSuccess(imageUrl);
-    }
-
     @Operation(summary = "유저 정보 조회", description = "유저의 상세 정보 조회")
     @GetMapping("/users/info")
     public ApiResponse<UserInfoResponseDTO> getUserInfo(@Parameter(hidden = true) @CurrentUser Long userId) {
