@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/challenge")
+@RequestMapping("/challenges")
 @RequiredArgsConstructor
 public class ChallengeController {
 
@@ -68,5 +68,12 @@ public class ChallengeController {
     public ApiResponse<Void> reRequestPenalty(Long userId, @RequestBody @Valid ChallengeRequestDTO.ReRequestPenalty dto) {
         challengeService.reRequestPenalty(userId, dto);
         return ApiResponse.onSuccess(null);
+    }
+
+    @GetMapping("/{challengeId}/name")
+    @Operation(summary = " 챌린지 이름 조회")
+    public ApiResponse<String> requestChallengeName(Long userId, @PathVariable Long challengeId) {
+        String challengeName = challengeService.getChallengeName(userId, challengeId);
+        return ApiResponse.onSuccess(challengeName);
     }
 }
