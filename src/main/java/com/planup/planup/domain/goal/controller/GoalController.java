@@ -5,7 +5,7 @@ import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.service.GoalService;
-import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
+import com.planup.planup.domain.user.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.validation.annotation.CurrentUser;
 import com.planup.planup.validation.jwt.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
