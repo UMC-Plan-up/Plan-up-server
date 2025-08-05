@@ -37,7 +37,6 @@ public class GoalServiceImpl implements GoalService{
     private final UserRepository userRepository;
     private final TimerVerificationRepository timerVerificationRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
-    private final TimerVerificationService timerVerificationService;
     private final CommentService commentService;
     private final CommentRepository commentRepository;
 
