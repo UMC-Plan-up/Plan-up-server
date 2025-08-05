@@ -1,14 +1,12 @@
-package com.planup.planup.domain.verification.repository;
+package com.planup.planup.domain.user.verification.repository;
 
-import com.planup.planup.domain.goal.entity.mapping.UserGoal;
-import com.planup.planup.domain.verification.entity.TimerVerification;
+import com.planup.planup.domain.user.verification.entity.TimerVerification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface TimerVerificationRepository extends JpaRepository<TimerVerification, Long> {

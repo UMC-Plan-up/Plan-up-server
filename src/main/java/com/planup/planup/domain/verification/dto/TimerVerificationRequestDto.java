@@ -1,4 +1,4 @@
-package com.planup.planup.domain.verification.dto;
+package com.planup.planup.domain.user.verification.dto;
 
 public class TimerVerificationRequestDto {
 }
