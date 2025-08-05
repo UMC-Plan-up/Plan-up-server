@@ -96,7 +96,10 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public boolean checkPassword(Long userId, String password) {
         User user = getUserbyUserId(userId);
-        return passwordEncoder.matches(password, user.getPassword());
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new UserException(ErrorStatus.PASSWORD_MISMATCH);
+        }
+        return true;
     }
 
     @Override
@@ -185,7 +188,7 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
 
         // 약관 동의 추가
-        addTermsAgreements(savedUser, request.getAgreements());
+//        addTermsAgreements(savedUser, request.getAgreements());
 
         // 초대 관계 처리 (초대코드가 있었다면)
         if (inviterId != null) {

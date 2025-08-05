@@ -31,4 +31,6 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     Optional<UserGoal> findByUserAndGoal(User user, Goal goal);
 
     List<UserGoal> findAllByGoal(Goal goal);
+
+    List<UserGoal> findAllByUserAndGoal(User user, Goal goal);
 }
