@@ -97,20 +97,17 @@ public class ChallengeServiceImpl implements ChallengeService{
         userGoalRepository.save(userGoalMember);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public ChallengeResponseDTO.ChallengeResponseInfo getChallengeInfo(Long challengeId) {
         Goal goal = goalService.getGoalById(challengeId);
-        System.out.println(goal.getGoalName());
 
         if (goal.getGoalType() == GoalType.CHALLENGE_PHOTO) {
-//            if (goal instanceof PhotoChallenge) {
-                System.out.println("-----1");
+            if (goal instanceof PhotoChallenge) {
                 PhotoChallenge photoChallenge = (PhotoChallenge) goal;
-
                 ChallengeResponseDTO.ChallengeResponseInfo challengeResponseInfo = ChallengeConverter.toChallengeResponseInfoPhotoVer(photoChallenge);
                 return challengeResponseInfo;
 
-//            }
+            }
         } else if (goal.getGoalType() == GoalType.CHALLENGE_TIME) {
             if (goal instanceof TimeChallenge) {
                 TimeChallenge timeChallenge = (TimeChallenge) goal;
@@ -123,7 +120,7 @@ public class ChallengeServiceImpl implements ChallengeService{
     }
 
     //Goal Repo에 가서 challange를 찾아온다
-    @Transactional
+    @Transactional(readOnly = true)
     public Challenge getChallengeById(Long challengeId) {
         Goal goal = goalService.getGoalById(challengeId);
 
@@ -138,7 +135,7 @@ public class ChallengeServiceImpl implements ChallengeService{
     public void rejectChallengeRequest(Long userId, Long challengeId) {
         User user = userService.getUserbyUserId(userId);
         Goal goal = goalService.getGoalById(challengeId);
-//        UserGoal userGoal = userGoalService.getUserGoalByUserAndGoal(user, goal);
+        UserGoal userGoal = userGoalService.getUserGoalByUserAndGoal(user, goal);
         Challenge challenge = getChallengeById(challengeId);
 
         challenge.setChallengeStatus(ChallengeStatus.REJECTED);
@@ -165,18 +162,22 @@ public class ChallengeServiceImpl implements ChallengeService{
 
         Challenge challenge = getChallengeById(dto.id());
 
-        System.out.println("111");
         //기존에 제안받은 사람 아니면 예외처리
         if (!isChallengeMember(user, challenge)) {
             throw new ChallengeException(ErrorStatus._NOT_ALLOWED);
         }
 
-        System.out.println("2222");
-
         challenge.setPenalty(dto.penalty());
 
         //새롭게 챌린지에 추가한 유저에 대해 usergoal을 추가한다. (기존에 없어야 한다.)
         addChallengeMember(dto.friendIdList(), challenge);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String getChallengeName(Long userId, Long challengeId) {
+        Challenge challengeById = getChallengeById(challengeId);
+        return challengeById.getGoalName();
     }
 
     private boolean isChallengeMember(User user, Challenge challenge) {

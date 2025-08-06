@@ -1,4 +1,4 @@
-package com.planup.planup.domain.user.verification.entity;
+package com.planup.planup.domain.verification.entity;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
@@ -20,7 +20,6 @@ public class PhotoVerification extends BaseTimeEntity {
     private Long id;
 
     private String photoImg;
-    private String photoDescription;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usergoal_id")

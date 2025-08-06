@@ -1,9 +1,10 @@
 package com.planup.planup.domain.user.verification.service;
 
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.verification.entity.PhotoVerification;
-import com.planup.planup.domain.user.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
+import com.planup.planup.domain.verification.entity.PhotoVerification;
+import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
+import com.planup.planup.domain.verification.service.VerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +14,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class PhotoVerificationService implements VerificationService{
+public class PhotoVerificationService implements VerificationService {
     private final UserGoalRepository userGoalRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
 

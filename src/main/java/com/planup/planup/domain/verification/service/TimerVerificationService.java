@@ -1,15 +1,13 @@
-package com.planup.planup.domain.user.verification.service;
+package com.planup.planup.domain.verification.service;
 
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.verification.convertor.TimerVerificationConverter;
-import com.planup.planup.domain.user.verification.entity.PhotoVerification;
-import com.planup.planup.domain.user.verification.repository.TimerVerificationRepository;
-import com.planup.planup.domain.user.verification.dto.TimerVerificationResponseDto;
-import com.planup.planup.domain.user.verification.entity.TimerVerification;
+import com.planup.planup.domain.verification.convertor.TimerVerificationConverter;
+import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
+import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;
+import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,9 +22,12 @@ public class TimerVerificationService implements VerificationService{
     private final UserGoalRepository userGoalRepository;
     private final TimerVerificationRepository timerVerificationRepository;
 
+    //오늘 총 기록시간 조회
     public LocalTime getTodayTotalTime(Long userId, Long goalId) {
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(userId, goalId);
-
+        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId,userId);
+        if (userGoal == null) {
+            return LocalTime.of(0, 0, 0);
+        }
         List<TimerVerification> todayVerifications = timerVerificationRepository
                 .findTodayVerificationsByUserGoalId(userGoal.getId());
 
@@ -46,6 +47,7 @@ public class TimerVerificationService implements VerificationService{
         );
     }
 
+    //타이머 시작 -> DB 레코드 생성(TimerVerification)
     public TimerVerificationResponseDto.TimerStartResponseDto startTimer(Long userId, Long goalId) {
         UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
         //에러 처리 필요
@@ -69,6 +71,7 @@ public class TimerVerificationService implements VerificationService{
         return TimerVerificationConverter.toTimerStartResponse(savedTimer);
     }
 
+    //타이머 종료 -> 종료 시간 업데이트
     public TimerVerificationResponseDto.TimerStopResponseDto stopTimer(Long timerId, Long userId) {
         TimerVerification timer = timerVerificationRepository.findById(timerId)
                 .orElseThrow(() -> new RuntimeException("타이머를 찾을 수 없습니다."));
@@ -90,7 +93,7 @@ public class TimerVerificationService implements VerificationService{
         UserGoal userGoal = timer.getUserGoal();
         boolean achieved = isGoalAchieved(spentTime, userGoal.getGoalTime());
 
-
+        //인증 횟수 증가
         if (achieved) { //achieved == true
             userGoal.setVerificationCount(userGoal.getVerificationCount() + 1);
             userGoalRepository.save(userGoal);

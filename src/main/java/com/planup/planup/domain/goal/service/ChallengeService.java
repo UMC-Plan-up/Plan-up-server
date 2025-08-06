@@ -14,4 +14,6 @@ public interface ChallengeService {
     void acceptChallengeRequest(Long userId, Long challengeId);
 
     void reRequestPenalty(Long userId, ChallengeRequestDTO.ReRequestPenalty dto);
+
+    String getChallengeName(Long userId, Long challengeId);
 }
