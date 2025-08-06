@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+
 @Getter
 @AllArgsConstructor
 public enum ErrorStatus implements BaseErrorCode {
@@ -53,9 +56,15 @@ public enum ErrorStatus implements BaseErrorCode {
     NOT_FOUND_USERGOAL(HttpStatus.NOT_FOUND, "CHALLENGE4009", "찾지 못함"),
 
     // 초대코드 관련 에러
-    INVALID_INVITE_CODE(HttpStatus.BAD_REQUEST, "INVITE001", "유효하지 않은 초대코드입니다."),
-    EXPIRED_INVITE_CODE(HttpStatus.BAD_REQUEST, "INVITE002", "만료된 초대코드입니다."),
-    INVITE_CODE_ALREADY_USED(HttpStatus.BAD_REQUEST, "INVITE003", "이미 사용된 초대코드입니다.")
+    INVALID_INVITE_CODE(BAD_REQUEST, "INVITE001", "유효하지 않은 초대코드입니다."),
+    EXPIRED_INVITE_CODE(BAD_REQUEST, "INVITE002", "만료된 초대코드입니다."),
+    INVITE_CODE_ALREADY_USED(BAD_REQUEST, "INVITE003", "이미 사용된 초대코드입니다."),
+
+    // 이메일 인증 관련 에러
+    INVALID_EMAIL_TOKEN(BAD_REQUEST, "EMAIL4001", "유효하지 않거나 만료된 인증 토큰입니다."),
+    EMAIL_ALREADY_VERIFIED(BAD_REQUEST, "EMAIL4002", "이미 인증된 이메일입니다."),
+    EMAIL_VERIFICATION_FAILED(INTERNAL_SERVER_ERROR, "EMAIL5001", "이메일 인증 처리 중 오류가 발생했습니다."),
+    EMAIL_VERIFICATION_REQUIRED(HttpStatus.BAD_REQUEST, "VERIFICATION_001", "이메일 인증이 필요합니다"),
     ;
 
 
