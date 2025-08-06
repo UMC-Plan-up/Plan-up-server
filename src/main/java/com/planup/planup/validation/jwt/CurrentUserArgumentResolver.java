@@ -25,11 +25,12 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         boolean hasAnnotation = parameter.hasParameterAnnotation(CurrentUser.class);
-        boolean isLongType = parameter.getParameterType().equals(User.class);
+        boolean isLongType = parameter.getParameterType().equals(Long.class);
+        boolean isUserType = parameter.getParameterType().equals(User.class);
 
-        log.debug("supportsParameter - hasAnnotation: {}, isLongType: {}", hasAnnotation, isLongType);
+        log.debug("supportsParameter - hasAnnotation: {}, isLongType: {}, isUserType: {}", hasAnnotation, isLongType, isUserType);
 
-        return hasAnnotation && isLongType;
+        return hasAnnotation && (isLongType || isUserType);
     }
 
     @Override
@@ -68,10 +69,14 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
                 throw new RuntimeException("유효하지 않은 사용자 ID입니다");
             }
 
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
-
-            return user;
+            // Long 타입을 요구하는 경우 userId를 반환, User 타입을 요구하는 경우 user 객체를 반환
+            if (parameter.getParameterType().equals(Long.class)) {
+                return userId;
+            } else {
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
+                return user;
+            }
 
         } catch (Exception e) {
             log.error("JWT 토큰 처리 중 오류 발생: {}", e.getMessage(), e);
