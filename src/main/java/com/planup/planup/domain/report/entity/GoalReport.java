@@ -1,16 +1,15 @@
 package com.planup.planup.domain.report.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class GoalReport {
 
     @Id
@@ -41,7 +40,6 @@ public class GoalReport {
     @JoinColumn(name = "weekly_report_id")
     private WeeklyReport weeklyReport;
 
-    @Builder
     public GoalReport(Long goalId, Long achievementRate, String goalTitle, String goalCriteria, WeeklyReport weeklyReport, ReportType reportType) {
         this.goalId = goalId;
         this.achievementRate = achievementRate;

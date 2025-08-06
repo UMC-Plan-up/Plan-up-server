@@ -115,7 +115,7 @@ public class TimerVerificationService implements VerificationService{
     }
 
     @Transactional(readOnly = true)
-    public List<TimerVerification> getTimerVerificationListByUserAndDateBetween(User user, LocalDateTime start, LocalDateTime end) {
-        return timerVerificationRepository.findAllByUserGoalAndCreatedAtBetween(user, start, end);
+    public List<TimerVerification> getTimerVerificationListByUserAndDateBetween(UserGoal userGoal, LocalDateTime start, LocalDateTime end) {
+        return timerVerificationRepository.findAllByUserGoalAndCreatedAtBetweenOOrderByCreatedAt(userGoal, start, end);
     }
 }

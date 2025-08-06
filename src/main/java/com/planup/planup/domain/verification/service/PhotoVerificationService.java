@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class PhotoVerificationService implements VerificationService {
@@ -55,5 +58,10 @@ public class PhotoVerificationService implements VerificationService {
         }
 
         photoVerificationRepository.delete(verification);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PhotoVerification> getPhotoVerificationListByUserAndDateBetween(UserGoal userGoal, LocalDateTime start, LocalDateTime end) {
+        return photoVerificationRepository.findAllByUserGoalAndCreatedAtBetweenOOrderByCreatedAt(userGoal,start,end);
     }
 }
