@@ -91,4 +91,25 @@ public class NotificationServiceImpl implements NotificationService {
 
         return notificationRepository.save(notification);
     }
+
+    @Override
+    @Transactional
+    public Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId, List<String> updatedParts) {
+        String updatedPartsStr = String.join(", ", updatedParts);
+
+        User receiver = userService.getUserbyUserId(receiverId);
+        User sender = userService.getUserbyUserId(senderId);
+
+        Notification notification = Notification.builder()
+                .receiver(receiver)
+                .sender(sender)
+                .type(notificationType)
+                .targetType(targetType)
+                .targetId(targetId)
+                .updatedGoalInfo(updatedPartsStr)
+                .build();
+
+        return notificationRepository.save(notification);
+    }
+
 }

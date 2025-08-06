@@ -5,6 +5,7 @@ import com.planup.planup.domain.notification.entity.Notification;
 import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.entity.TargetType;
 import com.planup.planup.domain.user.entity.User;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,4 +23,7 @@ public interface NotificationService {
     List<NotificationResponseDTO.NotificationDTO> getTop5RecentByUser(Long userId);
 
     Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId);
+
+    @Transactional
+    Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId, List<String> updatedParts);
 }

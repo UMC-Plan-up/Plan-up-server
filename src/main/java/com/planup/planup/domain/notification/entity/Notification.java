@@ -38,6 +38,8 @@ public class Notification extends BaseTimeEntity {
 
     private boolean isRead;
 
+    private String updatedGoalInfo;
+
     public static Notification create(User sender, User receiver, NotificationType type, TargetType targetType, Long targetId) {
         Notification n = new Notification();
         n.sender = sender;

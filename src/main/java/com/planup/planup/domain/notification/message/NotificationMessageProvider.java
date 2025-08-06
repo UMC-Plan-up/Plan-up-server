@@ -1,42 +1,55 @@
 package com.planup.planup.domain.notification.message;
 
-import com.planup.planup.domain.notification.dto.NotificationMessageContext;
+import com.planup.planup.domain.global.SpringContext;
+import com.planup.planup.domain.goal.entity.Goal;
+import com.planup.planup.domain.goal.service.GoalService;
 import com.planup.planup.domain.notification.entity.Notification;
 import com.planup.planup.domain.notification.entity.NotificationType;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-@Component
-@AllArgsConstructor
 public class NotificationMessageProvider {
 
     public static String generate(Notification notification) {
 
+        GoalService goalService = SpringContext.getBean(GoalService.class);
+
         String senderName = notification.getSender().getNickname();
         String receiverName = notification.getReceiver().getNickname();
         Long targetId = notification.getTargetId();
+        String updatedPartsStr = notification.getNotificationMessage();
+
+        String goalName = null;
+        if (isTargetId(notification)) {
+            Goal goal = goalService.getGoalById(targetId);
+            goalName = goal.getGoalName();
+        }
 
         return switch (notification.getType()) {
 
             case RANK_DOWN ->
-                    String.format("[%s]님의 랭킹 #%d 자리를 뺏겼어요!", receiverName, targetId);
+                    String.format("[%s]님의 랭킹 자리를 뺏겼어요!", receiverName);
             case GOAL_REMINDER ->
-                    String.format("[%s]을(를) 실천할 시간이에요! 지금 바로 기록하세요!", targetId);
+                    String.format("[%s]을(를) 실천할 시간이에요! 지금 바로 기록하세요!", goalName);
             case FRIEND_GOAL_COMPLETED ->
-                    String.format("[%s]님이 기준 기간 내에 '%s'을(를) 완료했어요.", senderName, targetId);
+                    String.format("[%s]님이 기준 기간 내에 '%s'을(를) 완료했어요.", senderName, goalName);
             case FRIEND_GOAL_CREATED ->
-                    String.format("[%s]님이 새 목표 '%s'을(를) 추가했어요.", senderName, targetId);
-            case GOAL_PART_UPDATED ->
-                    String.format("[%s]님이 '%s' 목표를 수정했어요.\n목표 세부 내역 확인하기", senderName, targetId);
+                    String.format("[%s]님이 새 목표 '%s'을(를) 추가했어요.", senderName, goalName);
+            case GOAL_PART_UPDATED -> {
+                // targetId는 goalId로 쓰고, 수정된 파트 목록을 context에서 받아옴
+
+                yield String.format("[%s]님이 '%s' 목표의 [%s]을(를) 수정했어요.\n목표 세부 내역 확인하기",
+                        senderName, goalName, updatedPartsStr);
+            }
 
             case COMMENT_ON_VERIFICATION ->
-                    String.format("[%s]님이 댓글을 달았어요. (id:%d)", senderName, targetId);
+                    String.format("[%s]님이 댓글을 달았어요. ", senderName);
 
             case GOAL_CHEERED ->
-                    String.format("[%s]님이 [%s] 목표에 ‘응원해요’ 버튼을 눌렀어요.", senderName, targetId);
+                    String.format("[%s]님이 [%s] 목표에 ‘응원해요’ 버튼을 눌렀어요.", senderName, goalName);
 
             case GOAL_ENCOURAGED ->
-                    String.format("[%s]님이 [%s] 목표에 ‘분발해요’ 버튼을 눌렀어요.", senderName, targetId);
+                    String.format("[%s]님이 [%s] 목표에 ‘분발해요’ 버튼을 눌렀어요.", senderName, goalName);
 
             case FRIEND_REQUEST_SENT ->
                     String.format("[%s]님이 친구 신청을 보냈어요.", senderName);
@@ -71,5 +84,18 @@ public class NotificationMessageProvider {
             case PENALTY_REMINDER_SENT ->
                     String.format("[%s]님이 패널티 리마인드를 보냈어요! 챌린지 결과를 자세히 확인해 보세요.", senderName);
         };
+    }
+
+    private static boolean isTargetId(Notification notification) {
+        NotificationType type = notification.getType();
+
+        if (type == NotificationType.GOAL_ENCOURAGED ||
+                type == NotificationType.GOAL_CHEERED ||
+                type == NotificationType.GOAL_REMINDER ||
+                type == NotificationType.FRIEND_GOAL_COMPLETED ||
+                type == NotificationType.FRIEND_GOAL_CREATED) {
+            return true;
+        }
+        return false;
     }
 }
