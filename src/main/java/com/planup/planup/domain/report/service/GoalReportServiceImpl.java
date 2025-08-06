@@ -2,6 +2,7 @@ package com.planup.planup.domain.report.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ReportException;
+import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
@@ -10,32 +11,38 @@ import com.planup.planup.domain.report.converter.GoalReportConverter;
 import com.planup.planup.domain.report.dto.GoalReportResponseDTO;
 import com.planup.planup.domain.report.entity.DailyAchievementRate;
 import com.planup.planup.domain.report.entity.GoalReport;
+import com.planup.planup.domain.report.entity.ReportType;
+import com.planup.planup.domain.report.entity.ReportUser;
 import com.planup.planup.domain.report.repository.GoalReportRepository;
+import com.planup.planup.domain.report.repository.ReportUserRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.verification.entity.PhotoVerification;
 import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.verification.service.PhotoVerificationService;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Transactional(readOnly = true)
 @AllArgsConstructor
+@Slf4j
 public class GoalReportServiceImpl implements GoalReportService {
 
     private final GoalReportRepository goalReportRepository;
     private final UserGoalService userGoalService;
     private final PhotoVerificationService photoVerificationService;
     private final TimerVerificationService timerVerificationService;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final ReportUserRepository reportUserRepository;
 
     private final int PHOTO_INT = 5;
     private final int TIME_INT = 1000;
@@ -48,27 +55,79 @@ public class GoalReportServiceImpl implements GoalReportService {
         return GoalReportConverter.toResponse(goalReport);
     }
 
+    @Transactional
     public void createGoalReport(UserGoal userGoal, LocalDateTime startDate) {
         User user = userGoal.getUser();
         Goal goal = userGoal.getGoal();
 
+        Integer userValue = getUserValue(user.getId().toString(), goal.getId().toString());
 
+        //dailyAchievementRate 계산
+        DailyAchievementRate dailyAchievementRate = calculateVerification(userGoal, goal, startDate);
 
-        GoalReport.builder()
+        //Redis에 나의 값을 저장
+        saveUserValue(user.getId().toString(), goal.getId().toString(), dailyAchievementRate.getTotal());
+
+        ReportType rp = null;
+        if (goal.getGoalType().equals(GoalType.CHALLENGE_PHOTO) || goal.getGoalType().equals(GoalType.CHALLENGE_PHOTO)) {
+            rp = ReportType.CHALLENGE;
+        } else if (goal.getGoalType().equals(GoalType.FRIEND)) {
+            rp = ReportType.FRIEND;
+        } else if (goal.getGoalType().equals(GoalType.COMMUNITY)) {
+            rp = ReportType.COMMUNITY;
+        }
+
+        GoalReport goalReport = GoalReport.builder()
                 .goalId(goal.getId())
-                .achievementRate()
                 .goalTitle(goal.getGoalName())
                 .goalCriteria(goal.getGoalAmount())
-                .reportUser()
-                .reportType(goal.getGoalType())
+                .dailyAchievementRate(dailyAchievementRate)
+                .reportUsers(null)
+                .reportType(rp)
                 .weeklyReport(null)
                 .build();
-
-        if (goal.getVerificationType().equals(VerificationType.PHOTO)) {
-        }
+        goalReportRepository.save(goalReport);
     }
 
-    private DailyAchievementRate calculateVerification(List<PhotoVerification> photoVerificationList, UserGoal userGoal, Goal goal, LocalDateTime startDate) {
+    @Transactional
+    public void createReportUsersFromRedis(UserGoal userGoal, LocalDateTime startDate) {
+        User user = userGoal.getUser();
+        Goal goal = userGoal.getGoal();
+
+        Integer userReport = getUserReport(user.getId().toString(), goal.getId().toString());
+        GoalReport goalReport = goalReportRepository.findById(userReport.longValue()).orElseThrow(() -> new RuntimeException("createReportUsersFromRedis: report가 없어요"));
+
+        List<UserGoal> userGoals = userGoalService.getUserGoalListByGoal(goal);
+        List<ReportUser> reportUsers = new ArrayList<>();
+
+        //이 목표에 연관된 모든 사람의 데이터를 가져온다
+        for (UserGoal userGoalA : userGoals) {
+            //만약 본인의 데이터라면 패스
+            if (userGoalA.getUser().getId().equals(user.getId())) {
+                continue;
+            }
+
+            User userA = userGoalA.getUser();
+            Integer userValue = getUserValue(userA.getId().toString(), goal.getId().toString());
+
+            //데이터가 없다면 패스
+            if (userValue == null) {
+                continue;
+            }
+
+            ReportUser reportUser = ReportUser.builder()
+                    .userName(userA.getNickname())
+                    .rate(userValue)
+                    .goalReport(goalReport)
+                    .build();
+            reportUserRepository.save(reportUser);
+            reportUsers.add(reportUser);
+        }
+        goalReport.setReportUsers(reportUsers);
+    }
+
+    //각 인증을 취합하여 DailyAchievementRate를 생성한다.
+    private DailyAchievementRate calculateVerification(UserGoal userGoal, Goal goal, LocalDateTime startDate) {
         DailyAchievementRate.DailyAchievementRateBuilder builder = DailyAchievementRate.builder();
 
         //날짜별 인증을 저장한다
@@ -107,6 +166,7 @@ public class GoalReportServiceImpl implements GoalReportService {
 
         }
         DailyAchievementRate dailyAchievementRate = builder.build();
+        dailyAchievementRate.calTotal();
         return dailyAchievementRate;
     }
 
@@ -136,5 +196,27 @@ public class GoalReportServiceImpl implements GoalReportService {
             dailyCount.put(date, dailyCount.getOrDefault(date, 0) + seconds);
         }
         return dailyCount;
+    }
+
+    public void saveUserValue(String userId, String goalId, int value) {
+        String key = "user:" + userId + ":goal:" + goalId + ":value";
+        redisTemplate.opsForValue().set(key, String.valueOf(value), Duration.ofHours(1));
+    }
+
+    public Integer getUserValue(String userId, String goalId) {
+        String key = "user:" + userId + ":goal:" + goalId + ":value";
+        String value = redisTemplate.opsForValue().get(key);
+        return value != null ? Integer.parseInt(value) : null;
+    }
+
+    public void saveUserReport(String userId, String goalId, Long reportId) {
+        String key = "user:" + userId + ":goal:" + goalId + ":reportId";
+        redisTemplate.opsForValue().set(key, String.valueOf(reportId), Duration.ofHours(1));
+    }
+
+    public Integer getUserReport(String userId, String goalId) {
+        String key = "user:" + userId + ":goal:" + goalId + ":reportId";
+        String value = redisTemplate.opsForValue().get(key);
+        return value != null ? Integer.parseInt(value) : null;
     }
 }

@@ -18,8 +18,6 @@ public class GoalReport {
 
     private Long goalId;
 
-    private Long achievementRate;
-
     private String goalTitle;
     private String goalCriteria;
 
@@ -40,12 +38,8 @@ public class GoalReport {
     @JoinColumn(name = "weekly_report_id")
     private WeeklyReport weeklyReport;
 
-    public GoalReport(Long goalId, Long achievementRate, String goalTitle, String goalCriteria, WeeklyReport weeklyReport, ReportType reportType) {
-        this.goalId = goalId;
-        this.achievementRate = achievementRate;
-        this.goalTitle = goalTitle;
-        this.goalCriteria = goalCriteria;
-        this.weeklyReport = weeklyReport;
-        this.reportType = reportType;
+    public void setReportUsers(List<ReportUser> reportUsers) {
+        this.reportUsers = reportUsers;
     }
+
 }
