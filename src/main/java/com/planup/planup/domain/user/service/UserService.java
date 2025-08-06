@@ -34,4 +34,7 @@ public interface UserService {
     InviteCodeResponseDTO getMyInviteCode(Long userId);
 
     ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode, Long currentUserId);
+
+    void markEmailAsVerified(String email);
+
 }

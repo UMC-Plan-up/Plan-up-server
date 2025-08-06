@@ -1,24 +1,34 @@
 package com.planup.planup.domain.user.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.entity.User;
+import com.planup.planup.domain.user.service.EmailService;
 import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import lombok.AllArgsConstructor;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import java.net.URI;
 
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
+    private final EmailService emailService;
+
+    @Value("${app.frontend.url:http://localhost:3000}")
+    private String frontendUrl;
 
     @Operation(summary = "nickname 변경 요청", description = "닉네임을 변경하기 위해 기존 닉네임 호출")
     @GetMapping("/mypage/profile/nickname")
@@ -133,5 +143,32 @@ public class UserController {
             @Parameter(hidden = true) @CurrentUser User currentUser) {
         ValidateInviteCodeResponseDTO response = userService.validateInviteCode(request.getInviteCode(), currentUser.getId());
         return ApiResponse.onSuccess(response);
+    }
+
+    @Operation(summary = "이메일 인증 완료")
+    @GetMapping("/users/email/verify")
+    public ResponseEntity<String> verifyEmail(@RequestParam String token) {
+        try {
+            String email = emailService.verifyToken(token);
+            userService.markEmailAsVerified(email);
+
+            // 프로필 설정 페이지로 리다이렉트
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create(frontendUrl + "/profile/setup?email=" + email))
+                    .build();
+
+        } catch (Exception e) {
+            // 인증 실패 페이지로 리다이렉트
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create(frontendUrl + "/auth/verification-failed"))
+                    .build();
+        }
+    }
+
+    @Operation(summary = "이메일 인증 재발송")
+    @PostMapping("/users/email/resend")
+    public ApiResponse<String> resendVerificationEmail (@RequestParam String email) {
+        emailService.resendVerificationLink(email);
+        return ApiResponse.onSuccess("인증 이메일이 재발송되었습니다.");
     }
 }

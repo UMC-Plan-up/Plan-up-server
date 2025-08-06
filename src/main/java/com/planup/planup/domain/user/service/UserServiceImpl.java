@@ -50,6 +50,7 @@ public class UserServiceImpl implements UserService {
     private final InviteCodeService inviteCodeService;
     private final InvitedUserRepository invitedUserRepository;
     private final FriendRepository friendRepository;
+    private final EmailService emailService;
 
 
     @Override
@@ -145,7 +146,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public SignupResponseDTO signup(SignupRequestDTO request) {
-        // 1. 이메일 중복 체크
+        // 이메일 중복 체크
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
         }
@@ -158,7 +159,14 @@ public class UserServiceImpl implements UserService {
         // 필수 약관 동의 검증
         validateRequiredTerms(request.getAgreements());
 
-        // 초대코드 처리 (있을 때만)
+        // 이메일 인증 여부 확인
+        if (!emailService.isEmailVerified(request.getEmail())) {
+            // 인증되지 않은 경우 -> 인증 메일 발송하고 예외 던지기
+            emailService.sendVerificationLink(request.getEmail());
+            throw new UserException(ErrorStatus.EMAIL_VERIFICATION_REQUIRED);
+        }
+
+        // 초대코드 처리
         Long inviterId = null;
         String friendNickname = null;
         if (request.getInviteCode() != null && !request.getInviteCode().trim().isEmpty()) {
@@ -170,6 +178,7 @@ public class UserServiceImpl implements UserService {
 
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
+
         // User 엔티티 생성
         User user = User.builder()
                 .email(request.getEmail())
@@ -180,6 +189,8 @@ public class UserServiceImpl implements UserService {
                 .userLevel(UserLevel.LEVEL_1)
                 .alarmAllow(true)
                 .profileImg(request.getProfileImg())
+                .emailVerified(true)
+                .emailVerifiedAt(LocalDateTime.now())
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -212,6 +223,9 @@ public class UserServiceImpl implements UserService {
             // 초대코드 사용 완료
             inviteCodeService.useInviteCode(request.getInviteCode());
         }
+
+        // 인증 토큰 정리
+        emailService.clearVerificationToken(request.getEmail());
 
         return SignupResponseDTO.builder()
                 .id(savedUser.getId())
@@ -399,5 +413,14 @@ public class UserServiceImpl implements UserService {
                     .message("초대코드 검증 중 오류가 발생했습니다.")
                     .build();
         }
+    }
+
+    @Override
+    @Transactional
+    public void markEmailAsVerified(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        user.verifyEmail();
     }
 }
