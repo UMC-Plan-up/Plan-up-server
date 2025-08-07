@@ -396,7 +396,6 @@ public class UserServiceImpl implements UserService {
         UserWithdrawal withdrawal = UserWithdrawal.builder()
                 .user(user)
                 .reason(request.getReason())
-                .detailReason(request.getDetailReason())
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .build();
