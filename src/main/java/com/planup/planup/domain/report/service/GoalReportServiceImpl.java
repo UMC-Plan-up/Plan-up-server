@@ -41,9 +41,6 @@ public class GoalReportServiceImpl implements GoalReportService {
     private final RedisServiceForReport redisServiceForReport;
     private final ReportUserRepository reportUserRepository;
 
-    private final int PHOTO_INT = 5;
-    private final int TIME_INT = 1000;
-
     @Override
     public void createGoalReportsByUserGoal(LocalDateTime startDate, LocalDateTime endDate) {
 
@@ -85,8 +82,6 @@ public class GoalReportServiceImpl implements GoalReportService {
     public void createGoalReport(UserGoal userGoal, LocalDateTime startDate) {
         User user = userGoal.getUser();
         Goal goal = userGoal.getGoal();
-
-        Integer userValue = redisServiceForReport.getUserValue(user.getId().toString(), goal.getId().toString());
 
         //dailyAchievementRate 계산
         DailyAchievementRate dailyAchievementRate = calculateVerification(userGoal, goal, startDate);
@@ -189,7 +184,7 @@ public class GoalReportServiceImpl implements GoalReportService {
 
     //각 인증을 취합하여 DailyAchievementRate를 생성한다.
     private DailyAchievementRate calculateVerification(UserGoal userGoal, Goal goal, LocalDateTime startDate) {
-        DailyAchievementRate.DailyAchievementRateBuilder builder = DailyAchievementRate.builder();
+
 
         //날짜별 인증을 저장한다
         Map<LocalDate, Integer> dailyCount = new HashMap<>();
@@ -204,16 +199,17 @@ public class GoalReportServiceImpl implements GoalReportService {
         }
 
         // 날짜별 성취도 계산
-        DailyAchievementRate dailyAchievementRate = getDailyAchievementRate(builder, dailyCount);
+        DailyAchievementRate dailyAchievementRate = getDailyAchievementRate(dailyCount, goal.getOneDose());
         return dailyAchievementRate;
     }
 
-    private DailyAchievementRate getDailyAchievementRate(DailyAchievementRate.DailyAchievementRateBuilder builder, Map<LocalDate, Integer> dailyCount) {
+    private DailyAchievementRate getDailyAchievementRate(Map<LocalDate, Integer> dailyCount, int oneDose) {
+        DailyAchievementRate.DailyAchievementRateBuilder builder = DailyAchievementRate.builder();
         for (Map.Entry<LocalDate, Integer> entry : dailyCount.entrySet()) {
             LocalDate date = entry.getKey();
             int totalPhotoCount = entry.getValue();
 
-            int achievement = (int) Math.min(100, ((double) totalPhotoCount / PHOTO_INT) * 100);
+            int achievement = (int) Math.min(100, ((double) totalPhotoCount / oneDose) * 100);
 
             switch (date.getDayOfWeek()) {
                 case MONDAY -> builder.mon(achievement);
