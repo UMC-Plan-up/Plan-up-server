@@ -12,29 +12,36 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-@RequiredArgsConstructor
 @Component
+@RequiredArgsConstructor
 public class FriendConverter {
 
-    public static FriendResponseDTO.FriendInfoSummary toFriendSummary(User friend) {
+    private final TimerVerificationService timerVerificationService;
+
+    public FriendResponseDTO.FriendInfoSummary toFriendSummary(User friend) {
+        // goalCnt: 실제 사용자의 목표 개수
+        int goalCnt = friend.getUserGoals().size();
+        
+        // todayTime: 오늘 타이머 시간 계산 (모든 목표의 합계)
+        LocalTime todayTime = calculateTodayTotalTime(friend);
+        
         return FriendResponseDTO.FriendInfoSummary
                 .builder()
                 .id(friend.getId())
                 .nickname(friend.getNickname()) 
-                .goalCnt(0)
-                .isNewPhotoVerify(true)
+                .goalCnt(goalCnt)
+                .todayTime(todayTime)
+                .isNewPhotoVerify(true) // 아직 하드코딩
                 .build();
-
     }
 
-    public static FriendResponseDTO.FriendInfoInChallengeCreate toFriendInfoChallenge(User friend) {
+    public FriendResponseDTO.FriendInfoInChallengeCreate toFriendInfoChallenge(User friend) {
         return FriendResponseDTO.FriendInfoInChallengeCreate
                 .builder()
                 .id(friend.getId())
                 .nickname(friend.getNickname())
                 .goalCnt(friend.getUserGoals().size())
                 .build();
-
     }
 
     public FriendResponseDTO.FriendSummaryList toFriendSummaryList(List<User> friends) {
@@ -47,7 +54,10 @@ public class FriendConverter {
                 .friendInfoSummaryList(summeryList)
                 .build();
     }
-
+    
+    /**
+     * 사용자의 모든 목표에 대한 오늘 타이머 시간을 합계하여 계산
+     */
     private LocalTime calculateTodayTotalTime(User user) {
         try {
             // 사용자의 모든 목표에 대해 오늘 타이머 시간을 합계
