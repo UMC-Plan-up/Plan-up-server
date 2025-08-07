@@ -47,6 +47,23 @@ public class GoalReportServiceImpl implements GoalReportService {
     private final int PHOTO_INT = 5;
     private final int TIME_INT = 1000;
 
+    @Override
+    public void createGoalReportsByUserGoal(LocalDateTime startDate, LocalDateTime endDate) {
+
+        //이번주에 userGoal에 업데이트가 있었던 목표에 대해 대상이 된다.
+        List<UserGoal> userGoalList = userGoalService.getUserGoalInPeriod(startDate, endDate);
+
+        //리포트를 생성하고 개인의 종합 점수를 Redis에 저장한다.
+        for (UserGoal userGoal : userGoalList) {
+            createGoalReport(userGoal, startDate);
+        }
+
+        //Redis에 저장된 개인 종합 당성률을 기반으로 친구 데이터를 만들고 리포트에 추가한다.
+        for (UserGoal userGoal : userGoalList) {
+            createReportUsersFromRedis(userGoal, startDate);
+        }
+    }
+
 
     @Override
     public GoalReportResponseDTO.GoalReportResponse findByGoalId(Long id) {
@@ -55,6 +72,7 @@ public class GoalReportServiceImpl implements GoalReportService {
         return GoalReportConverter.toResponse(goalReport);
     }
 
+    @Override
     @Transactional
     public void createGoalReport(UserGoal userGoal, LocalDateTime startDate) {
         User user = userGoal.getUser();
@@ -86,9 +104,11 @@ public class GoalReportServiceImpl implements GoalReportService {
                 .reportType(rp)
                 .weeklyReport(null)
                 .build();
-        goalReportRepository.save(goalReport);
+        GoalReport savedReport = goalReportRepository.save(goalReport);
+        saveUserReport(user.getId().toString(), goal.getId().toString(), savedReport.getId());
     }
 
+    @Override
     @Transactional
     public void createReportUsersFromRedis(UserGoal userGoal, LocalDateTime startDate) {
         User user = userGoal.getUser();
@@ -102,12 +122,14 @@ public class GoalReportServiceImpl implements GoalReportService {
 
         //이 목표에 연관된 모든 사람의 데이터를 가져온다
         for (UserGoal userGoalA : userGoals) {
+
+            User userA = userGoalA.getUser();
+
             //만약 본인의 데이터라면 패스
-            if (userGoalA.getUser().getId().equals(user.getId())) {
+            if (userA.getId().equals(user.getId())) {
                 continue;
             }
 
-            User userA = userGoalA.getUser();
             Integer userValue = getUserValue(userA.getId().toString(), goal.getId().toString());
 
             //데이터가 없다면 패스
