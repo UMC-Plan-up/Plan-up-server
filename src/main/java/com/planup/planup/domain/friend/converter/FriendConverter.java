@@ -36,7 +36,7 @@ public class FriendConverter {
                 .nickname(friend.getNickname()) 
                 .goalCnt(goalCnt)
                 .todayTime(todayTime)
-                .isNewPhotoVerify(true) // 아직 하드코딩
+                .isNewPhotoVerify(isNewPhotoVerify)
                 .build();
     }
 
