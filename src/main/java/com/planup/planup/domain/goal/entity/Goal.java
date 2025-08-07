@@ -54,7 +54,7 @@ public class Goal extends BaseTimeEntity {
     //빈도
     private int frequency;
     //1회 분량
-    private String oneDose;
+    private int oneDose;
     //종료일
     private Date endDate;
 
