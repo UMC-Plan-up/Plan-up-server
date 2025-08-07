@@ -2,6 +2,7 @@ package com.planup.planup.domain.report.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ReportException;
+import com.planup.planup.domain.global.redis.RedisServiceForReport;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
@@ -41,7 +42,7 @@ public class GoalReportServiceImpl implements GoalReportService {
     private final UserGoalService userGoalService;
     private final PhotoVerificationService photoVerificationService;
     private final TimerVerificationService timerVerificationService;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisServiceForReport redisServiceForReport;
     private final ReportUserRepository reportUserRepository;
 
     private final int PHOTO_INT = 5;
@@ -78,13 +79,13 @@ public class GoalReportServiceImpl implements GoalReportService {
         User user = userGoal.getUser();
         Goal goal = userGoal.getGoal();
 
-        Integer userValue = getUserValue(user.getId().toString(), goal.getId().toString());
+        Integer userValue = redisServiceForReport.getUserValue(user.getId().toString(), goal.getId().toString());
 
         //dailyAchievementRate 계산
         DailyAchievementRate dailyAchievementRate = calculateVerification(userGoal, goal, startDate);
 
         //Redis에 나의 값을 저장
-        saveUserValue(user.getId().toString(), goal.getId().toString(), dailyAchievementRate.getTotal());
+        redisServiceForReport.saveUserValue(user.getId().toString(), goal.getId().toString(), dailyAchievementRate.getTotal());
 
         ReportType rp = null;
         if (goal.getGoalType().equals(GoalType.CHALLENGE_PHOTO) || goal.getGoalType().equals(GoalType.CHALLENGE_PHOTO)) {
@@ -105,7 +106,7 @@ public class GoalReportServiceImpl implements GoalReportService {
                 .weeklyReport(null)
                 .build();
         GoalReport savedReport = goalReportRepository.save(goalReport);
-        saveUserReport(user.getId().toString(), goal.getId().toString(), savedReport.getId());
+        redisServiceForReport.saveUserReport(user.getId().toString(), goal.getId().toString(), savedReport.getId());
     }
 
     @Override
@@ -114,7 +115,7 @@ public class GoalReportServiceImpl implements GoalReportService {
         User user = userGoal.getUser();
         Goal goal = userGoal.getGoal();
 
-        Integer userReport = getUserReport(user.getId().toString(), goal.getId().toString());
+        Integer userReport = redisServiceForReport.getUserReport(user.getId().toString(), goal.getId().toString());
         GoalReport goalReport = goalReportRepository.findById(userReport.longValue()).orElseThrow(() -> new RuntimeException("createReportUsersFromRedis: report가 없어요"));
 
         List<UserGoal> userGoals = userGoalService.getUserGoalListByGoal(goal);
@@ -130,7 +131,7 @@ public class GoalReportServiceImpl implements GoalReportService {
                 continue;
             }
 
-            Integer userValue = getUserValue(userA.getId().toString(), goal.getId().toString());
+            Integer userValue = redisServiceForReport.getUserValue(userA.getId().toString(), goal.getId().toString());
 
             //데이터가 없다면 패스
             if (userValue == null) {
@@ -220,25 +221,4 @@ public class GoalReportServiceImpl implements GoalReportService {
         return dailyCount;
     }
 
-    public void saveUserValue(String userId, String goalId, int value) {
-        String key = "user:" + userId + ":goal:" + goalId + ":value";
-        redisTemplate.opsForValue().set(key, String.valueOf(value), Duration.ofHours(1));
-    }
-
-    public Integer getUserValue(String userId, String goalId) {
-        String key = "user:" + userId + ":goal:" + goalId + ":value";
-        String value = redisTemplate.opsForValue().get(key);
-        return value != null ? Integer.parseInt(value) : null;
-    }
-
-    public void saveUserReport(String userId, String goalId, Long reportId) {
-        String key = "user:" + userId + ":goal:" + goalId + ":reportId";
-        redisTemplate.opsForValue().set(key, String.valueOf(reportId), Duration.ofHours(1));
-    }
-
-    public Integer getUserReport(String userId, String goalId) {
-        String key = "user:" + userId + ":goal:" + goalId + ":reportId";
-        String value = redisTemplate.opsForValue().get(key);
-        return value != null ? Integer.parseInt(value) : null;
-    }
 }
