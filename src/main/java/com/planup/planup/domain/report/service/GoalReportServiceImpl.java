@@ -10,10 +10,7 @@ import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.report.converter.GoalReportConverter;
 import com.planup.planup.domain.report.dto.GoalReportResponseDTO;
-import com.planup.planup.domain.report.entity.DailyAchievementRate;
-import com.planup.planup.domain.report.entity.GoalReport;
-import com.planup.planup.domain.report.entity.ReportType;
-import com.planup.planup.domain.report.entity.ReportUser;
+import com.planup.planup.domain.report.entity.*;
 import com.planup.planup.domain.report.repository.GoalReportRepository;
 import com.planup.planup.domain.report.repository.ReportUserRepository;
 import com.planup.planup.domain.user.entity.User;
@@ -23,11 +20,10 @@ import com.planup.planup.domain.verification.service.PhotoVerificationService;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -65,12 +61,15 @@ public class GoalReportServiceImpl implements GoalReportService {
         }
     }
 
+    @Override
+    public GoalReportResponseDTO.GoalReportResponse findDTOById(Long id) {
+        GoalReport goalReport = goalReportRepository.findById(id).orElseThrow(() -> new ReportException(ErrorStatus.NOT_FOUND_GOAL_REPORT));
+        return GoalReportConverter.toResponse(goalReport);
+    }
 
     @Override
-    public GoalReportResponseDTO.GoalReportResponse findByGoalId(Long id) {
-        GoalReport goalReport = goalReportRepository.findById(id).orElseThrow(() -> new ReportException(ErrorStatus.NOT_FOUND_GOAL_REPORT));
-
-        return GoalReportConverter.toResponse(goalReport);
+    public List<GoalReport> findByGoalIdRecent2(Long id) {
+        return goalReportRepository.findTop2ByGoalIdOrderByIdDesc(id);
     }
 
     @Override
@@ -85,8 +84,29 @@ public class GoalReportServiceImpl implements GoalReportService {
         DailyAchievementRate dailyAchievementRate = calculateVerification(userGoal, goal, startDate);
 
         //Redis에 나의 값을 저장
-        redisServiceForReport.saveUserValue(user.getId().toString(), goal.getId().toString(), dailyAchievementRate.getTotal());
+        int thisWeekAchRate = dailyAchievementRate.getTotal();
+        redisServiceForReport.saveUserValue(user.getId().toString(), goal.getId().toString(), thisWeekAchRate);
 
+        //GoalType을 ReportType으로 수정
+        ReportType rp = getReportType(goal);
+
+        ThreeWeekAchievementRate threeWeekAchievementRate = createThreeWeekAchievementRate(thisWeekAchRate, userGoal, startDate);
+
+        GoalReport goalReport = GoalReport.builder()
+                .goalId(goal.getId())
+                .goalTitle(goal.getGoalName())
+                .goalCriteria(goal.getGoalAmount())
+                .dailyAchievementRate(dailyAchievementRate)
+                .threeWeekAhcievementRate(threeWeekAchievementRate)
+                .reportUsers(null)
+                .reportType(rp)
+                .weeklyReport(null)
+                .build();
+        GoalReport savedReport = goalReportRepository.save(goalReport);
+        redisServiceForReport.saveUserReport(user.getId().toString(), goal.getId().toString(), savedReport.getId());
+    }
+
+    private static ReportType getReportType(Goal goal) {
         ReportType rp = null;
         if (goal.getGoalType().equals(GoalType.CHALLENGE_PHOTO) || goal.getGoalType().equals(GoalType.CHALLENGE_PHOTO)) {
             rp = ReportType.CHALLENGE;
@@ -95,18 +115,7 @@ public class GoalReportServiceImpl implements GoalReportService {
         } else if (goal.getGoalType().equals(GoalType.COMMUNITY)) {
             rp = ReportType.COMMUNITY;
         }
-
-        GoalReport goalReport = GoalReport.builder()
-                .goalId(goal.getId())
-                .goalTitle(goal.getGoalName())
-                .goalCriteria(goal.getGoalAmount())
-                .dailyAchievementRate(dailyAchievementRate)
-                .reportUsers(null)
-                .reportType(rp)
-                .weeklyReport(null)
-                .build();
-        GoalReport savedReport = goalReportRepository.save(goalReport);
-        redisServiceForReport.saveUserReport(user.getId().toString(), goal.getId().toString(), savedReport.getId());
+        return rp;
     }
 
     @Override
@@ -147,6 +156,26 @@ public class GoalReportServiceImpl implements GoalReportService {
             reportUsers.add(reportUser);
         }
         goalReport.setReportUsers(reportUsers);
+    }
+
+    private ThreeWeekAchievementRate createThreeWeekAchievementRate(int thisWeekRate, UserGoal userGoal, LocalDateTime thisWeek) {
+        List<GoalReport> goalReportList = findByGoalIdRecent2(userGoal.getGoal().getId());
+
+        LocalDate oneWeekBefore = thisWeek.minusWeeks(1).with(DayOfWeek.MONDAY).toLocalDate();
+        LocalDate twoWeeksBefore = thisWeek.minusWeeks(2).with(DayOfWeek.MONDAY).toLocalDate();
+
+        Optional<GoalReport> first = goalReportList.stream()
+                .filter(r -> r.getCreatedAt().toLocalDate().equals(oneWeekBefore)).findFirst();
+
+        Optional<GoalReport> second = goalReportList.stream()
+                .filter(r -> r.getCreatedAt().toLocalDate().equals(twoWeeksBefore)).findFirst();
+
+        ThreeWeekAchievementRate threeWeekAchievementRate = ThreeWeekAchievementRate.builder()
+                .thisWeek(thisWeekRate)
+                .oneWeekBefore(first.map(report -> report.getDailyAchievementRate().getTotal()).orElse(0))
+                .twoWeekBefore(second.map(goalReport -> goalReport.getDailyAchievementRate().getTotal()).orElse(0))
+                .build();
+        return threeWeekAchievementRate;
     }
 
     //각 인증을 취합하여 DailyAchievementRate를 생성한다.
