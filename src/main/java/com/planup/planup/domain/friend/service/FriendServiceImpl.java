@@ -24,6 +24,7 @@ public class FriendServiceImpl implements FriendService {
 
     private final FriendRepository friendRepository;
     private final UserService userService;
+    private final FriendConverter friendConverter;
 
     @Override
     @Transactional(readOnly = true) 
@@ -38,8 +39,7 @@ public class FriendServiceImpl implements FriendService {
                 .map(f -> f.getFriend().equals(user) ? f.getUser() : f.getFriend())
                 .collect(Collectors.toList());
 
-
-        return List.of(FriendConverter.toFriendSummaryList(list));
+        return List.of(friendConverter.toFriendSummaryList(list));
     }
 
     @Override
