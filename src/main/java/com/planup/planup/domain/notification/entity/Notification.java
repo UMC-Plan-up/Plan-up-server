@@ -1,6 +1,8 @@
 package com.planup.planup.domain.notification.entity;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
+import com.planup.planup.domain.notification.message.NotificationMessageProvider;
+import com.planup.planup.domain.notification.service.NotificationUrlProvider;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -36,6 +38,8 @@ public class Notification extends BaseTimeEntity {
 
     private boolean isRead;
 
+    private String updatedGoalInfo;
+
     public static Notification create(User sender, User receiver, NotificationType type, TargetType targetType, Long targetId) {
         Notification n = new Notification();
         n.sender = sender;
@@ -49,5 +53,13 @@ public class Notification extends BaseTimeEntity {
 
     public void markAsRead(boolean isRead) {
         this.isRead = isRead;
+    }
+
+    public String getNotificationMessage() {
+        return NotificationMessageProvider.generate(this);
+    }
+
+    public String getNotificationUrl() {
+        return NotificationUrlProvider.generate(this);
     }
 }

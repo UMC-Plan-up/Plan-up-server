@@ -4,7 +4,6 @@ import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;

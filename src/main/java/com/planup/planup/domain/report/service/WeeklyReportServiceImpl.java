@@ -3,7 +3,7 @@ package com.planup.planup.domain.report.service;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ReportException;
 import com.planup.planup.domain.bedge.entity.BadgeType;
-import com.planup.planup.domain.notification.entity.Notification;
+import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.report.converter.WeeklyReportResponseConverter;
 import com.planup.planup.domain.report.dto.WeeklyReportResponseDTO;
@@ -48,7 +48,7 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
     public WeeklyReportResponseDTO.achievementResponse getWeeklyGoalAchievements(Long userId) {
         User user = userService.getUserbyUserId(userId);
 
-        List<Notification> notificationList = notificationService.getTop5RecentByUser(userId);
+        List<NotificationResponseDTO.NotificationDTO> notificationList = notificationService.getTop5RecentByUser(userId);
         List<UserBadge> userBadgeList = userBadgeService.getTop5Recent(user);
 
         List<BadgeType> badges = userBadgeList.stream().map(UserBadge::getBadgeType).toList();

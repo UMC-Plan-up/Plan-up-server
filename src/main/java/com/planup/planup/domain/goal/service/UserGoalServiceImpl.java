@@ -1,7 +1,5 @@
 package com.planup.planup.domain.goal.service;
 
-import com.planup.planup.apiPayload.code.status.ErrorStatus;
-import com.planup.planup.apiPayload.exception.custom.UserGoalException;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
