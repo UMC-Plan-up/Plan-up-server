@@ -62,6 +62,6 @@ public class PhotoVerificationService implements VerificationService {
 
     @Transactional(readOnly = true)
     public List<PhotoVerification> getPhotoVerificationListByUserAndDateBetween(UserGoal userGoal, LocalDateTime start, LocalDateTime end) {
-        return photoVerificationRepository.findAllByUserGoalAndCreatedAtBetweenOOrderByCreatedAt(userGoal,start,end);
+        return photoVerificationRepository.findAllByUserGoalAndCreatedAtBetweenOrderByCreatedAt(userGoal,start,end);
     }
 }

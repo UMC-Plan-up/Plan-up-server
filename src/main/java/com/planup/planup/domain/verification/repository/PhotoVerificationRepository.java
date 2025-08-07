@@ -15,9 +15,7 @@ import java.util.List;
 @Repository
 public interface PhotoVerificationRepository extends JpaRepository<PhotoVerification, Long> {
 
-    List<PhotoVerification> findAllByUserGoalAndCreatedAtBetweenOOrderByCreatedAt(UserGoal usergoal, LocalDateTime start, LocalDateTime end);
-
-    List<PhotoVerification> findTop5ByUserGoalAndCreatedAtBetweenOrOrderByCreatedAt(UserGoal userGoal, LocalDateTime start, LocalDateTime end);
+    List<PhotoVerification> findAllByUserGoalAndCreatedAtBetweenOrderByCreatedAt(UserGoal usergoal, LocalDateTime start, LocalDateTime end);
 
     @Query("""
     SELECT pv FROM PhotoVerification pv

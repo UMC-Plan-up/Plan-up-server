@@ -2,7 +2,6 @@ package com.planup.planup.domain.verification.repository;
 
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.verification.entity.PhotoVerification;
 import com.planup.planup.domain.verification.entity.TimerVerification;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,7 +24,7 @@ public interface TimerVerificationRepository extends JpaRepository<TimerVerifica
 
     List<TimerVerification> findByUserGoal_User_IdAndEndTimeIsNull(Long userId);
 
-    List<TimerVerification> findAllByUserGoalAndCreatedAtBetweenOOrderByCreatedAt(UserGoal userGoal, LocalDateTime start, LocalDateTime end);
+    List<TimerVerification> findAllByUserGoalAndCreatedAtBetweenOrderByCreatedAt(UserGoal userGoal, LocalDateTime start, LocalDateTime end);
 
     @Query("""
     SELECT tv FROM TimerVerification tv

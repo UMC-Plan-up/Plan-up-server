@@ -21,6 +21,6 @@ public class GoalReportCreateScheduler {
     public void publishReport() {
         goalReportService.createGoalReportsByUserGoal(DateRangeUtil.getStartOfLastWeek(), DateRangeUtil.getEndOfLastWeek());
 
-        weeklyReportService.createWeeklyReport();
+        weeklyReportService.createWeeklyReportsByUserGoal(DateRangeUtil.getStartOfLastWeek(), DateRangeUtil.getEndOfLastWeek());
     }
 }

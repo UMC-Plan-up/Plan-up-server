@@ -1,6 +1,7 @@
 package com.planup.planup.domain.report.service;
 
 import com.planup.planup.domain.report.dto.WeeklyReportResponseDTO;
+import com.planup.planup.domain.user.entity.User;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,10 @@ public interface WeeklyReportService {
 
     WeeklyReportResponseDTO.WeeklyReportResponse getWeeklyReport(Long userId, int year, int month, int week);
 
+
     @Transactional
-    void createWeeklyReport(Long userId, LocalDateTime startDate);
+    void createWeeklyReportsByUserGoal(LocalDateTime startDate, LocalDateTime endDate);
+
+    @Transactional
+    void createWeeklyReport(User user, LocalDateTime startDate);
 }

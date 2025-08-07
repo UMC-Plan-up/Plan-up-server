@@ -1,7 +1,6 @@
 package com.planup.planup.domain.verification.service;
 
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
-import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.verification.convertor.TimerVerificationConverter;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
 import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;
@@ -116,6 +115,6 @@ public class TimerVerificationService implements VerificationService{
 
     @Transactional(readOnly = true)
     public List<TimerVerification> getTimerVerificationListByUserAndDateBetween(UserGoal userGoal, LocalDateTime start, LocalDateTime end) {
-        return timerVerificationRepository.findAllByUserGoalAndCreatedAtBetweenOOrderByCreatedAt(userGoal, start, end);
+        return timerVerificationRepository.findAllByUserGoalAndCreatedAtBetweenOrderByCreatedAt(userGoal, start, end);
     }
 }

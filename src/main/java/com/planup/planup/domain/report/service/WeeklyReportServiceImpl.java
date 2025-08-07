@@ -90,11 +90,22 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
         return WeeklyReportResponseConverter.toWeeklyReportResponse(weeklyReport, badges);
     }
 
+    @Transactional
+    @Override
+    public void createWeeklyReportsByUserGoal(LocalDateTime startDate, LocalDateTime endDate) {
+
+        //이번주에 userGoal에 업데이트가 있었던 목표에 대해 대상이 된다.
+        List<UserGoal> userGoalList = userGoalService.getUserGoalInPeriod(startDate, endDate);
+
+        for (UserGoal userGoal : userGoalList) {
+            createWeeklyReport(userGoal.getUser(), startDate);
+        }
+    }
+
     @Override
     @Transactional
-    public void createWeeklyReport(Long userId, LocalDateTime startDate) {
-        User user = userService.getUserbyUserId(userId);
-        List<UserGoal> userGoalList = user.getUserGoals();
+    public void createWeeklyReport(User user, LocalDateTime startDate) {
+        Long userId = user.getId();
 
         //리포트 작성일을 기준으로 가장 최근 일주일의 값을 지정한다. 이때 작성된 GOALREPORT를 조회
         LocalDateTime startOfDay = startDate.toLocalDate().atStartOfDay(); // 2025-08-07T00:00
