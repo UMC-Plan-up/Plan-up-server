@@ -3,6 +3,7 @@ package com.planup.planup.domain.friend.converter;
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
+import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 public class FriendConverter {
 
     private final TimerVerificationService timerVerificationService;
+    private final PhotoVerificationRepository photoVerificationRepository;
 
     public FriendResponseDTO.FriendInfoSummary toFriendSummary(User friend) {
         // goalCnt: 실제 사용자의 목표 개수
@@ -24,6 +26,9 @@ public class FriendConverter {
         
         // todayTime: 오늘 타이머 시간 계산 (모든 목표의 합계)
         LocalTime todayTime = calculateTodayTotalTime(friend);
+
+        // isNewPhotoVerify: 오늘 사진 인증 여부 확인
+        boolean isNewPhotoVerify = checkTodayPhotoVerification(friend);
         
         return FriendResponseDTO.FriendInfoSummary
                 .builder()
@@ -77,6 +82,15 @@ public class FriendConverter {
         } catch (Exception e) {
             log.warn("사용자 {} 오늘 타이머 시간 계산 실패: {}", user.getNickname(), e.getMessage());
             return LocalTime.of(0, 0, 0);
+        }
+    }
+
+    private boolean checkTodayPhotoVerification(User user) {
+        try {
+            return photoVerificationRepository.existsTodayPhotoVerificationByUserId(user.getId());
+        } catch (Exception e) {
+            log.warn("사용자 {} 오늘 사진 인증 조회 실패: {}", user.getNickname(), e.getMessage());
+            return false;
         }
     }
 }
