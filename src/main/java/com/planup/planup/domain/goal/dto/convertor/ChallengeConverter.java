@@ -52,11 +52,12 @@ public class ChallengeConverter {
     public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoPhotoVer(PhotoChallenge photoChallenge) {
 
         List<UserGoal> userGoals = photoChallenge.getUserGoals().stream().filter(userGoal -> userGoal.getStatus().equals(Status.ADMIN)).toList();
-        UserGoal userGoal = userGoals.get(0);
+
+//        UserGoal userGoal = userGoals.get(0);
 
         return ChallengeResponseDTO.ChallengeResponseInfo.builder()
                 .id(photoChallenge.getId())
-                .name(userGoal.getUser().getNickname())
+//                .name(userGoal.getUser().getNickname())
                 .goalName(photoChallenge.getGoalName())
                 .goalType(photoChallenge.getGoalType())
                 .goalAmount(photoChallenge.getGoalAmount())
@@ -70,11 +71,11 @@ public class ChallengeConverter {
     public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoTimeVer(TimeChallenge timeChallenge) {
 
         List<UserGoal> userGoals = timeChallenge.getUserGoals().stream().filter(userGoal -> userGoal.getStatus().equals(Status.ADMIN)).toList();
-        UserGoal userGoal = userGoals.get(0);
+//        UserGoal userGoal = userGoals.get(0);
 
         return ChallengeResponseDTO.ChallengeResponseInfo.builder()
                 .id(timeChallenge.getId())
-                .name(userGoal.getUser().getNickname())
+//                .name(userGoal.getUser().getNickname())
                 .goalName(timeChallenge.getGoalName())
                 .goalType(timeChallenge.getGoalType())
                 .goalAmount(timeChallenge.getGoalAmount())

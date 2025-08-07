@@ -97,7 +97,10 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public boolean checkPassword(Long userId, String password) {
         User user = getUserbyUserId(userId);
-        return passwordEncoder.matches(password, user.getPassword());
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new UserException(ErrorStatus.PASSWORD_MISMATCH);
+        }
+        return true;
     }
 
     @Override
@@ -109,27 +112,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(encodedPassword);
     }
 
-    @Override
-    @Transactional
-    public String updateProfileImage(Long userId, MultipartFile imageFile) {
-        User user = getUserbyUserId(userId);
 
-        // 파일 저장 경로 설정 (예: /uploads/profile/)
-        String uploadDir = "/uploads/profile/";
-        String fileName = userId + "_" + imageFile.getOriginalFilename();
-        Path filePath = Paths.get(uploadDir + fileName);
-
-        try {
-            Files.createDirectories(filePath.getParent());
-            imageFile.transferTo(filePath.toFile());
-            // DB에 경로 저장
-            user.setProfileImg(filePath.toString());
-            // userRepository.save(user); // 필요시 저장
-            return filePath.toString();
-        } catch (Exception e) {
-            throw new RuntimeException("프로필 이미지 저장 실패", e);
-        }
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -176,7 +159,6 @@ public class UserServiceImpl implements UserService {
 
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
-
         // User 엔티티 생성
         User user = User.builder()
                 .email(request.getEmail())

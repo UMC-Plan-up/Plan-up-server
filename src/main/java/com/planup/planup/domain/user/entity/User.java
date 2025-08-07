@@ -1,7 +1,6 @@
 package com.planup.planup.domain.user.entity;
 
 import com.planup.planup.domain.bedge.entity.UserStat;
-import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;

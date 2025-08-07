@@ -5,7 +5,6 @@ import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
-import com.planup.planup.domain.user.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.user.entity.User;
 
@@ -58,10 +57,10 @@ public class GoalConvertor {
         Goal goal = userGoal.getGoal();
 
         Integer goalTime = null;
+        Long spentTimeMinutes = null;
 
         if (goal.getVerificationType() == VerificationType.TIMER) {
             if (!userGoal.getTimerVerifications().isEmpty()) {
-                TimerVerification timerVerification = userGoal.getTimerVerifications().get(0);
                 goalTime = userGoal.getGoalTime();
             }
         }
@@ -73,13 +72,12 @@ public class GoalConvertor {
                 .goalType(goal.getGoalType())
                 .verificationType(goal.getVerificationType())
                 .goalTime(goalTime)
+                .spentTimeMinutes(spentTimeMinutes)
                 .frequency(goal.getFrequency())
                 .oneDose(goal.getOneDose())
                 .creatorNickname(creator.getNickname())
                 .creatorProfileImg(creator.getProfileImg())
-                .myStatus(userGoal.getStatus())
                 .participantCount(participantCount)
-                .isActive(userGoal.isActive())
                 .build();
     }
 

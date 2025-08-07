@@ -46,10 +46,7 @@ public class GoalResponseDto {
         private String oneDose;
         private String creatorNickname;
         private String creatorProfileImg;
-        private Status myStatus;
         private int participantCount;
-        private boolean isActive;
-        private boolean isPublic;
     }
 
     //목표 세부 조회 Dto

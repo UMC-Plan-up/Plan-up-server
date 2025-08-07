@@ -239,6 +239,7 @@ public class FriendServiceImpl implements FriendService {
                     // user가 차단한 대상은 friend 필드에 있음
                     User blockedUser = friend.getFriend();
                     return BlockedFriendResponseDTO.builder()
+                            .friendId(blockedUser.getId())
                             .friendNickname(blockedUser.getNickname())
                             .build();
                 })
