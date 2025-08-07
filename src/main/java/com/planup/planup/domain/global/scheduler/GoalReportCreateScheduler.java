@@ -1,6 +1,7 @@
 package com.planup.planup.domain.global.scheduler;
 
 import com.planup.planup.domain.report.service.GoalReportService;
+import com.planup.planup.domain.report.service.WeeklyReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,9 +15,12 @@ import java.time.LocalDateTime;
 public class GoalReportCreateScheduler {
 
     private final GoalReportService goalReportService;
+    private final WeeklyReportService weeklyReportService;
 
     @Scheduled(cron = "0 0 0 * * MON", zone = "Asia/Seoul")
     public void publishReport() {
         goalReportService.createGoalReportsByUserGoal(DateRangeUtil.getStartOfLastWeek(), DateRangeUtil.getEndOfLastWeek());
+
+        weeklyReportService.createWeeklyReport();
     }
 }

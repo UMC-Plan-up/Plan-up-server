@@ -18,6 +18,9 @@ public interface GoalReportService {
     List<GoalReport> findByGoalIdRecent2(Long id);
     GoalReportResponseDTO.GoalReportResponse findDTOById(Long id);
 
+    @Transactional(readOnly = true)
+    List<GoalReport> getListByUserIdOneDay(Long userId, LocalDateTime start, LocalDateTime end);
+
     @Transactional
     void createGoalReport(UserGoal userGoal, LocalDateTime startDate);
 

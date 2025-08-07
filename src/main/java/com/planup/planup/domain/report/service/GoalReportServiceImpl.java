@@ -71,7 +71,13 @@ public class GoalReportServiceImpl implements GoalReportService {
     @Override
     @Transactional(readOnly = true)
     public List<GoalReport> findByGoalIdRecent2(Long id) {
-        return goalReportRepository.findTop2ByGoalIdOrderByIdDesc(id);
+        return goalReportRepository.findTop2ByGoalIdOrderByCreatedAt(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<GoalReport> getListByUserIdOneDay(Long userId, LocalDateTime start, LocalDateTime end) {
+        return goalReportRepository.findAllByUserIdAndCreatedAtBetween(userId, start, end);
     }
 
     @Override
@@ -96,6 +102,7 @@ public class GoalReportServiceImpl implements GoalReportService {
 
         GoalReport goalReport = GoalReport.builder()
                 .goalId(goal.getId())
+                .userId(user.getId())
                 .goalTitle(goal.getGoalName())
                 .goalCriteria(goal.getGoalAmount())
                 .dailyAchievementRate(dailyAchievementRate)

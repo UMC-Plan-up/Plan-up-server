@@ -19,6 +19,7 @@ public class GoalReport extends BaseTimeEntity {
     private Long id;
 
     private Long goalId;
+    private Long userId;
 
     private String goalTitle;
     private String goalCriteria;
