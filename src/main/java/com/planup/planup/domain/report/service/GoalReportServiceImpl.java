@@ -62,12 +62,14 @@ public class GoalReportServiceImpl implements GoalReportService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GoalReportResponseDTO.GoalReportResponse findDTOById(Long id) {
         GoalReport goalReport = goalReportRepository.findById(id).orElseThrow(() -> new ReportException(ErrorStatus.NOT_FOUND_GOAL_REPORT));
         return GoalReportConverter.toResponse(goalReport);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<GoalReport> findByGoalIdRecent2(Long id) {
         return goalReportRepository.findTop2ByGoalIdOrderByIdDesc(id);
     }
