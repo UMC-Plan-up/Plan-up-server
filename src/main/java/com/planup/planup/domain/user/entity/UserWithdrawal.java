@@ -25,9 +25,6 @@ public class UserWithdrawal extends BaseTimeEntity {
     @Column(nullable = false)
     private String reason;
 
-    @Column(length = 1000)
-    private String detailReason; // 추가 상세 이유 (선택사항)
-
     @Column(nullable = false)
     private String email; // 탈퇴 시점의 이메일 저장
 
