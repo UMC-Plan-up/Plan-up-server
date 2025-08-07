@@ -37,8 +37,8 @@ public class FriendConverter {
 
     }
 
-        public static FriendResponseDTO.FriendSummaryList toFriendSummaryList(List<User> friends) {
-        List<FriendResponseDTO.FriendInfoSummary> summeryList = friends.stream().map(FriendConverter::toFriendSummary).collect(Collectors.toList());
+    public FriendResponseDTO.FriendSummaryList toFriendSummaryList(List<User> friends) {
+        List<FriendResponseDTO.FriendInfoSummary> summeryList = friends.stream().map(this::toFriendSummary).collect(Collectors.toList());
         int size = summeryList.size();
 
         return FriendResponseDTO.FriendSummaryList
