@@ -2,6 +2,7 @@ package com.planup.planup.domain.user.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.EmailService;
@@ -12,13 +13,11 @@ import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequiredArgsConstructor
@@ -145,30 +144,69 @@ public class UserController {
         return ApiResponse.onSuccess(response);
     }
 
-    @Operation(summary = "이메일 인증 완료")
-    @GetMapping("/users/email/verify")
-    public ResponseEntity<String> verifyEmail(@RequestParam String token) {
-        try {
-            String email = emailService.verifyToken(token);
-            userService.markEmailAsVerified(email);
+    @Operation(summary = "이메일 인증 발송", description = "이메일 중복 확인 후 인증메일을 발송하고 토큰을 반환합니다")
+    @PostMapping("/users/email/send")
+    public ApiResponse<EmailSendResponseDTO> sendEmailVerification(@RequestBody @Valid EmailVerificationRequestDTO request) {
+        userService.checkEmail(request.getEmail());
 
-            // 프로필 설정 페이지로 리다이렉트
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(frontendUrl + "/profile/setup?email=" + email))
-                    .build();
+        String verificationToken = emailService.sendVerificationEmail(request.getEmail());
 
-        } catch (Exception e) {
-            // 인증 실패 페이지로 리다이렉트
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(frontendUrl + "/auth/verification-failed"))
-                    .build();
-        }
+        EmailSendResponseDTO response = EmailSendResponseDTO.builder()
+                .email(request.getEmail())
+                .message("인증 메일이 발송되었습니다")
+                .verificationToken(verificationToken)
+                .build();
+
+        return ApiResponse.onSuccess(response);
     }
 
     @Operation(summary = "이메일 인증 재발송")
     @PostMapping("/users/email/resend")
-    public ApiResponse<String> resendVerificationEmail (@RequestParam String email) {
-        emailService.resendVerificationLink(email);
-        return ApiResponse.onSuccess("인증 이메일이 재발송되었습니다.");
+    public ApiResponse<EmailSendResponseDTO> resendVerificationEmail (@RequestBody @Valid EmailVerificationRequestDTO request) {
+
+        if (emailService.isEmailVerified(request.getEmail())) {
+            throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
+        }
+        // 인증메일 재발송
+        String verificationToken = emailService.resendVerificationEmail(request.getEmail());
+
+        EmailSendResponseDTO response = EmailSendResponseDTO.builder()
+                .email(request.getEmail())
+                .message("인증 메일이 재발송되었습니다")
+                .verificationToken(verificationToken)
+                .build();
+
+        return ApiResponse.onSuccess(response);
+    }
+
+    @Operation(summary = "이메일 링크 클릭 처리", description = "이메일 링크 클릭 시 인증 처리 후 앱으로 리다이렉트")
+    @GetMapping("/users/email/verify-link")
+    public ApiResponse<EmailVerifyLinkResponseDTO> handleEmailLink(@RequestParam String token) {
+        try {
+            String email = emailService.completeVerification(token);
+
+            String deepLinkUrl = "planup://profile/setup?email=" +
+                    URLEncoder.encode(email, StandardCharsets.UTF_8) +
+                    "&verified=true&token=" + token +
+                    "&from=email_verification";
+
+            EmailVerifyLinkResponseDTO response = EmailVerifyLinkResponseDTO.builder()
+                    .verified(true)
+                    .email(email)
+                    .message("이메일 인증이 완료되었습니다")
+                    .deepLinkUrl(deepLinkUrl)
+                    .token(token)
+                    .build();
+
+            return ApiResponse.onSuccess(response);
+
+        } catch (IllegalArgumentException e) {
+            EmailVerifyLinkResponseDTO response = EmailVerifyLinkResponseDTO.builder()
+                    .verified(false)
+                    .message("이메일 인증에 실패했습니다")
+                    .build();
+
+            return ApiResponse.onFailure("EMAIL4001", "유효하지 않은 이메일 토큰입니다",response);
+        }
     }
 }

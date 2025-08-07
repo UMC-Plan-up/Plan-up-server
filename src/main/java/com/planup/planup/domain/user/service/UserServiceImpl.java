@@ -161,8 +161,6 @@ public class UserServiceImpl implements UserService {
 
         // 이메일 인증 여부 확인
         if (!emailService.isEmailVerified(request.getEmail())) {
-            // 인증되지 않은 경우 -> 인증 메일 발송하고 예외 던지기
-            emailService.sendVerificationLink(request.getEmail());
             throw new UserException(ErrorStatus.EMAIL_VERIFICATION_REQUIRED);
         }
 
@@ -417,10 +415,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void markEmailAsVerified(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
-
-        user.verifyEmail();
+    public void checkEmail(String email){
+        if (userRepository.existsByEmail(email)) {
+            throw new UserException(ErrorStatus.EXIST_EMAIL);
+        }
     }
 }

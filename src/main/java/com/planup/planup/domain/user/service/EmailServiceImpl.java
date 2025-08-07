@@ -2,17 +2,20 @@ package com.planup.planup.domain.user.service;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
@@ -21,47 +24,55 @@ public class EmailServiceImpl implements EmailService {
     @Value("${app.domain:http://localhost:8080}")
     private String appDomain;
 
-    @Override
-    public void sendVerificationLink(String email) {
-        // 토큰 생성
-        String token = UUID.randomUUID().toString();
+    @Value("${app.frontend.url:http://localhost:3000}")
+    private String frontendUrl;
 
-        // Redis에 30분간 저장
+    @Override
+    public String sendVerificationEmail(String email) {
+
+        String verificationToken = UUID.randomUUID().toString();
+
         redisTemplate.opsForValue().set(
-                "verify-token:" + token,
+                "email-verification:" + verificationToken,
                 email,
                 30,
                 TimeUnit.MINUTES
         );
 
-        // 인증 링크 생성
-        String verificationUrl = appDomain + "/users/email/verify?token=" + token;
+        String verificationUrl = appDomain + "/users/email/verify-link?token=" + verificationToken;
+        sendEmail(email, verificationUrl);
 
-        // 이메일 발송
-        sendVerificationEmail(email, verificationUrl);
+        return verificationToken;
     }
 
     @Override
-    public String verifyToken(String token) {
-        String email = redisTemplate.opsForValue().get("verify-token:" + token);
+    public String validateToken(String token) {
+        return getEmailByToken(token);
+    }
 
-        if (email == null) {
-            throw new IllegalArgumentException("만료되거나 유효하지 않은 토큰입니다.");
+    @Override
+    public String completeVerification(String verificationToken) {
+        String email;
+        try {
+            email = getEmailByToken(verificationToken);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("토큰이 만료되었거나 이미 사용되었습니다.");
         }
 
-        // 토큰 삭제
-        redisTemplate.delete("verify-token:" + token);
-
-        // 인증 완료 상태를 Redis에 저장 (30분 유지)
+        if (isEmailVerified(email)) {
+            log.info("이미 인증된 이메일: {}", email);
+            return email;
+        }
         redisTemplate.opsForValue().set(
                 "email-verified:" + email,
                 "VERIFIED",
-                30,
+                60,
                 TimeUnit.MINUTES
         );
-
+        log.info("이메일 인증 완료: {}", email);
         return email;
     }
+
 
     @Override
     public boolean isEmailVerified(String email) {
@@ -70,20 +81,43 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void clearVerificationToken(String email) {
-        redisTemplate.delete("email-verified:" + email);
+    public String resendVerificationEmail(String email) {
+        clearExistingTokens(email);
+        return sendVerificationEmail(email);
     }
 
     @Override
-    public void resendVerificationLink(String email) {
-        // 기존 토큰들 삭제 (선택사항)
-        // 그냥 새로 발송해도 됨
-        sendVerificationLink(email);
+    public void clearVerificationToken(String email) {
+        redisTemplate.delete("email-verified:" + email);
+        clearExistingTokens(email);
     }
 
+    private String getEmailByToken(String token) {
+        String email = redisTemplate.opsForValue().get("email-verification:" + token);
+
+        if (email == null) {
+            throw new IllegalArgumentException("만료되거나 유효하지 않은 토큰입니다.");
+        }
+        return email;
+    }
+
+    private void clearExistingTokens(String email) {
+        if (isEmailVerified(email)) {
+            return;
+        }
+        Set<String> keys = redisTemplate.keys("email-verification:*");
+        if (keys != null) {
+            for (String key : keys) {
+                String storedEmail = redisTemplate.opsForValue().get(key);
+                if (email.equals(storedEmail)) {
+                    redisTemplate.delete(key);
+                }
+            }
+        }
+    }
 
     // 실제 이메일 발송
-    private void sendVerificationEmail(String to, String verificationUrl) {
+    private void sendEmail(String to, String verificationUrl) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
