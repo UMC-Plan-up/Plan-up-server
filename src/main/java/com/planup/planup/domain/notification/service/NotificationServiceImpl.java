@@ -2,6 +2,8 @@ package com.planup.planup.domain.notification.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.NotificationError;
+import com.planup.planup.domain.notification.converter.NotificationConverter;
+import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.notification.entity.Notification;
 import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.entity.TargetType;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,17 +28,19 @@ public class NotificationServiceImpl implements NotificationService {
     //유저의 읽지 않은 알림을 시간 순 대로 가져온다
     @Override
     @Transactional(readOnly = true)
-    public List<Notification> getUnreadNotifications(Long receiverId) {
+    public List<NotificationResponseDTO.NotificationDTO> getUnreadNotifications(Long receiverId) {
         User receiver = userService.getUserbyUserId(receiverId);
-        return notificationRepository.findByReceiverAndIsReadFalseOrderByCreatedAtDesc(receiver);
+        List<Notification> notifications = notificationRepository.findByReceiverAndIsReadFalseOrderByCreatedAtDesc(receiver);
+        List<NotificationResponseDTO.NotificationDTO> list = notifications.stream().map(NotificationConverter::toNotificationDTO).collect(Collectors.toList());
+        return list;
     }
 
     //유저의 모든 알림을 조회한다. (시간 순대로)
     @Override
     @Transactional(readOnly = true)
-    public List<Notification> getAllNotifications(Long receiverId) {
+    public List<NotificationResponseDTO.NotificationDTO> getAllNotifications(Long receiverId) {
         User receiver = userService.getUserbyUserId(receiverId);
-        return notificationRepository.findByReceiverIdOrderByCreatedAtDesc(receiver);
+        return NotificationConverter.toNotificationDTOs(notificationRepository.findByReceiverIdOrderByCreatedAtDesc(receiver));
     }
 
     //유저가 읽었음으로 변경한다.
@@ -61,9 +66,11 @@ public class NotificationServiceImpl implements NotificationService {
     //유저에 따라 가장 최근의 5개 알림을 반환한다. (읽음 여부와 상관없이)
     @Override
     @Transactional(readOnly = true)
-    public List<Notification> getTop5RecentByUser(Long userId) {
+    public List<NotificationResponseDTO.NotificationDTO> getTop5RecentByUser(Long userId) {
         User receiver = userService.getUserbyUserId(userId);
-        return notificationRepository.findTop3ByReceiverOrderByCreatedAtDesc(receiver);
+        List<Notification> notificationList = notificationRepository.findTop3ByReceiverOrderByCreatedAtDesc(receiver);
+        List<NotificationResponseDTO.NotificationDTO> dtoList = NotificationConverter.toNotificationDTOs(notificationList);
+        return dtoList;
     }
 
     //새로운 알림을 만든다.
@@ -84,4 +91,25 @@ public class NotificationServiceImpl implements NotificationService {
 
         return notificationRepository.save(notification);
     }
+
+    @Override
+    @Transactional
+    public Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId, List<String> updatedParts) {
+        String updatedPartsStr = String.join(", ", updatedParts);
+
+        User receiver = userService.getUserbyUserId(receiverId);
+        User sender = userService.getUserbyUserId(senderId);
+
+        Notification notification = Notification.builder()
+                .receiver(receiver)
+                .sender(sender)
+                .type(notificationType)
+                .targetType(targetType)
+                .targetId(targetId)
+                .updatedGoalInfo(updatedPartsStr)
+                .build();
+
+        return notificationRepository.save(notification);
+    }
+
 }
