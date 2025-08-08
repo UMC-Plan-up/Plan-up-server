@@ -64,7 +64,6 @@ public class ChallengeConverter {
     public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoTimeVer(TimeChallenge timeChallenge) {
 
         List<UserGoal> userGoals = timeChallenge.getUserGoals().stream().filter(userGoal -> userGoal.getStatus().equals(Status.ADMIN)).toList();
-//        UserGoal userGoal = userGoals.get(0);
 
         return ChallengeResponseDTO.ChallengeResponseInfo.builder()
                 .id(timeChallenge.getId())
