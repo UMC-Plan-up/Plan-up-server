@@ -7,13 +7,11 @@ import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.TimeChallenge;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
-import com.planup.planup.domain.user.entity.User;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ChallengeConverter {
 
@@ -51,11 +49,12 @@ public class ChallengeConverter {
     public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoPhotoVer(Challenge photoChallenge) {
 
         List<UserGoal> userGoals = photoChallenge.getUserGoals().stream().filter(userGoal -> userGoal.getStatus().equals(Status.ADMIN)).toList();
-        UserGoal userGoal = userGoals.get(0);
+
+//        UserGoal userGoal = userGoals.get(0);
 
         return ChallengeResponseDTO.ChallengeResponseInfo.builder()
                 .id(photoChallenge.getId())
-                .name(userGoal.getUser().getNickname())
+//                .name(userGoal.getUser().getNickname())
                 .goalName(photoChallenge.getGoalName())
                 .goalType(photoChallenge.getGoalType())
                 .goalAmount(photoChallenge.getGoalAmount())
@@ -69,17 +68,17 @@ public class ChallengeConverter {
     public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoTimeVer(TimeChallenge timeChallenge) {
 
         List<UserGoal> userGoals = timeChallenge.getUserGoals().stream().filter(userGoal -> userGoal.getStatus().equals(Status.ADMIN)).toList();
-        UserGoal userGoal = userGoals.get(0);
+//        UserGoal userGoal = userGoals.get(0);
 
         return ChallengeResponseDTO.ChallengeResponseInfo.builder()
                 .id(timeChallenge.getId())
-                .name(userGoal.getUser().getNickname())
+//                .name(userGoal.getUser().getNickname())
                 .goalName(timeChallenge.getGoalName())
                 .goalType(timeChallenge.getGoalType())
                 .goalAmount(timeChallenge.getGoalAmount())
                 .endDate(convertToLocalDateTime(timeChallenge.getEndDate()))
                 .period(timeChallenge.getPeriod())
-                .frequency(timeChallenge.getFrequency())
+                .frequency(0)
                 .targetTime(timeChallenge.getTargetTime())
                 .build();
     }
