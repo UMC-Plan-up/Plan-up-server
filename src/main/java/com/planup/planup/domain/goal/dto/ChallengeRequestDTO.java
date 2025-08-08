@@ -2,6 +2,7 @@ package com.planup.planup.domain.goal.dto;
 
 import com.planup.planup.domain.goal.entity.Enum.ChallengeStatus;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
+import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
@@ -31,7 +32,7 @@ public class ChallengeRequestDTO {
             GoalType goalType,
 
             @NotBlank
-            @Schema(description = "1회 기준량", example = "250ml")
+            @Schema(description = "1회 기준량", example = "250")
             int oneDose,
 
             @NotNull
@@ -46,28 +47,22 @@ public class ChallengeRequestDTO {
             @Schema(description = "챌린지 실패 시 벌칙", example = "물 4L 마시기")
             String penalty,
 
-            @Size(min = 1)
-            @Schema(description = "같이 할 친구 선택", example = "[1]")
-            List<Long> friendIdList,
+            @Schema(description = "같이 할 친구 선택", example = "1")
+            Long friendId,
+
+            @Min(1)
+            @Schema(description = "주기(며칠마다 1회)", example = "7")
+            GoalPeriod period,
+
+            @Min(1)
+            @Schema(description = "기간 내 수행 빈도", example = "3")
+            int frequency,
 
             //선택 필듣
-            @Valid createPhoto photoChallenge,
             @Valid createTime timeChallenge
 
     ) {}
 
-    @Builder
-    @Schema(description = "사진 챌린지 생성 요청")
-    public record createPhoto(
-
-            @Min(1)
-            @Schema(description = "주기(며칠마다 1회)", example = "7")
-            int timePerPeriod,
-
-            @Min(1)
-            @Schema(description = "기간 내 수행 빈도", example = "3")
-            int frequency
-            ) {}
 
     @Builder
     @Schema(description = "시간 챌린지 생성 요청")

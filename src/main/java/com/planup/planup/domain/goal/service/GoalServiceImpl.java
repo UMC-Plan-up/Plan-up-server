@@ -1,6 +1,6 @@
 package com.planup.planup.domain.goal.service;
 
-import com.planup.planup.domain.goal.dto.convertor.GoalConvertor;
+import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Comment;
@@ -12,7 +12,6 @@ import com.planup.planup.domain.goal.repository.CommentRepository;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
-import com.planup.planup.domain.verification.service.TimerVerificationService;
 import com.planup.planup.domain.verification.entity.PhotoVerification;
 import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;

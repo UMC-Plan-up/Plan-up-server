@@ -5,7 +5,7 @@ import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.goal.dto.CommunityResponseDto;
-import com.planup.planup.domain.goal.dto.convertor.UserGoalConvertor;
+import com.planup.planup.domain.goal.convertor.UserGoalConvertor;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Goal;
