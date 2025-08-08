@@ -15,11 +15,6 @@ import java.util.List;
 @Repository
 public interface PhotoVerificationRepository extends JpaRepository<PhotoVerification, Long> {
 
-    @Query("SELECT COUNT(p) > 0 FROM PhotoVerification p " +
-           "WHERE p.userGoal.user.id = :userId " +
-           "AND DATE(p.createdAt) = CURRENT_DATE")
-    boolean existsTodayPhotoVerificationByUserId(@Param("userId") Long userId);
-
     List<PhotoVerification> findAllByUserGoalAndCreatedAtBetweenOrderByCreatedAt(UserGoal usergoal, LocalDateTime start, LocalDateTime end);
 
     @Query("""
