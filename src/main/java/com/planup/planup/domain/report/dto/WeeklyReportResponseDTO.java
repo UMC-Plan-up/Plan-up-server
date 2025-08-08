@@ -2,6 +2,7 @@ package com.planup.planup.domain.report.dto;
 
 import com.planup.planup.domain.bedge.dto.BadgeResponseDTO;
 import com.planup.planup.domain.bedge.entity.BadgeType;
+import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.report.entity.DailyAchievementRate;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -17,7 +18,7 @@ public class WeeklyReportResponseDTO {
             List<badgeDTO> bedgeDTOList,
 
             @Schema(description = "친구 알림")
-            List<NotificationDTO> notificationDTOList,
+            List<NotificationResponseDTO.NotificationDTO> notificationDTOList,
 
             @Schema(description = "응원 메시지")
             String cheering
@@ -35,14 +36,6 @@ public class WeeklyReportResponseDTO {
 
     }
 
-    @Builder
-    public record NotificationDTO(
-            @Schema(description = "알림 아이디", example = "1")
-            Long id,
-
-            @Schema(description = "알림 내용", example = "친구 1님의 댓글 '벌써 이만큼 함?'")
-            String notificationText
-    ) {}
 
     @Builder
     public record existWeek(
@@ -100,7 +93,7 @@ public class WeeklyReportResponseDTO {
                 String goalCriteria,
 
                 @Schema(description = "목표 달성률", example = "85")
-                Long achievementRate
+                int achievementRate
         ) {}
 
         @Builder
@@ -113,7 +106,7 @@ public class WeeklyReportResponseDTO {
                 LocalDateTime date,
 
                 @Schema(description = "기록된 시간(분)", example = "150")
-                int recordedTime,
+                long recordedTime,
 
                 @Schema(description = "사진 인증 (Base64 인코딩 이미지)", example = "data:image/png;base64,iVBORw0KGgoAAAANS...")
                 String photoVerified,

@@ -21,7 +21,7 @@ public class GoalResponseDto {
         String goalAmount;
         GoalCategory goalCategory;
         GoalType goalType;
-        String oneDose;
+        int oneDose;
         int frequency;
         GoalPeriod period;
         Date endDate;
@@ -43,7 +43,7 @@ public class GoalResponseDto {
         private Integer goalTime;
         private Long spentTimeMinutes;
         private int frequency;
-        private String oneDose;
+        private int oneDose;
         private String creatorNickname;
         private String creatorProfileImg;
         private int participantCount;
@@ -57,7 +57,7 @@ public class GoalResponseDto {
     public static class MyGoalDetailDto {
         private Long goalId;
         private String goalName;
-        private String oneDose;
+        private int oneDose;
         private boolean isPublic;
         private List<Comment> commentList;
     }

@@ -8,6 +8,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @SuperBuilder
@@ -20,6 +23,11 @@ public class PhotoVerification extends BaseTimeEntity {
     private Long id;
 
     private String photoImg;
+
+    @ElementCollection
+    @CollectionTable(name = "photo_verification_imgs", joinColumns = @JoinColumn(name = "photo_verification_id"))
+    @Column(name = "photo_img")
+    private List<String> photoImgs = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usergoal_id")

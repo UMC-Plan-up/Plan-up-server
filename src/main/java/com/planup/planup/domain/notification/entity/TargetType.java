@@ -11,5 +11,5 @@ public enum TargetType {
 
     GOAL, USER, REPORT,
 
-    CHALLENGE, PENALTY
+    CHALLENGE
 }

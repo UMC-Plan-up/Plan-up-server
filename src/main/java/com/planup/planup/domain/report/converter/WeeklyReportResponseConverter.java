@@ -3,6 +3,8 @@ package com.planup.planup.domain.report.converter;
 import com.planup.planup.domain.bedge.converter.BadgeConverter;
 import com.planup.planup.domain.bedge.dto.BadgeResponseDTO;
 import com.planup.planup.domain.bedge.entity.BadgeType;
+import com.planup.planup.domain.notification.converter.NotificationConverter;
+import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.notification.entity.Notification;
 import com.planup.planup.domain.notification.message.NotificationMessageProvider;
 import com.planup.planup.domain.report.dto.WeeklyReportResponseDTO;
@@ -21,13 +23,13 @@ public class WeeklyReportResponseConverter {
      * 목표 달성 페이지 생성을 위한 DTO 생성
      */
 
-    public static WeeklyReportResponseDTO.achievementResponse toAchievementDTO(List<BadgeType> badges, List<Notification> notifications) {
+    public static WeeklyReportResponseDTO.achievementResponse toAchievementDTO(List<BadgeType> badges, List<NotificationResponseDTO.NotificationDTO> notifications) {
         List<WeeklyReportResponseDTO.badgeDTO> badgeDTOS = toBadgeDTOs(badges);
-        List<WeeklyReportResponseDTO.NotificationDTO> notificationDTOS = toNotificationDTOs(notifications);
+//        List<NotificationResponseDTO.NotificationDTO> notificationDTOS = toNotificationDTOs(notifications);
 
         return WeeklyReportResponseDTO.achievementResponse.builder()
                 .bedgeDTOList(badgeDTOS)
-                .notificationDTOList(notificationDTOS)
+                .notificationDTOList(notifications)
                 .build();
 
     }
@@ -43,16 +45,10 @@ public class WeeklyReportResponseConverter {
                 .build();
     }
 
-    public static List<WeeklyReportResponseDTO.NotificationDTO> toNotificationDTOs(List<Notification> notifications) {
-        return notifications.stream().map(WeeklyReportResponseConverter::toNotificationDTO).collect(Collectors.toList());
+    public static List<NotificationResponseDTO.NotificationDTO> toNotificationDTOs(List<Notification> notifications) {
+        return notifications.stream().map(NotificationConverter::toNotificationDTO).collect(Collectors.toList());
     }
 
-    public static WeeklyReportResponseDTO.NotificationDTO toNotificationDTO(Notification notification) {
-        return WeeklyReportResponseDTO.NotificationDTO.builder()
-                .notificationText(NotificationMessageProvider.generate(notification.getType(), notification.getSender().getNickname(), notification.getReceiver().getNickname()))
-                .id(notification.getId())
-                .build();
-    }
 
     /**
      * weekly 리포트를 찾아서 반환하는 DTO를 위한 컨버터
@@ -87,7 +83,7 @@ public class WeeklyReportResponseConverter {
                         .id(gr.getId())
                         .goalTitle(gr.getGoalTitle())
                         .goalCriteria(gr.getGoalCriteria())
-                        .achievementRate(gr.getAchievementRate())
+                        .achievementRate(gr.getDailyAchievementRate().getTotal())
                         .build())
                 .collect(Collectors.toList());
     }

@@ -10,7 +10,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -54,7 +53,7 @@ public class Goal extends BaseTimeEntity {
     //빈도
     private int frequency;
     //1회 분량
-    private String oneDose;
+    private int oneDose;
     //종료일
     private Date endDate;
 

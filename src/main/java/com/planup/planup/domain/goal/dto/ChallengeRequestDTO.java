@@ -32,7 +32,7 @@ public class ChallengeRequestDTO {
 
             @NotBlank
             @Schema(description = "1회 기준량", example = "250ml")
-            String oneDose,
+            int oneDose,
 
             @NotNull
             @Schema(description = "목표 종료일", example = "2025-08-01T00:00:00.000Z")
