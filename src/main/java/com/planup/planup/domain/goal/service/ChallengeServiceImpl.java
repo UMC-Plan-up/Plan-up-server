@@ -2,6 +2,7 @@ package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
+import com.planup.planup.apiPayload.exception.custom.UserGoalException;
 import com.planup.planup.domain.goal.convertor.ChallengeConverter;
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
 import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -95,10 +97,18 @@ public class ChallengeServiceImpl implements ChallengeService{
     public ChallengeResponseDTO.ChallengeResponseInfo getChallengeInfo(Long challengeId) {
         Goal goal = goalService.getGoalById(challengeId);
 
+        List<UserGoal> userGoalList = userGoalService.getUserGoalListByGoal(goal);
+
+        UserGoal first = userGoalList.stream().filter(userGoal ->
+                userGoal.getStatus().equals(Status.ADMIN)
+        ).findFirst().orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_CHALLENGE));
+
+        String nickname = first.getUser().getNickname();
+
         if (goal.getGoalType() == GoalType.CHALLENGE_PHOTO) {
             if (goal instanceof Challenge) {
                 Challenge photoChallenge = (Challenge) goal;
-                ChallengeResponseDTO.ChallengeResponseInfo challengeResponseInfo = ChallengeConverter.toChallengeResponseInfoPhotoVer(photoChallenge);
+                ChallengeResponseDTO.ChallengeResponseInfo challengeResponseInfo = ChallengeConverter.toChallengeResponseInfoPhotoVer(photoChallenge, nickname);
                 return challengeResponseInfo;
 
             }
