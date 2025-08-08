@@ -3,7 +3,7 @@ package com.planup.planup.domain.friend.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
-import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 public class FriendResponseDTO {
@@ -32,7 +32,7 @@ public class FriendResponseDTO {
             int goalCnt,
 
             @Schema(description = "오늘 진행한 시간", example = "00:01:54")
-            LocalDate todayTime,
+            LocalTime todayTime,
 
             @Schema(description = "새로운 사진 인증 여부", example = "true")
             boolean isNewPhotoVerify
