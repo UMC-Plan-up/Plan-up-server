@@ -21,7 +21,7 @@ public class GoalReportController {
     @GetMapping("/goal/{goalReportId}")
     public ApiResponse<GoalReportResponseDTO.GoalReportResponse> getGoalReport(Long userId, @PathVariable Long goalReportId) {
 
-        GoalReportResponseDTO.GoalReportResponse result = goalReportService.findByGoalId(goalReportId);
+        GoalReportResponseDTO.GoalReportResponse result = goalReportService.findDTOById(goalReportId);
         return ApiResponse.onSuccess(result);
     }
 }

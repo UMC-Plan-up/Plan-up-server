@@ -1,5 +1,6 @@
 package com.planup.planup.domain.goal.service;
 
+import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -97,13 +99,27 @@ public class UserGoalServiceImpl implements UserGoalService{
 
     //수용 형 파트
     @Override
+    @Transactional(readOnly = true)
     public UserGoal getUserGoalByUserAndGoal(User user, Goal goal) {
         return userGoalRepository.findAllByUserAndGoal(user, goal).get(0);
 //        return userGoalRepository.findByUserAndGoal(user, goal).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserGoal> getUserGoalListByGoal(Goal goal) {
         return userGoalRepository.findAllByGoal(goal);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public VerificationType checkVerificationType(UserGoal userGoal) {
+        return userGoal.getGoal().getVerificationType();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<UserGoal> getUserGoalInPeriod(LocalDateTime startDate, LocalDateTime endDate) {
+        return userGoalRepository.findAllByUpdatedAtBetween(startDate, endDate);
     }
 }

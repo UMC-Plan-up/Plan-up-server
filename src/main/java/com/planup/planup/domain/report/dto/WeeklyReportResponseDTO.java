@@ -93,7 +93,7 @@ public class WeeklyReportResponseDTO {
                 String goalCriteria,
 
                 @Schema(description = "목표 달성률", example = "85")
-                Long achievementRate
+                int achievementRate
         ) {}
 
         @Builder
@@ -106,7 +106,7 @@ public class WeeklyReportResponseDTO {
                 LocalDateTime date,
 
                 @Schema(description = "기록된 시간(분)", example = "150")
-                int recordedTime,
+                long recordedTime,
 
                 @Schema(description = "사진 인증 (Base64 인코딩 이미지)", example = "data:image/png;base64,iVBORw0KGgoAAAANS...")
                 String photoVerified,
