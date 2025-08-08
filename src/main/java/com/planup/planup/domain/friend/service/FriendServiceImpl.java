@@ -24,6 +24,7 @@ public class FriendServiceImpl implements FriendService {
 
     private final FriendRepository friendRepository;
     private final UserService userService;
+    private final FriendConverter friendConverter;
 
     @Override
     @Transactional(readOnly = true) 
@@ -36,10 +37,10 @@ public class FriendServiceImpl implements FriendService {
         //Friend 객체의 friend, user 중 내가 아닌 친구를 뽑는다.
         List<User> list = friendList.stream()
                 .map(f -> f.getFriend().equals(user) ? f.getUser() : f.getFriend())
+                .distinct() // 중복 제거
                 .collect(Collectors.toList());
 
-
-        return List.of(FriendConverter.toFriendSummaryList(list));
+        return List.of(friendConverter.toFriendSummaryList(list));
     }
 
     @Override
@@ -134,7 +135,7 @@ public class FriendServiceImpl implements FriendService {
         }
 
         return friendRequests.stream()
-                .map(f -> FriendConverter.toFriendSummary(f.getUser()))
+                .map(f -> friendConverter.toFriendSummary(f.getUser()))
                 .collect(Collectors.toList());
     }
 
@@ -221,7 +222,8 @@ public class FriendServiceImpl implements FriendService {
     public List<FriendResponseDTO.FriendInfoInChallengeCreate> getFrinedListInChallenge(Long userId) {
         List<Friend> friendList = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
         List<FriendResponseDTO.FriendInfoInChallengeCreate> dtoList = friendList.stream()
-                .map(friend -> FriendConverter.toFriendInfoChallenge(friend.getFriend())) // 또는 getUser()
+                .map(friend -> friendConverter.toFriendInfoChallenge(friend.getFriend())) // 또는 getUser()
+                .distinct()
                 .collect(Collectors.toList());
         return dtoList;
     }
