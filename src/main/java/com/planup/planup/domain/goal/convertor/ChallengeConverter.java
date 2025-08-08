@@ -29,8 +29,8 @@ public class ChallengeConverter {
                 .limitFriendCount(1)
                 .status(dto.status())
                 .penalty(dto.penalty())
-                .timePerPeriod(dto.photoChallenge().timePerPeriod())
-                .frequency(dto.photoChallenge().frequency())
+                .timePerPeriod(dto.timePerPeriod())
+                .frequency(dto.frequency())
                 .build();
     }
 
