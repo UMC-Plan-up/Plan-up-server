@@ -5,21 +5,18 @@ import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.Status;
-import com.planup.planup.domain.goal.entity.PhotoChallenge;
 import com.planup.planup.domain.goal.entity.TimeChallenge;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
-import com.planup.planup.domain.user.entity.User;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ChallengeConverter {
 
-    public static PhotoChallenge toPhotoChallenge(ChallengeRequestDTO.create dto) {
-        return PhotoChallenge.builder()
+    public static Challenge toPhotoChallenge(ChallengeRequestDTO.create dto) {
+        return Challenge.builder()
                 .goalName(dto.goalName())
                 .goalAmount(dto.goalAmount())
                 .goalCategory(GoalCategory.CHALLENGE)
@@ -29,8 +26,8 @@ public class ChallengeConverter {
                 .limitFriendCount(1)
                 .status(dto.status())
                 .penalty(dto.penalty())
-                .timePerPeriod(dto.photoChallenge().timePerPeriod())
-                .frequency(dto.photoChallenge().frequency())
+                .period(dto.period())
+                .frequency(dto.frequency())
                 .build();
     }
 
@@ -49,7 +46,7 @@ public class ChallengeConverter {
                 .build();
     }
 
-    public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoPhotoVer(PhotoChallenge photoChallenge) {
+    public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoPhotoVer(Challenge photoChallenge) {
 
         List<UserGoal> userGoals = photoChallenge.getUserGoals().stream().filter(userGoal -> userGoal.getStatus().equals(Status.ADMIN)).toList();
 
@@ -62,7 +59,7 @@ public class ChallengeConverter {
                 .goalType(photoChallenge.getGoalType())
                 .goalAmount(photoChallenge.getGoalAmount())
                 .endDate(convertToLocalDateTime(photoChallenge.getEndDate()))
-                .timePerPeriod(photoChallenge.getTimePerPeriod())
+                .period(photoChallenge.getPeriod())
                 .frequency(photoChallenge.getFrequency())
                 .targetTime(null)
                 .build();
@@ -80,7 +77,7 @@ public class ChallengeConverter {
                 .goalType(timeChallenge.getGoalType())
                 .goalAmount(timeChallenge.getGoalAmount())
                 .endDate(convertToLocalDateTime(timeChallenge.getEndDate()))
-                .timePerPeriod(0)
+                .period(timeChallenge.getPeriod())
                 .frequency(0)
                 .targetTime(timeChallenge.getTargetTime())
                 .build();

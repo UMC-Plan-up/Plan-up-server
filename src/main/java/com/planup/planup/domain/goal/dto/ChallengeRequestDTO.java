@@ -2,6 +2,7 @@ package com.planup.planup.domain.goal.dto;
 
 import com.planup.planup.domain.goal.entity.Enum.ChallengeStatus;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
+import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
@@ -47,11 +48,11 @@ public class ChallengeRequestDTO {
             String penalty,
 
             @Schema(description = "같이 할 친구 선택", example = "1")
-            Long friendIdList,
+            Long friendId,
 
             @Min(1)
             @Schema(description = "주기(며칠마다 1회)", example = "7")
-            int timePerPeriod,
+            GoalPeriod period,
 
             @Min(1)
             @Schema(description = "기간 내 수행 빈도", example = "3")
