@@ -72,6 +72,9 @@ public class User extends BaseTimeEntity {
     @OneToOne(mappedBy = "user")
     private UserStat userStat;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private UserWithdrawal userWithdrawal;
+
     public void setNickname(String nickname) {
         this.nickname = nickname;
     }

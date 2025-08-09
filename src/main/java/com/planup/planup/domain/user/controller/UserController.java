@@ -125,4 +125,13 @@ public class UserController {
         ValidateInviteCodeResponseDTO response = userService.validateInviteCode(request.getInviteCode(), currentUser.getId());
         return ApiResponse.onSuccess(response);
     }
+
+    @Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 처리하고 탈퇴 이유를 저장합니다")
+    @PostMapping("/users/withdraw")
+    public ApiResponse<WithdrawalResponseDTO> withdrawUser(
+            @Valid @RequestBody WithdrawalRequestDTO request,
+            @Parameter(hidden = true) @CurrentUser User currentUser) {
+        WithdrawalResponseDTO response = userService.withdrawUser(currentUser.getId(), request);
+        return ApiResponse.onSuccess(response);
+    }
 }
