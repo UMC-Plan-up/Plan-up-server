@@ -8,6 +8,7 @@ import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -110,5 +111,10 @@ public class TimerVerificationService implements VerificationService{
         }
         //true 반환
         return spentTime.toMinutes() >= goalTimeMinutes;
+    }
+
+    @Transactional(readOnly = true)
+    public List<TimerVerification> getTimerVerificationListByUserAndDateBetween(UserGoal userGoal, LocalDateTime start, LocalDateTime end) {
+        return timerVerificationRepository.findAllByUserGoalAndCreatedAtBetweenOrderByCreatedAt(userGoal, start, end);
     }
 }

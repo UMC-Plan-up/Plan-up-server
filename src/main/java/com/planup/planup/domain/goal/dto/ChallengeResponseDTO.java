@@ -1,5 +1,6 @@
 package com.planup.planup.domain.goal.dto;
 
+import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
@@ -33,7 +34,7 @@ public class ChallengeResponseDTO {
             LocalDateTime endDate,
 
             @Schema(description = "주기(종료일까지 몇일 해야하는지)", example = "7")
-            int timePerPeriod,
+            GoalPeriod period,
 
             @Schema(description = "기간 내 수행 빈도", example = "3")
             int frequency,

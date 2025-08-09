@@ -83,7 +83,7 @@ public class WeeklyReportResponseConverter {
                         .id(gr.getId())
                         .goalTitle(gr.getGoalTitle())
                         .goalCriteria(gr.getGoalCriteria())
-                        .achievementRate(gr.getAchievementRate())
+                        .achievementRate(gr.getDailyAchievementRate().getTotal())
                         .build())
                 .collect(Collectors.toList());
     }
