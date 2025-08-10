@@ -10,6 +10,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +47,13 @@ public class User extends BaseTimeEntity {
     private Boolean alarmAllow;
     private String inviteCode;
 
+    @Column(name = "email_verified", nullable = false)
+    @Builder.Default
+    private Boolean emailVerified = false;
+
+    @Column(name = "email_verified_at")
+    private LocalDateTime emailVerifiedAt;
+
     // 연관 관계
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserTerms> userTermList = new ArrayList<>();
@@ -71,6 +79,14 @@ public class User extends BaseTimeEntity {
 
     @OneToOne(mappedBy = "user")
     private UserStat userStat;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private UserWithdrawal userWithdrawal;
+
+    public void verifyEmail() {
+        this.emailVerified = true;
+        this.emailVerifiedAt = LocalDateTime.now();
+    }
 
     public void setNickname(String nickname) {
         this.nickname = nickname;

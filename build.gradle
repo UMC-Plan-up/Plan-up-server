@@ -49,4 +49,7 @@ dependencies {
 
 	// Redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	// email 발송
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 }

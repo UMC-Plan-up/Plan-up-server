@@ -22,6 +22,8 @@ public interface UserService {
     UserInfoResponseDTO getUserInfo(Long userId);
 
     String updateEmail(Long userId, String newEmail);
+
+    void checkEmail(String email);
     
     SignupResponseDTO signup(SignupRequestDTO request);
 
@@ -34,4 +36,6 @@ public interface UserService {
     InviteCodeResponseDTO getMyInviteCode(Long userId);
 
     ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode, Long currentUserId);
+
+    WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request);
 }
