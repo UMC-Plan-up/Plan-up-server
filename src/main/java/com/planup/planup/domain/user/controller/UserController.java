@@ -1,24 +1,33 @@
 package com.planup.planup.domain.user.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.entity.User;
+import com.planup.planup.domain.user.service.EmailService;
 import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
-
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
+    private final EmailService emailService;
+
+    @Value("${app.frontend.url:http://localhost:3000}")
+    private String frontendUrl;
 
     @Operation(summary = "nickname 변경 요청", description = "닉네임을 변경하기 위해 기존 닉네임 호출")
     @GetMapping("/mypage/profile/nickname")
@@ -123,6 +132,81 @@ public class UserController {
             @Valid @RequestBody ValidateInviteCodeRequestDTO request,
             @Parameter(hidden = true) @CurrentUser User currentUser) {
         ValidateInviteCodeResponseDTO response = userService.validateInviteCode(request.getInviteCode(), currentUser.getId());
+        return ApiResponse.onSuccess(response);
+    }
+
+    @Operation(summary = "이메일 인증 발송", description = "이메일 중복 확인 후 인증메일을 발송하고 토큰을 반환합니다")
+    @PostMapping("/users/email/send")
+    public ApiResponse<EmailSendResponseDTO> sendEmailVerification(@RequestBody @Valid EmailVerificationRequestDTO request) {
+        userService.checkEmail(request.getEmail());
+
+        String verificationToken = emailService.sendVerificationEmail(request.getEmail());
+
+        EmailSendResponseDTO response = EmailSendResponseDTO.builder()
+                .email(request.getEmail())
+                .message("인증 메일이 발송되었습니다")
+                .verificationToken(verificationToken)
+                .build();
+
+        return ApiResponse.onSuccess(response);
+    }
+
+    @Operation(summary = "이메일 인증 재발송")
+    @PostMapping("/users/email/resend")
+    public ApiResponse<EmailSendResponseDTO> resendVerificationEmail (@RequestBody @Valid EmailVerificationRequestDTO request) {
+
+        if (emailService.isEmailVerified(request.getEmail())) {
+            throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
+        }
+        // 인증메일 재발송
+        String verificationToken = emailService.resendVerificationEmail(request.getEmail());
+
+        EmailSendResponseDTO response = EmailSendResponseDTO.builder()
+                .email(request.getEmail())
+                .message("인증 메일이 재발송되었습니다")
+                .verificationToken(verificationToken)
+                .build();
+
+        return ApiResponse.onSuccess(response);
+    }
+
+    @Operation(summary = "이메일 링크 클릭 처리", description = "이메일 링크 클릭 시 인증 처리 후 앱으로 리다이렉트")
+    @GetMapping("/users/email/verify-link")
+    public ApiResponse<EmailVerifyLinkResponseDTO> handleEmailLink(@RequestParam String token) {
+        try {
+            String email = emailService.completeVerification(token);
+
+            String deepLinkUrl = "planup://profile/setup?email=" +
+                    URLEncoder.encode(email, StandardCharsets.UTF_8) +
+                    "&verified=true&token=" + token +
+                    "&from=email_verification";
+
+            EmailVerifyLinkResponseDTO response = EmailVerifyLinkResponseDTO.builder()
+                    .verified(true)
+                    .email(email)
+                    .message("이메일 인증이 완료되었습니다")
+                    .deepLinkUrl(deepLinkUrl)
+                    .token(token)
+                    .build();
+
+            return ApiResponse.onSuccess(response);
+
+        } catch (IllegalArgumentException e) {
+            EmailVerifyLinkResponseDTO response = EmailVerifyLinkResponseDTO.builder()
+                    .verified(false)
+                    .message("이메일 인증에 실패했습니다")
+                    .build();
+
+            return ApiResponse.onFailure("EMAIL4001", "유효하지 않은 이메일 토큰입니다",response);
+        }
+    }
+
+    @Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 처리하고 탈퇴 이유를 저장합니다")
+    @PostMapping("/users/withdraw")
+    public ApiResponse<WithdrawalResponseDTO> withdrawUser(
+            @Valid @RequestBody WithdrawalRequestDTO request,
+            @Parameter(hidden = true) @CurrentUser User currentUser) {
+        WithdrawalResponseDTO response = userService.withdrawUser(currentUser.getId(), request);
         return ApiResponse.onSuccess(response);
     }
 }
