@@ -76,4 +76,8 @@ public class ChallengeController {
         String challengeName = challengeService.getChallengeName(userId, challengeId);
         return ApiResponse.onSuccess(challengeName);
     }
+
+    @GetMapping("/{challengeId}/result")
+    @Operation(summary = "챌린지의 결과를 확인한다.")
+    public ApiResponse<ChallengeResponseDTO.ChallengeResultResponseDTO> requestChallengeResult(Long userId, )
 }
