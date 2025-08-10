@@ -18,7 +18,7 @@ public class GoalReportConverter {
                 entity.getGoalId(),
                 entity.getGoalTitle(),
                 entity.getGoalCriteria(),
-                entity.getAchievementRate(),
+                Long.valueOf(entity.getDailyAchievementRate().getTotal()),
                 entity.getReportType(),
                 toThreeWeekAchievementRateResponse(entity.getThreeWeekAhcievementRate()),
                 toDailyAchievementRateResponse(entity.getDailyAchievementRate()),

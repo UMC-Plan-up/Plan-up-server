@@ -200,4 +200,13 @@ public class UserController {
             return ApiResponse.onFailure("EMAIL4001", "유효하지 않은 이메일 토큰입니다",response);
         }
     }
+
+    @Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 처리하고 탈퇴 이유를 저장합니다")
+    @PostMapping("/users/withdraw")
+    public ApiResponse<WithdrawalResponseDTO> withdrawUser(
+            @Valid @RequestBody WithdrawalRequestDTO request,
+            @Parameter(hidden = true) @CurrentUser User currentUser) {
+        WithdrawalResponseDTO response = userService.withdrawUser(currentUser.getId(), request);
+        return ApiResponse.onSuccess(response);
+    }
 }

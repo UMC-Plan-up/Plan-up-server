@@ -16,6 +16,7 @@ import com.planup.planup.domain.user.repository.UserTermsRepository;
 import com.planup.planup.domain.user.dto.UserInfoResponseDTO;
 import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
 import com.planup.planup.domain.oauth.repository.OAuthAccountRepository;
+import com.planup.planup.domain.user.repository.UserWithdrawalRepository;
 
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +28,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import com.planup.planup.domain.user.dto.KakaoAccountResponseDTO;
 import org.springframework.web.multipart.MultipartFile;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+
 import java.util.Optional;
 
 
@@ -51,6 +50,7 @@ public class UserServiceImpl implements UserService {
     private final InvitedUserRepository invitedUserRepository;
     private final FriendRepository friendRepository;
     private final EmailService emailService;
+    private final UserWithdrawalRepository userWithdrawalRepository;
 
 
     @Override
@@ -394,6 +394,61 @@ public class UserServiceImpl implements UserService {
                     .build();
         }
     }
+
+    @Override
+    @Transactional
+    public WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request) {
+        // 사용자 조회
+        User user = getUserbyUserId(userId);
+
+        // 탈퇴 정보 저장
+        UserWithdrawal withdrawal = UserWithdrawal.builder()
+                .user(user)
+                .reason(request.getReason())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .build();
+
+        userWithdrawalRepository.save(withdrawal);
+
+        // 사용자 상태를 비활성화로 변경
+        user.setUserActivate(UserActivate.INACTIVE);
+        userRepository.save(user);
+
+        // 관련 데이터 정리 (선택사항)
+        cleanupUserData(user);
+
+        log.info("사용자 {} 회원 탈퇴 완료. 이유: {}", user.getNickname(), request.getReason());
+
+        return WithdrawalResponseDTO.builder()
+                .success(true)
+                .message("회원 탈퇴가 완료되었습니다.")
+                .withdrawalDate(LocalDateTime.now().toString())
+                .build();
+    }
+
+    /**
+     * 사용자 관련 데이터 정리
+     */
+    private void cleanupUserData(User user) {
+        try {
+            // 친구 관계 삭제
+            List<Friend> userFriends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
+                FriendStatus.ACCEPTED, user.getId(), FriendStatus.ACCEPTED, user.getId());
+            friendRepository.deleteAll(userFriends);
+
+            // 친구 신청 삭제
+            List<Friend> friendRequests = friendRepository.findByStatusAndFriendIdOrderByCreatedAtDesc(
+                FriendStatus.REQUESTED, user.getId());
+            friendRepository.deleteAll(friendRequests);
+
+            log.debug("사용자 {} 관련 데이터 정리 완료", user.getNickname());
+        } catch (Exception e) {
+            log.warn("사용자 데이터 정리 중 오류 발생: {}", e.getMessage());
+            // 데이터 정리 실패는 탈퇴를 막지 않음
+        }
+    }
+
 
     @Override
     @Transactional

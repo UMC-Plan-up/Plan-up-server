@@ -7,7 +7,6 @@ import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.verification.entity.TimerVerification;
 
 import java.util.List;
 
@@ -58,10 +57,10 @@ public class GoalConvertor {
         Goal goal = userGoal.getGoal();
 
         Integer goalTime = null;
+        Long spentTimeMinutes = null;
 
         if (goal.getVerificationType() == VerificationType.TIMER) {
             if (!userGoal.getTimerVerifications().isEmpty()) {
-                TimerVerification timerVerification = userGoal.getTimerVerifications().get(0);
                 goalTime = userGoal.getGoalTime();
             }
         }
@@ -73,6 +72,7 @@ public class GoalConvertor {
                 .goalType(goal.getGoalType())
                 .verificationType(goal.getVerificationType())
                 .goalTime(goalTime)
+                .spentTimeMinutes(spentTimeMinutes)
                 .frequency(goal.getFrequency())
                 .oneDose(goal.getOneDose())
                 .creatorNickname(creator.getNickname())

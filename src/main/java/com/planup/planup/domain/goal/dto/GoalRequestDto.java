@@ -19,7 +19,7 @@ public class GoalRequestDto {
         String goalAmount;
         GoalCategory goalCategory;
         GoalType goalType;
-        String oneDose;
+        int oneDose;
         int frequency;
         GoalPeriod period;
         Date endDate;
