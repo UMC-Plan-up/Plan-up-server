@@ -142,6 +142,17 @@ public class GoalConvertor {
                 .build();
     }
 
+    //랭킹 변환
+    public static GoalResponseDto.RankingDto toRankingDto(UserGoal userGoal) {
+        return GoalResponseDto.RankingDto.builder()
+                .goalId(userGoal.getGoal().getId())
+                .userId(userGoal.getUser().getId())
+                .nickName(userGoal.getUser().getNickname())
+                .profileImg(userGoal.getUser().getProfileImg())
+                .verificationCount(userGoal.getVerificationCount())
+                .build();
+    }
+
     public static LocalDateTime convertToLocalDateTime(Date date) {
         return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
     }

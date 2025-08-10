@@ -131,7 +131,14 @@ public class GoalController {
         return ApiResponse.onSuccess(null);
     }
 
-    //랭킹 조회는 인증 서비스 만들고나서야 가능
+    @PatchMapping("/{goalId}/ranking")
+    @Operation(summary = "랭킹 API", description = "특정 목표의 랭킹을 제공합니다.")
+    public ApiResponse<List<GoalResponseDto.RankingDto>> getGoalRanking(
+            @RequestParam Long goalId) {
+        List<GoalResponseDto.RankingDto> result = goalService.getGoalRanking(goalId);
+
+        return ApiResponse.onSuccess(result);
+    }
 
     @GetMapping("/{goalId}/photos")
     @Operation(summary = "목표별 인증된 사진 조회 API", description = "특정 목표에 업로드한 인증된 사진들을 조회합니다.")

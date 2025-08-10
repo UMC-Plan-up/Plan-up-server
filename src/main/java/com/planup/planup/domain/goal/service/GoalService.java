@@ -23,6 +23,8 @@ public interface GoalService {
     List<PhotoVerificationResponseDto.uploadPhotoResponseDto> getGoalPhotos(Long userId, Long goalId);
     List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId);
     List<GoalResponseDto.FriendGoalListDto> getFriendGoals(Long userId, Long friendsId);
+    List<GoalResponseDto.RankingDto> getGoalRanking(Long goalId);
+
 
     Goal getGoalById(Long challengeId);
 }

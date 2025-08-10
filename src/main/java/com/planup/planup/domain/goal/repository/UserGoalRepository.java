@@ -57,4 +57,6 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     List<UserGoal> findAllByUpdatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 
     List<UserGoal> findByUserIdAndIsPublicTrue(Long friendsId);
+
+    List<UserGoal> findByGoalIdOrderByVerificationCountDesc(Long goalId);
 }

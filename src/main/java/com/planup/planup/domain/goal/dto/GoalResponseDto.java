@@ -97,6 +97,7 @@ public class GoalResponseDto {
         private Long goalId;
         private Long userId;
         private String nickName;
-        private int oneDose;
+        private String profileImg;
+        private int verificationCount;
     }
 }

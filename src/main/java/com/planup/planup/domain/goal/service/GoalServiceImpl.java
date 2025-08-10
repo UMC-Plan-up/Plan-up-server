@@ -251,6 +251,17 @@ public class GoalServiceImpl implements GoalService{
                 .collect(Collectors.toList());
     }
 
+    //랭킹 조회 서비스
+    @Transactional(readOnly = true)
+    public List<GoalResponseDto.RankingDto> getGoalRanking(Long goalId) {
+        List<UserGoal> userGoals = userGoalRepository.findByGoalIdOrderByVerificationCountDesc(goalId);
+
+        // UserGoal 리스트를 RankingDto 리스트로 변환
+        return userGoals.stream()
+                .map(GoalConvertor::toRankingDto)
+                .collect(Collectors.toList());
+    }
+
     private void validateFriendRelationship(Long userId, Long friendsId) {
         List<Friend> friendRelations = friendRepository
                 .findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
