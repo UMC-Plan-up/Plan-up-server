@@ -3,6 +3,7 @@ package com.planup.planup.domain.goal.service;
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
 import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
+import com.planup.planup.domain.user.entity.User;
 
 public interface ChallengeService {
     Challenge createChallenge(Long userId, ChallengeRequestDTO.create request);
@@ -16,4 +17,7 @@ public interface ChallengeService {
     void reRequestPenalty(Long userId, ChallengeRequestDTO.ReRequestPenalty dto);
 
     String getChallengeName(Long userId, Long challengeId);
+
+    ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(User user, Long challengeId);
+
 }

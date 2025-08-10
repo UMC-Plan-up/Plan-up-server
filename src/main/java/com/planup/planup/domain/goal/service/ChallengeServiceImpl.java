@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -212,5 +213,24 @@ public class ChallengeServiceImpl implements ChallengeService{
             createPerUserGoal(user, type, Status.MEMBER, challenge);
         }
 
+    }
+
+    @Override
+    public ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(User user, Long challengeId) {
+        Challenge challenge = getChallengeById(challengeId);
+
+        UserGoal myUserGoal = challenge.getUserGoals().stream().filter(u -> u.getUser().getId().equals(user.getId()))
+                .findFirst().orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
+
+        UserGoal friendUserGoal = challenge.getUserGoals().stream().filter(u -> !u.getUser().getId().equals(user.getId()))
+                .findFirst().orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
+
+
+
+        ChallengeResponseDTO.ChallengeResultResponseDTO.builder()
+                .id(challengeId)
+                .myName(user.getNickname())
+                .myProfile(user.getProfileImg())
+                .friendName()
     }
 }
