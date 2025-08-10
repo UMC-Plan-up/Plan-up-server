@@ -49,6 +49,7 @@ public class UserServiceImpl implements UserService {
     private final InviteCodeService inviteCodeService;
     private final InvitedUserRepository invitedUserRepository;
     private final FriendRepository friendRepository;
+    private final EmailService emailService;
     private final UserWithdrawalRepository userWithdrawalRepository;
 
 
@@ -128,7 +129,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public SignupResponseDTO signup(SignupRequestDTO request) {
-        // 1. 이메일 중복 체크
+        // 이메일 중복 체크
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
         }
@@ -141,7 +142,12 @@ public class UserServiceImpl implements UserService {
         // 필수 약관 동의 검증
         validateRequiredTerms(request.getAgreements());
 
-        // 초대코드 처리 (있을 때만)
+        // 이메일 인증 여부 확인
+        if (!emailService.isEmailVerified(request.getEmail())) {
+            throw new UserException(ErrorStatus.EMAIL_VERIFICATION_REQUIRED);
+        }
+
+        // 초대코드 처리
         Long inviterId = null;
         String friendNickname = null;
         if (request.getInviteCode() != null && !request.getInviteCode().trim().isEmpty()) {
@@ -163,12 +169,14 @@ public class UserServiceImpl implements UserService {
                 .userLevel(UserLevel.LEVEL_1)
                 .alarmAllow(true)
                 .profileImg(request.getProfileImg())
+                .emailVerified(true)
+                .emailVerifiedAt(LocalDateTime.now())
                 .build();
 
         User savedUser = userRepository.save(user);
 
         // 약관 동의 추가
-//        addTermsAgreements(savedUser, request.getAgreements());
+        addTermsAgreements(savedUser, request.getAgreements());
 
         // 초대 관계 처리 (초대코드가 있었다면)
         if (inviterId != null) {
@@ -195,6 +203,9 @@ public class UserServiceImpl implements UserService {
             // 초대코드 사용 완료
             inviteCodeService.useInviteCode(request.getInviteCode());
         }
+
+        // 인증 토큰 정리
+        emailService.clearVerificationToken(request.getEmail());
 
         return SignupResponseDTO.builder()
                 .id(savedUser.getId())
@@ -389,7 +400,7 @@ public class UserServiceImpl implements UserService {
     public WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request) {
         // 사용자 조회
         User user = getUserbyUserId(userId);
-        
+
         // 탈퇴 정보 저장
         UserWithdrawal withdrawal = UserWithdrawal.builder()
                 .user(user)
@@ -397,25 +408,25 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .build();
-        
+
         userWithdrawalRepository.save(withdrawal);
-        
+
         // 사용자 상태를 비활성화로 변경
         user.setUserActivate(UserActivate.INACTIVE);
         userRepository.save(user);
-        
+
         // 관련 데이터 정리 (선택사항)
         cleanupUserData(user);
-        
+
         log.info("사용자 {} 회원 탈퇴 완료. 이유: {}", user.getNickname(), request.getReason());
-        
+
         return WithdrawalResponseDTO.builder()
                 .success(true)
                 .message("회원 탈퇴가 완료되었습니다.")
                 .withdrawalDate(LocalDateTime.now().toString())
                 .build();
     }
-    
+
     /**
      * 사용자 관련 데이터 정리
      */
@@ -425,12 +436,12 @@ public class UserServiceImpl implements UserService {
             List<Friend> userFriends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
                 FriendStatus.ACCEPTED, user.getId(), FriendStatus.ACCEPTED, user.getId());
             friendRepository.deleteAll(userFriends);
-            
+
             // 친구 신청 삭제
             List<Friend> friendRequests = friendRepository.findByStatusAndFriendIdOrderByCreatedAtDesc(
                 FriendStatus.REQUESTED, user.getId());
             friendRepository.deleteAll(friendRequests);
-            
+
             log.debug("사용자 {} 관련 데이터 정리 완료", user.getNickname());
         } catch (Exception e) {
             log.warn("사용자 데이터 정리 중 오류 발생: {}", e.getMessage());
@@ -439,4 +450,11 @@ public class UserServiceImpl implements UserService {
     }
 
 
+    @Override
+    @Transactional
+    public void checkEmail(String email){
+        if (userRepository.existsByEmail(email)) {
+            throw new UserException(ErrorStatus.EXIST_EMAIL);
+        }
+    }
 }
