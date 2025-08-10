@@ -204,58 +204,42 @@ public class GoalReportServiceImpl implements GoalReportService {
     }
 
     private DailyAchievementRate getDailyAchievementRate(Map<LocalDate, Integer> dailyCount, int oneDose) {
-        DailyAchievementRate.DailyAchievementRateBuilder builder = DailyAchievementRate.builder();
-        for (Map.Entry<LocalDate, Integer> entry : dailyCount.entrySet()) {
-            LocalDate date = entry.getKey();
-            int totalPhotoCount = entry.getValue();
+        Map<DayOfWeek, Integer> byDay = calcAchievementByDay(dailyCount, oneDose);
+        return toDailyAchievementRate(byDay);
+    }
 
+    //요일별 퍼센트를 계산한다.
+    private Map<DayOfWeek, Integer> calcAchievementByDay(Map<LocalDate, Integer> dailyCount, int oneDose) {
+        Map<DayOfWeek, Integer> result = new EnumMap<>(DayOfWeek.class);
+        if (oneDose <= 0) return result; // 방어코드
+
+        for (Map.Entry<LocalDate, Integer> e : dailyCount.entrySet()) {
+            DayOfWeek dow = e.getKey().getDayOfWeek();
+            int totalPhotoCount = e.getValue() == null ? 0 : e.getValue();
+
+            // 백분율 계산 (내림), 최대 100
             int achievement = (int) Math.min(100, ((double) totalPhotoCount / oneDose) * 100);
 
-            switch (date.getDayOfWeek()) {
-                case MONDAY -> builder.mon(achievement);
-                case TUESDAY -> builder.tue(achievement);
-                case WEDNESDAY -> builder.wed(achievement);
-                case THURSDAY -> builder.thu(achievement);
-                case FRIDAY -> builder.fri(achievement);
-                case SATURDAY -> builder.sat(achievement);
-                case SUNDAY -> builder.sun(achievement);
-            }
-
+            result.put(dow, achievement);
         }
-        DailyAchievementRate dailyAchievementRate = builder.build();
-        dailyAchievementRate.calTotal();
-        return dailyAchievementRate;
+        return result;
     }
 
-    private Map<LocalDate, Integer> calculatePhotoVerification(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
-        List<PhotoVerification> verifications = photoVerificationService.getPhotoVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
+    //퍼센트를 가지고 DailyAchievementRate를 만든다.
+    private DailyAchievementRate toDailyAchievementRate(Map<DayOfWeek, Integer> byDay) {
+        DailyAchievementRate.DailyAchievementRateBuilder b = DailyAchievementRate.builder();
 
-        Map<LocalDate, Integer> dailyCount = new HashMap<>();
-        // 날짜별 인증 수 카운팅
-        for (PhotoVerification photoVerification : verifications) {
-            LocalDate date = photoVerification.getCreatedAt().toLocalDate();
+        // 값이 없으면 0으로 기본값 처리 (필요 시 조정)
+        b.mon(byDay.getOrDefault(DayOfWeek.MONDAY, 0));
+        b.tue(byDay.getOrDefault(DayOfWeek.TUESDAY, 0));
+        b.wed(byDay.getOrDefault(DayOfWeek.WEDNESDAY, 0));
+        b.thu(byDay.getOrDefault(DayOfWeek.THURSDAY, 0));
+        b.fri(byDay.getOrDefault(DayOfWeek.FRIDAY, 0));
+        b.sat(byDay.getOrDefault(DayOfWeek.SATURDAY, 0));
+        b.sun(byDay.getOrDefault(DayOfWeek.SUNDAY, 0));
 
-            int photoCount = photoVerification.getPhotoImgs() != null ? photoVerification.getPhotoImgs().size() : 0;
-
-            //기존에 데이터가 있으면 불러와서 더한다.
-            dailyCount.put(date, dailyCount.getOrDefault(date, 0) + photoCount);
-        }
-        return dailyCount;
+        DailyAchievementRate dto = b.build();
+        dto.calTotal(); // 총합/평균을 DTO 내부에서 계산하도록 유지
+        return dto;
     }
-
-    private Map<LocalDate, Integer> calculateTimeVerification(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
-        List<TimerVerification> verifications = timerVerificationService.getTimerVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
-
-        Map<LocalDate, Integer> dailyCount = new HashMap<>();
-
-        for (TimerVerification verification : verifications) {
-            LocalDate date = verification.getCreatedAt().toLocalDate();
-
-            int seconds = (int) (verification.getSpentTime() != null ? verification.getSpentTime().toMillis() / 1000.0 : 0.0);
-
-            dailyCount.put(date, dailyCount.getOrDefault(date, 0) + seconds);
-        }
-        return dailyCount;
-    }
-
 }
