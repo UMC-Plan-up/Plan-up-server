@@ -187,20 +187,20 @@ public class GoalReportServiceImpl implements GoalReportService {
 
 
         //날짜별 인증을 저장한다
-        Map<LocalDate, Integer> dailyCount = new HashMap<>();
-
+        Map<LocalDate, Integer> dailyCount;
         LocalDateTime endDate = startDate.plusDays(6);
 
         //각 케이스에 따라 값을 불러온다
         if (goal.getVerificationType().equals(VerificationType.PHOTO)) {
-            calculatePhotoVerification(userGoal, dailyCount, startDate, endDate);
+            dailyCount = photoVerificationService.calculateVerification(userGoal, startDate, endDate);
         } else if (goal.getVerificationType().equals(VerificationType.TIMER)) {
-            calculateTimeVerification(userGoal, dailyCount, startDate, endDate);
+            dailyCount = timerVerificationService.calculateVerification(userGoal, startDate, endDate);
+        } else {
+            throw new RuntimeException();
         }
 
         // 날짜별 성취도 계산
-        DailyAchievementRate dailyAchievementRate = getDailyAchievementRate(dailyCount, goal.getOneDose());
-        return dailyAchievementRate;
+        return getDailyAchievementRate(dailyCount, goal.getOneDose());
     }
 
     private DailyAchievementRate getDailyAchievementRate(Map<LocalDate, Integer> dailyCount, int oneDose) {
@@ -227,9 +227,10 @@ public class GoalReportServiceImpl implements GoalReportService {
         return dailyAchievementRate;
     }
 
-    private Map<LocalDate, Integer> calculatePhotoVerification(UserGoal userGoal, Map<LocalDate, Integer> dailyPhotoCount, LocalDateTime startDate, LocalDateTime endDate) {
+    private Map<LocalDate, Integer> calculatePhotoVerification(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
         List<PhotoVerification> verifications = photoVerificationService.getPhotoVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
 
+        Map<LocalDate, Integer> dailyCount = new HashMap<>();
         // 날짜별 인증 수 카운팅
         for (PhotoVerification photoVerification : verifications) {
             LocalDate date = photoVerification.getCreatedAt().toLocalDate();
@@ -237,13 +238,15 @@ public class GoalReportServiceImpl implements GoalReportService {
             int photoCount = photoVerification.getPhotoImgs() != null ? photoVerification.getPhotoImgs().size() : 0;
 
             //기존에 데이터가 있으면 불러와서 더한다.
-            dailyPhotoCount.put(date, dailyPhotoCount.getOrDefault(date, 0) + photoCount);
+            dailyCount.put(date, dailyCount.getOrDefault(date, 0) + photoCount);
         }
-        return dailyPhotoCount;
+        return dailyCount;
     }
 
-    private Map<LocalDate, Integer> calculateTimeVerification(UserGoal userGoal, Map<LocalDate, Integer> dailyCount, LocalDateTime startDate, LocalDateTime endDate) {
+    private Map<LocalDate, Integer> calculateTimeVerification(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
         List<TimerVerification> verifications = timerVerificationService.getTimerVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
+
+        Map<LocalDate, Integer> dailyCount = new HashMap<>();
 
         for (TimerVerification verification : verifications) {
             LocalDate date = verification.getCreatedAt().toLocalDate();
