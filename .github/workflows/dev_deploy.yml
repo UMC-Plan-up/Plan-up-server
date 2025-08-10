@@ -36,7 +36,7 @@ jobs:
       - name: Create application.yml for Planup
         run: |
           mkdir -p ./src/main/resources
-          cat << 'EOF' > ./src/main/resources/application.yml
+          cat << EOF > ./src/main/resources/application.yml
           ${{ secrets.APPLICATION_YML }}
           EOF
         shell: bash
@@ -63,6 +63,7 @@ jobs:
         with:
           name: planupServer
           path: build/libs/
+
       - name: Deploy to EC2
         shell: bash
         env:
@@ -78,8 +79,6 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
         run: |
           echo "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
@@ -102,8 +101,6 @@ jobs:
           export AWS_ACCESS_KEY="${AWS_ACCESS_KEY}"
           export AWS_SECRET_KEY="${AWS_SECRET_KEY}"
           export AWS_S3_BUCKET="${AWS_S3_BUCKET}"
-          export MAIL_USERNAME="${MAIL_USERNAME}"
-          export MAIL_PASSWORD="${MAIL_PASSWORD}"
           EOF
 
           # 실행 스크립트 생성
@@ -120,11 +117,11 @@ jobs:
           # 환경변수 로드
           source /home/${EC2_USERNAME}/env_vars.sh
           
-#          # 환경변수 확인 (디버깅용)
-#          echo "DB_HOST: \$DB_HOST"
-#          echo "DB_PORT: \$DB_PORT"
-#          echo "DB_NAME: \$DB_NAME"
-#          echo "Starting application..."
+          # 환경변수 확인 (디버깅용)
+          echo "DB_HOST: \$DB_HOST"
+          echo "DB_PORT: \$DB_PORT" 
+          echo "DB_NAME: \$DB_NAME"
+          echo "Starting application..."
           
           # Java 애플리케이션 실행
           nohup java -jar planupServer.jar > /home/${EC2_USERNAME}/logs/app.log 2>&1 </dev/null &
