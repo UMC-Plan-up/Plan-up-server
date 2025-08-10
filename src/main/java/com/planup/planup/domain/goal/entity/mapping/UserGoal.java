@@ -37,6 +37,7 @@ public class UserGoal extends BaseTimeEntity {
     private boolean isPublic;
     private String currentAmount;
     private int verificationCount;
+    //이 필드 골 로 이동
     private int goalTime;
 
 

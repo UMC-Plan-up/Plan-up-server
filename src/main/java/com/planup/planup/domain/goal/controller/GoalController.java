@@ -21,7 +21,6 @@ import java.util.List;
 @RequestMapping("/goals")
 public class GoalController {
     private final GoalService goalService;
-    private final JwtUtil jwtUtil;
 
     @PostMapping("/create")
     @Operation(summary = "목표 생성 API", description = "목표를 생성하는 API입니다.")
@@ -35,22 +34,43 @@ public class GoalController {
 
     @GetMapping("/create/list")
     @Operation(summary = "카테고리별 목표 조회 API", description = "목표 생성 시 선택한 카테고리의 친구/커뮤니티 목표 목록을 조회하는 API입니다.")
-    public ApiResponse<List<GoalResponseDto.MyGoalListDto>> getGoalList(
+    public ApiResponse<List<GoalResponseDto.GoalCreateListDto>> getGoalList(
             @RequestParam GoalCategory goalCategory,
             @Parameter(hidden = true) @CurrentUser Long userId) {
 
-        List<GoalResponseDto.MyGoalListDto> result = goalService.getGoalList(userId, goalCategory);
+        List<GoalResponseDto.GoalCreateListDto> result = goalService.getGoalList(userId, goalCategory);
 
         return ApiResponse.onSuccess(result);
     }
 
-    @GetMapping("/{goalId}")
+    @GetMapping("/mygoal/list")
+    @Operation(summary = "내 목표 조회 리스트 API", description = "내 목표 리스트들을 조회하는 API입니다.")
+    public ApiResponse<List<GoalResponseDto.MyGoalListDto>> getMyGoals(
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        List<GoalResponseDto.MyGoalListDto> result = goalService.getMyGoals(userId);
+
+        return ApiResponse.onSuccess(result);
+    }
+
+    @GetMapping("/mygoal/{goalId}")
     @Operation(summary = "내 목표 상세 조회 API", description = "특정 목표의 상세 정보를 조회하는 API입니다.")
     public ApiResponse<GoalResponseDto.MyGoalDetailDto> getGoalDetail(
             @Parameter(description = "목표 ID", example = "1")
             @RequestParam Long goalId,
             @Parameter(hidden = true) @CurrentUser Long userId) {
         GoalResponseDto.MyGoalDetailDto result = goalService.getMyGoalDetails(goalId, userId);
+
+        return ApiResponse.onSuccess(result);
+    }
+
+    @GetMapping("/friendgoal/list")
+    @Operation(summary = "친구 목표 조회 리스트 API", description = "친구 목표 리스트들을 조회하는 API입니다.")
+    public ApiResponse<List<GoalResponseDto.FriendGoalListDto>> getFriendGoals(
+            @RequestParam Long friendId,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        List<GoalResponseDto.FriendGoalListDto> result = goalService.getFriendGoals(userId,friendId);
 
         return ApiResponse.onSuccess(result);
     }

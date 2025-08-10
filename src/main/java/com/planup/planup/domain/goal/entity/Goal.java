@@ -47,12 +47,12 @@ public class Goal extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private GoalPeriod period;
 
-    @OneToMany
+    @OneToMany(mappedBy = "goal")
     private List<UserGoal> userGoals;
 
     //빈도
     private int frequency;
-    //1회 분량
+    //1회 분량//이거 수정
     private int oneDose;
     //종료일
     private Date endDate;
