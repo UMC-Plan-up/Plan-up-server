@@ -79,6 +79,8 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
         run: |
           echo "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
@@ -101,6 +103,8 @@ jobs:
           export AWS_ACCESS_KEY="${AWS_ACCESS_KEY}"
           export AWS_SECRET_KEY="${AWS_SECRET_KEY}"
           export AWS_S3_BUCKET="${AWS_S3_BUCKET}"
+          export MAIL_USERNAME="${MAIL_USERNAME}"
+          export MAIL_PASSWORD="${MAIL_PASSWORD}"
           EOF
 
           # 실행 스크립트 생성
