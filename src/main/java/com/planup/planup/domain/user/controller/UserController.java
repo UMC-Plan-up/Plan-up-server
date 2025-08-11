@@ -156,7 +156,7 @@ public class UserController {
     public ApiResponse<EmailSendResponseDTO> resendVerificationEmail (@RequestBody @Valid EmailVerificationRequestDTO request) {
 
         if (emailService.isEmailVerified(request.getEmail())) {
-            throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
+            throw new UserException(ErrorStatus. EMAIL_ALREADY_VERIFIED);
         }
         // 인증메일 재발송
         String verificationToken = emailService.resendVerificationEmail(request.getEmail());

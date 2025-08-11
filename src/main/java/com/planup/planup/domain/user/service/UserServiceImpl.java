@@ -130,9 +130,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public SignupResponseDTO signup(SignupRequestDTO request) {
         // 이메일 중복 체크
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
-        }
+        checkEmail(request.getEmail());
 
         // 비밀번호 확인 검증
         if (!request.getPassword().equals(request.getPasswordCheck())) {
@@ -226,7 +224,7 @@ public class UserServiceImpl implements UserService {
 
         // 다른 사용자가 이미 사용 중인 이메일인지 확인
         if (userRepository.existsByEmail(newEmail)) {
-            throw new UserException(ErrorStatus.EXIST_EMAIL);
+            throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
         }
 
         user.setEmail(newEmail);
@@ -449,12 +447,12 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-
     @Override
     @Transactional
     public void checkEmail(String email){
-        if (userRepository.existsByEmail(email)) {
-            throw new UserException(ErrorStatus.EXIST_EMAIL);
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isPresent() && user.get().getUserActivate() == UserActivate.ACTIVE) {
+            throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
         }
     }
 }
