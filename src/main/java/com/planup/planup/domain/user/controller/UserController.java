@@ -13,7 +13,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.net.URLEncoder;
@@ -170,9 +172,9 @@ public class UserController {
         return ApiResponse.onSuccess(response);
     }
 
-    @Operation(summary = "이메일 링크 클릭 처리", description = "이메일 링크 클릭 시 인증 처리 후 앱으로 리다이렉트")
+    @Operation(summary = "이메일 링크 클릭 처리", description = "이메일 링크 클릭 시 인증 처리 후 웹페이지 표시")
     @GetMapping("/users/email/verify-link")
-    public ApiResponse<EmailVerifyLinkResponseDTO> handleEmailLink(@RequestParam String token) {
+    public ResponseEntity<String> handleEmailLink(@RequestParam String token) {
         try {
             String email = emailService.completeVerification(token);
 
@@ -181,23 +183,18 @@ public class UserController {
                     "&verified=true&token=" + token +
                     "&from=email_verification";
 
-            EmailVerifyLinkResponseDTO response = EmailVerifyLinkResponseDTO.builder()
-                    .verified(true)
-                    .email(email)
-                    .message("이메일 인증이 완료되었습니다")
-                    .deepLinkUrl(deepLinkUrl)
-                    .token(token)
-                    .build();
+            String html = emailService.createSuccessHtml(email, deepLinkUrl);
 
-            return ApiResponse.onSuccess(response);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
+                    .body(html);
 
         } catch (IllegalArgumentException e) {
-            EmailVerifyLinkResponseDTO response = EmailVerifyLinkResponseDTO.builder()
-                    .verified(false)
-                    .message("이메일 인증에 실패했습니다")
-                    .build();
+            String html = emailService.createFailureHtml();
 
-            return ApiResponse.onFailure("EMAIL4001", "유효하지 않은 이메일 토큰입니다",response);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
+                    .body(html);
         }
     }
 
