@@ -21,7 +21,7 @@ public interface UserService {
 
     UserInfoResponseDTO getUserInfo(Long userId);
 
-    String updateEmail(Long userId, String newEmail);
+
 
     void checkEmail(String email);
     

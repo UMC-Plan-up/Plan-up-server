@@ -70,14 +70,6 @@ public class UserController {
         UserInfoResponseDTO userInfo = userService.getUserInfo(userId);
         return ApiResponse.onSuccess(userInfo);
     }
-    @Operation(summary = "이메일 변경", description = "유저 이메일 변경")
-    @PostMapping("/mypage/profile/email")
-    public ApiResponse<String> updateEmail(
-            @Parameter(hidden = true) @CurrentUser Long userId,
-            @RequestParam String newEmail) {
-        String email = userService.updateEmail(userId, newEmail);
-        return ApiResponse.onSuccess(email);
-    }
 
     @Operation(summary = "회원가입", description = "이메일/비밀번호로 새 계정을 생성합니다")
     @PostMapping("/users/signup")
