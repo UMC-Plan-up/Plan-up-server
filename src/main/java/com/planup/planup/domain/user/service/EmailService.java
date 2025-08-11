@@ -19,4 +19,10 @@ public interface EmailService {
 
     // 이메일 인증 토큰 정리
     void clearVerificationToken(String email);
+
+     // 비밀번호 변경용 딥링크 이메일 발송
+     String sendPasswordChangeEmail(String email);
+
+     // 비밀번호 변경 토큰 검증
+     String validatePasswordChangeToken(String token);
 }
