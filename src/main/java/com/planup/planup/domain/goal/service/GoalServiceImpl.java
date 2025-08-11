@@ -145,10 +145,7 @@ public class GoalServiceImpl implements GoalService{
     public GoalResponseDto.MyGoalDetailDto getMyGoalDetails(Long goalId, Long userId) {
         UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
 
-        //댓글 조회
-        List<Comment> commentList = commentService.getComments(goalId);
-
-        return GoalConvertor.toMyGoalDetailsDto(userGoal, commentList);
+        return GoalConvertor.toMyGoalDetailsDto(userGoal);
     }
 
     //활성화/비활성화
