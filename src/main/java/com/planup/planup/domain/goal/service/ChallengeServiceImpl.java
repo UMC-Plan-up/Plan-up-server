@@ -28,10 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -233,13 +230,29 @@ public class ChallengeServiceImpl implements ChallengeService{
         UserGoal friendUserGoal = challenge.getUserGoals().stream().filter(u -> !u.getUser().getId().equals(user.getId()))
                 .findFirst().orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
 
-        Map<LocalDate, Integer> caledVerification = getCaledVerification(challenge, myUserGoal);
+        int myPercent = calcAchievementRate(challenge, myUserGoal);
+        int friendPercent = calcAchievementRate(challenge, friendUserGoal);
 
-        ChallengeResponseDTO.ChallengeResultResponseDTO.builder()
+        return ChallengeResponseDTO.ChallengeResultResponseDTO.builder()
                 .id(challengeId)
                 .myName(user.getNickname())
                 .myProfile(user.getProfileImg())
-                .friendName()
+                .friendName(friendUserGoal.getUser().getNickname())
+                .friendProfile(friendUserGoal.getUser().getProfileImg())
+                .myPercent(myPercent)
+                .friendPercent(friendPercent)
+                .penalty(challenge.getPenalty())
+                .build();
+    }
+
+    private int calcAchievementRate(Challenge challenge, UserGoal myUserGoal) {
+        Map<LocalDate, Integer> caledVerification = getCaledVerification(challenge, myUserGoal);
+        Map<LocalDate, Integer> localDateIntegerMap = achievementCalculationService.calcAchievementByDay(caledVerification, challenge.getOneDose());
+        int sum = localDateIntegerMap.values().stream().filter(Objects::nonNull).mapToInt(Integer::intValue).sum();
+
+        int targetTotal = challenge.getFrequency() * 100;
+
+        return (sum / targetTotal) * 100;
     }
 
     private Map<LocalDate, Integer> getCaledVerification(Challenge challenge, UserGoal myUserGoal) {
@@ -249,7 +262,6 @@ public class ChallengeServiceImpl implements ChallengeService{
         } else if (challenge.getVerificationType().equals(VerificationType.PHOTO)) {
             verifications = photoVerificationService.calculateVerificationWithGoal(myUserGoal);
         }
-        Map<LocalDate, Integer> dayOfWeekIntegerMap = achievementCalculationService.calcAchievementByDay(verifications, challenge.getOneDose());
         return verifications;
     }
 }
