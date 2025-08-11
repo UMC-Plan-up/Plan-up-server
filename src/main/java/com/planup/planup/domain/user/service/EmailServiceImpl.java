@@ -109,6 +109,18 @@ public class EmailServiceImpl implements EmailService {
         return changeToken;
     }
 
+    private void clearExistingPasswordChangeTokens(String email) {
+        Set<String> keys = redisTemplate.keys("password-change:*");
+        if (keys != null) {
+            for (String key : keys) {
+                String storedEmail = redisTemplate.opsForValue().get(key);
+                if (email.equals(storedEmail)) {
+                    redisTemplate.delete(key);
+                }
+            }
+        }
+    }
+
     @Override
     public String validatePasswordChangeToken(String token) {
         String email = redisTemplate.opsForValue().get("password-change:" + token);
