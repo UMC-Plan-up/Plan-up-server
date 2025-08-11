@@ -17,14 +17,12 @@ public interface UserService {
 
     void updatePassword(Long userId, String password);
 
-
-
     UserInfoResponseDTO getUserInfo(Long userId);
 
     String updateEmail(Long userId, String newEmail);
 
     void checkEmail(String email);
-    
+
     SignupResponseDTO signup(SignupRequestDTO request);
 
     LoginResponseDTO login(LoginRequestDTO request);
@@ -38,4 +36,8 @@ public interface UserService {
     ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode, Long currentUserId);
 
     WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request);
+
+    KakaoLoginResponseDTO kakaoLogin(String code);
+
+    SignupResponseDTO kakaoSignup(KakaoSignupRequestDTO request);
 }
