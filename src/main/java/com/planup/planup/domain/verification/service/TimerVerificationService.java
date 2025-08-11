@@ -51,6 +51,8 @@ public class TimerVerificationService implements VerificationService{
         UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
         //에러 처리 필요
 
+        //목표 타입 확인 필요
+
         List<TimerVerification> runningTimers = timerVerificationRepository
                 .findByUserGoal_User_IdAndEndTimeIsNull(userId);
 
