@@ -3,6 +3,7 @@ package com.planup.planup.domain.goal.service;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
 import com.planup.planup.apiPayload.exception.custom.UserGoalException;
+import com.planup.planup.domain.global.service.AchievementCalculationService;
 import com.planup.planup.domain.goal.convertor.ChallengeConverter;
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
 import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
@@ -25,7 +26,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -43,6 +47,7 @@ public class ChallengeServiceImpl implements ChallengeService{
     private final UserGoalService userGoalService;
     private final PhotoVerificationService photoVerificationService;
     private final TimerVerificationService timerVerificationService;
+    private final AchievementCalculationService achievementCalculationService;
 
     @Override
     @Transactional
@@ -229,14 +234,23 @@ public class ChallengeServiceImpl implements ChallengeService{
         UserGoal friendUserGoal = challenge.getUserGoals().stream().filter(u -> !u.getUser().getId().equals(user.getId()))
                 .findFirst().orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
 
-        if (challenge.getVerificationType().equals(VerificationType.TIMER)) {
-            timerVerificationService.calculateVerification()
-        }
+        Map<LocalDate, Integer> caledVerification = getCaledVerification(challenge, myUserGoal);
 
         ChallengeResponseDTO.ChallengeResultResponseDTO.builder()
                 .id(challengeId)
                 .myName(user.getNickname())
                 .myProfile(user.getProfileImg())
                 .friendName()
+    }
+
+    private Map<LocalDate, Integer> getCaledVerification(Challenge challenge, UserGoal myUserGoal) {
+        Map<LocalDate, Integer> verifications = null;
+        if (challenge.getVerificationType().equals(VerificationType.TIMER)) {
+            verifications = timerVerificationService.calculateVerificationWithGoal(myUserGoal);
+        } else if (challenge.getVerificationType().equals(VerificationType.PHOTO)) {
+            verifications = photoVerificationService.calculateVerificationWithGoal(myUserGoal);
+        }
+        Map<DayOfWeek, Integer> dayOfWeekIntegerMap = achievementCalculationService.calcAchievementByDay(verifications, challenge.getOneDose());
+        return verifications;
     }
 }
