@@ -6,6 +6,7 @@ import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.global.service.ImageUploadService;
+import com.planup.planup.domain.oauth.entity.OAuthAccount;
 import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.entity.*;
 import com.planup.planup.domain.user.repository.InvitedUserRepository;
@@ -51,7 +52,7 @@ public class UserServiceImpl implements UserService {
     private final FriendRepository friendRepository;
     private final EmailService emailService;
     private final UserWithdrawalRepository userWithdrawalRepository;
-
+    private final KakaoApiService kakaoApiService;
 
     @Override
     @Transactional(readOnly = true)
@@ -453,6 +454,109 @@ public class UserServiceImpl implements UserService {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isPresent() && user.get().getUserActivate() == UserActivate.ACTIVE) {
             throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
+        }
+    }
+
+    @Override
+    @Transactional
+    public KakaoLoginResponseDTO kakaoLogin(String code) {
+        try {
+            // 카카오에서 사용자 정보 가져오기
+            KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(code);
+            String email = kakaoUserInfo.getEmail();
+
+            if (email == null) {
+                throw new UserException(ErrorStatus.NOT_FOUND_USER);
+            }
+
+            // 기존 회원 확인
+            Optional<User> existingUser = userRepository.findByEmail(email);
+
+            if (existingUser.isPresent()) {
+                // 기존 회원 - 바로 로그인 (기존 login 로직 재사용)
+                User user = existingUser.get();
+
+                if (user.getUserActivate() != UserActivate.ACTIVE) {
+                    throw new UserException(ErrorStatus.USER_INACTIVE);
+                }
+
+                String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+
+                return KakaoLoginResponseDTO.builder()
+                        .status("LOGIN_SUCCESS")
+                        .accessToken(accessToken)
+                        .nickname(user.getNickname())
+                        .profileImgUrl(user.getProfileImg())
+                        .build();
+            } else {
+                // 신규 회원 - 회원가입 필요 (화면 설계서의 닉네임 입력 단계)
+                String tempToken = jwtUtil.generateToken(email, "TEMP", 0L);
+
+                return KakaoLoginResponseDTO.builder()
+                        .status("SIGNUP_REQUIRED")
+                        .tempToken(tempToken)
+                        .email(email)
+                        .build();
+            }
+
+        } catch (UserException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("카카오 로그인 실패", e);
+            throw new UserException(ErrorStatus.NOT_FOUND_USER);
+        }
+    }
+
+    @Override
+    @Transactional
+    public SignupResponseDTO kakaoSignup(KakaoSignupRequestDTO request) {
+        try {
+            // 임시 토큰에서 이메일 추출
+            String email = jwtUtil.extractUsername(request.getTempToken());
+
+            // 토큰 유효성 검증
+            if (!jwtUtil.validateToken(request.getTempToken())) {
+                throw new UserException(ErrorStatus.NOT_FOUND_USER);
+            }
+
+            // 이메일 중복 체크 (기존 checkEmail 재사용)
+            checkEmail(email);
+
+            // User 생성 (기존 signup 로직 재사용)
+            User user = User.builder()
+                    .email(email)
+                    .password(null) // 카카오는 비밀번호 없음
+                    .nickname(request.getNickname())
+                    .role(Role.USER)
+                    .userActivate(UserActivate.ACTIVE)
+                    .userLevel(UserLevel.LEVEL_1)
+                    .alarmAllow(true)
+                    .emailVerified(true)
+                    .emailVerifiedAt(LocalDateTime.now())
+                    .build();
+
+            User savedUser = userRepository.save(user);
+
+            // OAuth 계정 연결
+            OAuthAccount oAuthAccount = OAuthAccount.builder()
+                    .provider(AuthProvideerEnum.KAKAO)
+                    .email(email)
+                    .user(savedUser)
+                    .build();
+            oAuthAccountRepository.save(oAuthAccount);
+
+            // 기존 SignupResponseDTO 재사용
+            return SignupResponseDTO.builder()
+                    .id(savedUser.getId())
+                    .email(savedUser.getEmail())
+                    .friendNickname(null) // 카카오는 초대코드 없음
+                    .build();
+
+        } catch (UserException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("카카오 회원가입 실패", e);
+            throw new UserException(ErrorStatus.NOT_FOUND_USER);
         }
     }
 }
