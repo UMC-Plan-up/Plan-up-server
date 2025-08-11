@@ -24,6 +24,9 @@ public interface UserService {
 
 
     void checkEmail(String email);
+
+    // 이메일 존재 확인 (비밀번호 변경용)
+    void checkEmailExists(String email);
     
     SignupResponseDTO signup(SignupRequestDTO request);
 
