@@ -10,6 +10,7 @@ import com.planup.planup.domain.goal.service.ChallengeService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -81,7 +82,8 @@ public class ChallengeController {
 
     @GetMapping("/{challengeId}/result")
     @Operation(summary = "챌린지의 결과를 확인한다.")
-    public ApiResponse<ChallengeResponseDTO.ChallengeResultResponseDTO> requestChallengeResult(@CurrentUser User user, @PathVariable Long challengeId) {
-        challengeService.getChallengeResult(user, challengeId);
+    public ApiResponse<ChallengeResponseDTO.ChallengeResultResponseDTO> requestChallengeResult(@Parameter(hidden = true) @CurrentUser User user, @PathVariable Long challengeId) {
+        ChallengeResponseDTO.ChallengeResultResponseDTO challengeResult = challengeService.getChallengeResult(user, challengeId);
+        return ApiResponse.onSuccess(challengeResult);
     }
 }
