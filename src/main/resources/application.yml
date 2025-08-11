@@ -3,7 +3,7 @@ server:
 
 spring:
   mail:
-    host: smtp.gmail.com
+    host: ${MAIL_HOST:smtp.gmail.com}
     port: 587
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
@@ -13,6 +13,7 @@ spring:
           auth: true
           starttls:
             enable: true
+
   datasource:
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&useLegacyDatetimeCode=false
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -39,17 +40,6 @@ spring:
       port: 6379
       timeout: 3000ms
 
-  mail:
-    host: ${MAIL_HOST}
-    port: 587
-    username: ${MAIL_USERNAME}  # Gmail 주소
-    password: ${MAIL_PASSWORD}   # 앱 비밀번호
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
 app:
   frontend:
     url: ${FRONTEND_URL:http://localhost:3000}
