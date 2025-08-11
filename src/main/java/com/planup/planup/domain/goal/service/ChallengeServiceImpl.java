@@ -149,7 +149,6 @@ public class ChallengeServiceImpl implements ChallengeService{
     public void rejectChallengeRequest(Long userId, Long challengeId) {
         User user = userService.getUserbyUserId(userId);
         Goal goal = goalService.getGoalById(challengeId);
-        UserGoal userGoal = userGoalService.getUserGoalByUserAndGoal(user, goal);
         Challenge challenge = getChallengeById(challengeId);
 
         challenge.setChallengeStatus(ChallengeStatus.REJECTED);
@@ -250,7 +249,7 @@ public class ChallengeServiceImpl implements ChallengeService{
         } else if (challenge.getVerificationType().equals(VerificationType.PHOTO)) {
             verifications = photoVerificationService.calculateVerificationWithGoal(myUserGoal);
         }
-        Map<DayOfWeek, Integer> dayOfWeekIntegerMap = achievementCalculationService.calcAchievementByDay(verifications, challenge.getOneDose());
+        Map<LocalDate, Integer> dayOfWeekIntegerMap = achievementCalculationService.calcAchievementByDay(verifications, challenge.getOneDose());
         return verifications;
     }
 }
