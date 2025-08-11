@@ -24,7 +24,8 @@ public interface GoalService {
     List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId);
     List<GoalResponseDto.FriendGoalListDto> getFriendGoals(Long userId, Long friendsId);
     List<GoalResponseDto.RankingDto> getGoalRanking(Long goalId);
-
+    List<GoalResponseDto.FriendTimerStatusDto> getFriendTimerStatus(Long goalId, Long userId);
+    GoalResponseDto.GoalMemoResponseDto saveMemo(Long userId, Long goalId, GoalRequestDto.CreateMemoRequestDto request);
 
     Goal getGoalById(Long challengeId);
 }

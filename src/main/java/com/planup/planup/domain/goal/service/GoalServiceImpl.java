@@ -11,7 +11,9 @@ import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
+import com.planup.planup.domain.goal.entity.GoalMemo;
 import com.planup.planup.domain.goal.repository.CommentRepository;
+import com.planup.planup.domain.goal.repository.GoalMemoRepository;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
@@ -21,14 +23,17 @@ import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.GoalRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.user.repository.UserRepository;
+import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.RequiredArgsConstructor;
 import com.planup.planup.domain.user.entity.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,6 +47,8 @@ public class GoalServiceImpl implements GoalService{
     private final CommentService commentService;
     private final CommentRepository commentRepository;
     private final FriendRepository friendRepository;
+    private final GoalMemoRepository goalMemoRepository;
+    private final TimerVerificationService timerVerificationService;
 
     //목표 생성
     @Transactional
@@ -273,6 +280,94 @@ public class GoalServiceImpl implements GoalService{
 
         if (!isFriend) {
             throw new RuntimeException("친구 관계가 아니므로 목표를 조회할 수 없습니다.");
+        }
+    }
+
+    //친구 타이머 현황 api
+    @Transactional(readOnly = true)
+    public List<GoalResponseDto.FriendTimerStatusDto> getFriendTimerStatus(Long goalId, Long userId) {
+        Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
+
+        List<UserGoal> userGoals = userGoalRepository.findByGoalId(goalId);
+
+        return userGoals.stream()
+                .map(userGoal -> {
+                    User user = userGoal.getUser();
+                    String todayTime;
+
+                    if (goal.getVerificationType() == VerificationType.TIMER) {
+                        // 타이머인 경우 실제 시간 계산
+                        LocalTime totalTime = timerVerificationService.getTodayTotalTime(user.getId(), goalId);
+                        todayTime = String.format("%02d:%02d:%02d",
+                                totalTime.getHour(),
+                                totalTime.getMinute(),
+                                totalTime.getSecond());
+                    } else {
+                        todayTime = "00:00:00";
+                    }
+
+                    return GoalConvertor.toFriendTimerStatusDto(user, todayTime, goal.getVerificationType());
+                })
+                .collect(Collectors.toList());
+    }
+
+    //메모 관련 메서드들
+    public GoalResponseDto.GoalMemoResponseDto saveMemo(
+            Long userId,
+            Long goalId,
+            GoalRequestDto.CreateMemoRequestDto request) {
+
+        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+
+        Optional<GoalMemo> existingMemoOpt = goalMemoRepository
+                .findByUserGoalAndMemoDate(userGoal, request.getMemoDate());
+
+        if (existingMemoOpt.isEmpty()) {
+            return handleNoExistingMemo(userGoal, request);
+        }
+
+        return handleExistingMemo(existingMemoOpt.get(), request);
+    }
+
+    private GoalResponseDto.GoalMemoResponseDto handleNoExistingMemo(
+            UserGoal userGoal,
+            GoalRequestDto.CreateMemoRequestDto request) {
+
+        if (request.hasContent()) {
+            GoalMemo newMemo = GoalConvertor.toMemo(
+                    userGoal,
+                    request.getTrimmedMemo(),
+                    request.getMemoDate()
+            );
+
+            GoalMemo savedMemo = goalMemoRepository.save(newMemo);
+
+            return GoalConvertor.toCreatedResponse(savedMemo);
+        } else {
+            return GoalConvertor.toNoChangeResponse(request.getMemoDate());
+        }
+    }
+
+    private GoalResponseDto.GoalMemoResponseDto handleExistingMemo(
+            GoalMemo existingMemo,
+            GoalRequestDto.CreateMemoRequestDto request) {
+
+        if (request.hasContent()) {
+            String newContent = request.getTrimmedMemo();
+
+            if (existingMemo.getMemo().equals(newContent)) {
+                return GoalConvertor.toNoChangeResponse(request.getMemoDate());
+            }
+
+            GoalConvertor.updateMemoContent(existingMemo, newContent);
+            GoalMemo updatedMemo = goalMemoRepository.save(existingMemo);
+
+            return GoalConvertor.toUpdatedResponse(updatedMemo);
+        } else {
+            goalMemoRepository.delete(existingMemo);
+
+            return GoalConvertor.toDeletedResponse(request.getMemoDate());
         }
     }
 
