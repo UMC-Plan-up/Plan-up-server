@@ -3,6 +3,7 @@ package com.planup.planup.domain.report.service;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ReportException;
 import com.planup.planup.domain.global.redis.RedisServiceForReport;
+import com.planup.planup.domain.global.service.AchievementCalculationService;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
@@ -40,6 +41,7 @@ public class GoalReportServiceImpl implements GoalReportService {
     private final TimerVerificationService timerVerificationService;
     private final RedisServiceForReport redisServiceForReport;
     private final ReportUserRepository reportUserRepository;
+    private final AchievementCalculationService achievementCalculationService;
 
     @Override
     public void createGoalReportsByUserGoal(LocalDateTime startDate, LocalDateTime endDate) {
@@ -204,26 +206,11 @@ public class GoalReportServiceImpl implements GoalReportService {
     }
 
     private DailyAchievementRate getDailyAchievementRate(Map<LocalDate, Integer> dailyCount, int oneDose) {
-        Map<DayOfWeek, Integer> byDay = calcAchievementByDay(dailyCount, oneDose);
+        Map<DayOfWeek, Integer> byDay = achievementCalculationService.calcAchievementByDay(dailyCount, oneDose);
         return toDailyAchievementRate(byDay);
     }
 
-    //요일별 퍼센트를 계산한다.
-    private Map<DayOfWeek, Integer> calcAchievementByDay(Map<LocalDate, Integer> dailyCount, int oneDose) {
-        Map<DayOfWeek, Integer> result = new EnumMap<>(DayOfWeek.class);
-        if (oneDose <= 0) return result; // 방어코드
 
-        for (Map.Entry<LocalDate, Integer> e : dailyCount.entrySet()) {
-            DayOfWeek dow = e.getKey().getDayOfWeek();
-            int totalPhotoCount = e.getValue() == null ? 0 : e.getValue();
-
-            // 백분율 계산 (내림), 최대 100
-            int achievement = (int) Math.min(100, ((double) totalPhotoCount / oneDose) * 100);
-
-            result.put(dow, achievement);
-        }
-        return result;
-    }
 
     //퍼센트를 가지고 DailyAchievementRate를 만든다.
     private DailyAchievementRate toDailyAchievementRate(Map<DayOfWeek, Integer> byDay) {
