@@ -87,6 +87,37 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
+    public String sendPasswordChangeEmail(String email) {
+        String changeToken = UUID.randomUUID().toString();
+
+        redisTemplate.opsForValue().set(
+                "password-change:" + changeToken,
+                email,
+                30,
+                TimeUnit.MINUTES
+        );
+
+        String changeUrl = appDomain + "/users/password/change-link?token=" + changeToken;
+        sendPasswordChangeEmailContent(email, changeUrl);
+
+        return changeToken;
+    }
+
+    @Override
+    public String validatePasswordChangeToken(String token) {
+        String email = redisTemplate.opsForValue().get("password-change:" + token);
+
+        if (email == null) {
+            throw new IllegalArgumentException("만료되거나 유효하지 않은 비밀번호 변경 토큰입니다.");
+        }
+
+        // 토큰 사용 후 삭제
+        redisTemplate.delete("password-change:" + token);
+        
+        return email;
+    }
+
+    @Override
     public void clearVerificationToken(String email) {
         redisTemplate.delete("email-verified:" + email);
         clearExistingTokens(email);
@@ -162,5 +193,50 @@ public class EmailServiceImpl implements EmailService {
                 </p>
             </div>
             """.formatted(verificationUrl);
+    }
+    private void sendPasswordChangeEmailContent(String email, String changeUrl) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setSubject("Plan-Up 비밀번호 변경 확인");
+            helper.setText(createPasswordChangeEmailContent(changeUrl), true);
+            helper.setFrom("noreply@planup.com");
+
+            mailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("비밀번호 변경 이메일 발송 실패", e);
+        }
+    }
+
+    private String createPasswordChangeEmailContent(String changeUrl) {
+        return """
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #4285f4;">Plan-Up</h1>
+                </div>
+                
+                <h2 style="color: #333;">비밀번호 변경 확인</h2>
+                <p style="color: #666; line-height: 1.6;">
+                    안녕하세요!<br>
+                    비밀번호 변경을 위해 아래 버튼을 클릭해주세요.
+                </p>
+                
+                <div style="text-align: center; margin: 40px 0;">
+                    <a href="%s" 
+                       style="background: #4285f4; color: white; padding: 15px 30px; 
+                              text-decoration: none; border-radius: 8px; display: inline-block;
+                              font-weight: bold;">
+                        비밀번호 변경하기
+                    </a>
+                </div>
+                
+                <p style="color: #999; font-size: 14px;">
+                    * 이 링크는 30분 후 만료됩니다.<br>
+                    * 본인이 요청하지 않은 경우 이 이메일을 무시해주세요.
+                </p>
+            </div>
+            """.formatted(changeUrl);
     }
 }
