@@ -438,4 +438,13 @@ public class UserServiceImpl implements UserService {
             throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
         }
     }
+
+    @Override
+    @Transactional
+    public void checkEmailExists(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty() || user.get().getUserActivate() != UserActivate.ACTIVE) {
+            throw new UserException(ErrorStatus.NOT_FOUND_USER);
+        }
+    }
 }
