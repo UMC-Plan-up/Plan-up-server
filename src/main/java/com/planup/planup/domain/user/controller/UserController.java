@@ -210,6 +210,36 @@ public class UserController {
         return ApiResponse.onSuccess(response);
     }
 
+    @Operation(summary = "비밀번호 변경 링크 클릭 처리", description = "비밀번호 변경 링크 클릭 시 확인 처리 후 앱으로 리다이렉트")
+    @GetMapping("/users/password/change-link")
+    public ApiResponse<PasswordChangeLinkResponseDTO> handlePasswordChangeLink(@RequestParam String token) {
+        try {
+            String email = emailService.validatePasswordChangeToken(token);
+
+            String deepLinkUrl = "planup://password/change?email=" +
+                    URLEncoder.encode(email, StandardCharsets.UTF_8) +
+                    "&verified=true&token=" + token +
+                    "&from=password_change";
+
+            PasswordChangeLinkResponseDTO response = PasswordChangeLinkResponseDTO.builder()
+                    .success(true)
+                    .email(email)
+                    .message("비밀번호 변경이 확인되었습니다")
+                    .deepLinkUrl(deepLinkUrl)
+                    .token(token)
+                    .build();
+
+            return ApiResponse.onSuccess(response);
+
+        } catch (IllegalArgumentException e) {
+            PasswordChangeLinkResponseDTO response = PasswordChangeLinkResponseDTO.builder()
+                    .success(false)
+                    .message("비밀번호 변경 확인에 실패했습니다")
+                    .build();
+
+            return ApiResponse.onFailure("PASSWORD4001", "유효하지 않은 비밀번호 변경 토큰입니다", response);
+        }
+    }
 
     @Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 처리하고 탈퇴 이유를 저장합니다")
     @PostMapping("/users/withdraw")
