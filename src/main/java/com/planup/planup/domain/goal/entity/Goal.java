@@ -57,6 +57,9 @@ public class Goal extends BaseTimeEntity {
     //종료일
     private Date endDate;
 
+    @Builder.Default
+    private boolean isActive = true;
+
     //목표 인증 방식(타이머/사진)
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
@@ -67,4 +70,12 @@ public class Goal extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> commentList = new ArrayList<>();
+
+
+    public void setInActive() {
+        this.isActive = false;
+        for (UserGoal userGoal : userGoals) {
+            userGoal.setActive(false);
+        }
+    }
 }
