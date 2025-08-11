@@ -87,6 +87,12 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
+    public String resendPasswordChangeEmail(String email) {
+        clearExistingPasswordChangeTokens(email);
+        return sendPasswordChangeEmail(email);
+    }
+
+    @Override
     public String sendPasswordChangeEmail(String email) {
         String changeToken = UUID.randomUUID().toString();
 
