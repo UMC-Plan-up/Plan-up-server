@@ -74,6 +74,7 @@ public class PhotoVerificationService implements VerificationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Map<LocalDate, Integer> calculateVerificationWithStartAndEnd(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
         List<PhotoVerification> verifications = getPhotoVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
 
@@ -91,6 +92,7 @@ public class PhotoVerificationService implements VerificationService {
     }
 
     @Override
+    @Transactional
     public Map<LocalDate, Integer> calculateVerificationWithGoal(UserGoal userGoal) {
         List<PhotoVerification> verifications = getAllVerificationByUserGoal(userGoal);
         return aggregateToDailySeconds(verifications);
