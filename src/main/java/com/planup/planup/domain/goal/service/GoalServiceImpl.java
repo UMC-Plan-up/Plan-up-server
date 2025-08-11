@@ -1,5 +1,8 @@
 package com.planup.planup.domain.goal.service;
 
+import com.planup.planup.domain.friend.entity.Friend;
+import com.planup.planup.domain.friend.entity.FriendStatus;
+import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
@@ -38,6 +41,7 @@ public class GoalServiceImpl implements GoalService{
     private final PhotoVerificationRepository photoVerificationRepository;
     private final CommentService commentService;
     private final CommentRepository commentRepository;
+    private final FriendRepository friendRepository;
 
     //목표 생성
     @Transactional
@@ -72,13 +76,13 @@ public class GoalServiceImpl implements GoalService{
         return GoalConvertor.toGoalResultDto(savedGoal);
     }
 
-    //목표 리스트 조회(세부 내용 조회X)
+    //목표 리스트 조회(목표 생성시 -> 세부 내용 조회X)
     @Transactional(readOnly = true)
-    public List<GoalResponseDto.MyGoalListDto> getGoalList(Long userId, GoalCategory goalCategory) {
+    public List<GoalResponseDto.GoalCreateListDto> getGoalList(Long userId, GoalCategory goalCategory) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        List<GoalResponseDto.MyGoalListDto> result = new ArrayList<>();
+        List<GoalResponseDto.GoalCreateListDto> result = new ArrayList<>();
 
         List<UserGoal> friendGoals = userGoalRepository.findFriendGoalsByCategory(userId, goalCategory);
         for (UserGoal userGoal : friendGoals) {
@@ -88,7 +92,7 @@ public class GoalServiceImpl implements GoalService{
             int currentParticipants = userGoalRepository.countByGoalId(userGoal.getGoal().getId());
             int remainingSlots = userGoal.getGoal().getLimitFriendCount() - currentParticipants;
 
-            result.add(GoalConvertor.toMyGoalListDto(userGoal, creator, remainingSlots));
+            result.add(GoalConvertor.toGoalCreateListDto(userGoal, creator, remainingSlots));
         }
 
         List<UserGoal> communityGoals = userGoalRepository.findCommunityGoalsByCategory(goalCategory);
@@ -99,10 +103,41 @@ public class GoalServiceImpl implements GoalService{
             int currentParticipants = userGoalRepository.countByGoalId(userGoal.getGoal().getId());
             int remainingSlots = userGoal.getGoal().getLimitFriendCount() - currentParticipants;
 
-            result.add(GoalConvertor.toMyGoalListDto(userGoal, creator, remainingSlots));
+            result.add(GoalConvertor.toGoalCreateListDto(userGoal, creator, remainingSlots));
         }
 
         return result;
+    }
+
+    //내 목표 조회(리스트)
+    @Transactional(readOnly = true)
+    public List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        List<UserGoal> userGoals = userGoalRepository.findByUserId(userId);
+
+        return userGoals.stream()
+                .map(GoalConvertor::toMyGoalListDto)
+                .collect(Collectors.toList());
+    }
+
+    //친구 목표 조회(리스트)
+    @Transactional(readOnly = true)
+    public List<GoalResponseDto.FriendGoalListDto> getFriendGoals(Long userId, Long friendsId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        userRepository.findById(friendsId)
+                .orElseThrow(() -> new RuntimeException("친구를 찾을 수 없습니다."));
+        //친구 관계 검증 필요, 추후 구현
+        validateFriendRelationship(userId, friendsId);
+
+        List<UserGoal> userGoals = userGoalRepository.findByUserIdAndIsPublicTrue(friendsId);
+
+        return userGoals.stream()
+                .map(GoalConvertor::toFriendGoalListDto)
+                .collect(Collectors.toList());
     }
 
     //내 목표 조회(세부 내용 조회)
@@ -196,7 +231,6 @@ public class GoalServiceImpl implements GoalService{
 
         commentRepository.deleteByGoalId(goalId);
 
-        // 5. 마지막으로 Goal 삭제
         goalRepository.delete(goal);
     }
 
@@ -215,6 +249,34 @@ public class GoalServiceImpl implements GoalService{
                         .photoImg(verification.getPhotoImg())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    //랭킹 조회 서비스
+    @Transactional(readOnly = true)
+    public List<GoalResponseDto.RankingDto> getGoalRanking(Long goalId) {
+        List<UserGoal> userGoals = userGoalRepository.findByGoalIdOrderByVerificationCountDesc(goalId);
+
+        // UserGoal 리스트를 RankingDto 리스트로 변환
+        return userGoals.stream()
+                .map(GoalConvertor::toRankingDto)
+                .collect(Collectors.toList());
+    }
+
+    private void validateFriendRelationship(Long userId, Long friendsId) {
+        List<Friend> friendRelations = friendRepository
+                .findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
+                        FriendStatus.ACCEPTED, userId,
+                        FriendStatus.ACCEPTED, userId);
+
+        boolean isFriend = friendRelations.stream()
+                .anyMatch(relation ->
+                        (relation.getUser().getId().equals(userId) && relation.getFriend().getId().equals(friendsId)) ||
+                                (relation.getUser().getId().equals(friendsId) && relation.getFriend().getId().equals(userId))
+                );
+
+        if (!isFriend) {
+            throw new RuntimeException("친구 관계가 아니므로 목표를 조회할 수 없습니다.");
+        }
     }
 
     @Override

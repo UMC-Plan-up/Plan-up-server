@@ -48,8 +48,8 @@ public class GoalConvertor {
                 .build();
     }
 
-    //내 목표 리스트 조회 변환(DTO 가져오기)
-    public static GoalResponseDto.MyGoalListDto toMyGoalListDto(
+    //목표 리스트 조회 변환(DTO 가져오기)
+    public static GoalResponseDto.GoalCreateListDto toGoalCreateListDto(
             UserGoal userGoal,
             User creator,
             int participantCount) {
@@ -57,7 +57,6 @@ public class GoalConvertor {
         Goal goal = userGoal.getGoal();
 
         Integer goalTime = null;
-        Long spentTimeMinutes = null;
 
         if (goal.getVerificationType() == VerificationType.TIMER) {
             if (!userGoal.getTimerVerifications().isEmpty()) {
@@ -65,19 +64,48 @@ public class GoalConvertor {
             }
         }
 
-        return GoalResponseDto.MyGoalListDto.builder()
+        return GoalResponseDto.GoalCreateListDto.builder()
                 .goalId(goal.getId())
                 .goalName(goal.getGoalName())
                 .goalCategory(goal.getGoalCategory())
                 .goalType(goal.getGoalType())
                 .verificationType(goal.getVerificationType())
                 .goalTime(goalTime)
-                .spentTimeMinutes(spentTimeMinutes)
                 .frequency(goal.getFrequency())
                 .oneDose(goal.getOneDose())
                 .creatorNickname(creator.getNickname())
                 .creatorProfileImg(creator.getProfileImg())
                 .participantCount(participantCount)
+                .build();
+    }
+
+    //내 목표 리스트 조회 변환(DTO 가져오기)
+    public static GoalResponseDto.MyGoalListDto toMyGoalListDto(
+            UserGoal userGoal) {
+        Goal goal = userGoal.getGoal();
+
+        return GoalResponseDto.MyGoalListDto.builder()
+                .goalId(goal.getId())
+                .goalName(goal.getGoalName())
+                .goalType(goal.getGoalType())
+                .frequency(goal.getFrequency())
+                .oneDose(goal.getOneDose())
+                .build();
+    }
+
+    //내 목표 리스트 조회 변환(DTO 가져오기)
+    public static GoalResponseDto.FriendGoalListDto toFriendGoalListDto(
+            UserGoal friendGoal) {
+        Goal goal = friendGoal.getGoal();
+
+        return GoalResponseDto.FriendGoalListDto.builder()
+                .goalId(goal.getId())
+                .goalName(goal.getGoalName())
+                .goalType(goal.getGoalType())
+                .verificationType(goal.getVerificationType())
+                .goalTime(friendGoal.getGoalTime())
+                .frequency(goal.getFrequency())
+                .oneDose(goal.getOneDose())
                 .build();
     }
 
@@ -111,6 +139,17 @@ public class GoalConvertor {
                 .verificationType(goal.getVerificationType())
                 .limitFriendCount(goal.getLimitFriendCount())
                 .goalTime(goalTime)
+                .build();
+    }
+
+    //랭킹 변환
+    public static GoalResponseDto.RankingDto toRankingDto(UserGoal userGoal) {
+        return GoalResponseDto.RankingDto.builder()
+                .goalId(userGoal.getGoal().getId())
+                .userId(userGoal.getUser().getId())
+                .nickName(userGoal.getUser().getNickname())
+                .profileImg(userGoal.getUser().getProfileImg())
+                .verificationCount(userGoal.getVerificationCount())
                 .build();
     }
 
