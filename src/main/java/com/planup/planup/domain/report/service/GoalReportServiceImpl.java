@@ -15,8 +15,6 @@ import com.planup.planup.domain.report.entity.*;
 import com.planup.planup.domain.report.repository.GoalReportRepository;
 import com.planup.planup.domain.report.repository.ReportUserRepository;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.verification.entity.PhotoVerification;
-import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.verification.service.PhotoVerificationService;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.AllArgsConstructor;
@@ -194,9 +192,9 @@ public class GoalReportServiceImpl implements GoalReportService {
 
         //각 케이스에 따라 값을 불러온다
         if (goal.getVerificationType().equals(VerificationType.PHOTO)) {
-            dailyCount = photoVerificationService.calculateVerification(userGoal, startDate, endDate);
+            dailyCount = photoVerificationService.calculateVerificationWithStartAndEnd(userGoal, startDate, endDate);
         } else if (goal.getVerificationType().equals(VerificationType.TIMER)) {
-            dailyCount = timerVerificationService.calculateVerification(userGoal, startDate, endDate);
+            dailyCount = timerVerificationService.calculateVerificationWithStartAndEnd(userGoal, startDate, endDate);
         } else {
             throw new RuntimeException();
         }

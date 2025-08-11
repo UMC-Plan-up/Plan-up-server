@@ -19,6 +19,8 @@ import com.planup.planup.domain.goal.repository.TimeChallengeRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.verification.service.PhotoVerificationService;
+import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +41,8 @@ public class ChallengeServiceImpl implements ChallengeService{
     private final UserService userService;
     private final UserGoalRepository userGoalRepository;
     private final UserGoalService userGoalService;
+    private final PhotoVerificationService photoVerificationService;
+    private final TimerVerificationService timerVerificationService;
 
     @Override
     @Transactional
@@ -225,7 +229,9 @@ public class ChallengeServiceImpl implements ChallengeService{
         UserGoal friendUserGoal = challenge.getUserGoals().stream().filter(u -> !u.getUser().getId().equals(user.getId()))
                 .findFirst().orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
 
-
+        if (challenge.getVerificationType().equals(VerificationType.TIMER)) {
+            timerVerificationService.calculateVerification()
+        }
 
         ChallengeResponseDTO.ChallengeResultResponseDTO.builder()
                 .id(challengeId)

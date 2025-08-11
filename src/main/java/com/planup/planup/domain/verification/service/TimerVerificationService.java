@@ -24,6 +24,12 @@ public class TimerVerificationService implements VerificationService{
     private final UserGoalRepository userGoalRepository;
     private final TimerVerificationRepository timerVerificationRepository;
 
+    //userGoal과 관련된 모든 인증 조회
+    public List<TimerVerification> getVerificationByUserGoal(UserGoal userGoal) {
+        List<TimerVerification> ver = timerVerificationRepository.findAllByUserGoal(userGoal);
+        return ver;
+    }
+
     //오늘 총 기록시간 조회
     public LocalTime getTodayTotalTime(Long userId, Long goalId) {
         UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId,userId);
@@ -123,16 +129,26 @@ public class TimerVerificationService implements VerificationService{
 
     @Override
     @Transactional
-    public Map<LocalDate, Integer> calculateVerification(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
+    public Map<LocalDate, Integer> calculateVerificationWithStartAndEnd(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
         List<TimerVerification> verifications = getTimerVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
 
+        return aggregateToDailySeconds(verifications);
+    }
+
+    @Override
+    @Transactional
+    public Map<LocalDate, Integer> calculateVerificationWithGoal(UserGoal userGoal) {
+        List<TimerVerification> verifications = getVerificationByUserGoal(userGoal);
+
+        return aggregateToDailySeconds(verifications);
+    }
+
+    // 2) 계산(집계) 전용: 레코드 → 날짜별 초(second) 합계
+    protected Map<LocalDate, Integer> aggregateToDailySeconds(List<TimerVerification> verifications) {
         Map<LocalDate, Integer> dailyCount = new HashMap<>();
-
-        for (TimerVerification verification : verifications) {
-            LocalDate date = verification.getCreatedAt().toLocalDate();
-
-            int seconds = (int) (verification.getSpentTime() != null ? verification.getSpentTime().toMillis() / 1000.0 : 0.0);
-
+        for (TimerVerification v : verifications) {
+            LocalDate date = v.getCreatedAt().toLocalDate();
+            int seconds = (int) ((v.getSpentTime() == null ? 0L : v.getSpentTime().toMillis()) / 1000);
             dailyCount.put(date, dailyCount.getOrDefault(date, 0) + seconds);
         }
         return dailyCount;

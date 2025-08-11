@@ -34,4 +34,6 @@ public interface PhotoVerificationRepository extends JpaRepository<PhotoVerifica
             @Param("endDate") LocalDateTime endDate,
             Pageable pageable
     );
+
+    List<PhotoVerification> findAllByUserGoal(UserGoal userGoal);
 }

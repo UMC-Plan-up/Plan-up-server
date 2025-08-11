@@ -4,6 +4,7 @@ import com.planup.planup.domain.global.service.ImageUploadService;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.verification.entity.PhotoVerification;
+import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,10 @@ public class PhotoVerificationService implements VerificationService {
     private final UserGoalRepository userGoalRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
     private final ImageUploadService imageUploadService;
+
+    public List<PhotoVerification> getAllVerificationByUserGoal(UserGoal userGoal) {
+        return photoVerificationRepository.findAllByUserGoal(userGoal);
+    }
 
     @Transactional
     public void uploadPhotoVerification(
@@ -69,19 +74,25 @@ public class PhotoVerificationService implements VerificationService {
     }
 
     @Override
-    public Map<LocalDate, Integer> calculateVerification(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
+    public Map<LocalDate, Integer> calculateVerificationWithStartAndEnd(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
         List<PhotoVerification> verifications = getPhotoVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
 
+        return aggregateToDailySeconds(verifications);
+    }
+
+    protected Map<LocalDate, Integer> aggregateToDailySeconds(List<PhotoVerification> verifications) {
         Map<LocalDate, Integer> dailyCount = new HashMap<>();
-        // 날짜별 인증 수 카운팅
-        for (PhotoVerification photoVerification : verifications) {
-            LocalDate date = photoVerification.getCreatedAt().toLocalDate();
-
-            int photoCount = photoVerification.getPhotoImgs() != null ? photoVerification.getPhotoImgs().size() : 0;
-
-            //기존에 데이터가 있으면 불러와서 더한다.
-            dailyCount.put(date, dailyCount.getOrDefault(date, 0) + photoCount);
+        for (PhotoVerification v : verifications) {
+            LocalDate date = v.getCreatedAt().toLocalDate();
+            int cnt = v.getPhotoImgs().size();
+            dailyCount.put(date, dailyCount.getOrDefault(date, 0) + cnt);
         }
         return dailyCount;
+    }
+
+    @Override
+    public Map<LocalDate, Integer> calculateVerificationWithGoal(UserGoal userGoal) {
+        List<PhotoVerification> verifications = getAllVerificationByUserGoal(userGoal);
+        return aggregateToDailySeconds(verifications);
     }
 }
