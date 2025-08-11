@@ -2,6 +2,7 @@ package com.planup.planup.domain.goal.entity.mapping;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.GeneralException;
+import com.planup.planup.apiPayload.exception.custom.ChallengeException;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Goal;
@@ -75,5 +76,9 @@ public class UserGoal extends BaseTimeEntity {
         if (!goal.getUserGoals().contains(this)) {
             goal.getUserGoals().add(this);
         }
+    }
+
+    public void setInActive() {
+        this.isActive = false;
     }
 }

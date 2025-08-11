@@ -113,17 +113,13 @@ public class ChallengeServiceImpl implements ChallengeService{
         String nickname = first.getUser().getNickname();
 
         if (goal.getGoalType() == GoalType.CHALLENGE_PHOTO) {
-            if (goal instanceof Challenge) {
-                Challenge photoChallenge = (Challenge) goal;
-                ChallengeResponseDTO.ChallengeResponseInfo challengeResponseInfo = ChallengeConverter.toChallengeResponseInfoPhotoVer(photoChallenge, nickname);
-                return challengeResponseInfo;
+            if (goal instanceof Challenge photoChallenge) {
+                return ChallengeConverter.toChallengeResponseInfoPhotoVer(photoChallenge, nickname);
 
             }
         } else if (goal.getGoalType() == GoalType.CHALLENGE_TIME) {
-            if (goal instanceof TimeChallenge) {
-                TimeChallenge timeChallenge = (TimeChallenge) goal;
-                ChallengeResponseDTO.ChallengeResponseInfo challengeResponseInfo = ChallengeConverter.toChallengeResponseInfoTimeVer(timeChallenge);
-                return challengeResponseInfo;
+            if (goal instanceof TimeChallenge timeChallenge) {
+                return ChallengeConverter.toChallengeResponseInfoTimeVer(timeChallenge);
             }
         }
 
@@ -224,11 +220,9 @@ public class ChallengeServiceImpl implements ChallengeService{
     public ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(User user, Long challengeId) {
         Challenge challenge = getChallengeById(challengeId);
 
-        UserGoal myUserGoal = challenge.getUserGoals().stream().filter(u -> u.getUser().getId().equals(user.getId()))
-                .findFirst().orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
+        UserGoal myUserGoal = getUserGoalByUserAndChallenge(user, challenge);
 
-        UserGoal friendUserGoal = challenge.getUserGoals().stream().filter(u -> !u.getUser().getId().equals(user.getId()))
-                .findFirst().orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
+        UserGoal friendUserGoal = getFriendUserGoalByUserAndChallenge(user, challenge);
 
         int myPercent = calcAchievementRate(challenge, myUserGoal);
         int friendPercent = calcAchievementRate(challenge, friendUserGoal);
@@ -243,6 +237,18 @@ public class ChallengeServiceImpl implements ChallengeService{
                 .friendPercent(friendPercent)
                 .penalty(challenge.getPenalty())
                 .build();
+    }
+
+    private static UserGoal getFriendUserGoalByUserAndChallenge(User user, Challenge challenge) {
+        UserGoal friendUserGoal = challenge.getUserGoals().stream().filter(u -> !u.getUser().getId().equals(user.getId()))
+                .findFirst().orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
+        return friendUserGoal;
+    }
+
+    private static UserGoal getUserGoalByUserAndChallenge(User user, Challenge challenge) {
+        UserGoal myUserGoal = challenge.getUserGoals().stream().filter(u -> u.getUser().getId().equals(user.getId()))
+                .findFirst().orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
+        return myUserGoal;
     }
 
     private int calcAchievementRate(Challenge challenge, UserGoal myUserGoal) {
@@ -263,5 +269,30 @@ public class ChallengeServiceImpl implements ChallengeService{
             verifications = photoVerificationService.calculateVerificationWithGoal(myUserGoal);
         }
         return verifications;
+    }
+
+    @Override
+    @Transactional
+    public void checkChallengeFin(UserGoal userGoal) {
+        Challenge challenge = (Challenge) userGoal.getGoal();
+        User user = userGoal.getUser();
+
+        //챌린지가 종료되었는지 확인한다.
+        int myPercent = calcAchievementRate(challenge, userGoal);
+        if (myPercent < 100) {
+            return;
+        }
+
+        //나와 상대의 userGoal을 종료로 처리
+        userGoal.setInActive();
+
+        UserGoal friendUserGoal = getFriendUserGoalByUserAndChallenge(user, challenge);
+        friendUserGoal.setInActive();
+
+        //GOal을 종료로 처리
+
+
+        //관련 알림 전송
+
     }
 }
