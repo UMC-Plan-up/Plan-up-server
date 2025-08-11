@@ -193,6 +193,24 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "비밀번호 변경 확인 이메일 발송", description = "비밀번호 변경을 위한 확인 메일을 발송하고 토큰을 반환합니다")
+    @PostMapping("/users/password/change-email/send")
+    public ApiResponse<PasswordChangeEmailResponseDTO> sendPasswordChangeEmail(@RequestBody @Valid PasswordChangeEmailRequestDTO request) {
+        // 이메일이 등록된 사용자인지 확인
+        userService.checkEmailExists(request.getEmail());
+
+        String changeToken = emailService.sendPasswordChangeEmail(request.getEmail());
+
+        PasswordChangeEmailResponseDTO response = PasswordChangeEmailResponseDTO.builder()
+                .email(request.getEmail())
+                .message("비밀번호 변경 확인 메일이 발송되었습니다")
+                .changeToken(changeToken)
+                .build();
+
+        return ApiResponse.onSuccess(response);
+    }
+
+
     @Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 처리하고 탈퇴 이유를 저장합니다")
     @PostMapping("/users/withdraw")
     public ApiResponse<WithdrawalResponseDTO> withdrawUser(
