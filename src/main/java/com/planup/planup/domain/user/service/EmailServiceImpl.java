@@ -184,7 +184,7 @@ public class EmailServiceImpl implements EmailService {
                        style="background: #4285f4; color: white; padding: 15px 30px; 
                               text-decoration: none; border-radius: 8px; display: inline-block;
                               font-weight: bold;"
-                       target="_blank">
+                        target="_blank">
                         이메일 인증하기
                     </a>
                 </div>
@@ -229,7 +229,8 @@ public class EmailServiceImpl implements EmailService {
                     <a href="%s" 
                        style="background: #4285f4; color: white; padding: 15px 30px; 
                               text-decoration: none; border-radius: 8px; display: inline-block;
-                              font-weight: bold;">
+                              font-weight: bold;"
+                         target="_blank">
                         비밀번호 변경하기
                     </a>
                 </div>

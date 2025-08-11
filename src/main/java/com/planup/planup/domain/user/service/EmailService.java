@@ -20,15 +20,17 @@ public interface EmailService {
     // 이메일 인증 토큰 정리
     void clearVerificationToken(String email);
 
-<<<<<<< HEAD
-     // 비밀번호 변경용 딥링크 이메일 발송
-     String sendPasswordChangeEmail(String email);
+    // 비밀번호 변경용 딥링크 이메일 발송
+    String sendPasswordChangeEmail(String email);
 
-     // 비밀번호 변경 토큰 검증
-     String validatePasswordChangeToken(String token);
-=======
+    // 비밀번호 변경 이메일 재발송
+    String resendPasswordChangeEmail(String email);
+
+    // 비밀번호 변경 토큰 검증
+    String validatePasswordChangeToken(String token);
+
+
     String createSuccessHtml(String email, String deepLinkUrl);
 
     String createFailureHtml();
->>>>>>> b827106f9020ff864bf29d813a93a102592c5dfd
 }
