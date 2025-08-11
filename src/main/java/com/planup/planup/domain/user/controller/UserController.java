@@ -195,16 +195,16 @@ public class UserController {
 
     @Operation(summary = "비밀번호 변경 확인 이메일 발송", description = "비밀번호 변경을 위한 확인 메일을 발송하고 토큰을 반환합니다")
     @PostMapping("/users/password/change-email/send")
-    public ApiResponse<PasswordChangeEmailResponseDTO> sendPasswordChangeEmail(@RequestBody @Valid PasswordChangeEmailRequestDTO request) {
+    public ApiResponse<EmailSendResponseDTO> sendPasswordChangeEmail(@RequestBody @Valid EmailVerificationRequestDTO request) {
         // 이메일이 등록된 사용자인지 확인
         userService.checkEmailExists(request.getEmail());
 
         String changeToken = emailService.sendPasswordChangeEmail(request.getEmail());
 
-        PasswordChangeEmailResponseDTO response = PasswordChangeEmailResponseDTO.builder()
+        EmailSendResponseDTO response = EmailSendResponseDTO.builder()
                 .email(request.getEmail())
                 .message("비밀번호 변경 확인 메일이 발송되었습니다")
-                .changeToken(changeToken)
+                .verificationToken(changeToken)
                 .build();
 
         return ApiResponse.onSuccess(response);
@@ -212,7 +212,7 @@ public class UserController {
 
     @Operation(summary = "비밀번호 변경 링크 클릭 처리", description = "비밀번호 변경 링크 클릭 시 확인 처리 후 앱으로 리다이렉트")
     @GetMapping("/users/password/change-link")
-    public ApiResponse<PasswordChangeLinkResponseDTO> handlePasswordChangeLink(@RequestParam String token) {
+    public ApiResponse<EmailVerifyLinkResponseDTO> handlePasswordChangeLink(@RequestParam String token) {
         try {
             String email = emailService.validatePasswordChangeToken(token);
 
@@ -221,8 +221,8 @@ public class UserController {
                     "&verified=true&token=" + token +
                     "&from=password_change";
 
-            PasswordChangeLinkResponseDTO response = PasswordChangeLinkResponseDTO.builder()
-                    .success(true)
+            EmailVerifyLinkResponseDTO response = EmailVerifyLinkResponseDTO.builder()
+                    .verified(true)
                     .email(email)
                     .message("비밀번호 변경이 확인되었습니다")
                     .deepLinkUrl(deepLinkUrl)
@@ -232,8 +232,8 @@ public class UserController {
             return ApiResponse.onSuccess(response);
 
         } catch (IllegalArgumentException e) {
-            PasswordChangeLinkResponseDTO response = PasswordChangeLinkResponseDTO.builder()
-                    .success(false)
+            EmailVerifyLinkResponseDTO response = EmailVerifyLinkResponseDTO.builder()
+                    .verified(false)
                     .message("비밀번호 변경 확인에 실패했습니다")
                     .build();
 
