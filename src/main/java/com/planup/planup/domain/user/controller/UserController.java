@@ -207,6 +207,23 @@ public class UserController {
         return ApiResponse.onSuccess(response);
     }
 
+    @Operation(summary = "비밀번호 변경 확인 이메일 재발송", description = "비밀번호 변경을 위한 확인 메일을 재발송합니다")
+    @PostMapping("/users/password/change-email/resend")
+    public ApiResponse<EmailSendResponseDTO> resendPasswordChangeEmail(@RequestBody @Valid ResendEmailRequestDTO request) {
+        // 이메일이 등록된 사용자인지 확인
+        userService.checkEmailExists(request.getEmail());
+
+        String changeToken = emailService.resendPasswordChangeEmail(request.getEmail());
+
+        EmailSendResponseDTO response = EmailSendResponseDTO.builder()
+                .email(request.getEmail())
+                .message("비밀번호 변경 확인 메일이 재발송되었습니다")
+                .verificationToken(changeToken)
+                .build();
+
+        return ApiResponse.onSuccess(response);
+    }
+
     @Operation(summary = "비밀번호 변경 링크 클릭 처리", description = "비밀번호 변경 링크 클릭 시 확인 처리 후 앱으로 리다이렉트")
     @GetMapping("/users/password/change-link")
     public ApiResponse<EmailVerifyLinkResponseDTO> handlePasswordChangeLink(@RequestParam String token) {
