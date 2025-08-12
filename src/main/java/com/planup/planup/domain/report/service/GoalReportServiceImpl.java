@@ -17,7 +17,9 @@ import com.planup.planup.domain.report.repository.ReportUserRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.verification.entity.PhotoVerification;
 import com.planup.planup.domain.verification.entity.TimerVerification;
+import com.planup.planup.domain.verification.service.PhotoVerificationReadService;
 import com.planup.planup.domain.verification.service.PhotoVerificationService;
+import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,11 +39,11 @@ public class GoalReportServiceImpl implements GoalReportService {
 
     private final GoalReportRepository goalReportRepository;
     private final UserGoalService userGoalService;
-    private final PhotoVerificationService photoVerificationService;
-    private final TimerVerificationService timerVerificationService;
+    private final TimerVerificationReadService timerVerificationReadService;
     private final RedisServiceForReport redisServiceForReport;
     private final ReportUserRepository reportUserRepository;
     private final AchievementCalculationService achievementCalculationService;
+    private final PhotoVerificationReadService photoVerificationReadService;
 
     @Override
     public void createGoalReportsByUserGoal(LocalDateTime startDate, LocalDateTime endDate) {
@@ -194,9 +196,9 @@ public class GoalReportServiceImpl implements GoalReportService {
 
         //각 케이스에 따라 값을 불러온다
         if (goal.getVerificationType().equals(VerificationType.PHOTO)) {
-            dailyCount = photoVerificationService.calculateVerification(userGoal, startDate, endDate);
+            dailyCount = photoVerificationReadService.calculateVerification(userGoal, startDate, endDate);
         } else if (goal.getVerificationType().equals(VerificationType.TIMER)) {
-            dailyCount = timerVerificationService.calculateVerification(userGoal, startDate, endDate);
+            dailyCount = timerVerificationReadService.calculateVerification(userGoal, startDate, endDate);
         } else {
             throw new RuntimeException();
         }
