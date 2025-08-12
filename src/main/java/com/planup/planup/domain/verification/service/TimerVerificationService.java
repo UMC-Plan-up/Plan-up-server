@@ -1,6 +1,7 @@
 package com.planup.planup.domain.verification.service;
 
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.verification.convertor.TimerVerificationConverter;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
 import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;
@@ -17,41 +18,19 @@ import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class TimerVerificationService implements VerificationService{
     private final UserGoalRepository userGoalRepository;
+    private final UserGoalService userGoalService;
     private final TimerVerificationRepository timerVerificationRepository;
 
-    //오늘 총 기록시간 조회
-    public LocalTime getTodayTotalTime(Long userId, Long goalId) {
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId,userId);
-        if (userGoal == null) {
-            return LocalTime.of(0, 0, 0);
-        }
-        List<TimerVerification> todayVerifications = timerVerificationRepository
-                .findTodayVerificationsByUserGoalId(userGoal.getId());
-
-        if (todayVerifications.isEmpty()) {
-            return LocalTime.of(0, 0, 0);
-        }
-
-        Duration total = todayVerifications.stream()
-                .map(TimerVerification::getSpentTime)
-                .filter(spentTime -> spentTime != null)
-                .reduce(Duration.ZERO, Duration::plus);
-
-        return LocalTime.of(
-                (int) total.toHours(),
-                (int) (total.toMinutes() % 60),
-                (int) (total.getSeconds() % 60)
-        );
-    }
 
     //타이머 시작 -> DB 레코드 생성(TimerVerification)
     public TimerVerificationResponseDto.TimerStartResponseDto startTimer(Long userId, Long goalId) {
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
         //에러 처리 필요
 
         List<TimerVerification> runningTimers = timerVerificationRepository
@@ -97,7 +76,7 @@ public class TimerVerificationService implements VerificationService{
 
         //인증 횟수 증가
         if (achieved) { //achieved == true
-            userGoal.setVerificationCount(userGoal.getVerificationCount() + 1);
+            userGoal.increaseVerificationCount();
             userGoalRepository.save(userGoal);
         }
 
@@ -116,25 +95,5 @@ public class TimerVerificationService implements VerificationService{
         return spentTime.toMinutes() >= goalTimeMinutes;
     }
 
-    @Transactional(readOnly = true)
-    public List<TimerVerification> getTimerVerificationListByUserAndDateBetween(UserGoal userGoal, LocalDateTime start, LocalDateTime end) {
-        return timerVerificationRepository.findAllByUserGoalAndCreatedAtBetweenOrderByCreatedAt(userGoal, start, end);
-    }
 
-    @Override
-    @Transactional
-    public Map<LocalDate, Integer> calculateVerification(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
-        List<TimerVerification> verifications = getTimerVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
-
-        Map<LocalDate, Integer> dailyCount = new HashMap<>();
-
-        for (TimerVerification verification : verifications) {
-            LocalDate date = verification.getCreatedAt().toLocalDate();
-
-            int seconds = (int) (verification.getSpentTime() != null ? verification.getSpentTime().toMillis() / 1000.0 : 0.0);
-
-            dailyCount.put(date, dailyCount.getOrDefault(date, 0) + seconds);
-        }
-        return dailyCount;
-    }
 }

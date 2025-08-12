@@ -27,6 +27,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final GoalRepository goalRepository;
     private final UserGoalRepository userGoalRepository;
+    private final UserGoalService userGoalService;
     private final UserService userService;
 
     @Override
@@ -99,7 +100,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     private void validateUserGoalParticipation(Long goalId, Long userId) {
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
         if (userGoal == null) {
             throw new GoalException(ErrorStatus.UNAUTHORIZED_GOAL_ACCESS);
         }
