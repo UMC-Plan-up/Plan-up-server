@@ -16,10 +16,7 @@ public interface UserGoalService {
     UserGoal getUserGoalByUserAndGoal(User user, Goal goal);
     List<UserGoal> getUserGoalListByGoal(Goal goal);
 
-//    List<UserGoal> getUserGoalListByGoalBetweenDay(User user, LocalDateTime startDate, LocalDateTime endDate);
-
     VerificationType checkVerificationType(UserGoal userGoal);
-
 
     //Command Service
     CommunityResponseDto.JoinGoalResponseDto joinGoal(Long userId, Long goalId);
