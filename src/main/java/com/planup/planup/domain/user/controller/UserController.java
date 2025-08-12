@@ -207,17 +207,19 @@ public class UserController {
         return ApiResponse.onSuccess(response);
     }
 
-    @Operation(summary = "카카오 소셜 로그인", description = "카카오 인가코드로 로그인하여 JWT 토큰을 발급받거나 회원가입이 필요한 경우 임시 토큰을 반환합니다")
-    @PostMapping("/users/oauth/kakao/login")
-    public ApiResponse<KakaoLoginResponseDTO> kakaoLogin(@Valid @RequestBody KakaoLoginRequestDTO request) {
-        KakaoLoginResponseDTO result = userService.kakaoLogin(request.getCode());
+    @Operation(summary = "카카오 소셜 인증",
+            description = "카카오 인가코드로 로그인/회원가입 여부를 판단합니다")
+    @PostMapping("/users/auth/kakao")
+    public ApiResponse<KakaoAuthResponseDTO> kakaoAuth(@Valid @RequestBody KakaoAuthRequestDTO request) {
+        KakaoAuthResponseDTO result = userService.kakaoAuth(request);
         return ApiResponse.onSuccess(result);
     }
 
-    @Operation(summary = "카카오 소셜 회원가입", description = "카카오 로그인 후 추가 정보(닉네임)를 입력하여 회원가입을 완료합니다")
-    @PostMapping("/users/oauth/kakao/signup")
-    public ApiResponse<SignupResponseDTO> kakaoSignup(@Valid @RequestBody KakaoSignupRequestDTO request) {
-        SignupResponseDTO result = userService.kakaoSignup(request);
+    @Operation(summary = "카카오 회원가입 완료",
+            description = "카카오 온보딩 완료 후 모든 정보를 받아서 회원가입을 완료합니다")
+    @PostMapping("/users/auth/kakao/complete")
+    public ApiResponse<SignupResponseDTO> kakaoSignupComplete(@Valid @RequestBody KakaoSignupCompleteRequestDTO request) {
+        SignupResponseDTO result = userService.kakaoSignupComplete(request);
         return ApiResponse.onSuccess(result);
     }
 }

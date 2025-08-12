@@ -37,7 +37,7 @@ public interface UserService {
 
     WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request);
 
-    KakaoLoginResponseDTO kakaoLogin(String code);
+    KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request);
 
-    SignupResponseDTO kakaoSignup(KakaoSignupRequestDTO request);
+    SignupResponseDTO kakaoSignupComplete(KakaoSignupCompleteRequestDTO request);
 }

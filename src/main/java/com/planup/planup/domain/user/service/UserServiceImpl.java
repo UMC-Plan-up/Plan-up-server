@@ -22,15 +22,20 @@ import com.planup.planup.domain.user.repository.UserWithdrawalRepository;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import com.planup.planup.domain.user.dto.KakaoAccountResponseDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Service
@@ -53,6 +58,13 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final UserWithdrawalRepository userWithdrawalRepository;
     private final KakaoApiService kakaoApiService;
+
+    @Qualifier("objectRedisTemplate")
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    // Redis 키 prefix
+    private static final String TEMP_USER_PREFIX = "temp_kakao_user:";
+    private static final int TEMP_USER_EXPIRE_MINUTES = 60; // 60분 후 만료
 
     @Override
     @Transactional(readOnly = true)
@@ -312,7 +324,7 @@ public class UserServiceImpl implements UserService {
                     .agreedAt(agreement.isAgreed() ? LocalDateTime.now() : null)
                     .build();
 
-            UserTerms saved = userTermsRepository.save(userTerms);
+            userTermsRepository.save(userTerms);
         }
     }
       
@@ -477,105 +489,133 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
-    public KakaoLoginResponseDTO kakaoLogin(String code) {
-        try {
-            // 카카오에서 사용자 정보 가져오기
-            KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(code);
-            String email = kakaoUserInfo.getEmail();
+    public KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request) {
+        KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());
+        String email = kakaoUserInfo.getEmail();
 
-            if (email == null) {
-                throw new UserException(ErrorStatus.NOT_FOUND_USER);
+        // 기존 사용자 확인
+        Optional<OAuthAccount> existingOAuth = oAuthAccountRepository
+                .findByEmailAndProvider(email, AuthProvideerEnum.KAKAO);
+
+        if (existingOAuth.isPresent()) {
+            // 기존 사용자 - 기존 login() 로직 재사용
+            User user = existingOAuth.get().getUser();
+
+            if (user.getUserActivate() != UserActivate.ACTIVE) {
+                throw new UserException(ErrorStatus.USER_INACTIVE);
             }
 
-            // 기존 회원 확인
-            Optional<User> existingUser = userRepository.findByEmail(email);
+            String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
 
-            if (existingUser.isPresent()) {
-                // 기존 회원 - 바로 로그인 (기존 login 로직 재사용)
-                User user = existingUser.get();
+            KakaoAuthResponseDTO response = new KakaoAuthResponseDTO();
+            response.setNewUser(false);
+            response.setAccessToken(accessToken);
+            response.setUserInfo(UserInfoResponseDTO.from(user));
+            return response;
+        } else {
+            // 신규 사용자 - Redis에 카카오 정보만 저장
+            String tempUserId = UUID.randomUUID().toString();
+            String redisKey = TEMP_USER_PREFIX + tempUserId;
 
-                if (user.getUserActivate() != UserActivate.ACTIVE) {
-                    throw new UserException(ErrorStatus.USER_INACTIVE);
-                }
+            redisTemplate.opsForValue().set(redisKey, kakaoUserInfo, Duration.ofMinutes(TEMP_USER_EXPIRE_MINUTES));
 
-                String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
-
-                return KakaoLoginResponseDTO.builder()
-                        .status("LOGIN_SUCCESS")
-                        .accessToken(accessToken)
-                        .nickname(user.getNickname())
-                        .profileImgUrl(user.getProfileImg())
-                        .build();
-            } else {
-                // 신규 회원 - 회원가입 필요 (화면 설계서의 닉네임 입력 단계)
-                String tempToken = jwtUtil.generateToken(email, "TEMP", 0L);
-
-                return KakaoLoginResponseDTO.builder()
-                        .status("SIGNUP_REQUIRED")
-                        .tempToken(tempToken)
-                        .email(email)
-                        .build();
-            }
-
-        } catch (UserException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("카카오 로그인 실패", e);
-            throw new UserException(ErrorStatus.NOT_FOUND_USER);
+            KakaoAuthResponseDTO response = new KakaoAuthResponseDTO();
+            response.setNewUser(true);
+            response.setTempUserId(tempUserId);
+            return response;
         }
     }
 
     @Override
     @Transactional
-    public SignupResponseDTO kakaoSignup(KakaoSignupRequestDTO request) {
-        try {
-            // 임시 토큰에서 이메일 추출
-            String email = jwtUtil.extractUsername(request.getTempToken());
+    public SignupResponseDTO kakaoSignupComplete(KakaoSignupCompleteRequestDTO request) {
+        // Redis에서 카카오 정보 조회
+        String redisKey = TEMP_USER_PREFIX + request.getTempUserId();
+        KakaoUserInfo kakaoUserInfo = (KakaoUserInfo) redisTemplate.opsForValue().get(redisKey);
 
-            // 토큰 유효성 검증
-            if (!jwtUtil.validateToken(request.getTempToken())) {
-                throw new UserException(ErrorStatus.NOT_FOUND_USER);
-            }
-
-            // 이메일 중복 체크 (기존 checkEmail 재사용)
-            checkEmail(email);
-
-            // User 생성 (기존 signup 로직 재사용)
-            User user = User.builder()
-                    .email(email)
-                    .password(null) // 카카오는 비밀번호 없음
-                    .nickname(request.getNickname())
-                    .role(Role.USER)
-                    .userActivate(UserActivate.ACTIVE)
-                    .userLevel(UserLevel.LEVEL_1)
-                    .alarmAllow(true)
-                    .emailVerified(true)
-                    .emailVerifiedAt(LocalDateTime.now())
-                    .build();
-
-            User savedUser = userRepository.save(user);
-
-            // OAuth 계정 연결
-            OAuthAccount oAuthAccount = OAuthAccount.builder()
-                    .provider(AuthProvideerEnum.KAKAO)
-                    .email(email)
-                    .user(savedUser)
-                    .build();
-            oAuthAccountRepository.save(oAuthAccount);
-
-            // 기존 SignupResponseDTO 재사용
-            return SignupResponseDTO.builder()
-                    .id(savedUser.getId())
-                    .email(savedUser.getEmail())
-                    .friendNickname(null) // 카카오는 초대코드 없음
-                    .build();
-
-        } catch (UserException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("카카오 회원가입 실패", e);
+        if (kakaoUserInfo == null) {
             throw new UserException(ErrorStatus.NOT_FOUND_USER);
         }
+
+        // 기존 signup() 로직 재사용 - 필수 약관 동의 검증
+        if (request.getAgreements() != null) {
+            validateRequiredTerms(request.getAgreements());
+        }
+
+        // 기존 signup() 로직 재사용 - 초대코드 처리
+        Long inviterId = null;
+        String friendNickname = null;
+        if (request.getInviteCode() != null && !request.getInviteCode().trim().isEmpty()) {
+            inviterId = inviteCodeService.findInviterByCode(request.getInviteCode());
+            if (inviterId == null) {
+                throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
+            }
+        }
+
+        // 기존 signup() 로직 재사용 - User 생성
+        User user = User.builder()
+                .email(kakaoUserInfo.getEmail())
+                .password(null) // 카카오는 비밀번호 없음
+                .nickname(request.getNickname())
+                .role(Role.USER)
+                .userActivate(UserActivate.ACTIVE)
+                .userLevel(UserLevel.LEVEL_1)
+                .alarmAllow(true)
+                .profileImg(request.getProfileImg())
+                .emailVerified(true)
+                .emailVerifiedAt(LocalDateTime.now())
+                .build();
+
+        User savedUser = userRepository.save(user);
+
+        // OAuth 계정 연결
+        OAuthAccount oAuthAccount = OAuthAccount.builder()
+                .provider(AuthProvideerEnum.KAKAO)
+                .email(kakaoUserInfo.getKakaoAccount().getEmail())
+                .user(savedUser)
+                .build();
+        oAuthAccountRepository.save(oAuthAccount);
+
+        // 기존 signup() 로직 재사용 - 약관 동의 추가
+        if (request.getAgreements() != null) {
+            addTermsAgreements(savedUser, request.getAgreements());
+        }
+
+        // 기존 signup() 로직 재사용 - 초대 관계 처리
+        if (inviterId != null) {
+            User inviterUser = getUserbyUserId(inviterId);
+            friendNickname = inviterUser.getNickname();
+
+            Friend friendship1 = Friend.builder()
+                    .user(savedUser)
+                    .friend(inviterUser)
+                    .status(FriendStatus.ACCEPTED)
+                    .build();
+
+            Friend friendship2 = Friend.builder()
+                    .user(inviterUser)
+                    .friend(savedUser)
+                    .status(FriendStatus.ACCEPTED)
+                    .build();
+
+            friendRepository.save(friendship1);
+            friendRepository.save(friendship2);
+
+            inviteCodeService.useInviteCode(request.getInviteCode());
+        }
+
+        // Redis 데이터 삭제
+        redisTemplate.delete(redisKey);
+
+        // 기존 signup() 응답 재사용 (JWT 토큰 추가)
+        String accessToken = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole().toString(), savedUser.getId());
+
+        return SignupResponseDTO.builder()
+                .id(savedUser.getId())
+                .email(savedUser.getEmail())
+                .friendNickname(friendNickname)
+                .accessToken(accessToken) // 자동 로그인을 위한 토큰 추가
+                .build();
     }
+
 }
