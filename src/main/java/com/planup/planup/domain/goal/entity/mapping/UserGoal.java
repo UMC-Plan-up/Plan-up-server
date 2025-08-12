@@ -23,7 +23,6 @@ import java.util.List;
 @Getter
 @SuperBuilder
 @Builder
-@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserGoal extends BaseTimeEntity {
@@ -37,6 +36,7 @@ public class UserGoal extends BaseTimeEntity {
     private boolean isPublic;
     private String currentAmount;
     private int verificationCount;
+    //이 필드 골 로 이동
     private int goalTime;
 
 
@@ -74,5 +74,32 @@ public class UserGoal extends BaseTimeEntity {
         if (!goal.getUserGoals().contains(this)) {
             goal.getUserGoals().add(this);
         }
+    }
+
+    public void setActive(boolean active) {
+        this.setActive(active);
+    }
+
+    public int increaseVerificationCount() {
+        this.verificationCount++;
+        return this.verificationCount;
+    }
+
+    public int decreaseVerificationCount() {
+        if (this.verificationCount > 0) {
+            this.verificationCount--;
+        }
+        return verificationCount;
+    }
+
+    public boolean setPublic() {
+        if (!this.isPublic) {
+            this.isPublic = true;
+        }
+        return true;
+    }
+
+    public void setGoalTime(int time) {
+        this.goalTime = time;
     }
 }

@@ -3,6 +3,7 @@ package com.planup.planup.domain.verification.service;
 import com.planup.planup.domain.global.service.ImageUploadService;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
+import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.verification.entity.PhotoVerification;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,8 +11,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +24,7 @@ public class PhotoVerificationService implements VerificationService {
     private final UserGoalRepository userGoalRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
     private final ImageUploadService imageUploadService;
+    private final UserGoalService userGoalService;
 
     @Transactional
     public void uploadPhotoVerification(
@@ -27,7 +32,7 @@ public class PhotoVerificationService implements VerificationService {
             Long goalId,
             MultipartFile photoFile) {
 
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
 
         String photoUrl = imageUploadService.uploadImage(photoFile, "verifications/photos");
 
@@ -38,7 +43,7 @@ public class PhotoVerificationService implements VerificationService {
 
         PhotoVerification savedVerification = photoVerificationRepository.save(photoVerification);
 
-        userGoal.setVerificationCount(userGoal.getVerificationCount() + 1);
+        userGoal.increaseVerificationCount();
         userGoalRepository.save(userGoal);
     }
 
@@ -53,15 +58,10 @@ public class PhotoVerificationService implements VerificationService {
 
         UserGoal userGoal = verification.getUserGoal();
         if (userGoal.getVerificationCount() > 0) {
-            userGoal.setVerificationCount(userGoal.getVerificationCount() - 1);
+            userGoal.decreaseVerificationCount();
             userGoalRepository.save(userGoal);
         }
 
         photoVerificationRepository.delete(verification);
-    }
-
-    @Transactional(readOnly = true)
-    public List<PhotoVerification> getPhotoVerificationListByUserAndDateBetween(UserGoal userGoal, LocalDateTime start, LocalDateTime end) {
-        return photoVerificationRepository.findAllByUserGoalAndCreatedAtBetweenOrderByCreatedAt(userGoal,start,end);
     }
 }

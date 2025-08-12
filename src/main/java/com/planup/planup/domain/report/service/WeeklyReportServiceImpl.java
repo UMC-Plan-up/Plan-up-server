@@ -7,7 +7,6 @@ import com.planup.planup.domain.bedge.entity.BadgeType;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
-import com.planup.planup.domain.notification.entity.Notification;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.report.converter.DailyRecordConverter;
 import com.planup.planup.domain.report.converter.WeeklyReportResponseConverter;

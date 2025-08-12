@@ -5,6 +5,7 @@ import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -13,14 +14,22 @@ public interface GoalService {
 
     //Command Service
     GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto dto);
-    List<GoalResponseDto.MyGoalListDto> getGoalList(Long userId, GoalCategory goalCategory);
+    List<GoalResponseDto.GoalCreateListDto> getGoalList(Long userId, GoalCategory goalCategory);
     GoalResponseDto.MyGoalDetailDto getMyGoalDetails(Long goalId, Long userId);
     void updatePublicGoal(Long goalId, Long userId);
+
+    @Transactional
+    Goal findGoalById(Long goalId);
+
     void deleteGoal(Long goalId, Long userId);
     GoalRequestDto.CreateGoalDto getGoalInfoToUpdate(Long goalId, Long userId);
     void updateGoal(Long goalId, Long userId, GoalRequestDto.CreateGoalDto dto);
     void updateActiveGoal(Long goalId, Long userId);
     List<PhotoVerificationResponseDto.uploadPhotoResponseDto> getGoalPhotos(Long userId, Long goalId);
+    List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId);
+    List<GoalResponseDto.FriendGoalListDto> getFriendGoals(Long userId, Long friendsId);
+    List<GoalResponseDto.RankingDto> getGoalRanking(Long goalId);
+
 
     Goal getGoalById(Long challengeId);
 }

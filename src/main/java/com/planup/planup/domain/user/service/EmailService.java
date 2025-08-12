@@ -19,4 +19,8 @@ public interface EmailService {
 
     // 이메일 인증 토큰 정리
     void clearVerificationToken(String email);
+
+    String createSuccessHtml(String email, String deepLinkUrl);
+
+    String createFailureHtml();
 }

@@ -3,6 +3,7 @@ package com.planup.planup.domain.report.service;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ReportException;
 import com.planup.planup.domain.global.redis.RedisServiceForReport;
+import com.planup.planup.domain.global.service.AchievementCalculationService;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
@@ -16,7 +17,9 @@ import com.planup.planup.domain.report.repository.ReportUserRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.verification.entity.PhotoVerification;
 import com.planup.planup.domain.verification.entity.TimerVerification;
+import com.planup.planup.domain.verification.service.PhotoVerificationReadService;
 import com.planup.planup.domain.verification.service.PhotoVerificationService;
+import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,10 +39,11 @@ public class GoalReportServiceImpl implements GoalReportService {
 
     private final GoalReportRepository goalReportRepository;
     private final UserGoalService userGoalService;
-    private final PhotoVerificationService photoVerificationService;
-    private final TimerVerificationService timerVerificationService;
+    private final TimerVerificationReadService timerVerificationReadService;
     private final RedisServiceForReport redisServiceForReport;
     private final ReportUserRepository reportUserRepository;
+    private final AchievementCalculationService achievementCalculationService;
+    private final PhotoVerificationReadService photoVerificationReadService;
 
     @Override
     public void createGoalReportsByUserGoal(LocalDateTime startDate, LocalDateTime endDate) {
@@ -187,72 +191,44 @@ public class GoalReportServiceImpl implements GoalReportService {
 
 
         //날짜별 인증을 저장한다
-        Map<LocalDate, Integer> dailyCount = new HashMap<>();
-
+        Map<LocalDate, Integer> dailyCount;
         LocalDateTime endDate = startDate.plusDays(6);
 
         //각 케이스에 따라 값을 불러온다
         if (goal.getVerificationType().equals(VerificationType.PHOTO)) {
-            calculatePhotoVerification(userGoal, dailyCount, startDate, endDate);
+            dailyCount = photoVerificationReadService.calculateVerification(userGoal, startDate, endDate);
         } else if (goal.getVerificationType().equals(VerificationType.TIMER)) {
-            calculateTimeVerification(userGoal, dailyCount, startDate, endDate);
+            dailyCount = timerVerificationReadService.calculateVerification(userGoal, startDate, endDate);
+        } else {
+            throw new RuntimeException();
         }
 
         // 날짜별 성취도 계산
-        DailyAchievementRate dailyAchievementRate = getDailyAchievementRate(dailyCount, goal.getOneDose());
-        return dailyAchievementRate;
+        return getDailyAchievementRate(dailyCount, goal.getOneDose());
     }
 
     private DailyAchievementRate getDailyAchievementRate(Map<LocalDate, Integer> dailyCount, int oneDose) {
-        DailyAchievementRate.DailyAchievementRateBuilder builder = DailyAchievementRate.builder();
-        for (Map.Entry<LocalDate, Integer> entry : dailyCount.entrySet()) {
-            LocalDate date = entry.getKey();
-            int totalPhotoCount = entry.getValue();
-
-            int achievement = (int) Math.min(100, ((double) totalPhotoCount / oneDose) * 100);
-
-            switch (date.getDayOfWeek()) {
-                case MONDAY -> builder.mon(achievement);
-                case TUESDAY -> builder.tue(achievement);
-                case WEDNESDAY -> builder.wed(achievement);
-                case THURSDAY -> builder.thu(achievement);
-                case FRIDAY -> builder.fri(achievement);
-                case SATURDAY -> builder.sat(achievement);
-                case SUNDAY -> builder.sun(achievement);
-            }
-
-        }
-        DailyAchievementRate dailyAchievementRate = builder.build();
-        dailyAchievementRate.calTotal();
-        return dailyAchievementRate;
+        Map<DayOfWeek, Integer> byDay = achievementCalculationService.calcAchievementByDay(dailyCount, oneDose);
+        return toDailyAchievementRate(byDay);
     }
 
-    private Map<LocalDate, Integer> calculatePhotoVerification(UserGoal userGoal, Map<LocalDate, Integer> dailyPhotoCount, LocalDateTime startDate, LocalDateTime endDate) {
-        List<PhotoVerification> verifications = photoVerificationService.getPhotoVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
 
-        // 날짜별 인증 수 카운팅
-        for (PhotoVerification photoVerification : verifications) {
-            LocalDate date = photoVerification.getCreatedAt().toLocalDate();
 
-            int photoCount = photoVerification.getPhotoImgs() != null ? photoVerification.getPhotoImgs().size() : 0;
+    //퍼센트를 가지고 DailyAchievementRate를 만든다.
+    private DailyAchievementRate toDailyAchievementRate(Map<DayOfWeek, Integer> byDay) {
+        DailyAchievementRate.DailyAchievementRateBuilder b = DailyAchievementRate.builder();
 
-            //기존에 데이터가 있으면 불러와서 더한다.
-            dailyPhotoCount.put(date, dailyPhotoCount.getOrDefault(date, 0) + photoCount);
-        }
-        return dailyPhotoCount;
+        // 값이 없으면 0으로 기본값 처리 (필요 시 조정)
+        b.mon(byDay.getOrDefault(DayOfWeek.MONDAY, 0));
+        b.tue(byDay.getOrDefault(DayOfWeek.TUESDAY, 0));
+        b.wed(byDay.getOrDefault(DayOfWeek.WEDNESDAY, 0));
+        b.thu(byDay.getOrDefault(DayOfWeek.THURSDAY, 0));
+        b.fri(byDay.getOrDefault(DayOfWeek.FRIDAY, 0));
+        b.sat(byDay.getOrDefault(DayOfWeek.SATURDAY, 0));
+        b.sun(byDay.getOrDefault(DayOfWeek.SUNDAY, 0));
+
+        DailyAchievementRate dto = b.build();
+        dto.calTotal(); // 총합/평균을 DTO 내부에서 계산하도록 유지
+        return dto;
     }
-
-    private Map<LocalDate, Integer> calculateTimeVerification(UserGoal userGoal, Map<LocalDate, Integer> dailyCount, LocalDateTime startDate, LocalDateTime endDate) {
-        List<TimerVerification> verifications = timerVerificationService.getTimerVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
-
-        for (TimerVerification verification : verifications) {
-            LocalDate date = verification.getCreatedAt().toLocalDate();
-
-            int seconds = (int) (verification.getSpentTime() != null ? verification.getSpentTime().toMillis() / 1000.0 : 0.0);
-
-            dailyCount.put(date, dailyCount.getOrDefault(date, 0) + seconds);
-        }
-        return dailyCount;
-    }
-
 }

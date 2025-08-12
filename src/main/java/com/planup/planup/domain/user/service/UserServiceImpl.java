@@ -247,29 +247,48 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public LoginResponseDTO login(LoginRequestDTO request) {
-        //  이메일로 사용자 조회
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
+        try {
+            //  이메일로 사용자 조회
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
 
-        // 비밀번호 검증
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new UserException(ErrorStatus.INVALID_CREDENTIALS);
+            // 비밀번호 검증
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                throw new UserException(ErrorStatus.INVALID_CREDENTIALS);
+            }
+
+            // 사용자 상태 확인
+            if (user.getUserActivate() != UserActivate.ACTIVE) {
+                throw new UserException(ErrorStatus.USER_INACTIVE);
+            }
+
+            // JWT 토큰 생성
+            String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+
+            // 응답 DTO 생성
+            return LoginResponseDTO.builder()
+                    .accessToken(accessToken)
+                    .nickname(user.getNickname())
+                    .profileImgUrl(user.getProfileImg())
+                    .message("로그인 성공")
+                    .build();
+        }  catch (UserException e) {
+
+            String errorMessage;
+            if (e.getErrorStatus() == ErrorStatus.NOT_FOUND_USER) {
+                errorMessage = "존재하지 않는 사용자입니다";
+            } else if (e.getErrorStatus() == ErrorStatus.INVALID_CREDENTIALS) {
+                errorMessage = "비밀번호가 일치하지 않습니다";
+            } else if (e.getErrorStatus() == ErrorStatus.USER_INACTIVE) {
+                errorMessage = "비활성화된 계정입니다";
+            } else {
+                errorMessage = "로그인에 실패했습니다";
+            }
+
+            return LoginResponseDTO.builder()
+                    .message(errorMessage)
+                    .build();
         }
-
-        // 사용자 상태 확인
-        if (user.getUserActivate() != UserActivate.ACTIVE) {
-            throw new UserException(ErrorStatus.USER_INACTIVE);
-        }
-
-        // 4. JWT 토큰 생성
-        String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
-
-        // 응답 DTO 생성
-        return LoginResponseDTO.builder()
-                .accessToken(accessToken)
-                .nickname(user.getNickname())
-                .profileImgUrl(user.getProfileImg())
-                .build();
     }
 
     private void validateRequiredTerms(List<TermsAgreementRequestDTO> agreements) {

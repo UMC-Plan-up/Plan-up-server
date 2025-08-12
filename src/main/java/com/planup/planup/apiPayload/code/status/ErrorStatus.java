@@ -47,7 +47,6 @@ public enum ErrorStatus implements BaseErrorCode {
     NOT_FOUND_CHALLENGE(HttpStatus.NOT_FOUND, "CHALLENGE4004", "존재하지 않는 챌린지 입니다."),
 
 
-
     // 약관 관련 에러
     NOT_FOUND_TERMS(HttpStatus.NOT_FOUND, "4004", "존재하지 않는 약관입니다."),
     REQUIRED_TERMS_NOT_AGREED(HttpStatus.BAD_REQUEST, "4005", "필수 약관에 동의해야 합니다."),
@@ -69,7 +68,17 @@ public enum ErrorStatus implements BaseErrorCode {
     KAKAO_AUTH_FAILED(BAD_REQUEST, "KAKAO4001", "카카오 인증에 실패했습니다."),
     KAKAO_TOKEN_INVALID(BAD_REQUEST, "KAKAO4002", "유효하지 않은 카카오 토큰입니다."),
     KAKAO_USER_INFO_FAILED(INTERNAL_SERVER_ERROR, "KAKAO5001", "카카오 사용자 정보 조회에 실패했습니다."),
-    ;
+
+    // Comment 관련 에러
+    NOT_FOUND_COMMENT(HttpStatus.NOT_FOUND, "COMMENT4001", "존재하지 않는 댓글입니다."),
+    UNAUTHORIZED_COMMENT_ACCESS(HttpStatus.FORBIDDEN, "COMMENT4002", "댓글에 대한 권한이 없습니다."),
+    INACTIVE_COMMENT(HttpStatus.BAD_REQUEST, "COMMENT4003", "삭제된 댓글입니다."),
+    INVALID_PARENT_COMMENT(HttpStatus.BAD_REQUEST, "COMMENT4004", "유효하지 않은 부모 댓글입니다."),
+    UNAUTHORIZED_GOAL_ACCESS(HttpStatus.FORBIDDEN, "COMMENT4005", "해당 목표에 접근할 권한이 없습니다."),
+
+    // Goal 관련 에러
+    NOT_FOUND_GOAL(HttpStatus.NOT_FOUND, "GOAL4001", "존재하지 않는 목표입니다."),    
+  ;
 
 
     private final HttpStatus httpStatus;
