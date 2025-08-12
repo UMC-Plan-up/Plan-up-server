@@ -40,10 +40,10 @@ spring:
       port: 6379
       timeout: 3000ms
 
-app:
-  domain: ${APP_DOMAIN}
-  frontend:
-    url: ${APP_FRONTEND_URL}
+#app:
+#  domain: ${APP_DOMAIN}
+#  frontend:
+#    url: ${APP_FRONTEND_URL}
 
 jwt:
   secret: ${JWT_SECRET}
