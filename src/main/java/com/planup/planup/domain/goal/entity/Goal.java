@@ -18,7 +18,6 @@ import java.util.List;
 @Entity
 @Getter
 @SuperBuilder
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
