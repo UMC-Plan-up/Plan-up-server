@@ -225,4 +225,12 @@ public class UserController {
         SignupResponseDTO result = userService.kakaoSignupComplete(request);
         return ApiResponse.onSuccess(result);
     }
+
+    @Operation(summary = "이메일 인증 대안 - 카카오 로그인",
+            description = "이메일 인증 실패 시 카카오 소셜 로그인으로 전환합니다")
+    @PostMapping("/users/auth/email/alternative")
+    public ApiResponse<KakaoAuthResponseDTO> emailAuthAlternative(@Valid @RequestBody KakaoAuthRequestDTO request) {
+        KakaoAuthResponseDTO result = userService.kakaoAuth(request);
+        return ApiResponse.onSuccess(result);
+    }
 }
