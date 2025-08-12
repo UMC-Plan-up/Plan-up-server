@@ -30,10 +30,18 @@ public class Comment extends BaseTimeEntity {
     private User writer;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_user_id")
-    private User parentUser;
+    @JoinColumn(name = "parent_comment_id")
+    private Comment parentComment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "goal_id")
     private Goal goal;
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
+
+    public void updateStatus(CommentStatus status) {
+        this.status = status;
+    }
 }

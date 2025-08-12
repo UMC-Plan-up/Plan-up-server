@@ -47,7 +47,6 @@ public enum ErrorStatus implements BaseErrorCode {
     NOT_FOUND_CHALLENGE(HttpStatus.NOT_FOUND, "CHALLENGE4004", "존재하지 않는 챌린지 입니다."),
 
 
-
     // 약관 관련 에러
     NOT_FOUND_TERMS(HttpStatus.NOT_FOUND, "4004", "존재하지 않는 약관입니다."),
     REQUIRED_TERMS_NOT_AGREED(HttpStatus.BAD_REQUEST, "4005", "필수 약관에 동의해야 합니다."),
@@ -64,7 +63,16 @@ public enum ErrorStatus implements BaseErrorCode {
     EMAIL_ALREADY_VERIFIED(BAD_REQUEST, "EMAIL4002", "이미 인증된 이메일입니다."),
     EMAIL_VERIFICATION_FAILED(INTERNAL_SERVER_ERROR, "EMAIL5001", "이메일 인증 처리 중 오류가 발생했습니다."),
     EMAIL_VERIFICATION_REQUIRED(HttpStatus.BAD_REQUEST, "VERIFICATION_001", "이메일 인증이 필요합니다"),
-    ;
+
+    // Comment 관련 에러
+    NOT_FOUND_COMMENT(HttpStatus.NOT_FOUND, "COMMENT4001", "존재하지 않는 댓글입니다."),
+    UNAUTHORIZED_COMMENT_ACCESS(HttpStatus.FORBIDDEN, "COMMENT4002", "댓글에 대한 권한이 없습니다."),
+    INACTIVE_COMMENT(HttpStatus.BAD_REQUEST, "COMMENT4003", "삭제된 댓글입니다."),
+    INVALID_PARENT_COMMENT(HttpStatus.BAD_REQUEST, "COMMENT4004", "유효하지 않은 부모 댓글입니다."),
+    UNAUTHORIZED_GOAL_ACCESS(HttpStatus.FORBIDDEN, "COMMENT4005", "해당 목표에 접근할 권한이 없습니다."),
+
+    // Goal 관련 에러
+    NOT_FOUND_GOAL(HttpStatus.NOT_FOUND, "GOAL4001", "존재하지 않는 목표입니다."),    ;
 
 
     private final HttpStatus httpStatus;
