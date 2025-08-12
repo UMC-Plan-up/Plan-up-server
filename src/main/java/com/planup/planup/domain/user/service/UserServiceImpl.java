@@ -446,7 +446,6 @@ public class UserServiceImpl implements UserService {
     /**
      * 비밀번호 변경 시 이메일 존재 여부 체크
      * - 존재하지 않거나 비활성 사용자면 예외 발생
-     * - 읽기 전용 트랜잭션 (데이터 수정 없음)
      */
     @Override
     @Transactional(readOnly = true)
@@ -455,5 +454,47 @@ public class UserServiceImpl implements UserService {
         if (user.isEmpty() || user.get().getUserActivate() != UserActivate.ACTIVE) {
             throw new UserException(ErrorStatus.NOT_FOUND_USER);
         }
+    }
+
+    /**
+     * 비밀번호 변경 이메일 발송
+     * - 이메일 존재 여부 확인 후 인증 메일 발송
+     */
+    @Override
+    @Transactional
+    public EmailSendResponseDTO sendPasswordChangeEmail(String email) {
+        // 이메일이 등록된 사용자인지 확인
+        checkEmailExists(email);
+        
+        // 비밀번호 변경 이메일 발송
+        String changeToken = emailService.sendPasswordChangeEmail(email);
+        
+        // 응답 DTO 생성
+        return EmailSendResponseDTO.builder()
+                .email(email)
+                .message("비밀번호 변경 확인 메일이 발송되었습니다")
+                .verificationToken(changeToken)
+                .build();
+    }
+
+    /**
+     * 비밀번호 변경 이메일 재발송
+     * - 이메일 존재 여부 확인 후 인증 메일 재발송
+     */
+    @Override
+    @Transactional
+    public EmailSendResponseDTO resendPasswordChangeEmail(String email) {
+        // 이메일이 등록된 사용자인지 확인
+        checkEmailExists(email);
+        
+        // 비밀번호 변경 이메일 재발송
+        String changeToken = emailService.resendPasswordChangeEmail(email);
+        
+        // 비밀번호 변경 확인 메일이 재발송되었습니다
+        return EmailSendResponseDTO.builder()
+                .email(email)
+                .message("비밀번호 변경 확인 메일이 재발송되었습니다")
+                .verificationToken(changeToken)
+                .build();
     }
 }
