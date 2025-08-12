@@ -137,10 +137,10 @@ Swagger UI: http://54.180.207.84:8080/swagger-ui/index.html
 
 | 역할 | 이름 | GitHub |
 |------|------|---------|
-| **백엔드 팀장** | [이수용] | [@github-username](https://github.com/github-username) |
-| **백엔드 개발자** | [권도희] | [@github-username](https://github.com/github-username) |
-| **백엔드 개발자** | [김규리] | [@github-username](https://github.com/github-username) |
-| **백엔드 개발자** | [정우주] | [@github-username](https://github.com/github-username) |
+| **백엔드 팀장** | [이수용] | [@leesuyong849](https://github.com/leesuyong849) |
+| **백엔드 개발자** | [권도희] | [@OrangeKim04](https://github.com/OrangeKim04) |
+| **백엔드 개발자** | [김규리] | [@seamooll](https://github.com/seamooll) |
+| **백엔드 개발자** | [정우주] | [@woojoo48](https://github.com/woojoo48) |
 
 
 ## 📄 라이선스
