@@ -18,6 +18,7 @@ import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.ChallengeRepository;
 import com.planup.planup.domain.goal.repository.TimeChallengeRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
+import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.domain.verification.service.PhotoVerificationService;
@@ -45,6 +46,7 @@ public class ChallengeServiceImpl implements ChallengeService{
     private final PhotoVerificationService photoVerificationService;
     private final TimerVerificationService timerVerificationService;
     private final AchievementCalculationService achievementCalculationService;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -240,15 +242,13 @@ public class ChallengeServiceImpl implements ChallengeService{
     }
 
     private static UserGoal getFriendUserGoalByUserAndChallenge(User user, Challenge challenge) {
-        UserGoal friendUserGoal = challenge.getUserGoals().stream().filter(u -> !u.getUser().getId().equals(user.getId()))
+        return challenge.getUserGoals().stream().filter(u -> !u.getUser().getId().equals(user.getId()))
                 .findFirst().orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
-        return friendUserGoal;
     }
 
     private static UserGoal getUserGoalByUserAndChallenge(User user, Challenge challenge) {
-        UserGoal myUserGoal = challenge.getUserGoals().stream().filter(u -> u.getUser().getId().equals(user.getId()))
+        return challenge.getUserGoals().stream().filter(u -> u.getUser().getId().equals(user.getId()))
                 .findFirst().orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
-        return myUserGoal;
     }
 
     private int calcAchievementRate(Challenge challenge, UserGoal myUserGoal) {
@@ -283,16 +283,10 @@ public class ChallengeServiceImpl implements ChallengeService{
             return;
         }
 
-        //나와 상대의 userGoal을 종료로 처리
-        userGoal.setInActive();
-
-        UserGoal friendUserGoal = getFriendUserGoalByUserAndChallenge(user, challenge);
-        friendUserGoal.setInActive();
-
-        //GOal을 종료로 처리
-
+        //나와 상대의 userGoal, GOal을 종료로 처리
+        challenge.setInActive();
 
         //관련 알림 전송
-
+        no
     }
 }

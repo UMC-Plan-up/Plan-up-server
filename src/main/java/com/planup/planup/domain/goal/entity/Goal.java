@@ -67,4 +67,11 @@ public class Goal extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> commentList = new ArrayList<>();
+
+    public boolean isChallenge() {
+        if (this.getGoalType().equals(GoalType.CHALLENGE_PHOTO) || this.getGoalType().equals(GoalType.CHALLENGE_TIME)) {
+            return true;
+        }
+        return false;
+    }
 }

@@ -19,6 +19,7 @@ import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +49,7 @@ public class TimerVerificationService implements VerificationService{
 
         Duration total = todayVerifications.stream()
                 .map(TimerVerification::getSpentTime)
-                .filter(spentTime -> spentTime != null)
+                .filter(Objects::nonNull)
                 .reduce(Duration.ZERO, Duration::plus);
 
         return LocalTime.of(
@@ -112,7 +113,7 @@ public class TimerVerificationService implements VerificationService{
 
         TimerVerification savedTimer = timerVerificationRepository.save(timer);
 
-        if (userGoal.getGoal().getGoalType().equals(GoalType.CHALLENGE_PHOTO) || userGoal.getGoal().getGoalType().equals(GoalType.CHALLENGE_TIME)) {
+        if (userGoal.getGoal().isChallenge()) {
             challengeService.checkChallengeFin(userGoal);
         }
 

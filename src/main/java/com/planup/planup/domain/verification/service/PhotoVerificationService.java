@@ -3,6 +3,7 @@ package com.planup.planup.domain.verification.service;
 import com.planup.planup.domain.global.service.ImageUploadService;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
+import com.planup.planup.domain.goal.service.ChallengeService;
 import com.planup.planup.domain.verification.entity.PhotoVerification;
 import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
@@ -24,6 +25,7 @@ public class PhotoVerificationService implements VerificationService {
     private final UserGoalRepository userGoalRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
     private final ImageUploadService imageUploadService;
+    private final ChallengeService challengeService;
 
     public List<PhotoVerification> getAllVerificationByUserGoal(UserGoal userGoal) {
         return photoVerificationRepository.findAllByUserGoal(userGoal);
@@ -48,6 +50,10 @@ public class PhotoVerificationService implements VerificationService {
 
         userGoal.setVerificationCount(userGoal.getVerificationCount() + 1);
         userGoalRepository.save(userGoal);
+
+        if (userGoal.getGoal().isChallenge()) {
+            challengeService.checkChallengeFin(userGoal);
+        }
     }
 
     @Transactional
