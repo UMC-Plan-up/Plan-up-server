@@ -8,8 +8,7 @@ import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
-import com.planup.planup.domain.verification.service.PhotoVerificationService;
-import com.planup.planup.domain.verification.service.TimerVerificationService;
+import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,8 +31,7 @@ public class FriendServiceImpl implements FriendService {
     private final FriendRepository friendRepository;
     private final UserService userService;
     private final FriendConverter friendConverter;
-    private final TimerVerificationService timerVerificationService;
-    private final PhotoVerificationService photoVerificationService;
+    private final TimerVerificationReadService timerVerificationService;
     private final PhotoVerificationRepository photoVerificationRepository;
 
     @Override
@@ -167,7 +165,7 @@ public class FriendServiceImpl implements FriendService {
             long totalSeconds = user.getUserGoals().stream()
                     .mapToLong(userGoal -> {
                         try {
-                            LocalTime goalTime = timerVerificationService.getTodayTotalTime(userGoal.getUser().getId(), userGoal.getGoal().getId());
+                            LocalTime goalTime = timerVerificationService.getTodayTotalTime(userGoal);
                             return goalTime.toSecondOfDay();
                         } catch (Exception e) {
                             log.warn("사용자 {} 목표 {} 타이머 시간 조회 실패: {}", user.getNickname(), userGoal.getGoal().getId(), e.getMessage());

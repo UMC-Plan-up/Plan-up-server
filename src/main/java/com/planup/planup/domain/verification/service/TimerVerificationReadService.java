@@ -8,11 +8,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Transactional
 @Service
@@ -41,5 +44,29 @@ public class TimerVerificationReadService {
             dailyCount.put(date, dailyCount.getOrDefault(date, 0) + seconds);
         }
         return dailyCount;
+    }
+
+    //오늘 총 기록시간 조회
+    public LocalTime getTodayTotalTime(UserGoal userGoal) {
+        if (userGoal == null) {
+            return LocalTime.of(0, 0, 0);
+        }
+        List<TimerVerification> todayVerifications = timerVerificationRepository
+                .findTodayVerificationsByUserGoalId(userGoal.getId());
+
+        if (todayVerifications.isEmpty()) {
+            return LocalTime.of(0, 0, 0);
+        }
+
+        Duration total = todayVerifications.stream()
+                .map(TimerVerification::getSpentTime)
+                .filter(Objects::nonNull)
+                .reduce(Duration.ZERO, Duration::plus);
+
+        return LocalTime.of(
+                (int) total.toHours(),
+                (int) (total.toMinutes() % 60),
+                (int) (total.getSeconds() % 60)
+        );
     }
 }

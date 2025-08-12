@@ -27,30 +27,6 @@ public class TimerVerificationService implements VerificationService{
     private final UserGoalService userGoalService;
     private final TimerVerificationRepository timerVerificationRepository;
 
-    //오늘 총 기록시간 조회
-    public LocalTime getTodayTotalTime(Long userId, Long goalId) {
-        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId,userId);
-        if (userGoal == null) {
-            return LocalTime.of(0, 0, 0);
-        }
-        List<TimerVerification> todayVerifications = timerVerificationRepository
-                .findTodayVerificationsByUserGoalId(userGoal.getId());
-
-        if (todayVerifications.isEmpty()) {
-            return LocalTime.of(0, 0, 0);
-        }
-
-        Duration total = todayVerifications.stream()
-                .map(TimerVerification::getSpentTime)
-                .filter(Objects::nonNull)
-                .reduce(Duration.ZERO, Duration::plus);
-
-        return LocalTime.of(
-                (int) total.toHours(),
-                (int) (total.toMinutes() % 60),
-                (int) (total.getSeconds() % 60)
-        );
-    }
 
     //타이머 시작 -> DB 레코드 생성(TimerVerification)
     public TimerVerificationResponseDto.TimerStartResponseDto startTimer(Long userId, Long goalId) {
