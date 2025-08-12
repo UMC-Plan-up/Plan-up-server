@@ -537,22 +537,52 @@ public class UserServiceImpl implements UserService {
             throw new UserException(ErrorStatus.NOT_FOUND_USER);
         }
 
-        // 기존 signup() 로직 재사용 - 필수 약관 동의 검증
+        // 기본 사용자 생성
+        User user = createBasicKakaoUser(kakaoUserInfo, request);
+
+        // 프로필 이미지 처리
+        if (request.getProfileImg() != null) {
+            processProfileImage(user, request.getProfileImg());
+        }
+
+        // 닉네임 처리
+        if (request.getNickname() != null) {
+            processNickname(user, request.getNickname());
+        }
+
+        // 초대코드 처리
+        String friendNickname = null;
+        if (request.getInviteCode() != null && !request.getInviteCode().trim().isEmpty()) {
+            friendNickname = processInviteCode(user, request.getInviteCode());
+        }
+
+        // 약관 동의 처리
+        if (request.getAgreements() != null) {
+            addTermsAgreements(user, request.getAgreements());
+        }
+
+        // Redis 데이터 삭제
+        redisTemplate.delete(redisKey);
+
+        // JWT 토큰 생성 및 응답
+        String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+
+        return SignupResponseDTO.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .friendNickname(friendNickname)
+                .accessToken(accessToken)
+                .build();
+    }
+
+    // 카카오 기본 사용자 생성
+    private User createBasicKakaoUser(KakaoUserInfo kakaoUserInfo, KakaoSignupCompleteRequestDTO request) {
+        // 필수 약관 동의 검증
         if (request.getAgreements() != null) {
             validateRequiredTerms(request.getAgreements());
         }
 
-        // 기존 signup() 로직 재사용 - 초대코드 처리
-        Long inviterId = null;
-        String friendNickname = null;
-        if (request.getInviteCode() != null && !request.getInviteCode().trim().isEmpty()) {
-            inviterId = inviteCodeService.findInviterByCode(request.getInviteCode());
-            if (inviterId == null) {
-                throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
-            }
-        }
-
-        // 기존 signup() 로직 재사용 - User 생성
+        // User 생성
         User user = User.builder()
                 .email(kakaoUserInfo.getEmail())
                 .password(null) // 카카오는 비밀번호 없음
@@ -571,51 +601,80 @@ public class UserServiceImpl implements UserService {
         // OAuth 계정 연결
         OAuthAccount oAuthAccount = OAuthAccount.builder()
                 .provider(AuthProvideerEnum.KAKAO)
-                .email(kakaoUserInfo.getKakaoAccount().getEmail())
+                .email(kakaoUserInfo.getEmail())
                 .user(savedUser)
                 .build();
         oAuthAccountRepository.save(oAuthAccount);
 
-        // 기존 signup() 로직 재사용 - 약관 동의 추가
-        if (request.getAgreements() != null) {
-            addTermsAgreements(savedUser, request.getAgreements());
+        return savedUser;
+    }
+
+    // 프로필 이미지 처리
+    private void processProfileImage(User user, String profileImg) {
+        user.updateProfileImage(profileImg);
+        userRepository.save(user);
+    }
+
+    // 닉네임 처리
+    private void processNickname(User user, String nickname) {
+        // 기존 updateNickname 로직 재사용
+        // 현재 사용자가 이미 같은 닉네임을 사용하고 있는지 확인
+        if (user.getNickname().equals(nickname)) {
+            return;
         }
 
-        // 기존 signup() 로직 재사용 - 초대 관계 처리
-        if (inviterId != null) {
-            User inviterUser = getUserbyUserId(inviterId);
-            friendNickname = inviterUser.getNickname();
+        if (userRepository.existsByNickname(nickname)) {
+            throw new UserException(ErrorStatus.EXIST_NICKNAME);
+        }
+        
+        user.setNickname(nickname);
+        userRepository.save(user);
+    }
 
-            Friend friendship1 = Friend.builder()
-                    .user(savedUser)
-                    .friend(inviterUser)
-                    .status(FriendStatus.ACCEPTED)
-                    .build();
-
-            Friend friendship2 = Friend.builder()
-                    .user(inviterUser)
-                    .friend(savedUser)
-                    .status(FriendStatus.ACCEPTED)
-                    .build();
-
-            friendRepository.save(friendship1);
-            friendRepository.save(friendship2);
-
-            inviteCodeService.useInviteCode(request.getInviteCode());
+    // 초대코드 처리
+    private String processInviteCode(User user, String inviteCode) {
+        // 기존 validateInviteCode 로직 재사용
+        Long inviterId = inviteCodeService.findInviterByCode(inviteCode);
+        if (inviterId == null) {
+            throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
         }
 
-        // Redis 데이터 삭제
-        redisTemplate.delete(redisKey);
+        // 본인 코드인지 확인
+        if (inviterId.equals(user.getId())) {
+            throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
+        }
 
-        // 기존 signup() 응답 재사용 (JWT 토큰 추가)
-        String accessToken = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole().toString(), savedUser.getId());
+        // 이미 친구인지 확인
+        User inviterUser = getUserbyUserId(inviterId);
+        boolean alreadyFriend = friendRepository.findByUserAndFriend_NicknameAndStatus(
+                user, inviterUser.getNickname(), FriendStatus.ACCEPTED).isPresent() ||
+                friendRepository.findByUserAndFriend_NicknameAndStatus(
+                        inviterUser, user.getNickname(), FriendStatus.ACCEPTED).isPresent();
 
-        return SignupResponseDTO.builder()
-                .id(savedUser.getId())
-                .email(savedUser.getEmail())
-                .friendNickname(friendNickname)
-                .accessToken(accessToken) // 자동 로그인을 위한 토큰 추가
+        if (alreadyFriend) {
+            throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
+        }
+
+        // 친구 관계 생성
+        Friend friendship1 = Friend.builder()
+                .user(user)
+                .friend(inviterUser)
+                .status(FriendStatus.ACCEPTED)
                 .build();
+
+        Friend friendship2 = Friend.builder()
+                .user(inviterUser)
+                .friend(user)
+                .status(FriendStatus.ACCEPTED)
+                .build();
+
+        friendRepository.save(friendship1);
+        friendRepository.save(friendship2);
+
+        // 초대코드 사용 완료
+        inviteCodeService.useInviteCode(inviteCode);
+
+        return inviterUser.getNickname();
     }
 
 }
