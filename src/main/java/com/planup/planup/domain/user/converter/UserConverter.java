@@ -1,5 +1,6 @@
 package com.planup.planup.domain.user.converter;
 
+import com.planup.planup.domain.user.dto.EmailSendResponseDTO;
 import com.planup.planup.domain.user.dto.LoginResponseDTO;
 import com.planup.planup.domain.user.dto.SignupRequestDTO;
 import com.planup.planup.domain.user.dto.SignupResponseDTO;
@@ -69,6 +70,24 @@ public class UserConverter {
                 .terms(terms)
                 .isAgreed(agreement.isAgreed())
                 .agreedAt(agreement.isAgreed() ? LocalDateTime.now() : null)
+                .build();
+    }
+
+    // 비밀번호 변경 확인 메일 발송 응답 DTO로 변환
+    public EmailSendResponseDTO toEmailSendResponseDTO(String email, String verificationToken) {
+        return EmailSendResponseDTO.builder()
+                .email(email)
+                .message("비밀번호 변경 확인 메일이 발송되었습니다")
+                .verificationToken(verificationToken)
+                .build();
+    }
+
+    // 이메일 발송 응답 DTO로 변환 (메시지 커스터마이징 가능)
+    public EmailSendResponseDTO toEmailSendResponseDTO(String email, String verificationToken, String message) {
+        return EmailSendResponseDTO.builder()
+                .email(email)
+                .message(message)
+                .verificationToken(verificationToken)
                 .build();
     }
 }

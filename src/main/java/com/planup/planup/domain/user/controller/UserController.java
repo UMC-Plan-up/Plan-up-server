@@ -3,6 +3,7 @@ package com.planup.planup.domain.user.controller;
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
+import com.planup.planup.domain.user.converter.UserConverter;
 import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.EmailService;
@@ -27,6 +28,7 @@ public class UserController {
 
     private final UserService userService;
     private final EmailService emailService;
+    private final UserConverter userConverter;
 
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
@@ -136,11 +138,7 @@ public class UserController {
 
         String verificationToken = emailService.sendVerificationEmail(request.getEmail());
 
-        EmailSendResponseDTO response = EmailSendResponseDTO.builder()
-                .email(request.getEmail())
-                .message("인증 메일이 발송되었습니다")
-                .verificationToken(verificationToken)
-                .build();
+        EmailSendResponseDTO response = userConverter.toEmailSendResponseDTO(request.getEmail(), verificationToken, "인증 메일이 발송되었습니다");
 
         return ApiResponse.onSuccess(response);
     }
@@ -155,11 +153,7 @@ public class UserController {
         // 인증메일 재발송
         String verificationToken = emailService.resendVerificationEmail(request.getEmail());
 
-        EmailSendResponseDTO response = EmailSendResponseDTO.builder()
-                .email(request.getEmail())
-                .message("인증 메일이 재발송되었습니다")
-                .verificationToken(verificationToken)
-                .build();
+        EmailSendResponseDTO response = userConverter.toEmailSendResponseDTO(request.getEmail(), verificationToken, "인증 메일이 재발송되었습니다");
 
         return ApiResponse.onSuccess(response);
     }
@@ -198,11 +192,7 @@ public class UserController {
 
         String changeToken = emailService.sendPasswordChangeEmail(request.getEmail());
 
-        EmailSendResponseDTO response = EmailSendResponseDTO.builder()
-                .email(request.getEmail())
-                .message("비밀번호 변경 확인 메일이 발송되었습니다")
-                .verificationToken(changeToken)
-                .build();
+        EmailSendResponseDTO response = userConverter.toEmailSendResponseDTO(request.getEmail(), changeToken);
 
         return ApiResponse.onSuccess(response);
     }
@@ -215,11 +205,7 @@ public class UserController {
 
         String changeToken = emailService.resendPasswordChangeEmail(request.getEmail());
 
-        EmailSendResponseDTO response = EmailSendResponseDTO.builder()
-                .email(request.getEmail())
-                .message("비밀번호 변경 확인 메일이 재발송되었습니다")
-                .verificationToken(changeToken)
-                .build();
+        EmailSendResponseDTO response = userConverter.toEmailSendResponseDTO(request.getEmail(), changeToken, "비밀번호 변경 확인 메일이 재발송되었습니다");
 
         return ApiResponse.onSuccess(response);
     }
