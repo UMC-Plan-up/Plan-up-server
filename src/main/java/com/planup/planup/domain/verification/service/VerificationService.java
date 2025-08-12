@@ -8,9 +8,6 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 public interface VerificationService {
-    @Transactional
-    Map<LocalDate, Integer> calculateVerificationWithStartAndEnd(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate);
-
-    @Transactional
-    Map<LocalDate, Integer> calculateVerificationWithGoal(UserGoal userGoal);
+//    @Transactional
+//    Map<LocalDate, Integer> calculateVerification(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate);
 }

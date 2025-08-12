@@ -3,6 +3,7 @@ package com.planup.planup.domain.verification.service;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.service.ChallengeService;
+import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.verification.convertor.TimerVerificationConverter;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
 import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;
@@ -25,6 +26,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class TimerVerificationService implements VerificationService{
     private final UserGoalRepository userGoalRepository;
+    private final UserGoalService userGoalService;
     private final TimerVerificationRepository timerVerificationRepository;
     private final ChallengeService challengeService;
 
@@ -34,34 +36,10 @@ public class TimerVerificationService implements VerificationService{
         return ver;
     }
 
-    //오늘 총 기록시간 조회
-    public LocalTime getTodayTotalTime(Long userId, Long goalId) {
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId,userId);
-        if (userGoal == null) {
-            return LocalTime.of(0, 0, 0);
-        }
-        List<TimerVerification> todayVerifications = timerVerificationRepository
-                .findTodayVerificationsByUserGoalId(userGoal.getId());
-
-        if (todayVerifications.isEmpty()) {
-            return LocalTime.of(0, 0, 0);
-        }
-
-        Duration total = todayVerifications.stream()
-                .map(TimerVerification::getSpentTime)
-                .filter(Objects::nonNull)
-                .reduce(Duration.ZERO, Duration::plus);
-
-        return LocalTime.of(
-                (int) total.toHours(),
-                (int) (total.toMinutes() % 60),
-                (int) (total.getSeconds() % 60)
-        );
-    }
 
     //타이머 시작 -> DB 레코드 생성(TimerVerification)
     public TimerVerificationResponseDto.TimerStartResponseDto startTimer(Long userId, Long goalId) {
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
         //에러 처리 필요
 
         List<TimerVerification> runningTimers = timerVerificationRepository
@@ -107,7 +85,7 @@ public class TimerVerificationService implements VerificationService{
 
         //인증 횟수 증가
         if (achieved) { //achieved == true
-            userGoal.setVerificationCount(userGoal.getVerificationCount() + 1);
+            userGoal.increaseVerificationCount();
             userGoalRepository.save(userGoal);
         }
 
@@ -130,35 +108,5 @@ public class TimerVerificationService implements VerificationService{
         return spentTime.toMinutes() >= goalTimeMinutes;
     }
 
-    @Transactional(readOnly = true)
-    public List<TimerVerification> getTimerVerificationListByUserAndDateBetween(UserGoal userGoal, LocalDateTime start, LocalDateTime end) {
-        return timerVerificationRepository.findAllByUserGoalAndCreatedAtBetweenOrderByCreatedAt(userGoal, start, end);
-    }
 
-    @Override
-    @Transactional
-    public Map<LocalDate, Integer> calculateVerificationWithStartAndEnd(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
-        List<TimerVerification> verifications = getTimerVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
-
-        return aggregateToDailySeconds(verifications);
-    }
-
-    @Override
-    @Transactional
-    public Map<LocalDate, Integer> calculateVerificationWithGoal(UserGoal userGoal) {
-        List<TimerVerification> verifications = getVerificationByUserGoal(userGoal);
-
-        return aggregateToDailySeconds(verifications);
-    }
-
-    // 2) 계산(집계) 전용: 레코드 → 날짜별 초(second) 합계
-    protected Map<LocalDate, Integer> aggregateToDailySeconds(List<TimerVerification> verifications) {
-        Map<LocalDate, Integer> dailyCount = new HashMap<>();
-        for (TimerVerification v : verifications) {
-            LocalDate date = v.getCreatedAt().toLocalDate();
-            int seconds = (int) ((v.getSpentTime() == null ? 0L : v.getSpentTime().toMillis()) / 1000);
-            dailyCount.put(date, dailyCount.getOrDefault(date, 0) + seconds);
-        }
-        return dailyCount;
-    }
 }

@@ -111,8 +111,7 @@ public class GoalConvertor {
 
     //세부 목표 조회 DTO 변환
     public static GoalResponseDto.MyGoalDetailDto toMyGoalDetailsDto(
-            UserGoal userGoal,
-            List<Comment> commentList) {
+            UserGoal userGoal) {
 
         Goal goal = userGoal.getGoal();
 
@@ -121,7 +120,6 @@ public class GoalConvertor {
                 .goalName(goal.getGoalName())
                 .oneDose(goal.getOneDose())
                 .isPublic(userGoal.isPublic())
-                .commentList(commentList)
                 .build();
     }
 

@@ -3,6 +3,7 @@ package com.planup.planup.domain.verification.service;
 import com.planup.planup.domain.global.service.ImageUploadService;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
+import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.goal.service.ChallengeService;
 import com.planup.planup.domain.verification.entity.PhotoVerification;
 import com.planup.planup.domain.verification.entity.TimerVerification;
@@ -30,6 +31,7 @@ public class PhotoVerificationService implements VerificationService {
     public List<PhotoVerification> getAllVerificationByUserGoal(UserGoal userGoal) {
         return photoVerificationRepository.findAllByUserGoal(userGoal);
     }
+    private final UserGoalService userGoalService;
 
     @Transactional
     public void uploadPhotoVerification(
@@ -37,7 +39,7 @@ public class PhotoVerificationService implements VerificationService {
             Long goalId,
             MultipartFile photoFile) {
 
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
 
         String photoUrl = imageUploadService.uploadImage(photoFile, "verifications/photos");
 
@@ -48,7 +50,7 @@ public class PhotoVerificationService implements VerificationService {
 
         PhotoVerification savedVerification = photoVerificationRepository.save(photoVerification);
 
-        userGoal.setVerificationCount(userGoal.getVerificationCount() + 1);
+        userGoal.increaseVerificationCount();
         userGoalRepository.save(userGoal);
 
         if (userGoal.getGoal().isChallenge()) {
@@ -67,40 +69,10 @@ public class PhotoVerificationService implements VerificationService {
 
         UserGoal userGoal = verification.getUserGoal();
         if (userGoal.getVerificationCount() > 0) {
-            userGoal.setVerificationCount(userGoal.getVerificationCount() - 1);
+            userGoal.decreaseVerificationCount();
             userGoalRepository.save(userGoal);
         }
 
         photoVerificationRepository.delete(verification);
-    }
-
-    @Transactional(readOnly = true)
-    public List<PhotoVerification> getPhotoVerificationListByUserAndDateBetween(UserGoal userGoal, LocalDateTime start, LocalDateTime end) {
-        return photoVerificationRepository.findAllByUserGoalAndCreatedAtBetweenOrderByCreatedAt(userGoal,start,end);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Map<LocalDate, Integer> calculateVerificationWithStartAndEnd(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
-        List<PhotoVerification> verifications = getPhotoVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
-
-        return aggregateToDailySeconds(verifications);
-    }
-
-    protected Map<LocalDate, Integer> aggregateToDailySeconds(List<PhotoVerification> verifications) {
-        Map<LocalDate, Integer> dailyCount = new HashMap<>();
-        for (PhotoVerification v : verifications) {
-            LocalDate date = v.getCreatedAt().toLocalDate();
-            int cnt = v.getPhotoImgs().size();
-            dailyCount.put(date, dailyCount.getOrDefault(date, 0) + cnt);
-        }
-        return dailyCount;
-    }
-
-    @Override
-    @Transactional
-    public Map<LocalDate, Integer> calculateVerificationWithGoal(UserGoal userGoal) {
-        List<PhotoVerification> verifications = getAllVerificationByUserGoal(userGoal);
-        return aggregateToDailySeconds(verifications);
     }
 }

@@ -21,7 +21,9 @@ import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.verification.service.PhotoVerificationReadService;
 import com.planup.planup.domain.verification.service.PhotoVerificationService;
+import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -47,6 +49,8 @@ public class ChallengeServiceImpl implements ChallengeService{
     private final TimerVerificationService timerVerificationService;
     private final AchievementCalculationService achievementCalculationService;
     private final NotificationService notificationService;
+    private final PhotoVerificationReadService photoVerificationReadService;
+    private final TimerVerificationReadService timerVerificationReadService;
 
     @Override
     @Transactional
@@ -215,7 +219,6 @@ public class ChallengeServiceImpl implements ChallengeService{
             User user = userService.getUserbyUserId(friendId);
             createPerUserGoal(user, type, Status.MEMBER, challenge);
         }
-
     }
 
     @Override
@@ -264,9 +267,9 @@ public class ChallengeServiceImpl implements ChallengeService{
     private Map<LocalDate, Integer> getCaledVerification(Challenge challenge, UserGoal myUserGoal) {
         Map<LocalDate, Integer> verifications = null;
         if (challenge.getVerificationType().equals(VerificationType.TIMER)) {
-            verifications = timerVerificationService.calculateVerificationWithGoal(myUserGoal);
+            verifications = timerVerificationReadService.calculateVerificationWithGoal(myUserGoal);
         } else if (challenge.getVerificationType().equals(VerificationType.PHOTO)) {
-            verifications = photoVerificationService.calculateVerificationWithGoal(myUserGoal);
+            verifications = photoVerificationReadService.calculateVerificationWithGoal(myUserGoal);
         }
         return verifications;
     }
@@ -287,6 +290,6 @@ public class ChallengeServiceImpl implements ChallengeService{
         challenge.setInActive();
 
         //관련 알림 전송
-        no
+//        no
     }
 }

@@ -1,9 +1,12 @@
 package com.planup.planup.domain.goal.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
+import com.planup.planup.domain.goal.dto.CommentRequestDto;
+import com.planup.planup.domain.goal.dto.CommentResponseDto;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
+import com.planup.planup.domain.goal.service.CommentService;
 import com.planup.planup.domain.goal.service.GoalService;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.validation.annotation.CurrentUser;
@@ -21,6 +24,7 @@ import java.util.List;
 @RequestMapping("/goals")
 public class GoalController {
     private final GoalService goalService;
+    private final CommentService commentService;
 
     @PostMapping("/create")
     @Operation(summary = "목표 생성 API", description = "목표를 생성하는 API입니다.")
@@ -152,6 +156,47 @@ public class GoalController {
         return ApiResponse.onSuccess(result);
     }
 
+    // 댓글 CRUD
+    @PostMapping("/{goalId}/comments")
+    @Operation(summary = "댓글 작성 API", description = "특정 목표에 댓글을 작성합니다.")
+    public ApiResponse<CommentResponseDto.CommentDto> createComment(
+            @PathVariable Long goalId,
+            @Valid @RequestBody CommentRequestDto.CommentCreateRequestDto requestDto,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
 
+        CommentResponseDto.CommentDto result = commentService.createComment(goalId, userId, requestDto);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @GetMapping("/{goalId}/comments")
+    @Operation(summary = "댓글 조회 API", description = "특정 목표의 댓글 목록을 조회합니다.")
+    public ApiResponse<List<CommentResponseDto.CommentDto>> getComments(
+            @PathVariable Long goalId,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        List<CommentResponseDto.CommentDto> result = commentService.getComments(goalId, userId);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @PutMapping("/comments/{commentId}")
+    @Operation(summary = "댓글 수정 API", description = "본인이 작성한 댓글을 수정합니다.")
+    public ApiResponse<CommentResponseDto.CommentDto> updateComment(
+            @PathVariable Long commentId,
+            @RequestBody String content,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        CommentResponseDto.CommentDto result = commentService.updateComment(commentId, userId, content);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    @Operation(summary = "댓글 삭제 API", description = "본인이 작성한 댓글을 삭제합니다.")
+    public ApiResponse<Void> deleteComment(
+            @PathVariable Long commentId,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        commentService.deleteComment(commentId, userId);
+        return ApiResponse.onSuccess(null);
+    }
 }
 

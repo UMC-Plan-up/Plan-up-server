@@ -1,9 +1,12 @@
 package com.planup.planup.domain.verification.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
+import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.verification.convertor.TimerVerificationConverter;
 import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;
 import com.planup.planup.domain.verification.service.PhotoVerificationService;
+import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import com.planup.planup.validation.annotation.CurrentUser;
 import com.planup.planup.validation.jwt.JwtUtil;
@@ -21,9 +24,10 @@ import java.time.LocalTime;
 @RequestMapping("/verification")
 public class VerificationController {
 
+    private final TimerVerificationReadService timerVerificationReadService;
     private final TimerVerificationService timerVerificationService;
     private final PhotoVerificationService photoVerificationService;
-    private final JwtUtil jwtUtil;
+    private final UserGoalService userGoalService;
 
     @PostMapping("/timer/start")
     @Operation(summary = "타이머 시작 API", description = "선택한 목표의 타이머 인증을 시작합니다.")
@@ -55,7 +59,9 @@ public class VerificationController {
             @RequestParam("GoalId") Long goalId,
             @Parameter(hidden = true) @CurrentUser Long userId) {
 
-        LocalTime totalTime = timerVerificationService.getTodayTotalTime(userId, goalId);
+
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(userId, goalId);
+        LocalTime totalTime = timerVerificationReadService.getTodayTotalTime(userGoal);
 
         TimerVerificationResponseDto.TodayTotalTimeResponseDto result =
                 TimerVerificationConverter.toTodayTotalTimeResponse(totalTime);

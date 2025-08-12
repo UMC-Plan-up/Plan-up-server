@@ -1,6 +1,7 @@
 package com.planup.planup.domain.goal.entity;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
+import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
@@ -17,7 +18,6 @@ import java.util.List;
 @Entity
 @Getter
 @SuperBuilder
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -57,6 +57,9 @@ public class Goal extends BaseTimeEntity {
     //종료일
     private Date endDate;
 
+    @Builder.Default
+    private boolean isActive = true;
+
     //목표 인증 방식(타이머/사진)
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
@@ -67,6 +70,27 @@ public class Goal extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> commentList = new ArrayList<>();
+
+
+    public void setInActive() {
+        this.isActive = false;
+        for (UserGoal userGoal : userGoals) {
+            userGoal.setActive(false);
+        }
+    }
+
+    public void updateFrom(GoalRequestDto.CreateGoalDto dto) {
+        this.goalName = dto.getGoalName();
+        this.goalAmount = dto.getGoalAmount();
+        this.goalCategory = dto.getGoalCategory();
+        this.goalType = dto.getGoalType();
+        this.oneDose = dto.getOneDose();
+        this.frequency = dto.getFrequency();
+        this.period = dto.getPeriod();
+        this.endDate = dto.getEndDate();
+        this.verificationType = dto.getVerificationType();
+        this.limitFriendCount = dto.getLimitFriendCount();
+    }
 
     public boolean isChallenge() {
         if (this.getGoalType().equals(GoalType.CHALLENGE_PHOTO) || this.getGoalType().equals(GoalType.CHALLENGE_TIME)) {
