@@ -67,8 +67,9 @@ src/main/java/com/planup/planup/
 - **UserGoal**: 사용자-목표 매핑 테이블
 - **Friend**: 친구 관계 관리
 - **Verification**: 목표 인증 (Timer/Photo)
-- **WeeklyReport**: 주간 성과 리포트
+- **Report**: 주간 성과 리포트 및 각 목표별 리포트
 - **Notification**: 알림 관리
+- **Badge**: 뱃지 부여
 
 ## 🚀 브랜치 전략
 
@@ -78,8 +79,6 @@ src/main/java/com/planup/planup/
 - `feature/*`: 기능 개발 브랜치
 - `hotfix/*`: 긴급 수정 브랜치
 
-### 브랜치 네이밍 컨벤션
-
 ### Git Flow 전략 사용
 - `main`: 프로덕션 배포 브랜치
 - `develop`: 개발 통합 브랜치  
@@ -87,8 +86,8 @@ src/main/java/com/planup/planup/
 - `hotfix/*`: 긴급 수정 브랜치
 
 ### 브랜치 네이밍 컨벤션
-feature/{이슈번호}/{기능명}
-hotfix/{이슈번호}/{수정내용}
+- feature/{이슈번호}/{기능명}
+- hotfix/{이슈번호}/{수정내용}
 
 ## 📝 커밋 메시지 컨벤션
 타입: 제목
@@ -101,6 +100,14 @@ hotfix/{이슈번호}/{수정내용}
 - `test`: 테스트 코드
 - `chore`: 기타 작업
 
+## 🔧 개발 참여 방법
+
+1. 프로젝트 클론 후 새 브랜치 생성
+2. 기능 개발 또는 버그 수정
+3. 커밋 메시지 컨벤션에 따라 커밋
+4. develop 브랜치로 Pull Request 생성
+5. 코드 리뷰 후 병합
+
 ## 🔧 개발 환경 설정
 
 ### 사전 요구사항
@@ -108,12 +115,6 @@ hotfix/{이슈번호}/{수정내용}
 - MySQL 8.0
 - Redis
 - AWS CLI
-
-### 로컬 실행 방법
-
-1. **저장소 클론**
-git clone https://github.com/UMC-PlanUp/PlanUp-Server.git
-cd PlanUp-Server
 
 ### API 문서 확인
 
@@ -145,14 +146,6 @@ Swagger UI: http://54.180.207.84:8080/swagger-ui/index.html
 ## 📄 라이선스
 
 이 프로젝트는 MIT 라이선스 하에 배포됩니다.
-
-## 🔧 개발 참여 방법
-
-1. 프로젝트 클론 후 새 브랜치 생성
-2. 기능 개발 또는 버그 수정
-3. 커밋 메시지 컨벤션에 따라 커밋
-4. develop 브랜치로 Pull Request 생성
-5. 코드 리뷰 후 병합
 ---
 
 <div align="center">
