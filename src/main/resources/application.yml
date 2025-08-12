@@ -77,3 +77,8 @@ aws:
   s3:
     bucket: umc-planup-2025
     region: ap-northeast-2
+kakao:
+  client-id: ${REST_API_KEY}
+  auth-url: https://kauth.kakao.com/oauth/token
+  api-url: https://kapi.kakao.com/v2/user/me
+  redirect-uri: http://localhost:8080/test/kakao/callback
