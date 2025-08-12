@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 public class GoalServiceImpl implements GoalService{
     private final GoalRepository goalRepository;
     private final UserGoalRepository userGoalRepository;
+    private final UserGoalService userGoalService;
     private final UserRepository userRepository;
     private final TimerVerificationRepository timerVerificationRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
@@ -139,7 +140,7 @@ public class GoalServiceImpl implements GoalService{
     //내 목표 조회(세부 내용 조회)
     @Transactional(readOnly = true)
     public GoalResponseDto.MyGoalDetailDto getMyGoalDetails(Long goalId, Long userId) {
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
 
         return GoalConvertor.toMyGoalDetailsDto(userGoal);
     }
@@ -147,7 +148,7 @@ public class GoalServiceImpl implements GoalService{
     //활성화/비활성화
     @Transactional
     public void updateActiveGoal(Long goalId, Long userId) {
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
 
         userGoal.setActive(!userGoal.isActive());
     }
@@ -155,7 +156,7 @@ public class GoalServiceImpl implements GoalService{
     //공개/비공개
     @Transactional
     public void updatePublicGoal(Long goalId, Long userId) {
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
         //공개 상태 변경
         userGoal.setPublic();
     }
@@ -167,7 +168,7 @@ public class GoalServiceImpl implements GoalService{
 
         Integer goalTime = null;
         if (goal.getVerificationType() == VerificationType.TIMER) {
-            UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+            UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
             if (userGoal != null && !userGoal.getTimerVerifications().isEmpty()) {
                 goalTime = userGoal.getGoalTime();
             }
@@ -183,7 +184,7 @@ public class GoalServiceImpl implements GoalService{
         goal.updateFrom(dto);
 
         if (dto.getVerificationType() == VerificationType.TIMER && dto.getGoalTime() != null) {
-            UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+            UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
             if (userGoal != null) {
                 userGoal.setGoalTime(dto.getGoalTime());
             }
@@ -224,7 +225,7 @@ public class GoalServiceImpl implements GoalService{
     //사진 조회
     @Transactional(readOnly = true)
     public List<PhotoVerificationResponseDto.uploadPhotoResponseDto> getGoalPhotos(Long userId, Long goalId) {
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
         if (userGoal == null) {
             throw new RuntimeException("해당 목표를 찾을 수 없거나 접근 권한이 없습니다.");
         }

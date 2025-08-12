@@ -3,6 +3,7 @@ package com.planup.planup.domain.verification.service;
 import com.planup.planup.domain.global.service.ImageUploadService;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
+import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.verification.entity.PhotoVerification;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class PhotoVerificationService implements VerificationService {
     private final UserGoalRepository userGoalRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
     private final ImageUploadService imageUploadService;
+    private final UserGoalService userGoalService;
 
     @Transactional
     public void uploadPhotoVerification(
@@ -30,7 +32,7 @@ public class PhotoVerificationService implements VerificationService {
             Long goalId,
             MultipartFile photoFile) {
 
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
 
         String photoUrl = imageUploadService.uploadImage(photoFile, "verifications/photos");
 

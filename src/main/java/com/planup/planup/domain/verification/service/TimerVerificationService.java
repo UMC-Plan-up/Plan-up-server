@@ -1,6 +1,7 @@
 package com.planup.planup.domain.verification.service;
 
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.verification.convertor.TimerVerificationConverter;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
 import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;
@@ -23,11 +24,12 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class TimerVerificationService implements VerificationService{
     private final UserGoalRepository userGoalRepository;
+    private final UserGoalService userGoalService;
     private final TimerVerificationRepository timerVerificationRepository;
 
     //오늘 총 기록시간 조회
     public LocalTime getTodayTotalTime(Long userId, Long goalId) {
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId,userId);
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId,userId);
         if (userGoal == null) {
             return LocalTime.of(0, 0, 0);
         }
@@ -52,7 +54,7 @@ public class TimerVerificationService implements VerificationService{
 
     //타이머 시작 -> DB 레코드 생성(TimerVerification)
     public TimerVerificationResponseDto.TimerStartResponseDto startTimer(Long userId, Long goalId) {
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
         //에러 처리 필요
 
         List<TimerVerification> runningTimers = timerVerificationRepository

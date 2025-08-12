@@ -1,10 +1,9 @@
 package com.planup.planup.domain.goal.service;
 
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.UserGoalException;
 import com.planup.planup.domain.friend.service.FriendService;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
-import com.planup.planup.domain.friend.entity.Friend;
-import com.planup.planup.domain.friend.entity.FriendStatus;
-import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.goal.dto.CommunityResponseDto;
 import com.planup.planup.domain.goal.convertor.UserGoalConvertor;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
@@ -29,6 +28,7 @@ import java.util.List;
 public class UserGoalServiceImpl implements UserGoalService{
 
     private final UserGoalRepository userGoalRepository;
+    private final UserGoalService userGoalService;
     private final GoalRepository goalRepository;
     private final UserRepository userRepository;
     private final FriendService friendService;
@@ -41,7 +41,7 @@ public class UserGoalServiceImpl implements UserGoalService{
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
 
-        UserGoal existingUserGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal existingUserGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
         if (existingUserGoal != null) {
             throw new RuntimeException("이미 참가한 목표입니다.");
         }
@@ -112,5 +112,11 @@ public class UserGoalServiceImpl implements UserGoalService{
     @Override
     public List<UserGoal> getUserGoalInPeriod(LocalDateTime startDate, LocalDateTime endDate) {
         return userGoalRepository.findAllByUpdatedAtBetween(startDate, endDate);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserGoal getByGoalIdAndUserId(Long goalId, Long userId) {
+        return userGoalRepository.findByGoalIdAndUserId(goalId, userId).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
     }
 }

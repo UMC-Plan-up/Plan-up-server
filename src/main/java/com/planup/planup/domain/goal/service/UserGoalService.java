@@ -6,6 +6,7 @@ import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.user.entity.User;
 import org.springframework.cglib.core.Local;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,4 +26,6 @@ public interface UserGoalService {
 
     List<UserGoal> getUserGoalInPeriod(LocalDateTime startDate, LocalDateTime endDate);
 
+    @Transactional(readOnly = true)
+    UserGoal getByGoalIdAndUserId(Long goalId, Long userId);
 }
