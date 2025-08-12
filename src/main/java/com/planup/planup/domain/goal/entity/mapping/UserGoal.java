@@ -76,4 +76,8 @@ public class UserGoal extends BaseTimeEntity {
             goal.getUserGoals().add(this);
         }
     }
+
+    public void setActive(boolean active) {
+        this.setActive(active);
+    }
 }
