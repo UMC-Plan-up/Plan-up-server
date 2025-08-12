@@ -27,7 +27,7 @@ public class FriendServiceImpl implements FriendService {
     private final FriendConverter friendConverter;
 
     @Override
-    @Transactional(readOnly = true) 
+    @Transactional(readOnly = true)
     public List<FriendResponseDTO.FriendSummaryList> getFriendSummeryList(Long userId) {
 
         User user = userService.getUserbyUserId(userId);
@@ -46,17 +46,17 @@ public class FriendServiceImpl implements FriendService {
     @Override
     @Transactional
     public boolean deleteFriend(Long userId, Long friendId) {
-    // 1. userId와 friendId로 Friend 엔티티를 찾는다.
-    // 2. 해당 Friend 엔티티를 삭제한다.
-    // 3. 성공적으로 삭제했으면 true, 아니면 false 반환
+        // 1. userId와 friendId로 Friend 엔티티를 찾는다.
+        // 2. 해당 Friend 엔티티를 삭제한다.
+        // 3. 성공적으로 삭제했으면 true, 아니면 false 반환
 
         List<Friend> friends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
-            FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
+                FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
 
         Friend friend = friends.stream()
-            .filter(f -> (f.getUser().getId().equals(friendId) || f.getFriend().getId().equals(friendId)))
-            .findFirst()
-            .orElse(null);
+                .filter(f -> (f.getUser().getId().equals(friendId) || f.getFriend().getId().equals(friendId)))
+                .findFirst()
+                .orElse(null);
 
         if (friend != null) {
             friendRepository.delete(friend);
@@ -71,12 +71,12 @@ public class FriendServiceImpl implements FriendService {
     public boolean blockFriend(Long userId, Long friendId) {
         // 1. userId와 friendId로 Friend 엔티티를 찾는다.
         List<Friend> friends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
-            FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
+                FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
 
         Friend friend = friends.stream()
-            .filter(f -> (f.getUser().getId().equals(friendId) || f.getFriend().getId().equals(friendId)))
-            .findFirst()
-            .orElse(null);
+                .filter(f -> (f.getUser().getId().equals(friendId) || f.getFriend().getId().equals(friendId)))
+                .findFirst()
+                .orElse(null);
 
         if (friend != null) {
             friend.setStatus(FriendStatus.BLOCKED); // 상태 변경
@@ -92,10 +92,10 @@ public class FriendServiceImpl implements FriendService {
     public boolean reportFriend(Long userId, Long friendId, String reason, boolean block) {
         // 1. Friend 엔티티 찾기 (ACCEPTED 또는 BLOCKED 상태의 친구 관계)
         List<Friend> acceptedFriends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
-            FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
+                FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
 
         List<Friend> blockedFriends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
-            FriendStatus.BLOCKED, userId, FriendStatus.BLOCKED, userId);
+                FriendStatus.BLOCKED, userId, FriendStatus.BLOCKED, userId);
 
         // 두 리스트 합치기
         List<Friend> allFriends = new ArrayList<>();
@@ -103,9 +103,9 @@ public class FriendServiceImpl implements FriendService {
         allFriends.addAll(blockedFriends);
 
         Friend friend = allFriends.stream()
-            .filter(f -> (f.getUser().getId().equals(friendId) || f.getFriend().getId().equals(friendId)))
-            .findFirst()
-            .orElse(null);
+                .filter(f -> (f.getUser().getId().equals(friendId) || f.getFriend().getId().equals(friendId)))
+                .findFirst()
+                .orElse(null);
 
         if (friend != null) {
             // 신고 사유 저장 (별도 테이블이 있다면 Report 엔티티에 저장, 없다면 로그 등)
@@ -126,7 +126,7 @@ public class FriendServiceImpl implements FriendService {
     @Transactional(readOnly = true)
     public List<FriendResponseDTO.FriendInfoSummary> getRequestedFriends(Long userId) {
         List<Friend> friendRequests = friendRepository.findByStatusAndFriendIdOrderByCreatedAtDesc(
-            FriendStatus.REQUESTED, userId);
+                FriendStatus.REQUESTED, userId);
 
         // 신청한 친구(User) 정보 추출
         // 친구 신청이 없을 때 빈 리스트 반환
@@ -144,12 +144,12 @@ public class FriendServiceImpl implements FriendService {
     public boolean rejectFriendRequest(Long userId, Long friendId) {
         // 나(userId)에게 친구 신청한 친구(friendId)를 찾음
         List<Friend> requests = friendRepository.findByStatusAndFriendIdOrderByCreatedAtDesc(
-            FriendStatus.REQUESTED, userId);
+                FriendStatus.REQUESTED, userId);
 
         Friend friend = requests.stream()
-            .filter(f -> f.getUser().getId().equals(friendId))
-            .findFirst()
-            .orElse(null);
+                .filter(f -> f.getUser().getId().equals(friendId))
+                .findFirst()
+                .orElse(null);
 
         if (friend != null) {
             friendRepository.delete(friend); // 엔티티 삭제
@@ -164,12 +164,12 @@ public class FriendServiceImpl implements FriendService {
     public boolean acceptFriendRequest(Long userId, Long friendId) {
         // 나(userId)에게 친구 신청한 친구(friendId)를 찾음
         List<Friend> requests = friendRepository.findByStatusAndFriendIdOrderByCreatedAtDesc(
-            FriendStatus.REQUESTED, userId);
+                FriendStatus.REQUESTED, userId);
 
         Friend friend = requests.stream()
-            .filter(f -> f.getUser().getId().equals(friendId))
-            .findFirst()
-            .orElse(null);
+                .filter(f -> f.getUser().getId().equals(friendId))
+                .findFirst()
+                .orElse(null);
 
         if (friend != null) {
             friend.setStatus(FriendStatus.ACCEPTED); // 상태를 ACCEPTED로 변경
@@ -185,10 +185,10 @@ public class FriendServiceImpl implements FriendService {
     public boolean sendFriendRequest(Long userId, Long friendId) {
         // 이미 친구 관계가 있는지, 이미 신청했는지 체크(중복 방지)
         List<Friend> existingAccepted = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
-            FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
+                FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
 
         List<Friend> existingRequested = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
-            FriendStatus.REQUESTED, userId, FriendStatus.REQUESTED, userId);
+                FriendStatus.REQUESTED, userId, FriendStatus.REQUESTED, userId);
 
         // 두 리스트 합치기
         List<Friend> allExisting = new ArrayList<>();
@@ -196,7 +196,7 @@ public class FriendServiceImpl implements FriendService {
         allExisting.addAll(existingRequested);
 
         boolean alreadyRequested = allExisting.stream()
-            .anyMatch(f -> (f.getUser().getId().equals(friendId) || f.getFriend().getId().equals(friendId)));
+                .anyMatch(f -> (f.getUser().getId().equals(friendId) || f.getFriend().getId().equals(friendId)));
 
         if (alreadyRequested) {
             return false; // 이미 친구거나 신청함
@@ -264,5 +264,23 @@ public class FriendServiceImpl implements FriendService {
 
         // 차단 관계를 찾지 못했을 때
         throw new UserException(ErrorStatus._BAD_REQUEST);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void isFriend(Long userId, Long creatorId) {
+        List<Friend> friendRelations = friendRepository
+                .findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
+                        FriendStatus.ACCEPTED, userId,
+                        FriendStatus.ACCEPTED, userId);
+
+        boolean isFriend = friendRelations.stream()
+                .anyMatch(friend ->
+                        (friend.getUser().getId().equals(creatorId) && friend.getFriend().getId().equals(userId)) ||
+                                (friend.getFriend().getId().equals(creatorId) && friend.getUser().getId().equals(userId))
+                );
+        if (!isFriend) {
+            throw new RuntimeException("친구 관계가 아니므로 목표를 조회할 수 없습니다.");
+        }
     }
 }

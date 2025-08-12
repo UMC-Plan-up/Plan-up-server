@@ -1,6 +1,7 @@
 package com.planup.planup.domain.goal.entity;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
+import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
@@ -77,5 +78,18 @@ public class Goal extends BaseTimeEntity {
         for (UserGoal userGoal : userGoals) {
             userGoal.setActive(false);
         }
+    }
+
+    public void updateFrom(GoalRequestDto.CreateGoalDto dto) {
+        this.goalName = dto.getGoalName();
+        this.goalAmount = dto.getGoalAmount();
+        this.goalCategory = dto.getGoalCategory();
+        this.goalType = dto.getGoalType();
+        this.oneDose = dto.getOneDose();
+        this.frequency = dto.getFrequency();
+        this.period = dto.getPeriod();
+        this.endDate = dto.getEndDate();
+        this.verificationType = dto.getVerificationType();
+        this.limitFriendCount = dto.getLimitFriendCount();
     }
 }

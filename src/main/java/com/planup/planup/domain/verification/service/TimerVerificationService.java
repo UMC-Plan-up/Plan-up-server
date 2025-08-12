@@ -17,6 +17,7 @@ import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +40,7 @@ public class TimerVerificationService implements VerificationService{
 
         Duration total = todayVerifications.stream()
                 .map(TimerVerification::getSpentTime)
-                .filter(spentTime -> spentTime != null)
+                .filter(Objects::nonNull)
                 .reduce(Duration.ZERO, Duration::plus);
 
         return LocalTime.of(

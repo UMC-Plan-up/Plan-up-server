@@ -3,6 +3,7 @@ package com.planup.planup.domain.goal.service;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
+import com.planup.planup.domain.friend.service.FriendService;
 import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
@@ -39,9 +40,8 @@ public class GoalServiceImpl implements GoalService{
     private final UserRepository userRepository;
     private final TimerVerificationRepository timerVerificationRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
-    private final CommentService commentService;
     private final CommentRepository commentRepository;
-    private final FriendRepository friendRepository;
+    private final FriendService friendService;
 
     //목표 생성
     @Transactional
@@ -131,7 +131,7 @@ public class GoalServiceImpl implements GoalService{
         userRepository.findById(friendsId)
                 .orElseThrow(() -> new RuntimeException("친구를 찾을 수 없습니다."));
         //친구 관계 검증 필요, 추후 구현
-        validateFriendRelationship(userId, friendsId);
+        friendService.isFriend(userId, friendsId);
 
         List<UserGoal> userGoals = userGoalRepository.findByUserIdAndIsPublicTrue(friendsId);
 
@@ -186,16 +186,7 @@ public class GoalServiceImpl implements GoalService{
         Goal goal = goalRepository.findById(goalId)
                 .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
 
-        goal.setGoalName(dto.getGoalName());
-        goal.setGoalAmount(dto.getGoalAmount());
-        goal.setGoalCategory(dto.getGoalCategory());
-        goal.setGoalType(dto.getGoalType());
-        goal.setOneDose(dto.getOneDose());
-        goal.setFrequency(dto.getFrequency());
-        goal.setPeriod(dto.getPeriod());
-        goal.setEndDate(dto.getEndDate());
-        goal.setVerificationType(dto.getVerificationType());
-        goal.setLimitFriendCount(dto.getLimitFriendCount());
+        goal.updateFrom(dto);
 
         if (dto.getVerificationType() == VerificationType.TIMER && dto.getGoalTime() != null) {
             UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
@@ -204,6 +195,7 @@ public class GoalServiceImpl implements GoalService{
             }
         }
     }
+
 
     //목표 삭제
     @Transactional
@@ -222,9 +214,7 @@ public class GoalServiceImpl implements GoalService{
 
         List<UserGoal> allUserGoals = userGoalRepository.findByGoalId(goalId);
 
-        for (UserGoal userGoal : allUserGoals) {
-            userGoalRepository.delete(userGoal);
-        }
+        userGoalRepository.deleteAll(allUserGoals);
 
         commentRepository.deleteByGoalId(goalId);
 
@@ -257,23 +247,6 @@ public class GoalServiceImpl implements GoalService{
         return userGoals.stream()
                 .map(GoalConvertor::toRankingDto)
                 .collect(Collectors.toList());
-    }
-
-    private void validateFriendRelationship(Long userId, Long friendsId) {
-        List<Friend> friendRelations = friendRepository
-                .findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
-                        FriendStatus.ACCEPTED, userId,
-                        FriendStatus.ACCEPTED, userId);
-
-        boolean isFriend = friendRelations.stream()
-                .anyMatch(relation ->
-                        (relation.getUser().getId().equals(userId) && relation.getFriend().getId().equals(friendsId)) ||
-                                (relation.getUser().getId().equals(friendsId) && relation.getFriend().getId().equals(userId))
-                );
-
-        if (!isFriend) {
-            throw new RuntimeException("친구 관계가 아니므로 목표를 조회할 수 없습니다.");
-        }
     }
 
     @Override

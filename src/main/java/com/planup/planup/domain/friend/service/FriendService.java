@@ -2,6 +2,7 @@ package com.planup.planup.domain.friend.service;
 
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -36,4 +37,7 @@ public interface FriendService {
     boolean unblockFriend(Long userId, String friendNickname);
 
     List<FriendResponseDTO.FriendInfoInChallengeCreate> getFrinedListInChallenge(Long userId);
+
+    @Transactional(readOnly = true)
+    void isFriend(Long userId, Long creatorId);
 }

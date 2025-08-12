@@ -1,5 +1,6 @@
 package com.planup.planup.domain.goal.service;
 
+import com.planup.planup.domain.friend.service.FriendService;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
@@ -30,7 +31,7 @@ public class UserGoalServiceImpl implements UserGoalService{
     private final UserGoalRepository userGoalRepository;
     private final GoalRepository goalRepository;
     private final UserRepository userRepository;
-    private final FriendRepository friendRepository;
+    private final FriendService friendService;
 
     @Transactional
     public CommunityResponseDto.JoinGoalResponseDto joinGoal(Long userId, Long goalId) {
@@ -83,18 +84,8 @@ public class UserGoalServiceImpl implements UserGoalService{
 
         Long creatorId = adminUserGoal.getUser().getId();
 
-        List<Friend> friendRelations = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
-                FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
+        friendService.isFriend(userId, creatorId);
 
-        boolean isFriend = friendRelations.stream()
-                .anyMatch(friend ->
-                        (friend.getUser().getId().equals(creatorId) && friend.getFriend().getId().equals(userId)) ||
-                                (friend.getFriend().getId().equals(creatorId) && friend.getUser().getId().equals(userId))
-                );
-
-        if (!isFriend) {
-            throw new RuntimeException("친구 목표는 친구 관계인 사용자만 참가할 수 있습니다.");
-        }
     }
 
     //수용 형 파트
