@@ -430,8 +430,12 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    /**
+     * 회원가입 시 이메일 중복 체크
+     * - 이미 존재하는 활성 사용자면 예외 발생
+     */
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public void checkEmail(String email){
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isPresent() && user.get().getUserActivate() == UserActivate.ACTIVE) {
@@ -439,8 +443,13 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    /**
+     * 비밀번호 변경 시 이메일 존재 여부 체크
+     * - 존재하지 않거나 비활성 사용자면 예외 발생
+     * - 읽기 전용 트랜잭션 (데이터 수정 없음)
+     */
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public void checkEmailExists(String email) {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty() || user.get().getUserActivate() != UserActivate.ACTIVE) {
