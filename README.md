@@ -1,4 +1,5 @@
 #     <img src="asset/플랜업.png" width="50" height="50" style="vertical-align: middle;"> PlanUp - 목표 달성을 위한 소셜 플랫폼
+<img src="asset/로고배너.webp">
 
 > 친구들과 함께하는 목표 달성 동기부여 플랫폼
 
