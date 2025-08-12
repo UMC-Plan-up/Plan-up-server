@@ -119,25 +119,5 @@ public class TimerVerificationService implements VerificationService{
         return spentTime.toMinutes() >= goalTimeMinutes;
     }
 
-    @Transactional(readOnly = true)
-    public List<TimerVerification> getTimerVerificationListByUserAndDateBetween(UserGoal userGoal, LocalDateTime start, LocalDateTime end) {
-        return timerVerificationRepository.findAllByUserGoalAndCreatedAtBetweenOrderByCreatedAt(userGoal, start, end);
-    }
 
-    @Override
-    @Transactional
-    public Map<LocalDate, Integer> calculateVerification(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
-        List<TimerVerification> verifications = getTimerVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
-
-        Map<LocalDate, Integer> dailyCount = new HashMap<>();
-
-        for (TimerVerification verification : verifications) {
-            LocalDate date = verification.getCreatedAt().toLocalDate();
-
-            int seconds = (int) (verification.getSpentTime() != null ? verification.getSpentTime().toMillis() / 1000.0 : 0.0);
-
-            dailyCount.put(date, dailyCount.getOrDefault(date, 0) + seconds);
-        }
-        return dailyCount;
-    }
 }
