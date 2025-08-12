@@ -7,10 +7,16 @@ import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
+import com.planup.planup.domain.verification.service.PhotoVerificationService;
+import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.planup.planup.domain.friend.converter.FriendConverter;
+
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
@@ -20,11 +26,15 @@ import java.util.Collections;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class FriendServiceImpl implements FriendService {
 
     private final FriendRepository friendRepository;
     private final UserService userService;
     private final FriendConverter friendConverter;
+    private final TimerVerificationService timerVerificationService;
+    private final PhotoVerificationService photoVerificationService;
+    private final PhotoVerificationRepository photoVerificationRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -34,13 +44,14 @@ public class FriendServiceImpl implements FriendService {
 
         List<Friend> friendList = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(FriendStatus.ACCEPTED, user.getId(), FriendStatus.ACCEPTED, user.getId());
 
-        //Friend 객체의 friend, user 중 내가 아닌 친구를 뽑는다.
+//        //Friend 객체의 friend, user 중 내가 아닌 친구를 뽑는다.
         List<User> list = friendList.stream()
                 .map(f -> f.getFriend().equals(user) ? f.getUser() : f.getFriend())
-                .distinct() // 중복 제거
-                .collect(Collectors.toList());
+                .distinct().toList();
 
-        return List.of(friendConverter.toFriendSummaryList(list));
+        return List.of(friendConverter.toFriendSummaryList(list.stream()
+                .map(this::getFriendInfoSummary)
+                .toList()));
     }
 
     @Override
@@ -135,8 +146,41 @@ public class FriendServiceImpl implements FriendService {
         }
 
         return friendRequests.stream()
-                .map(f -> friendConverter.toFriendSummary(f.getUser()))
+                .map(Friend::getUser)
+                .map(this::getFriendInfoSummary)
                 .collect(Collectors.toList());
+    }
+
+    private FriendResponseDTO.FriendInfoSummary getFriendInfoSummary(User friend) {
+//        User friend = req.getUser();
+
+        int goalCnt = friend.getUserGoals() != null ? friend.getUserGoals().size() : 0;
+        boolean isNewPhotoVerify = checkTodayPhotoVerification(friend); // 서비스 내 유틸/레포 호출
+        LocalTime todayTime = calculateTodayTotalTime(friend);          // 기존 메서드 유지
+
+        return friendConverter.toFriendSummary(friend, goalCnt, isNewPhotoVerify, todayTime);
+    }
+
+    private LocalTime calculateTodayTotalTime(User user) {
+        try {
+            // 사용자의 모든 목표에 대해 오늘 타이머 시간을 합계
+            long totalSeconds = user.getUserGoals().stream()
+                    .mapToLong(userGoal -> {
+                        try {
+                            LocalTime goalTime = timerVerificationService.getTodayTotalTime(userGoal.getUser().getId(), userGoal.getGoal().getId());
+                            return goalTime.toSecondOfDay();
+                        } catch (Exception e) {
+                            log.warn("사용자 {} 목표 {} 타이머 시간 조회 실패: {}", user.getNickname(), userGoal.getGoal().getId(), e.getMessage());
+                            return 0L;
+                        }
+                    })
+                    .sum();
+
+            return LocalTime.ofSecondOfDay(totalSeconds);
+        } catch (Exception e) {
+            log.warn("사용자 {} 오늘 타이머 시간 계산 실패: {}", user.getNickname(), e.getMessage());
+            return LocalTime.of(0, 0, 0);
+        }
     }
 
     @Override
@@ -281,6 +325,15 @@ public class FriendServiceImpl implements FriendService {
                 );
         if (!isFriend) {
             throw new RuntimeException("친구 관계가 아니므로 목표를 조회할 수 없습니다.");
+        }
+    }
+
+    private boolean checkTodayPhotoVerification(User user) {
+        try {
+            return photoVerificationRepository.existsTodayPhotoVerificationByUserId(user.getId());
+        } catch (Exception e) {
+            log.warn("사용자 {} 오늘 사진 인증 조회 실패: {}", user.getNickname(), e.getMessage());
+            return false;
         }
     }
 }

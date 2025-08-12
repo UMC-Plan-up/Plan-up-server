@@ -28,7 +28,6 @@ import java.util.List;
 public class UserGoalServiceImpl implements UserGoalService{
 
     private final UserGoalRepository userGoalRepository;
-    private final UserGoalService userGoalService;
     private final GoalRepository goalRepository;
     private final UserRepository userRepository;
     private final FriendService friendService;
@@ -41,7 +40,7 @@ public class UserGoalServiceImpl implements UserGoalService{
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
 
-        UserGoal existingUserGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
+        UserGoal existingUserGoal = getByGoalIdAndUserId(goalId, userId);
         if (existingUserGoal != null) {
             throw new RuntimeException("이미 참가한 목표입니다.");
         }
