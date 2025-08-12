@@ -1,6 +1,5 @@
 package com.planup.planup.domain.user.service;
 
-
 import com.planup.planup.domain.user.dto.KakaoUserInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +21,9 @@ public class KakaoApiService {
     @Value("${kakao.client-id}")
     private String clientId;
 
+    @Value("${kakao.redirect-uri}")
+    private String redirectUri;
+
     // 인가코드로 카카오 사용자 정보 바로 가져오기
     public KakaoUserInfo getUserInfo(String code) {
         try {
@@ -42,7 +44,7 @@ public class KakaoApiService {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");
         params.add("client_id", clientId);
-        params.add("redirect_uri", "http://localhost:8080/test/kakao/callback");
+        params.add("redirect_uri", redirectUri);
         params.add("code", code);
 
         String response = webClient.post()
