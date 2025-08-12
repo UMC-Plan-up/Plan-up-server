@@ -98,7 +98,7 @@ public class TimerVerificationService implements VerificationService{
 
         //인증 횟수 증가
         if (achieved) { //achieved == true
-            userGoal.setVerificationCount(userGoal.getVerificationCount() + 1);
+            userGoal.increaseVerificationCount();
             userGoalRepository.save(userGoal);
         }
 

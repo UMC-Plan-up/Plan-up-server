@@ -41,7 +41,7 @@ public class PhotoVerificationService implements VerificationService {
 
         PhotoVerification savedVerification = photoVerificationRepository.save(photoVerification);
 
-        userGoal.setVerificationCount(userGoal.getVerificationCount() + 1);
+        userGoal.increaseVerificationCount();
         userGoalRepository.save(userGoal);
     }
 
@@ -56,7 +56,7 @@ public class PhotoVerificationService implements VerificationService {
 
         UserGoal userGoal = verification.getUserGoal();
         if (userGoal.getVerificationCount() > 0) {
-            userGoal.setVerificationCount(userGoal.getVerificationCount() - 1);
+            userGoal.decreaseVerificationCount();
             userGoalRepository.save(userGoal);
         }
 

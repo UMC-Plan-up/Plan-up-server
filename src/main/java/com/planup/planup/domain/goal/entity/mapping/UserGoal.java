@@ -23,7 +23,6 @@ import java.util.List;
 @Getter
 @SuperBuilder
 @Builder
-@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserGoal extends BaseTimeEntity {
@@ -79,5 +78,24 @@ public class UserGoal extends BaseTimeEntity {
 
     public void setActive(boolean active) {
         this.setActive(active);
+    }
+
+    public int increaseVerificationCount() {
+        this.verificationCount++;
+        return this.verificationCount;
+    }
+
+    public int decreaseVerificationCount() {
+        if (this.verificationCount > 0) {
+            this.verificationCount--;
+        }
+        return verificationCount;
+    }
+
+    public boolean setPublic() {
+        if (!this.isPublic) {
+            this.isPublic = true;
+        }
+        return true;
     }
 }

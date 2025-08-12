@@ -1,13 +1,9 @@
 package com.planup.planup.domain.goal.service;
 
-import com.planup.planup.domain.friend.entity.Friend;
-import com.planup.planup.domain.friend.entity.FriendStatus;
-import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.friend.service.FriendService;
 import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
-import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
@@ -161,14 +157,13 @@ public class GoalServiceImpl implements GoalService{
     public void updatePublicGoal(Long goalId, Long userId) {
         UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
         //공개 상태 변경
-        userGoal.setPublic(!userGoal.isPublic());
+        userGoal.setPublic();
     }
 
     //친구 목표 수정(정보 조회)
     @Transactional(readOnly = true)
     public GoalRequestDto.CreateGoalDto getGoalInfoToUpdate(Long goalId, Long userId) {
-        Goal goal = goalRepository.findById(goalId)
-                .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
+        Goal goal = findGoalById(goalId);
 
         Integer goalTime = null;
         if (goal.getVerificationType() == VerificationType.TIMER) {
@@ -183,8 +178,7 @@ public class GoalServiceImpl implements GoalService{
 
     @Transactional
     public void updateGoal(Long goalId, Long userId, GoalRequestDto.CreateGoalDto dto) {
-        Goal goal = goalRepository.findById(goalId)
-                .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
+        Goal goal = findGoalById(goalId);
 
         goal.updateFrom(dto);
 
@@ -196,12 +190,18 @@ public class GoalServiceImpl implements GoalService{
         }
     }
 
+    @Override
+    @Transactional
+    public Goal findGoalById(Long goalId) {
+        return goalRepository.findById(goalId)
+                .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
+    }
+
 
     //목표 삭제
     @Transactional
     public void deleteGoal(Long goalId, Long userId) {
-        Goal goal = goalRepository.findById(goalId)
-                .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
+        Goal goal = findGoalById(goalId);
 
         UserGoal adminUserGoal = userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN);
         if (adminUserGoal == null) {
