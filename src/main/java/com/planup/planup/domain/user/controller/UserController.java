@@ -213,30 +213,11 @@ public class UserController {
     @Operation(summary = "비밀번호 변경 요청 이메일 링크 클릭 처리", description = "비밀번호 변경 링크 클릭 시 확인 처리 후 앱으로 리다이렉트")
     @GetMapping("/users/password/change-link")
     public ApiResponse<EmailVerifyLinkResponseDTO> handlePasswordChangeLink(@RequestParam String token) {
-        try {
-            String email = emailService.validatePasswordChangeToken(token);
-
-            String deepLinkUrl = "planup://password/change?email=" +
-                    URLEncoder.encode(email, StandardCharsets.UTF_8) +
-                    "&verified=true&token=" + token +
-                    "&from=password_change";
-
-            EmailVerifyLinkResponseDTO response = EmailVerifyLinkResponseDTO.builder()
-                    .verified(true)
-                    .email(email)
-                    .message("비밀번호 변경 요청이 확인되었습니다")
-                    .deepLinkUrl(deepLinkUrl)
-                    .token(token)
-                    .build();
-
+        EmailVerifyLinkResponseDTO response = emailService.handlePasswordChangeLink(token);
+        
+        if (response.isVerified()) {
             return ApiResponse.onSuccess(response);
-
-        } catch (IllegalArgumentException e) {
-            EmailVerifyLinkResponseDTO response = EmailVerifyLinkResponseDTO.builder()
-                    .verified(false)
-                    .message("비밀번호 변경 요청 확인에 실패했습니다")
-                    .build();
-
+        } else {
             return ApiResponse.onFailure("PASSWORD4001", "유효하지 않은 비밀번호 변경 요청 토큰입니다", response);
         }
     }
