@@ -44,4 +44,7 @@ public interface EmailService {
 
     // 이메일 변경 토큰 검증
     String validateEmailChangeToken(String token);
+
+    // 이메일 변경 링크 처리 및 응답 DTO 생성
+    EmailVerifyLinkResponseDTO handleEmailChangeLink(String token);
 }
