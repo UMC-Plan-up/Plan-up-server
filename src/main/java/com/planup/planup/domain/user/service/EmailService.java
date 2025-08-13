@@ -36,8 +36,7 @@ public interface EmailService {
 
     String createFailureHtml();
 
-    // 비밀번호 변경 링크 처리 및 응답 DTO 생성
-    EmailVerifyLinkResponseDTO handlePasswordChangeLink(String token);
+
 
     // 이메일 변경용 인증 메일 발송
     String sendEmailChangeVerificationEmail(String currentEmail, String newEmail);

@@ -423,30 +423,7 @@ public class EmailServiceImpl implements EmailService {
         """;
     }
 
-    @Override
-    public EmailVerifyLinkResponseDTO handlePasswordChangeLink(String token) {
-        try {
-            String email = validatePasswordChangeToken(token);
-            
-            String deepLinkUrl = "planup://password/change?email=" +
-                    java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) +
-                    "&verified=true&token=" + token +
-                    "&from=password_change";
 
-            return EmailVerifyLinkResponseDTO.builder()
-                    .verified(true)
-                    .email(email)
-                    .message("비밀번호 변경 요청이 확인되었습니다")
-                    .deepLinkUrl(deepLinkUrl)
-                    .build();
-                    
-        } catch (IllegalArgumentException e) {
-            return EmailVerifyLinkResponseDTO.builder()
-                    .verified(false)
-                    .message("비밀번호 변경 요청 확인에 실패했습니다")
-                    .build();
-        }
-    }
 
     @Override
     public String sendEmailChangeVerificationEmail(String currentEmail, String newEmail) {

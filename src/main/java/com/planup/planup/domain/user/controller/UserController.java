@@ -198,15 +198,29 @@ public class UserController {
         return ApiResponse.onSuccess(response);
     }
 
-    @Operation(summary = "비밀번호 변경 요청 이메일 링크 클릭 처리", description = "비밀번호 변경 링크 클릭 시 확인 처리 후 앱으로 리다이렉트")
+    @Operation(summary = "비밀번호 변경 요청 이메일 링크 클릭 처리", description = "비밀번호 변경 링크 클릭 시 확인 처리 후 웹페이지 표시")
     @GetMapping("/users/password/change-link")
-    public ApiResponse<EmailVerifyLinkResponseDTO> handlePasswordChangeLink(@RequestParam String token) {
-        EmailVerifyLinkResponseDTO response = emailService.handlePasswordChangeLink(token);
-        
-        if (response.isVerified()) {
-            return ApiResponse.onSuccess(response);
-        } else {
-            return ApiResponse.onFailure("PASSWORD4001", "유효하지 않은 비밀번호 변경 요청 토큰입니다", response);
+    public ResponseEntity<String> handlePasswordChangeLink(@RequestParam String token) {
+        try {
+            String email = emailService.validatePasswordChangeToken(token);
+            
+            String deepLinkUrl = "planup://password/change?email=" +
+                    java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) +
+                    "&verified=true&token=" + token +
+                    "&from=password_change";
+
+            String html = emailService.createSuccessHtml(email, deepLinkUrl);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
+                    .body(html);
+
+        } catch (IllegalArgumentException e) {
+            String html = emailService.createFailureHtml();
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
+                    .body(html);
         }
     }
 
