@@ -243,4 +243,17 @@ public class UserController {
             return ApiResponse.onFailure("EMAIL4001", "유효하지 않은 이메일 변경 요청 토큰입니다", response);
         }
     }
+
+    @Operation(summary = "이메일 변경 인증 메일 재발송", description = "이메일 변경 인증 메일을 재발송합니다")
+    @PostMapping("/users/email/change/resend")
+    public ApiResponse<EmailSendResponseDTO> resendEmailChangeVerification(
+            @RequestBody @Valid EmailVerificationRequestDTO request,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+        
+        User currentUser = userService.getUserbyUserId(userId);
+        EmailSendResponseDTO response = userService.resendEmailChangeVerification(
+                currentUser.getEmail(), request.getEmail());
+        
+        return ApiResponse.onSuccess(response);
+    }
 }
