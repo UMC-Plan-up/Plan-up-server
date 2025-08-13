@@ -218,4 +218,29 @@ public class UserController {
         WithdrawalResponseDTO response = userService.withdrawUser(currentUser.getId(), request);
         return ApiResponse.onSuccess(response);
     }
+
+    @Operation(summary = "이메일 변경 인증 메일 발송", description = "새 이메일로 인증 메일을 발송합니다")
+    @PostMapping("/users/email/change/send")
+    public ApiResponse<EmailSendResponseDTO> sendEmailChangeVerification(
+            @RequestBody @Valid EmailVerificationRequestDTO request,  // EmailChangeRequestDTO 대신
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+        
+        User currentUser = userService.getUserbyUserId(userId);
+        EmailSendResponseDTO response = userService.sendEmailChangeVerification(
+                currentUser.getEmail(), request.getEmail());  // .getNewEmail() 대신 .getEmail()
+        
+        return ApiResponse.onSuccess(response);
+    }
+
+    @Operation(summary = "이메일 변경 요청 이메일 링크 클릭 처리", description = "이메일 변경 링크 클릭 시 확인 처리 후 앱으로 리다이렉트")
+    @GetMapping("/users/email/change-link")
+    public ApiResponse<EmailVerifyLinkResponseDTO> handleEmailChangeLink(@RequestParam String token) {
+        EmailVerifyLinkResponseDTO response = emailService.handleEmailChangeLink(token);
+        
+        if (response.isVerified()) {
+            return ApiResponse.onSuccess(response);
+        } else {
+            return ApiResponse.onFailure("EMAIL4001", "유효하지 않은 이메일 변경 요청 토큰입니다", response);
+        }
+    }
 }
