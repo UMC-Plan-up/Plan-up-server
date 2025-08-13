@@ -212,11 +212,9 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    @Override
-    @Transactional
-    public String updateEmail(Long userId, String newEmail) {
-        User user = getUserbyUserId(userId);
 
+<<<<<<< HEAD
+=======
         // 현재 사용자가 이미 같은 이메일을 사용하고 있는지 확인
         if (user.getEmail().equals(newEmail)) {
             return newEmail; // 같은 이메일이면 그대로 반환
@@ -230,6 +228,7 @@ public class UserServiceImpl implements UserService {
         user.setEmail(newEmail);
         return user.getEmail();
     }
+>>>>>>> e1d5c0a2191b55a75f01740a30e1b85da061db68
 
     @Override
     @Transactional
@@ -461,11 +460,70 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    /**
+     * 회원가입 시 이메일 중복 체크
+     * - 이미 존재하는 활성 사용자면 예외 발생
+     */
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public void checkEmail(String email){
         if (userRepository.existsByEmailAndUserActivate(email, UserActivate.ACTIVE)) {
             throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
         }
+    }
+
+    /**
+     * 비밀번호 변경 시 이메일 존재 여부 체크
+     * - 존재하지 않거나 비활성 사용자면 예외 발생
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public void checkEmailExists(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty() || user.get().getUserActivate() != UserActivate.ACTIVE) {
+            throw new UserException(ErrorStatus.NOT_FOUND_USER);
+        }
+    }
+
+    /**
+     * 비밀번호 변경 이메일 발송
+     * - 이메일 존재 여부 확인 후 인증 메일 발송
+     */
+    @Override
+    @Transactional
+    public EmailSendResponseDTO sendPasswordChangeEmail(String email) {
+        // 이메일이 등록된 사용자인지 확인
+        checkEmailExists(email);
+        
+        // 비밀번호 변경 이메일 발송
+        String changeToken = emailService.sendPasswordChangeEmail(email);
+        
+        // 응답 DTO 생성
+        return EmailSendResponseDTO.builder()
+                .email(email)
+                .message("비밀번호 변경 확인 메일이 발송되었습니다")
+                .verificationToken(changeToken)
+                .build();
+    }
+
+    /**
+     * 비밀번호 변경 이메일 재발송
+     * - 이메일 존재 여부 확인 후 인증 메일 재발송
+     */
+    @Override
+    @Transactional
+    public EmailSendResponseDTO resendPasswordChangeEmail(String email) {
+        // 이메일이 등록된 사용자인지 확인
+        checkEmailExists(email);
+        
+        // 비밀번호 변경 이메일 재발송
+        String changeToken = emailService.resendPasswordChangeEmail(email);
+        
+        // 비밀번호 변경 확인 메일이 재발송되었습니다
+        return EmailSendResponseDTO.builder()
+                .email(email)
+                .message("비밀번호 변경 확인 메일이 재발송되었습니다")
+                .verificationToken(changeToken)
+                .build();
     }
 }

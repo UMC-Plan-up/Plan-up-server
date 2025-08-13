@@ -21,9 +21,18 @@ public interface UserService {
 
     UserInfoResponseDTO getUserInfo(Long userId);
 
-    String updateEmail(Long userId, String newEmail);
+
 
     void checkEmail(String email);
+
+    // 이메일 존재 확인 (비밀번호 변경용)
+    void checkEmailExists(String email);
+    
+    // 비밀번호 변경 이메일 발송
+    EmailSendResponseDTO sendPasswordChangeEmail(String email);
+    
+    // 비밀번호 변경 이메일 재발송
+    EmailSendResponseDTO resendPasswordChangeEmail(String email);
     
     SignupResponseDTO signup(SignupRequestDTO request);
 
@@ -38,4 +47,6 @@ public interface UserService {
     ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode, Long currentUserId);
 
     WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request);
+
+    String updateEmail(Long userId, String newEmail);
 }
