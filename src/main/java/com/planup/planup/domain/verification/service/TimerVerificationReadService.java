@@ -4,6 +4,7 @@ package com.planup.planup.domain.verification.service;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,11 +30,20 @@ public class TimerVerificationReadService {
         return timerVerificationRepository.findAllByUserGoalAndCreatedAtBetweenOrderByCreatedAt(userGoal, start, end);
     }
 
+    @Transactional(readOnly = true)
+    public List<TimerVerification> getTimerVerificationListByUserGoal(UserGoal userGoal) {
+        return timerVerificationRepository.findAllByUserGoal(userGoal);
+    }
+
 
     @Transactional(readOnly = true)
     public Map<LocalDate, Integer> calculateVerification(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
         List<TimerVerification> verifications = getTimerVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
 
+        return calcVerificationLocalDate(verifications);
+    }
+
+    private static Map<LocalDate, Integer> calcVerificationLocalDate(List<TimerVerification> verifications) {
         Map<LocalDate, Integer> dailyCount = new HashMap<>();
 
         for (TimerVerification verification : verifications) {
@@ -44,6 +54,13 @@ public class TimerVerificationReadService {
             dailyCount.put(date, dailyCount.getOrDefault(date, 0) + seconds);
         }
         return dailyCount;
+    }
+
+    @Transactional
+    public Map<LocalDate, Integer> calculateVerificationWithGoal(UserGoal userGoal) {
+        List<TimerVerification> verifications = getTimerVerificationListByUserGoal(userGoal);
+
+        return calcVerificationLocalDate(verifications);
     }
 
     //오늘 총 기록시간 조회

@@ -29,11 +29,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -255,7 +253,7 @@ public class ChallengeServiceImpl implements ChallengeService{
     }
 
     private int calcAchievementRate(Challenge challenge, UserGoal myUserGoal) {
-        Map<LocalDate, Integer> caledVerification = getCaledVerification(challenge, myUserGoal);
+        Map<LocalDate, Integer> caledVerification = getCalcVerification(challenge, myUserGoal);
         Map<LocalDate, Integer> localDateIntegerMap = achievementCalculationService.calcAchievementByDay(caledVerification, challenge.getOneDose());
         int sum = localDateIntegerMap.values().stream().filter(Objects::nonNull).mapToInt(Integer::intValue).sum();
 
@@ -264,7 +262,7 @@ public class ChallengeServiceImpl implements ChallengeService{
         return (sum / targetTotal) * 100;
     }
 
-    private Map<LocalDate, Integer> getCaledVerification(Challenge challenge, UserGoal myUserGoal) {
+    private Map<LocalDate, Integer> getCalcVerification(Challenge challenge, UserGoal myUserGoal) {
         Map<LocalDate, Integer> verifications = null;
         if (challenge.getVerificationType().equals(VerificationType.TIMER)) {
             verifications = timerVerificationReadService.calculateVerificationWithGoal(myUserGoal);
@@ -290,6 +288,6 @@ public class ChallengeServiceImpl implements ChallengeService{
         challenge.setInActive();
 
         //관련 알림 전송
-//        no
+        notificationService.createNotification()
     }
 }
