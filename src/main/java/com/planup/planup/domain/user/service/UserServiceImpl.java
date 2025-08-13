@@ -223,7 +223,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // 다른 사용자가 이미 사용 중인 이메일인지 확인
-        if (userRepository.existsByEmail(newEmail)) {
+        if (userRepository.existsByEmailAndUserActivate(newEmail, UserActivate.ACTIVE)) {
             throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
         }
 
@@ -236,17 +236,12 @@ public class UserServiceImpl implements UserService {
     public LoginResponseDTO login(LoginRequestDTO request) {
         try {
             //  이메일로 사용자 조회
-            User user = userRepository.findByEmail(request.getEmail())
+            User user = userRepository.findByEmailAndUserActivate(request.getEmail(), UserActivate.ACTIVE)
                     .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
 
             // 비밀번호 검증
             if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
                 throw new UserException(ErrorStatus.INVALID_CREDENTIALS);
-            }
-
-            // 사용자 상태 확인
-            if (user.getUserActivate() != UserActivate.ACTIVE) {
-                throw new UserException(ErrorStatus.USER_INACTIVE);
             }
 
             // JWT 토큰 생성
@@ -257,7 +252,7 @@ public class UserServiceImpl implements UserService {
                     .accessToken(accessToken)
                     .nickname(user.getNickname())
                     .profileImgUrl(user.getProfileImg())
-                    .message("로그인 성공")
+                    .message("로그인에 성공했습니다")
                     .build();
         }  catch (UserException e) {
 
@@ -469,8 +464,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void checkEmail(String email){
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isPresent() && user.get().getUserActivate() == UserActivate.ACTIVE) {
+        if (userRepository.existsByEmailAndUserActivate(email, UserActivate.ACTIVE)) {
             throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
         }
     }
