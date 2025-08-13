@@ -566,4 +566,20 @@ public class UserServiceImpl implements UserService {
         
         userRepository.save(user);
     }
+
+    @Override
+    @Transactional
+    public EmailSendResponseDTO resendEmailChangeVerification(String currentEmail, String newEmail) {
+        // 새 이메일이 이미 사용 중인지 확인
+        checkEmail(newEmail);
+        
+        // 이메일 변경 인증 메일 재발송
+        String changeToken = emailService.resendEmailChangeVerificationEmail(currentEmail, newEmail);
+        
+        return EmailSendResponseDTO.builder()
+                .email(newEmail)
+                .message("이메일 변경 확인 메일이 재발송되었습니다")
+                .verificationToken(changeToken)
+                .build();
+    }
 }
