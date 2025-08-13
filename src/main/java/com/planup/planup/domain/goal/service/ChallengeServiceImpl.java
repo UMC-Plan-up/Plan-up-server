@@ -18,6 +18,7 @@ import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.ChallengeRepository;
 import com.planup.planup.domain.goal.repository.TimeChallengeRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
+import com.planup.planup.domain.notification.service.NotificationCreateService;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
@@ -43,8 +44,7 @@ public class ChallengeServiceImpl implements ChallengeService{
     private final UserService userService;
     private final UserGoalRepository userGoalRepository;
     private final UserGoalService userGoalService;
-    private final PhotoVerificationService photoVerificationService;
-    private final TimerVerificationService timerVerificationService;
+    private final NotificationCreateService notificationCreateService;
     private final AchievementCalculationService achievementCalculationService;
     private final NotificationService notificationService;
     private final PhotoVerificationReadService photoVerificationReadService;
@@ -288,6 +288,6 @@ public class ChallengeServiceImpl implements ChallengeService{
         challenge.setInActive();
 
         //관련 알림 전송
-        notificationService.createNotification()
+        notificationCreateService.createChallengeNotification(challenge);
     }
 }
