@@ -556,4 +556,25 @@ public class EmailServiceImpl implements EmailService {
                     .build();
         }
     }
+
+    @Override
+    public String resendEmailChangeVerificationEmail(String currentEmail, String newEmail) {
+        // 기존 이메일 변경 토큰들 정리
+        clearExistingEmailChangeTokens(currentEmail, newEmail);
+        
+        // 새로운 토큰으로 재발송
+        return sendEmailChangeVerificationEmail(currentEmail, newEmail);
+    }
+
+    private void clearExistingEmailChangeTokens(String currentEmail, String newEmail) {
+        Set<String> keys = redisTemplate.keys("email-change:*");
+        if (keys != null) {
+            for (String key : keys) {
+                String emailPair = redisTemplate.opsForValue().get(key);
+                if (emailPair != null && emailPair.contains(currentEmail) && emailPair.contains(newEmail)) {
+                    redisTemplate.delete(key);
+                }
+            }
+        }
+    }
 }
