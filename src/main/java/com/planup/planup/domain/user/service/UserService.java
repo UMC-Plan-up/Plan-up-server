@@ -55,4 +55,7 @@ public interface UserService {
 
     // 이메일 변경 완료
     void completeEmailChange(String token);
+
+    // 이메일 변경 인증 메일 재발송
+    EmailSendResponseDTO resendEmailChangeVerification(String currentEmail, String newEmail);
 }
