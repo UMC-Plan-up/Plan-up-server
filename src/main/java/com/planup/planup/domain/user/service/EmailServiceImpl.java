@@ -479,4 +479,33 @@ public class EmailServiceImpl implements EmailService {
         
         return emailPair; // "currentEmail:newEmail" 형태로 반환
     }
+
+    @Override
+    public EmailVerifyLinkResponseDTO handleEmailChangeLink(String token) {
+        try {
+            String emailPair = validateEmailChangeToken(token);
+            String[] emails = emailPair.split(":");
+            String currentEmail = emails[0];
+            String newEmail = emails[1];
+            
+            String deepLinkUrl = "planup://email/change?currentEmail=" +
+                    java.net.URLEncoder.encode(currentEmail, java.nio.charset.StandardCharsets.UTF_8) +
+                    "&newEmail=" + java.net.URLEncoder.encode(newEmail, java.nio.charset.StandardCharsets.UTF_8) +
+                    "&verified=true&token=" + token +
+                    "&from=email_change";
+
+            return EmailVerifyLinkResponseDTO.builder()
+                    .verified(true)
+                    .message("이메일 변경 요청이 확인되었습니다")
+                    .deepLinkUrl(deepLinkUrl)
+                    .email(currentEmail + ":" + newEmail)  // 기존:새 이메일 형태로 저장
+                    .build();
+                    
+        } catch (IllegalArgumentException e) {
+            return EmailVerifyLinkResponseDTO.builder()
+                    .verified(false)
+                    .message("이메일 변경 요청 확인에 실패했습니다")
+                    .build();
+        }
+    }
 }
