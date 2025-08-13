@@ -213,8 +213,12 @@ public class UserServiceImpl implements UserService {
     }
 
 
-<<<<<<< HEAD
-=======
+
+    @Override
+    @Transactional
+    public String updateEmail(Long userId, String newEmail) {
+        User user = getUserbyUserId(userId);
+
         // 현재 사용자가 이미 같은 이메일을 사용하고 있는지 확인
         if (user.getEmail().equals(newEmail)) {
             return newEmail; // 같은 이메일이면 그대로 반환
@@ -228,7 +232,7 @@ public class UserServiceImpl implements UserService {
         user.setEmail(newEmail);
         return user.getEmail();
     }
->>>>>>> e1d5c0a2191b55a75f01740a30e1b85da061db68
+
 
     @Override
     @Transactional
