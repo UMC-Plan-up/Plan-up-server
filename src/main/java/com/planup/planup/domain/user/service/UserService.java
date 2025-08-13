@@ -49,4 +49,10 @@ public interface UserService {
     WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request);
 
     String updateEmail(Long userId, String newEmail);
+
+    // 이메일 변경 이메일 발송
+    EmailSendResponseDTO sendEmailChangeVerification(String currentEmail, String newEmail);
+
+    // 이메일 변경 완료
+    void completeEmailChange(String token);
 }
