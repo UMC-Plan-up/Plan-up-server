@@ -1,4 +1,5 @@
-# PlanUp - 목표 달성을 위한 소셜 플랫폼 📚
+#     <img src="asset/플랜업.png" width="50" height="50" style="vertical-align: middle;"> PlanUp - 목표 달성을 위한 소셜 플랫폼
+<img src="asset/로고배너.webp">
 
 > 친구들과 함께하는 목표 달성 동기부여 플랫폼
 
@@ -146,10 +147,12 @@ Swagger UI: http://54.180.207.84:8080/swagger-ui/index.html
 ## 📄 라이선스
 
 이 프로젝트는 MIT 라이선스 하에 배포됩니다.
+
 ---
 
 <div align="center">
-  <strong>함께 목표를 달성해나가는 PlanUp 🚀</strong>
-  <br/>
-  <sub>Built with by PlanUp Team</sub>
+  <h3>
+    Plan-Up<strong>함께해서 효과적인 목표 달성 앱</strong>
+  </h3>
+  <p><em>Built with by PlanUp Team</em></p>
 </div>

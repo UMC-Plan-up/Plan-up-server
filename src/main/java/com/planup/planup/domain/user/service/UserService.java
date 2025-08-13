@@ -47,4 +47,6 @@ public interface UserService {
     ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode, Long currentUserId);
 
     WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request);
+
+    String updateEmail(Long userId, String newEmail);
 }

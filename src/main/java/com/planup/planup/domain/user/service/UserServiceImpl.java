@@ -213,33 +213,63 @@ public class UserServiceImpl implements UserService {
     }
 
 
+<<<<<<< HEAD
+=======
+        // 현재 사용자가 이미 같은 이메일을 사용하고 있는지 확인
+        if (user.getEmail().equals(newEmail)) {
+            return newEmail; // 같은 이메일이면 그대로 반환
+        }
+
+        // 다른 사용자가 이미 사용 중인 이메일인지 확인
+        if (userRepository.existsByEmailAndUserActivate(newEmail, UserActivate.ACTIVE)) {
+            throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
+        }
+
+        user.setEmail(newEmail);
+        return user.getEmail();
+    }
+>>>>>>> e1d5c0a2191b55a75f01740a30e1b85da061db68
 
     @Override
     @Transactional
     public LoginResponseDTO login(LoginRequestDTO request) {
-        //  이메일로 사용자 조회
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
+        try {
+            //  이메일로 사용자 조회
+            User user = userRepository.findByEmailAndUserActivate(request.getEmail(), UserActivate.ACTIVE)
+                    .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
 
-        // 비밀번호 검증
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new UserException(ErrorStatus.INVALID_CREDENTIALS);
+            // 비밀번호 검증
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                throw new UserException(ErrorStatus.INVALID_CREDENTIALS);
+            }
+
+            // JWT 토큰 생성
+            String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+
+            // 응답 DTO 생성
+            return LoginResponseDTO.builder()
+                    .accessToken(accessToken)
+                    .nickname(user.getNickname())
+                    .profileImgUrl(user.getProfileImg())
+                    .message("로그인에 성공했습니다")
+                    .build();
+        }  catch (UserException e) {
+
+            String errorMessage;
+            if (e.getErrorStatus() == ErrorStatus.NOT_FOUND_USER) {
+                errorMessage = "존재하지 않는 사용자입니다";
+            } else if (e.getErrorStatus() == ErrorStatus.INVALID_CREDENTIALS) {
+                errorMessage = "비밀번호가 일치하지 않습니다";
+            } else if (e.getErrorStatus() == ErrorStatus.USER_INACTIVE) {
+                errorMessage = "비활성화된 계정입니다";
+            } else {
+                errorMessage = "로그인에 실패했습니다";
+            }
+
+            return LoginResponseDTO.builder()
+                    .message(errorMessage)
+                    .build();
         }
-
-        // 사용자 상태 확인
-        if (user.getUserActivate() != UserActivate.ACTIVE) {
-            throw new UserException(ErrorStatus.USER_INACTIVE);
-        }
-
-        // 4. JWT 토큰 생성
-        String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
-
-        // 응답 DTO 생성
-        return LoginResponseDTO.builder()
-                .accessToken(accessToken)
-                .nickname(user.getNickname())
-                .profileImgUrl(user.getProfileImg())
-                .build();
     }
 
     private void validateRequiredTerms(List<TermsAgreementRequestDTO> agreements) {
@@ -437,8 +467,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public void checkEmail(String email){
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isPresent() && user.get().getUserActivate() == UserActivate.ACTIVE) {
+        if (userRepository.existsByEmailAndUserActivate(email, UserActivate.ACTIVE)) {
             throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
         }
     }
