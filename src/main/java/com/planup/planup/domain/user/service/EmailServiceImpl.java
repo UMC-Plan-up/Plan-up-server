@@ -447,4 +447,36 @@ public class EmailServiceImpl implements EmailService {
                     .build();
         }
     }
+
+    @Override
+    public String sendEmailChangeVerificationEmail(String currentEmail, String newEmail) {
+        String changeToken = UUID.randomUUID().toString();
+        
+        // Redis에 토큰 저장 (기존:새 이메일 형태)
+        redisTemplate.opsForValue().set(
+            "email-change:" + changeToken,
+            currentEmail + ":" + newEmail,
+            30,
+            TimeUnit.MINUTES
+        );
+        
+        String changeUrl = appDomain + "/users/email/change-link?token=" + changeToken;
+        sendEmailChangeVerificationEmailContent(currentEmail, newEmail, changeUrl);
+        
+        return changeToken;
+    }
+
+    @Override
+    public String validateEmailChangeToken(String token) {
+        String emailPair = redisTemplate.opsForValue().get("email-change:" + token);
+        
+        if (emailPair == null) {
+            throw new IllegalArgumentException("만료되거나 유효하지 않은 이메일 변경 토큰입니다.");
+        }
+        
+        // 토큰 사용 후 삭제
+        redisTemplate.delete("email-change:" + token);
+        
+        return emailPair; // "currentEmail:newEmail" 형태로 반환
+    }
 }
