@@ -64,8 +64,12 @@ public class UserController {
     @Operation(summary = "비밀번호 변경", description = "사용자로부터 새로운 비밀번호를 입력받고 변경한다.")
     @PostMapping("/mypage/profile/password/update")
     public ApiResponse<Boolean> updatePassword(@Parameter(hidden = true) @CurrentUser Long userId, String password) {
-        userService.updatePassword(userId, password);
-        return ApiResponse.onSuccess(true);
+        try {
+            userService.updatePassword(userId, password);
+            return ApiResponse.onSuccess(true);
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.onFailure("PASSWORD4002", e.getMessage(), false);
+        }
     }
 
     @Operation(summary = "유저 정보 조회", description = "유저의 상세 정보 조회")
@@ -203,6 +207,9 @@ public class UserController {
     public ResponseEntity<String> handlePasswordChangeLink(@RequestParam String token) {
         try {
             String email = emailService.validatePasswordChangeToken(token);
+            
+            // 비밀번호 변경 이메일 인증 완료 표시
+            emailService.markPasswordChangeEmailAsVerified(email);
             
             String deepLinkUrl = "planup://password/change?email=" +
                     java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) +

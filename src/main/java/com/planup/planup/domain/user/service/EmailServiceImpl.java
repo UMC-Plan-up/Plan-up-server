@@ -135,6 +135,24 @@ public class EmailServiceImpl implements EmailService {
         
         return email;
     }
+    
+    @Override
+    public Boolean isPasswordChangeEmailVerified(String email) {
+        // Redis에서 비밀번호 변경 이메일 인증 완료 여부 확인
+        String verified = redisTemplate.opsForValue().get("password-change-verified:" + email);
+        return "VERIFIED".equals(verified);
+    }
+    
+    @Override
+    public void markPasswordChangeEmailAsVerified(String email) {
+        // Redis에 비밀번호 변경 이메일 인증 완료 표시 (24시간 유효)
+        redisTemplate.opsForValue().set(
+            "password-change-verified:" + email,
+            "VERIFIED",
+            24,
+            TimeUnit.HOURS
+        );
+    }
 
     @Override
     public void clearVerificationToken(String email) {
