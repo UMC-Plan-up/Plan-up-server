@@ -480,6 +480,54 @@ public class EmailServiceImpl implements EmailService {
         return emailPair; // "currentEmail:newEmail" 형태로 반환
     }
 
+    private void sendEmailChangeVerificationEmailContent(String currentEmail, String newEmail, String changeUrl) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+    
+            helper.setTo(newEmail);
+            helper.setSubject("Plan-Up 이메일 변경 확인");
+            helper.setText(createEmailChangeVerificationContent(currentEmail, newEmail, changeUrl), true);
+            helper.setFrom("noreply@planup.com");
+    
+            mailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("이메일 변경 인증 메일 발송 실패", e);
+        }
+    }
+    private String createEmailChangeVerificationContent(String currentEmail, String newEmail, String changeUrl) {
+        return """
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #4285f4;">Plan-Up</h1>
+                </div>
+                
+                <h2 style="color: #333;">이메일 변경 확인</h2>
+                <p style="color: #666; line-height: 1.6;">
+                    안녕하세요!<br>
+                    현재 이메일: <strong>%s</strong><br>
+                    변경할 이메일: <strong>%s</strong><br>
+                    이메일 변경을 위해 아래 버튼을 클릭해주세요.
+                </p>
+                
+                <div style="text-align: center; margin: 40px 0;">
+                    <a href="%s" 
+                       style="background: #4285f4; color: white; padding: 15px 30px; 
+                              text-decoration: none; border-radius: 8px; display: inline-block;
+                              font-weight: bold;"
+                        target="_blank">
+                        이메일 변경 확인
+                    </a>
+                </div>
+                
+                <p style="color: #999; font-size: 14px;">
+                    * 이 링크는 30분 후 만료됩니다.<br>
+                    * 본인이 요청하지 않은 경우 이 이메일을 무시해주세요.
+                </p>
+            </div>
+            """.formatted(currentEmail, newEmail, changeUrl);
+    }
+    
     @Override
     public EmailVerifyLinkResponseDTO handleEmailChangeLink(String token) {
         try {
