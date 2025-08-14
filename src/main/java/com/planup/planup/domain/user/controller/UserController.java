@@ -7,6 +7,7 @@ import com.planup.planup.domain.user.converter.UserConverter;
 import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.EmailService;
+import com.planup.planup.domain.user.service.RandomNicknameService;
 import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +30,7 @@ public class UserController {
     private final UserService userService;
     private final EmailService emailService;
     private final UserConverter userConverter;
+    private final RandomNicknameService randomNicknameService;
 
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
@@ -240,6 +242,13 @@ public class UserController {
     @PostMapping("/users/auth/email/alternative")
     public ApiResponse<KakaoAuthResponseDTO> emailAuthAlternative(@Valid @RequestBody KakaoAuthRequestDTO request) {
         KakaoAuthResponseDTO result = userService.kakaoAuth(request);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "랜덤 닉네임 생성", description = "형용사+명사 조합으로 랜덤 닉네임을 생성합니다")
+    @GetMapping("/profile/nickname/random")
+    public ApiResponse<RandomNicknameResponseDTO> generateRandomNickname() {
+        RandomNicknameResponseDTO result = randomNicknameService.generateRandomNickname();
         return ApiResponse.onSuccess(result);
     }
 }
