@@ -42,8 +42,8 @@ spring:
 
 #app:
 #  domain: ${APP_DOMAIN}
-#  frontend:
-#    url: ${APP_FRONTEND_URL}
+##  frontend:
+##    url: ${APP_FRONTEND_URL}
 
 jwt:
   secret: ${JWT_SECRET}

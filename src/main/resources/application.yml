@@ -13,7 +13,6 @@ spring:
           auth: true
           starttls:
             enable: true
-
   datasource:
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&useLegacyDatetimeCode=false
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -77,3 +76,8 @@ aws:
   s3:
     bucket: umc-planup-2025
     region: ap-northeast-2
+kakao:
+  client-id: ${REST_API_KEY}
+  auth-url: https://kauth.kakao.com/oauth/token
+  api-url: https://kapi.kakao.com/v2/user/me
+  redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:8080/test/kakao/callback}

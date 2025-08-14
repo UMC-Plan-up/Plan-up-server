@@ -42,4 +42,31 @@ public class ChallengeResponseDTO {
             @Schema(description = "목표 시간 (초 단위)", example = "7200")
             Long targetTime
     ) {}
+
+    @Builder
+    public record ChallengeResultResponseDTO(
+            @Schema(description = "id", example = "1")
+            Long id,
+
+            @Schema(description = "내 이름", example = "홍길도")
+            String myName,
+
+            @Schema(description = "내 프로필")
+            String myProfile,
+
+            @Schema(description = "챌린지 상대방 이름", example = "홍길도")
+            String friendName,
+
+            @Schema(description = "내 프로필")
+            String friendProfile,
+
+            @Schema(description = "패널티", example = "커피 사기")
+            String penalty,
+
+            @Schema(description = "내 달성률", example = "87")
+            int myPercent,
+
+            @Schema(description = "친구 달성률", example = "78")
+            int friendPercent
+    ) {}
 }

@@ -3,6 +3,7 @@ package com.planup.planup.domain.goal.service;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
 import com.planup.planup.apiPayload.exception.custom.UserGoalException;
+import com.planup.planup.domain.global.service.AchievementCalculationService;
 import com.planup.planup.domain.goal.convertor.ChallengeConverter;
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
 import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
@@ -17,15 +18,20 @@ import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.ChallengeRepository;
 import com.planup.planup.domain.goal.repository.TimeChallengeRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
+import com.planup.planup.domain.notification.service.NotificationCreateService;
+import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.verification.service.PhotoVerificationReadService;
+import com.planup.planup.domain.verification.service.PhotoVerificationService;
+import com.planup.planup.domain.verification.service.TimerVerificationReadService;
+import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,6 +44,11 @@ public class ChallengeServiceImpl implements ChallengeService{
     private final UserService userService;
     private final UserGoalRepository userGoalRepository;
     private final UserGoalService userGoalService;
+    private final NotificationCreateService notificationCreateService;
+    private final AchievementCalculationService achievementCalculationService;
+    private final NotificationService notificationService;
+    private final PhotoVerificationReadService photoVerificationReadService;
+    private final TimerVerificationReadService timerVerificationReadService;
 
     @Override
     @Transactional
@@ -135,7 +146,6 @@ public class ChallengeServiceImpl implements ChallengeService{
     public void rejectChallengeRequest(Long userId, Long challengeId) {
         User user = userService.getUserbyUserId(userId);
         Goal goal = goalService.getGoalById(challengeId);
-        UserGoal userGoal = userGoalService.getUserGoalByUserAndGoal(user, goal);
         Challenge challenge = getChallengeById(challengeId);
 
         challenge.setChallengeStatus(ChallengeStatus.REJECTED);
@@ -207,5 +217,77 @@ public class ChallengeServiceImpl implements ChallengeService{
             User user = userService.getUserbyUserId(friendId);
             createPerUserGoal(user, type, Status.MEMBER, challenge);
         }
+    }
+
+    @Override
+    public ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(User user, Long challengeId) {
+        Challenge challenge = getChallengeById(challengeId);
+
+        UserGoal myUserGoal = getUserGoalByUserAndChallenge(user, challenge);
+
+        UserGoal friendUserGoal = getFriendUserGoalByUserAndChallenge(user, challenge);
+
+        int myPercent = calcAchievementRate(challenge, myUserGoal);
+        int friendPercent = calcAchievementRate(challenge, friendUserGoal);
+
+        return ChallengeResponseDTO.ChallengeResultResponseDTO.builder()
+                .id(challengeId)
+                .myName(user.getNickname())
+                .myProfile(user.getProfileImg())
+                .friendName(friendUserGoal.getUser().getNickname())
+                .friendProfile(friendUserGoal.getUser().getProfileImg())
+                .myPercent(myPercent)
+                .friendPercent(friendPercent)
+                .penalty(challenge.getPenalty())
+                .build();
+    }
+
+    private static UserGoal getFriendUserGoalByUserAndChallenge(User user, Challenge challenge) {
+        return challenge.getUserGoals().stream().filter(u -> !u.getUser().getId().equals(user.getId()))
+                .findFirst().orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
+    }
+
+    private static UserGoal getUserGoalByUserAndChallenge(User user, Challenge challenge) {
+        return challenge.getUserGoals().stream().filter(u -> u.getUser().getId().equals(user.getId()))
+                .findFirst().orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
+    }
+
+    private int calcAchievementRate(Challenge challenge, UserGoal myUserGoal) {
+        Map<LocalDate, Integer> caledVerification = getCalcVerification(challenge, myUserGoal);
+        Map<LocalDate, Integer> localDateIntegerMap = achievementCalculationService.calcAchievementByDay(caledVerification, challenge.getOneDose());
+        int sum = localDateIntegerMap.values().stream().filter(Objects::nonNull).mapToInt(Integer::intValue).sum();
+
+        int targetTotal = challenge.getFrequency() * 100;
+
+        return (sum / targetTotal) * 100;
+    }
+
+    private Map<LocalDate, Integer> getCalcVerification(Challenge challenge, UserGoal myUserGoal) {
+        Map<LocalDate, Integer> verifications = null;
+        if (challenge.getVerificationType().equals(VerificationType.TIMER)) {
+            verifications = timerVerificationReadService.calculateVerificationWithGoal(myUserGoal);
+        } else if (challenge.getVerificationType().equals(VerificationType.PHOTO)) {
+            verifications = photoVerificationReadService.calculateVerificationWithGoal(myUserGoal);
+        }
+        return verifications;
+    }
+
+    @Override
+    @Transactional
+    public void checkChallengeFin(UserGoal userGoal) {
+        Challenge challenge = (Challenge) userGoal.getGoal();
+        User user = userGoal.getUser();
+
+        //챌린지가 종료되었는지 확인한다.
+        int myPercent = calcAchievementRate(challenge, userGoal);
+        if (myPercent < 100) {
+            return;
+        }
+
+        //나와 상대의 userGoal, GOal을 종료로 처리
+        challenge.setInActive();
+
+        //관련 알림 전송
+        notificationCreateService.createChallengeNotification(challenge);
     }
 }

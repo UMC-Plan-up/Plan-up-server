@@ -2,6 +2,7 @@ package com.planup.planup.domain.verification.service;
 
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.verification.entity.PhotoVerification;
+import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,9 +27,18 @@ public class PhotoVerificationReadService {
     }
 
     @Transactional(readOnly = true)
+    public List<PhotoVerification> getPhotoVerificationListByUserGoal(UserGoal userGoal) {
+        return photoVerificationRepository.findAllByUserGoal(userGoal);
+    }
+
+    @Transactional(readOnly = true)
     public Map<LocalDate, Integer> calculateVerification(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
         List<PhotoVerification> verifications = getPhotoVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
 
+        return calcVerificationLocalDate(verifications);
+    }
+
+    private static Map<LocalDate, Integer> calcVerificationLocalDate(List<PhotoVerification> verifications) {
         Map<LocalDate, Integer> dailyCount = new HashMap<>();
         // 날짜별 인증 수 카운팅
         for (PhotoVerification photoVerification : verifications) {
@@ -40,5 +50,13 @@ public class PhotoVerificationReadService {
             dailyCount.put(date, dailyCount.getOrDefault(date, 0) + photoCount);
         }
         return dailyCount;
+    }
+
+
+    @Transactional
+    public Map<LocalDate, Integer> calculateVerificationWithGoal(UserGoal userGoal) {
+        List<PhotoVerification> verifications = getPhotoVerificationListByUserGoal(userGoal);
+
+        return calcVerificationLocalDate(verifications);
     }
 }
