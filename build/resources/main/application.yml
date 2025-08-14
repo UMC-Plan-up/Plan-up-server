@@ -2,6 +2,9 @@ server:
   port: 8080
 
 spring:
+  main:
+    allow-circular-references: true
+
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: 587
@@ -13,7 +16,6 @@ spring:
           auth: true
           starttls:
             enable: true
-
   datasource:
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=Asia/Seoul&useLegacyDatetimeCode=false
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -40,10 +42,10 @@ spring:
       port: 6379
       timeout: 3000ms
 
-#app:
-#  domain: ${APP_DOMAIN}
-##  frontend:
-##    url: ${APP_FRONTEND_URL}
+app:
+  domain: ${APP_DOMAIN:http://localhost:8080}
+  frontend:
+    url: ${APP_FRONTEND_URL:http://localhost:3000}
 
 jwt:
   secret: ${JWT_SECRET}
@@ -77,3 +79,8 @@ aws:
   s3:
     bucket: umc-planup-2025
     region: ap-northeast-2
+kakao:
+  client-id: ${REST_API_KEY}
+  auth-url: https://kauth.kakao.com/oauth/token
+  api-url: https://kapi.kakao.com/v2/user/me
+  redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:8080/test/kakao/callback}

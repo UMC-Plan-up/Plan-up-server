@@ -25,6 +25,7 @@ import com.planup.planup.domain.verification.service.TimerVerificationReadServic
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.RequiredArgsConstructor;
 import com.planup.planup.domain.user.entity.User;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +51,7 @@ public class GoalServiceImpl implements GoalService{
     private final FriendService friendService;
     private final FriendRepository friendRepository;
     private final GoalMemoRepository goalMemoRepository;
+    @Lazy
     private final TimerVerificationService timerVerificationService;
     private final TimerVerificationReadService timerVerificationReadService;
 

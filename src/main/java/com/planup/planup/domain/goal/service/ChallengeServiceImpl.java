@@ -27,6 +27,7 @@ import com.planup.planup.domain.verification.service.PhotoVerificationService;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +41,7 @@ public class ChallengeServiceImpl implements ChallengeService{
 
     private final TimeChallengeRepository timeChallengeRepository;
     private final ChallengeRepository challengeRepository;
+    @Lazy
     private final GoalService goalService;
     private final UserService userService;
     private final UserGoalRepository userGoalRepository;
