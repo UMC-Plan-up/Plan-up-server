@@ -236,7 +236,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // 다른 사용자가 이미 사용 중인 이메일인지 확인
-        if (userRepository.existsByEmail(newEmail)) {
+        if (userRepository.existsByEmailAndUserActivate(newEmail, UserActivate.ACTIVE)) {
             throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
         }
 
@@ -249,17 +249,12 @@ public class UserServiceImpl implements UserService {
     public LoginResponseDTO login(LoginRequestDTO request) {
         try {
             //  이메일로 사용자 조회
-            User user = userRepository.findByEmail(request.getEmail())
+            User user = userRepository.findByEmailAndUserActivate(request.getEmail(), UserActivate.ACTIVE)
                     .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
 
             // 비밀번호 검증
             if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
                 throw new UserException(ErrorStatus.INVALID_CREDENTIALS);
-            }
-
-            // 사용자 상태 확인
-            if (user.getUserActivate() != UserActivate.ACTIVE) {
-                throw new UserException(ErrorStatus.USER_INACTIVE);
             }
 
             // JWT 토큰 생성
@@ -270,7 +265,7 @@ public class UserServiceImpl implements UserService {
                     .accessToken(accessToken)
                     .nickname(user.getNickname())
                     .profileImgUrl(user.getProfileImg())
-                    .message("로그인 성공")
+                    .message("로그인에 성공했습니다")
                     .build();
         }  catch (UserException e) {
 
@@ -479,13 +474,71 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    /**
+     * 회원가입 시 이메일 중복 체크
+     * - 이미 존재하는 활성 사용자면 예외 발생
+     */
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public void checkEmail(String email){
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isPresent() && user.get().getUserActivate() == UserActivate.ACTIVE) {
+        if (userRepository.existsByEmailAndUserActivate(email, UserActivate.ACTIVE)) {
             throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
         }
+    }
+
+    /**
+     * 비밀번호 변경 시 이메일 존재 여부 체크
+     * - 존재하지 않거나 비활성 사용자면 예외 발생
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public void checkEmailExists(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty() || user.get().getUserActivate() != UserActivate.ACTIVE) {
+            throw new UserException(ErrorStatus.NOT_FOUND_USER);
+        }
+    }
+
+    /**
+     * 비밀번호 변경 이메일 발송
+     * - 이메일 존재 여부 확인 후 인증 메일 발송
+     */
+    @Override
+    @Transactional
+    public EmailSendResponseDTO sendPasswordChangeEmail(String email) {
+        // 이메일이 등록된 사용자인지 확인
+        checkEmailExists(email);
+
+        // 비밀번호 변경 이메일 발송
+        String changeToken = emailService.sendPasswordChangeEmail(email);
+
+        // 응답 DTO 생성
+        return EmailSendResponseDTO.builder()
+                .email(email)
+                .message("비밀번호 변경 확인 메일이 발송되었습니다")
+                .verificationToken(changeToken)
+                .build();
+    }
+
+    /**
+     * 비밀번호 변경 이메일 재발송
+     * - 이메일 존재 여부 확인 후 인증 메일 재발송
+     */
+    @Override
+    @Transactional
+    public EmailSendResponseDTO resendPasswordChangeEmail(String email) {
+        // 이메일이 등록된 사용자인지 확인
+        checkEmailExists(email);
+
+        // 비밀번호 변경 이메일 재발송
+        String changeToken = emailService.resendPasswordChangeEmail(email);
+
+        // 비밀번호 변경 확인 메일이 재발송되었습니다
+        return EmailSendResponseDTO.builder()
+                .email(email)
+                .message("비밀번호 변경 확인 메일이 재발송되었습니다")
+                .verificationToken(changeToken)
+                .build();
     }
 
     @Override
@@ -626,7 +679,7 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByNickname(nickname)) {
             throw new UserException(ErrorStatus.EXIST_NICKNAME);
         }
-        
+
         user.setNickname(nickname);
         userRepository.save(user);
     }
