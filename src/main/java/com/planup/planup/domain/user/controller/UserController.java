@@ -258,13 +258,33 @@ public class UserController {
 
     @Operation(summary = "이메일 변경 요청 이메일 링크 클릭 처리", description = "이메일 변경 링크 클릭 시 확인 처리 후 앱으로 리다이렉트")
     @GetMapping("/users/email/change-link")
-    public ApiResponse<EmailVerifyLinkResponseDTO> handleEmailChangeLink(@RequestParam String token) {
-        EmailVerifyLinkResponseDTO response = emailService.handleEmailChangeLink(token);
-        
-        if (response.isVerified()) {
-            return ApiResponse.onSuccess(response);
-        } else {
-            return ApiResponse.onFailure("EMAIL4001", "유효하지 않은 이메일 변경 요청 토큰입니다", response);
+    public ResponseEntity<String> handleEmailChangeLink(@RequestParam String token) {
+        try {
+            EmailVerifyLinkResponseDTO response = emailService.handleEmailChangeLink(token);
+            
+            if (response.isVerified()) {
+                // 성공 시 HTML 페이지 표시
+                String deepLinkUrl = "planup://email/change/complete?verified=true&token=" + token;
+                String html = emailService.createSuccessHtml(response.getEmail(), deepLinkUrl);
+                
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
+                        .body(html);
+            } else {
+                // 실패 시 에러 HTML 페이지 표시
+                String html = emailService.createFailureHtml();
+                
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
+                        .body(html);
+            }
+        } catch (Exception e) {
+            // 예외 발생 시 에러 HTML 페이지 표시
+            String html = emailService.createFailureHtml();
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
+                    .body(html);
         }
     }
 
