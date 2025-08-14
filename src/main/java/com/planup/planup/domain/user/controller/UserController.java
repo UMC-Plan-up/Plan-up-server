@@ -218,4 +218,28 @@ public class UserController {
         WithdrawalResponseDTO response = userService.withdrawUser(currentUser.getId(), request);
         return ApiResponse.onSuccess(response);
     }
+
+    @Operation(summary = "카카오 소셜 인증",
+            description = "카카오 인가코드로 로그인/회원가입 여부를 판단합니다")
+    @PostMapping("/users/auth/kakao")
+    public ApiResponse<KakaoAuthResponseDTO> kakaoAuth(@Valid @RequestBody KakaoAuthRequestDTO request) {
+        KakaoAuthResponseDTO result = userService.kakaoAuth(request);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "카카오 회원가입 완료",
+            description = "카카오 온보딩 완료 후 모든 정보를 받아서 회원가입을 완료합니다")
+    @PostMapping("/users/auth/kakao/complete")
+    public ApiResponse<SignupResponseDTO> kakaoSignupComplete(@Valid @RequestBody KakaoSignupCompleteRequestDTO request) {
+        SignupResponseDTO result = userService.kakaoSignupComplete(request);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "이메일 인증 대안 - 카카오 로그인",
+            description = "이메일 인증 실패 시 카카오 소셜 로그인으로 전환합니다")
+    @PostMapping("/users/auth/email/alternative")
+    public ApiResponse<KakaoAuthResponseDTO> emailAuthAlternative(@Valid @RequestBody KakaoAuthRequestDTO request) {
+        KakaoAuthResponseDTO result = userService.kakaoAuth(request);
+        return ApiResponse.onSuccess(result);
+    }
 }

@@ -16,4 +16,6 @@ public interface OAuthAccountRepository extends JpaRepository<OAuthAccount, Long
     
     // 특정 사용자의 특정 플랫폼 OAuth 계정 존재 여부 확인
     boolean existsByUserAndProvider(User user, AuthProvideerEnum provider);
-} 
+
+    Optional<OAuthAccount> findByEmailAndProvider(String email, AuthProvideerEnum provider);
+}
