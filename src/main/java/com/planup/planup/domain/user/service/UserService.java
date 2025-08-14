@@ -19,10 +19,7 @@ public interface UserService {
 
     UserInfoResponseDTO getUserInfo(Long userId);
 
-
-
     void checkEmail(String email);
-
 
     // 이메일 존재 확인 (비밀번호 변경용)
     void checkEmailExists(String email);
@@ -32,6 +29,7 @@ public interface UserService {
 
     // 비밀번호 변경 이메일 재발송
     EmailSendResponseDTO resendPasswordChangeEmail(String email);
+
 
     SignupResponseDTO signup(SignupRequestDTO request);
 
@@ -46,6 +44,10 @@ public interface UserService {
     ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode, Long currentUserId);
 
     WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request);
+
+    KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request);
+
+    SignupResponseDTO kakaoSignupComplete(KakaoSignupCompleteRequestDTO request);
 
     KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request);
 
