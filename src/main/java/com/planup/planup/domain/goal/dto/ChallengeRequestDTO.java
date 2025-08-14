@@ -5,6 +5,7 @@ import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
@@ -31,7 +32,7 @@ public class ChallengeRequestDTO {
             @Schema(description = "목표 유형", example = "CHALLENGE_TIME")
             GoalType goalType,
 
-            @NotBlank
+            @Positive
             @Schema(description = "1회 기준량", example = "250")
             int oneDose,
 
@@ -50,8 +51,8 @@ public class ChallengeRequestDTO {
             @Schema(description = "같이 할 친구 선택", example = "1")
             Long friendId,
 
-            @Min(1)
-            @Schema(description = "주기(며칠마다 1회)", example = "7")
+            @NotNull
+            @Schema(description = "주기(며칠마다 1회)", example = "WEEK")
             GoalPeriod period,
 
             @Min(1)
@@ -59,7 +60,7 @@ public class ChallengeRequestDTO {
             int frequency,
 
             //선택 필듣
-            @Valid createTime timeChallenge
+            @Valid @Nullable createTime timeChallenge
 
     ) {}
 
