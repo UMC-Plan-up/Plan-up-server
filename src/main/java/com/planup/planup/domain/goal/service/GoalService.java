@@ -7,6 +7,7 @@ import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface GoalService {
@@ -31,6 +32,8 @@ public interface GoalService {
     List<GoalResponseDto.RankingDto> getGoalRanking(Long goalId);
     List<GoalResponseDto.FriendTimerStatusDto> getFriendTimerStatus(Long goalId, Long userId);
     GoalResponseDto.GoalMemoResponseDto saveMemo(Long userId, Long goalId, GoalRequestDto.CreateMemoRequestDto request);
+    GoalResponseDto.DailyVerifiedGoalsResponse getDailyVerifiedGoals(Long userId, LocalDate date);
+
 
     Goal getGoalById(Long challengeId);
 }

@@ -136,4 +136,24 @@ public class GoalResponseDto {
         @Schema(description = "처리 결과 메시지", example = "메모가 성공적으로 저장되었습니다.")
         private String message;
     }
+
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DailyVerifiedGoalsResponse {
+        private LocalDate date;
+        private List<VerifiedGoalInfo> verifiedGoals;
+        private int totalCount;
+    }
+
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VerifiedGoalInfo {
+        private String goalName;
+        private GoalPeriod period;
+        private int frequency;
+    }
 }

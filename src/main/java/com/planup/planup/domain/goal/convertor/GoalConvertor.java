@@ -15,6 +15,7 @@ import java.util.List;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.stream.Collectors;
 
 public class GoalConvertor {
 
@@ -95,7 +96,7 @@ public class GoalConvertor {
                 .build();
     }
 
-    //내 목표 리스트 조회 변환(DTO 가져오기)
+    //친구 목표 리스트 조회 변환(DTO 가져오기)
     public static GoalResponseDto.FriendGoalListDto toFriendGoalListDto(
             UserGoal friendGoal) {
         Goal goal = friendGoal.getGoal();
@@ -214,6 +215,28 @@ public class GoalConvertor {
                 .userGoal(userGoal)
                 .memo(memo.trim())
                 .memoDate(memoDate)
+                .build();
+    }
+
+    public static GoalResponseDto.DailyVerifiedGoalsResponse toDailyVerifiedGoalsResponse(
+            LocalDate date, List<Goal> verifiedGoals) {
+
+        List<GoalResponseDto.VerifiedGoalInfo> goalInfoList = verifiedGoals.stream()
+                .map(GoalConvertor::toVerifiedGoalInfo)
+                .collect(Collectors.toList());
+
+        return GoalResponseDto.DailyVerifiedGoalsResponse.builder()
+                .date(date)
+                .verifiedGoals(goalInfoList)
+                .totalCount(goalInfoList.size())
+                .build();
+    }
+
+    public static GoalResponseDto.VerifiedGoalInfo toVerifiedGoalInfo(Goal goal) {
+        return GoalResponseDto.VerifiedGoalInfo.builder()
+                .goalName(goal.getGoalName())
+                .period(goal.getPeriod())
+                .frequency(goal.getFrequency())
                 .build();
     }
 

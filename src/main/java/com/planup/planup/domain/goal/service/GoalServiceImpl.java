@@ -21,6 +21,7 @@ import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.GoalRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.user.repository.UserRepository;
+import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.RequiredArgsConstructor;
 import com.planup.planup.domain.user.entity.User;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +51,7 @@ public class GoalServiceImpl implements GoalService{
     private final FriendRepository friendRepository;
     private final GoalMemoRepository goalMemoRepository;
     private final TimerVerificationService timerVerificationService;
+    private final TimerVerificationReadService timerVerificationReadService;
 
     //목표 생성
     @Transactional
@@ -266,6 +269,8 @@ public class GoalServiceImpl implements GoalService{
         Goal goal = goalRepository.findById(goalId)
                 .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
 
+        UserGoal myuserGoal = userGoalService.getByGoalIdAndUserId(goalId,userId);
+
         List<UserGoal> userGoals = userGoalRepository.findByGoalId(goalId);
 
         return userGoals.stream()
@@ -275,7 +280,7 @@ public class GoalServiceImpl implements GoalService{
 
                     if (goal.getVerificationType() == VerificationType.TIMER) {
                         // 타이머인 경우 실제 시간 계산
-                        LocalTime totalTime = timerVerificationService.getTodayTotalTime(user.getId(), goalId);
+                        LocalTime totalTime = timerVerificationReadService.getTodayTotalTime(myuserGoal);
                         todayTime = String.format("%02d:%02d:%02d",
                                 totalTime.getHour(),
                                 totalTime.getMinute(),
@@ -346,6 +351,27 @@ public class GoalServiceImpl implements GoalService{
 
             return GoalConvertor.toDeletedResponse(request.getMemoDate());
         }
+    }
+
+    public GoalResponseDto.DailyVerifiedGoalsResponse getDailyVerifiedGoals(Long userId, LocalDate date) {
+        List<UserGoal> userGoals = userGoalRepository.findByUserId(userId);
+        List<Goal> verifiedGoals = new ArrayList<>();
+
+        for (UserGoal userGoal : userGoals) {
+            Goal goal = userGoal.getGoal();
+            boolean hasVerification = false;
+
+            if (goal.getVerificationType() == VerificationType.TIMER) {
+                hasVerification = timerVerificationRepository.existsByUserGoalAndDate(userGoal.getId(), date);
+            } else if (goal.getVerificationType() == VerificationType.PHOTO) {
+                hasVerification = photoVerificationRepository.existsByUserGoalAndDate(userGoal.getId(), date);
+            }
+            if (hasVerification) {
+                verifiedGoals.add(goal);
+            }
+        }
+
+        return GoalConvertor.toDailyVerifiedGoalsResponse(date, verifiedGoals);
     }
 
     @Override

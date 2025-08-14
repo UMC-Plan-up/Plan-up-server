@@ -14,8 +14,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -226,6 +228,17 @@ public class GoalController {
                 userId, goalId, request);
 
         return ApiResponse.onSuccess(response);
+    }
+
+    @GetMapping("/daily/{date}")
+    @Operation(summary = "날짜별 인증한 목표 조회 API", description = "특정 날짜에 인증한 목표들의 리스트를 조회합니다.")
+    public ApiResponse<GoalResponseDto.DailyVerifiedGoalsResponse> getDailyVerifiedGoals(
+            @Parameter(description = "조회할 날짜 (yyyy-MM-dd)", example = "2025-01-15")
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        GoalResponseDto.DailyVerifiedGoalsResponse result = goalService.getDailyVerifiedGoals(userId, date);
+        return ApiResponse.onSuccess(result);
     }
 }
 
