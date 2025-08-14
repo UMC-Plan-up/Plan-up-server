@@ -1,6 +1,8 @@
 package com.planup.planup.domain.verification.service;
 
+import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.goal.service.ChallengeService;
 import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.verification.convertor.TimerVerificationConverter;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
@@ -26,6 +28,13 @@ public class TimerVerificationService implements VerificationService{
     private final UserGoalRepository userGoalRepository;
     private final UserGoalService userGoalService;
     private final TimerVerificationRepository timerVerificationRepository;
+    private final ChallengeService challengeService;
+
+    //userGoal과 관련된 모든 인증 조회
+    public List<TimerVerification> getVerificationByUserGoal(UserGoal userGoal) {
+        List<TimerVerification> ver = timerVerificationRepository.findAllByUserGoal(userGoal);
+        return ver;
+    }
 
 
     //타이머 시작 -> DB 레코드 생성(TimerVerification)
@@ -83,6 +92,10 @@ public class TimerVerificationService implements VerificationService{
         }
 
         TimerVerification savedTimer = timerVerificationRepository.save(timer);
+
+        if (userGoal.getGoal().isChallenge()) {
+            challengeService.checkChallengeFin(userGoal);
+        }
 
         return TimerVerificationConverter.toTimerStopResponse(savedTimer, achieved);
     }

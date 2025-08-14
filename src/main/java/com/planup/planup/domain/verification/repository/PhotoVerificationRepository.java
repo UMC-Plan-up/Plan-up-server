@@ -42,4 +42,6 @@ public interface PhotoVerificationRepository extends JpaRepository<PhotoVerifica
             "AND DATE(p.createdAt) = :date")
     boolean existsByUserGoalAndDate(@Param("userGoalId") Long userGoalId,
                                     @Param("date") LocalDate date);
+
+    List<PhotoVerification> findAllByUserGoal(UserGoal userGoal);
 }

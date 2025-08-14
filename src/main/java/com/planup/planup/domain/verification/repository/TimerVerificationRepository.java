@@ -40,6 +40,8 @@ public interface TimerVerificationRepository extends JpaRepository<TimerVerifica
             Pageable pageable
     );
 
+    List<TimerVerification> findAllByUserGoal(UserGoal userGoal);
+
    @Query("SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END " +
                   "FROM TimerVerification t " +
                   "WHERE t.userGoal.id = :userGoalId " +
