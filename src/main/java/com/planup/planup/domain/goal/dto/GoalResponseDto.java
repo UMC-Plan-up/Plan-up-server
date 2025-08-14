@@ -141,6 +141,16 @@ public class GoalResponseDto {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class GoalMemoReadDto {
+        private String memo;
+        private LocalDate memoDate;
+        private boolean exists;
+    }
+
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class DailyVerifiedGoalsResponse {
         private LocalDate date;
         private List<VerifiedGoalInfo> verifiedGoals;

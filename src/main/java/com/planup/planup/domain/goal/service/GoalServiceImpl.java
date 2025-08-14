@@ -331,6 +331,29 @@ public class GoalServiceImpl implements GoalService{
         }
     }
 
+    @Transactional(readOnly = true)
+    public GoalResponseDto.GoalMemoReadDto getMemo(Long userId, Long goalId, LocalDate date) {
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
+
+        Optional<GoalMemo> memoOpt = goalMemoRepository
+                .findByUserGoalAndMemoDate(userGoal, date);
+
+        if (memoOpt.isPresent()) {
+            GoalMemo memo = memoOpt.get();
+            return GoalResponseDto.GoalMemoReadDto.builder()
+                    .memo(memo.getMemo())
+                    .memoDate(memo.getMemoDate())
+                    .exists(true)
+                    .build();
+        } else {
+            return GoalResponseDto.GoalMemoReadDto.builder()
+                    .memo("")
+                    .memoDate(date)
+                    .exists(false)
+                    .build();
+        }
+    }
+
     private GoalResponseDto.GoalMemoResponseDto handleExistingMemo(
             GoalMemo existingMemo,
             GoalRequestDto.CreateMemoRequestDto request) {

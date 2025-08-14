@@ -33,7 +33,7 @@ public interface GoalService {
     List<GoalResponseDto.FriendTimerStatusDto> getFriendTimerStatus(Long goalId, Long userId);
     GoalResponseDto.GoalMemoResponseDto saveMemo(Long userId, Long goalId, GoalRequestDto.CreateMemoRequestDto request);
     GoalResponseDto.DailyVerifiedGoalsResponse getDailyVerifiedGoals(Long userId, LocalDate date);
-
+    GoalResponseDto.GoalMemoReadDto getMemo(Long userId, Long goalId, LocalDate date);
 
     Goal getGoalById(Long challengeId);
 }

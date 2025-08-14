@@ -240,5 +240,16 @@ public class GoalController {
         GoalResponseDto.DailyVerifiedGoalsResponse result = goalService.getDailyVerifiedGoals(userId, date);
         return ApiResponse.onSuccess(result);
     }
+
+    @GetMapping("/{goalId}/memo/{date}")
+    @Operation(summary = "특정 날짜 메모 조회", description = "목표의 특정 날짜 메모를 조회합니다.")
+    public ApiResponse<GoalResponseDto.GoalMemoReadDto> getMemo(
+            @PathVariable Long goalId,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        GoalResponseDto.GoalMemoReadDto memo = goalService.getMemo(userId, goalId, date);
+        return ApiResponse.onSuccess(memo);
+    }
 }
 
