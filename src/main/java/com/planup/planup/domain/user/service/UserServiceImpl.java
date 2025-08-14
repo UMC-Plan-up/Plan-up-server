@@ -557,16 +557,16 @@ public class UserServiceImpl implements UserService {
     public EmailSendResponseDTO sendEmailChangeVerification(String currentEmail, String newEmail) {
         // 새 이메일이 이미 사용 중인지 확인
         checkEmail(newEmail);
-        
+
         // 이메일 변경 인증 메일 발송
         String changeToken = emailService.sendEmailChangeVerificationEmail(currentEmail, newEmail);
-        
+
         return EmailSendResponseDTO.builder()
                 .email(newEmail)
                 .message("이메일 변경 확인 메일이 발송되었습니다")
                 .verificationToken(changeToken)
                 .build();
-
+    }
     public KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request) {
         KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());
         String email = kakaoUserInfo.getEmail();

@@ -273,12 +273,13 @@ public class UserController {
     public ApiResponse<EmailSendResponseDTO> resendEmailChangeVerification(
             @RequestBody @Valid EmailVerificationRequestDTO request,
             @Parameter(hidden = true) @CurrentUser Long userId) {
-        
+
         User currentUser = userService.getUserbyUserId(userId);
         EmailSendResponseDTO response = userService.resendEmailChangeVerification(
                 currentUser.getEmail(), request.getEmail());
-        
+
         return ApiResponse.onSuccess(response);
+    }
 
     @Operation(summary = "카카오 소셜 인증",
             description = "카카오 인가코드로 로그인/회원가입 여부를 판단합니다")
