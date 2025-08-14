@@ -42,8 +42,6 @@ public class RandomNicknameServiceImpl implements RandomNicknameService {
         
         return RandomNicknameResponseDTO.builder()
                 .nickname(randomNickname.getFullNickname())
-                .adjective(randomNickname.getAdjective())
-                .noun(randomNickname.getNoun())
                 .build();
     }
 
