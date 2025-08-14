@@ -38,6 +38,8 @@ public interface TimerVerificationRepository extends JpaRepository<TimerVerifica
             @Param("endDate") LocalDateTime endDate,
             Pageable pageable
     );
+
+    List<TimerVerification> findAllByUserGoal(UserGoal userGoal);
 }
 
 

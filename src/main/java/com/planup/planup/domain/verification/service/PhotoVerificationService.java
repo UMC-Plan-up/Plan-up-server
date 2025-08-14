@@ -4,7 +4,9 @@ import com.planup.planup.domain.global.service.ImageUploadService;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.goal.service.UserGoalService;
+import com.planup.planup.domain.goal.service.ChallengeService;
 import com.planup.planup.domain.verification.entity.PhotoVerification;
+import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,11 @@ public class PhotoVerificationService implements VerificationService {
     private final UserGoalRepository userGoalRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
     private final ImageUploadService imageUploadService;
+    private final ChallengeService challengeService;
+
+    public List<PhotoVerification> getAllVerificationByUserGoal(UserGoal userGoal) {
+        return photoVerificationRepository.findAllByUserGoal(userGoal);
+    }
     private final UserGoalService userGoalService;
 
     @Transactional
@@ -45,6 +52,10 @@ public class PhotoVerificationService implements VerificationService {
 
         userGoal.increaseVerificationCount();
         userGoalRepository.save(userGoal);
+
+        if (userGoal.getGoal().isChallenge()) {
+            challengeService.checkChallengeFin(userGoal);
+        }
     }
 
     @Transactional
