@@ -106,17 +106,13 @@ public class ChallengeServiceImpl implements ChallengeService{
         String nickname = first.getUser().getNickname();
 
         if (goal.getGoalType() == GoalType.CHALLENGE_PHOTO) {
-            if (goal instanceof Challenge) {
-                Challenge photoChallenge = (Challenge) goal;
-                ChallengeResponseDTO.ChallengeResponseInfo challengeResponseInfo = ChallengeConverter.toChallengeResponseInfoPhotoVer(photoChallenge, nickname);
-                return challengeResponseInfo;
+            if (goal instanceof Challenge photoChallenge) {
+                return ChallengeConverter.toChallengeResponseInfoPhotoVer(photoChallenge, nickname);
 
             }
         } else if (goal.getGoalType() == GoalType.CHALLENGE_TIME) {
-            if (goal instanceof TimeChallenge) {
-                TimeChallenge timeChallenge = (TimeChallenge) goal;
-                ChallengeResponseDTO.ChallengeResponseInfo challengeResponseInfo = ChallengeConverter.toChallengeResponseInfoTimeVer(timeChallenge);
-                return challengeResponseInfo;
+            if (goal instanceof TimeChallenge timeChallenge) {
+                return ChallengeConverter.toChallengeResponseInfoTimeVer(timeChallenge);
             }
         }
 
@@ -211,6 +207,5 @@ public class ChallengeServiceImpl implements ChallengeService{
             User user = userService.getUserbyUserId(friendId);
             createPerUserGoal(user, type, Status.MEMBER, challenge);
         }
-
     }
 }

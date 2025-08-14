@@ -1,9 +1,9 @@
 package com.planup.planup.domain.goal.service;
 
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.UserGoalException;
+import com.planup.planup.domain.friend.service.FriendService;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
-import com.planup.planup.domain.friend.entity.Friend;
-import com.planup.planup.domain.friend.entity.FriendStatus;
-import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.goal.dto.CommunityResponseDto;
 import com.planup.planup.domain.goal.convertor.UserGoalConvertor;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
@@ -30,7 +30,7 @@ public class UserGoalServiceImpl implements UserGoalService{
     private final UserGoalRepository userGoalRepository;
     private final GoalRepository goalRepository;
     private final UserRepository userRepository;
-    private final FriendRepository friendRepository;
+    private final FriendService friendService;
 
     @Transactional
     public CommunityResponseDto.JoinGoalResponseDto joinGoal(Long userId, Long goalId) {
@@ -40,7 +40,7 @@ public class UserGoalServiceImpl implements UserGoalService{
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
 
-        UserGoal existingUserGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal existingUserGoal = getByGoalIdAndUserId(goalId, userId);
         if (existingUserGoal != null) {
             throw new RuntimeException("이미 참가한 목표입니다.");
         }
@@ -83,18 +83,8 @@ public class UserGoalServiceImpl implements UserGoalService{
 
         Long creatorId = adminUserGoal.getUser().getId();
 
-        List<Friend> friendRelations = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
-                FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
+        friendService.isFriend(userId, creatorId);
 
-        boolean isFriend = friendRelations.stream()
-                .anyMatch(friend ->
-                        (friend.getUser().getId().equals(creatorId) && friend.getFriend().getId().equals(userId)) ||
-                                (friend.getFriend().getId().equals(creatorId) && friend.getUser().getId().equals(userId))
-                );
-
-        if (!isFriend) {
-            throw new RuntimeException("친구 목표는 친구 관계인 사용자만 참가할 수 있습니다.");
-        }
     }
 
     //수용 형 파트
@@ -121,5 +111,11 @@ public class UserGoalServiceImpl implements UserGoalService{
     @Override
     public List<UserGoal> getUserGoalInPeriod(LocalDateTime startDate, LocalDateTime endDate) {
         return userGoalRepository.findAllByUpdatedAtBetween(startDate, endDate);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserGoal getByGoalIdAndUserId(Long goalId, Long userId) {
+        return userGoalRepository.findByGoalIdAndUserId(goalId, userId).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
     }
 }

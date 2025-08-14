@@ -44,7 +44,11 @@ public class User extends BaseTimeEntity {
     private String profileImg;
 
     private String socialEmail;
-    private Boolean alarmAllow;
+
+    @Column(name = "alarm_allow", nullable = false)
+    @Builder.Default
+    private Boolean alarmAllow = false;
+    
     private String inviteCode;
 
     @Column(name = "email_verified", nullable = false)
