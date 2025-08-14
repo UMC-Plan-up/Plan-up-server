@@ -16,6 +16,9 @@ public interface UserService {
     boolean checkPassword(Long userId, String password);
 
     void updatePassword(Long userId, String password);
+    
+    // 비밀번호 변경 이메일 인증 완료 여부 확인
+    Boolean isPasswordChangeEmailVerified(String email);
 
     UserInfoResponseDTO getUserInfo(Long userId);
 
@@ -49,4 +52,13 @@ public interface UserService {
     SignupResponseDTO kakaoSignupComplete(KakaoSignupCompleteRequestDTO request);
 
     String updateEmail(Long userId, String newEmail);
+
+    // 이메일 변경 이메일 발송
+    EmailSendResponseDTO sendEmailChangeVerification(String currentEmail, String newEmail);
+
+    // 이메일 변경 완료
+    void completeEmailChange(String token);
+
+    // 이메일 변경 인증 메일 재발송
+    EmailSendResponseDTO resendEmailChangeVerification(String currentEmail, String newEmail);
 }

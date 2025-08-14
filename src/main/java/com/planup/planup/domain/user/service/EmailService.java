@@ -30,12 +30,29 @@ public interface EmailService {
 
     // 비밀번호 변경 토큰 검증
     String validatePasswordChangeToken(String token);
+    
+    // 비밀번호 변경 이메일 인증 완료 여부 확인
+    Boolean isPasswordChangeEmailVerified(String email);
+    
+    // 비밀번호 변경 이메일 인증 완료 표시
+    void markPasswordChangeEmailAsVerified(String email);
 
 
     String createSuccessHtml(String email, String deepLinkUrl);
 
     String createFailureHtml();
 
-    // 비밀번호 변경 링크 처리 및 응답 DTO 생성
-    EmailVerifyLinkResponseDTO handlePasswordChangeLink(String token);
+
+
+    // 이메일 변경용 인증 메일 발송
+    String sendEmailChangeVerificationEmail(String currentEmail, String newEmail);
+
+    // 이메일 변경 토큰 검증
+    String validateEmailChangeToken(String token);
+
+    // 이메일 변경 링크 처리 및 응답 DTO 생성
+    EmailVerifyLinkResponseDTO handleEmailChangeLink(String token);
+
+    // 이메일 변경 인증 메일 재발송
+    String resendEmailChangeVerificationEmail(String currentEmail, String newEmail);
 }

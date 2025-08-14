@@ -64,8 +64,12 @@ public class UserController {
     @Operation(summary = "비밀번호 변경", description = "사용자로부터 새로운 비밀번호를 입력받고 변경한다.")
     @PostMapping("/mypage/profile/password/update")
     public ApiResponse<Boolean> updatePassword(@Parameter(hidden = true) @CurrentUser Long userId, String password) {
-        userService.updatePassword(userId, password);
-        return ApiResponse.onSuccess(true);
+        try {
+            userService.updatePassword(userId, password);
+            return ApiResponse.onSuccess(true);
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.onFailure("PASSWORD4002", e.getMessage(), false);
+        }
     }
 
     @Operation(summary = "유저 정보 조회", description = "유저의 상세 정보 조회")
@@ -198,15 +202,32 @@ public class UserController {
         return ApiResponse.onSuccess(response);
     }
 
-    @Operation(summary = "비밀번호 변경 요청 이메일 링크 클릭 처리", description = "비밀번호 변경 링크 클릭 시 확인 처리 후 앱으로 리다이렉트")
+    @Operation(summary = "비밀번호 변경 요청 이메일 링크 클릭 처리", description = "비밀번호 변경 링크 클릭 시 확인 처리 후 웹페이지 표시")
     @GetMapping("/users/password/change-link")
-    public ApiResponse<EmailVerifyLinkResponseDTO> handlePasswordChangeLink(@RequestParam String token) {
-        EmailVerifyLinkResponseDTO response = emailService.handlePasswordChangeLink(token);
-        
-        if (response.isVerified()) {
-            return ApiResponse.onSuccess(response);
-        } else {
-            return ApiResponse.onFailure("PASSWORD4001", "유효하지 않은 비밀번호 변경 요청 토큰입니다", response);
+    public ResponseEntity<String> handlePasswordChangeLink(@RequestParam String token) {
+        try {
+            String email = emailService.validatePasswordChangeToken(token);
+            
+            // 비밀번호 변경 이메일 인증 완료 표시
+            emailService.markPasswordChangeEmailAsVerified(email);
+            
+            String deepLinkUrl = "planup://password/change?email=" +
+                    java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) +
+                    "&verified=true&token=" + token +
+                    "&from=password_change";
+
+            String html = emailService.createSuccessHtml(email, deepLinkUrl);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
+                    .body(html);
+
+        } catch (IllegalArgumentException e) {
+            String html = emailService.createFailureHtml();
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
+                    .body(html);
         }
     }
 
@@ -218,6 +239,44 @@ public class UserController {
         WithdrawalResponseDTO response = userService.withdrawUser(currentUser.getId(), request);
         return ApiResponse.onSuccess(response);
     }
+
+
+    @Operation(summary = "이메일 변경 인증 메일 발송", description = "새 이메일로 인증 메일을 발송합니다")
+    @PostMapping("/users/email/change/send")
+    public ApiResponse<EmailSendResponseDTO> sendEmailChangeVerification(
+            @RequestBody @Valid EmailVerificationRequestDTO request,  // EmailChangeRequestDTO 대신
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+        
+        User currentUser = userService.getUserbyUserId(userId);
+        EmailSendResponseDTO response = userService.sendEmailChangeVerification(
+                currentUser.getEmail(), request.getEmail());  // .getNewEmail() 대신 .getEmail()
+        
+        return ApiResponse.onSuccess(response);
+    }
+
+    @Operation(summary = "이메일 변경 요청 이메일 링크 클릭 처리", description = "이메일 변경 링크 클릭 시 확인 처리 후 앱으로 리다이렉트")
+    @GetMapping("/users/email/change-link")
+    public ApiResponse<EmailVerifyLinkResponseDTO> handleEmailChangeLink(@RequestParam String token) {
+        EmailVerifyLinkResponseDTO response = emailService.handleEmailChangeLink(token);
+        
+        if (response.isVerified()) {
+            return ApiResponse.onSuccess(response);
+        } else {
+            return ApiResponse.onFailure("EMAIL4001", "유효하지 않은 이메일 변경 요청 토큰입니다", response);
+        }
+    }
+
+    @Operation(summary = "이메일 변경 인증 메일 재발송", description = "이메일 변경 인증 메일을 재발송합니다")
+    @PostMapping("/users/email/change/resend")
+    public ApiResponse<EmailSendResponseDTO> resendEmailChangeVerification(
+            @RequestBody @Valid EmailVerificationRequestDTO request,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+        
+        User currentUser = userService.getUserbyUserId(userId);
+        EmailSendResponseDTO response = userService.resendEmailChangeVerification(
+                currentUser.getEmail(), request.getEmail());
+        
+        return ApiResponse.onSuccess(response);
 
     @Operation(summary = "카카오 소셜 인증",
             description = "카카오 인가코드로 로그인/회원가입 여부를 판단합니다")
@@ -241,5 +300,6 @@ public class UserController {
     public ApiResponse<KakaoAuthResponseDTO> emailAuthAlternative(@Valid @RequestBody KakaoAuthRequestDTO request) {
         KakaoAuthResponseDTO result = userService.kakaoAuth(request);
         return ApiResponse.onSuccess(result);
+
     }
 }
