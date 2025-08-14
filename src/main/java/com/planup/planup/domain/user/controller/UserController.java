@@ -3,6 +3,7 @@ package com.planup.planup.domain.user.controller;
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
+import com.planup.planup.domain.user.converter.UserConverter;
 import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.EmailService;
@@ -27,6 +28,7 @@ public class UserController {
 
     private final UserService userService;
     private final EmailService emailService;
+    private final UserConverter userConverter;
 
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
@@ -71,14 +73,6 @@ public class UserController {
     public ApiResponse<UserInfoResponseDTO> getUserInfo(@Parameter(hidden = true) @CurrentUser Long userId) {
         UserInfoResponseDTO userInfo = userService.getUserInfo(userId);
         return ApiResponse.onSuccess(userInfo);
-    }
-    @Operation(summary = "이메일 변경", description = "유저 이메일 변경")
-    @PostMapping("/mypage/profile/email")
-    public ApiResponse<String> updateEmail(
-            @Parameter(hidden = true) @CurrentUser Long userId,
-            @RequestParam String newEmail) {
-        String email = userService.updateEmail(userId, newEmail);
-        return ApiResponse.onSuccess(email);
     }
 
     @Operation(summary = "회원가입", description = "이메일/비밀번호로 새 계정을 생성합니다")
@@ -144,11 +138,7 @@ public class UserController {
 
         String verificationToken = emailService.sendVerificationEmail(request.getEmail());
 
-        EmailSendResponseDTO response = EmailSendResponseDTO.builder()
-                .email(request.getEmail())
-                .message("인증 메일이 발송되었습니다")
-                .verificationToken(verificationToken)
-                .build();
+        EmailSendResponseDTO response = userConverter.toEmailSendResponseDTO(request.getEmail(), verificationToken, "인증 메일이 발송되었습니다");
 
         return ApiResponse.onSuccess(response);
     }
@@ -163,11 +153,7 @@ public class UserController {
         // 인증메일 재발송
         String verificationToken = emailService.resendVerificationEmail(request.getEmail());
 
-        EmailSendResponseDTO response = EmailSendResponseDTO.builder()
-                .email(request.getEmail())
-                .message("인증 메일이 재발송되었습니다")
-                .verificationToken(verificationToken)
-                .build();
+        EmailSendResponseDTO response = userConverter.toEmailSendResponseDTO(request.getEmail(), verificationToken, "인증 메일이 재발송되었습니다");
 
         return ApiResponse.onSuccess(response);
     }
@@ -198,6 +184,32 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "비밀번호 변경 확인 이메일 발송", description = "비밀번호 변경을 위한 확인 메일을 발송하고 토큰을 반환합니다")
+    @PostMapping("/users/password/change-email/send")
+    public ApiResponse<EmailSendResponseDTO> sendPasswordChangeEmail(@RequestBody @Valid EmailVerificationRequestDTO request) {
+        EmailSendResponseDTO response = userService.sendPasswordChangeEmail(request.getEmail());
+        return ApiResponse.onSuccess(response);
+    }
+
+    @Operation(summary = "비밀번호 변경 확인 이메일 재발송", description = "비밀번호 변경을 위한 확인 메일을 재발송합니다")
+    @PostMapping("/users/password/change-email/resend")
+    public ApiResponse<EmailSendResponseDTO> resendPasswordChangeEmail(@RequestBody @Valid ResendEmailRequestDTO request) {
+        EmailSendResponseDTO response = userService.resendPasswordChangeEmail(request.getEmail());
+        return ApiResponse.onSuccess(response);
+    }
+
+    @Operation(summary = "비밀번호 변경 요청 이메일 링크 클릭 처리", description = "비밀번호 변경 링크 클릭 시 확인 처리 후 앱으로 리다이렉트")
+    @GetMapping("/users/password/change-link")
+    public ApiResponse<EmailVerifyLinkResponseDTO> handlePasswordChangeLink(@RequestParam String token) {
+        EmailVerifyLinkResponseDTO response = emailService.handlePasswordChangeLink(token);
+        
+        if (response.isVerified()) {
+            return ApiResponse.onSuccess(response);
+        } else {
+            return ApiResponse.onFailure("PASSWORD4001", "유효하지 않은 비밀번호 변경 요청 토큰입니다", response);
+        }
+    }
+
     @Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 처리하고 탈퇴 이유를 저장합니다")
     @PostMapping("/users/withdraw")
     public ApiResponse<WithdrawalResponseDTO> withdrawUser(
@@ -205,5 +217,29 @@ public class UserController {
             @Parameter(hidden = true) @CurrentUser User currentUser) {
         WithdrawalResponseDTO response = userService.withdrawUser(currentUser.getId(), request);
         return ApiResponse.onSuccess(response);
+    }
+
+    @Operation(summary = "카카오 소셜 인증",
+            description = "카카오 인가코드로 로그인/회원가입 여부를 판단합니다")
+    @PostMapping("/users/auth/kakao")
+    public ApiResponse<KakaoAuthResponseDTO> kakaoAuth(@Valid @RequestBody KakaoAuthRequestDTO request) {
+        KakaoAuthResponseDTO result = userService.kakaoAuth(request);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "카카오 회원가입 완료",
+            description = "카카오 온보딩 완료 후 모든 정보를 받아서 회원가입을 완료합니다")
+    @PostMapping("/users/auth/kakao/complete")
+    public ApiResponse<SignupResponseDTO> kakaoSignupComplete(@Valid @RequestBody KakaoSignupCompleteRequestDTO request) {
+        SignupResponseDTO result = userService.kakaoSignupComplete(request);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "이메일 인증 대안 - 카카오 로그인",
+            description = "이메일 인증 실패 시 카카오 소셜 로그인으로 전환합니다")
+    @PostMapping("/users/auth/email/alternative")
+    public ApiResponse<KakaoAuthResponseDTO> emailAuthAlternative(@Valid @RequestBody KakaoAuthRequestDTO request) {
+        KakaoAuthResponseDTO result = userService.kakaoAuth(request);
+        return ApiResponse.onSuccess(result);
     }
 }
