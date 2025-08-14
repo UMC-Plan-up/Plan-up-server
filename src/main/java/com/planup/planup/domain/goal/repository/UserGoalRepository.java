@@ -4,9 +4,7 @@ import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
-import org.springframework.boot.autoconfigure.flyway.FlywayProperties;
 import com.planup.planup.domain.user.entity.User;
-import org.springframework.data.domain.Example;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,7 +13,6 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -24,7 +21,7 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     UserGoal findByGoalIdAndStatus(Long goalId, Status status);
     List<UserGoal> findByGoalId(Long goalId);
 
-    Optional<UserGoal> findByGoalIdAndUserId(Long goalId, Long userId);
+    UserGoal findByGoalIdAndUserId(Long goalId, Long userId);
 
     List<UserGoal> findByUserId(Long userId);
 
