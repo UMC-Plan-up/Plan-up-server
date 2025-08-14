@@ -81,6 +81,19 @@ public class UserController {
         return ApiResponse.onSuccess(userInfo);
     }
 
+    @Operation(summary = "이메일 중복 확인", description = "이메일이 이미 사용 중인지 확인합니다")
+    @GetMapping("/users/email/check-duplicate")
+    public ApiResponse<EmailDuplicateResponseDTO> checkEmailDuplicate(@RequestParam String email) {
+        boolean isAvailable = userService.isEmailAvailable(email);
+        
+        EmailDuplicateResponseDTO response = EmailDuplicateResponseDTO.builder()
+                .available(isAvailable)
+                .message(isAvailable ? "사용 가능한 이메일입니다." : "이미 사용 중인 이메일입니다.")
+                .build();
+        
+        return ApiResponse.onSuccess(response);
+    }
+
     @Operation(summary = "회원가입", description = "이메일/비밀번호로 새 계정을 생성합니다")
     @PostMapping("/users/signup")
     public ApiResponse<SignupResponseDTO> signup(@Valid @RequestBody SignupRequestDTO request) {

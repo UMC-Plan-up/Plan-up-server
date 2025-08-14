@@ -508,6 +508,17 @@ public class UserServiceImpl implements UserService {
             throw new UserException(ErrorStatus.NOT_FOUND_USER);
         }
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isEmailAvailable(String email) {
+        try {
+            checkEmail(email);
+            return true;
+        } catch (UserException e) {
+            return false;
+        }
+    }
 
     /**
      * 비밀번호 변경 이메일 발송
