@@ -331,6 +331,7 @@ public class GoalServiceImpl implements GoalService{
         }
     }
 
+    //특정일 메모 조회
     @Transactional(readOnly = true)
     public GoalResponseDto.GoalMemoReadDto getMemo(Long userId, Long goalId, LocalDate date) {
         UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
@@ -352,6 +353,26 @@ public class GoalServiceImpl implements GoalService{
                     .exists(false)
                     .build();
         }
+    }
+
+    //리포트용 특정 기간 메모 조회
+    @Transactional(readOnly = true)
+    public List<GoalResponseDto.GoalMemoReadDto> getMemosByPeriod(
+            Long userId,
+            Long goalId,
+            LocalDate startDate,
+            LocalDate endDate) {
+
+        List<GoalResponseDto.GoalMemoReadDto> memoList = new ArrayList<>();
+
+        LocalDate currentDate = startDate;
+        while (!currentDate.isAfter(endDate)) {
+            GoalResponseDto.GoalMemoReadDto memo = getMemo(userId, goalId, currentDate);
+            memoList.add(memo);
+            currentDate = currentDate.plusDays(1);
+        }
+
+        return memoList;
     }
 
     private GoalResponseDto.GoalMemoResponseDto handleExistingMemo(

@@ -251,5 +251,22 @@ public class GoalController {
         GoalResponseDto.GoalMemoReadDto memo = goalService.getMemo(userId, goalId, date);
         return ApiResponse.onSuccess(memo);
     }
+
+    @GetMapping("/{goalId}/memo/period")
+    @Operation(
+            summary = "기간별 메모 조회",
+            description = "목표의 특정 기간 동안의 메모를 조회합니다."
+    )
+    public ApiResponse<List<GoalResponseDto.GoalMemoReadDto>> getMemosByPeriod(
+            @PathVariable Long goalId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        List<GoalResponseDto.GoalMemoReadDto> memos = goalService.getMemosByPeriod(
+                userId, goalId, startDate, endDate);
+
+        return ApiResponse.onSuccess(memos);
+    }
 }
 
