@@ -7,6 +7,8 @@ import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
 import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.service.ChallengeService;
+import com.planup.planup.domain.user.entity.User;
+import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;

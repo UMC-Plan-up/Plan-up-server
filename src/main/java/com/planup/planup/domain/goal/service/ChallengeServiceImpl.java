@@ -41,10 +41,10 @@ public class ChallengeServiceImpl implements ChallengeService{
 
     @Override
     @Transactional
-    public Challenge createChallenge(Long userId, ChallengeRequestDTO.create dto) {
+    public Challenge createChallenge(Long users, ChallengeRequestDTO.create dto) {
 
-        User user = userService.getUserbyUserId(userId);
         User friend = userService.getUserbyUserId(dto.friendId());
+        User user = userService.getUserbyUserId(users);
 
         //challenge type이 아닌 경우 예외 처리
         if (dto.goalType() == GoalType.FRIEND || dto.goalType() == GoalType.COMMUNITY) {
