@@ -69,8 +69,7 @@ public class NotificationServiceImpl implements NotificationService {
     public List<NotificationResponseDTO.NotificationDTO> getTop5RecentByUser(Long userId) {
         User receiver = userService.getUserbyUserId(userId);
         List<Notification> notificationList = notificationRepository.findTop3ByReceiverOrderByCreatedAtDesc(receiver);
-        List<NotificationResponseDTO.NotificationDTO> dtoList = NotificationConverter.toNotificationDTOs(notificationList);
-        return dtoList;
+        return NotificationConverter.toNotificationDTOs(notificationList);
     }
 
     //새로운 알림을 만든다.

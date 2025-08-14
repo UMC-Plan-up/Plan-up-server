@@ -116,7 +116,7 @@ public class GoalReportServiceImpl implements GoalReportService {
 
     private static ReportType getReportType(Goal goal) {
         ReportType rp = null;
-        if (goal.getGoalType().equals(GoalType.CHALLENGE_PHOTO) || goal.getGoalType().equals(GoalType.CHALLENGE_PHOTO)) {
+        if (goal.getGoalType().equals(GoalType.CHALLENGE_PHOTO) || goal.getGoalType().equals(GoalType.CHALLENGE_TIME)) {
             rp = ReportType.CHALLENGE;
         } else if (goal.getGoalType().equals(GoalType.FRIEND)) {
             rp = ReportType.FRIEND;
@@ -204,28 +204,28 @@ public class GoalReportServiceImpl implements GoalReportService {
         }
 
         // 날짜별 성취도 계산
-        return getDailyAchievementRate(dailyCount, goal.getOneDose());
+        return getDailyAchievementRate(dailyCount, goal.getOneDose(), startDate);
     }
 
-    private DailyAchievementRate getDailyAchievementRate(Map<LocalDate, Integer> dailyCount, int oneDose) {
-        Map<DayOfWeek, Integer> byDay = achievementCalculationService.calcAchievementByDay(dailyCount, oneDose);
-        return toDailyAchievementRate(byDay);
+    private DailyAchievementRate getDailyAchievementRate(Map<LocalDate, Integer> dailyCount, int oneDose, LocalDateTime startDate) {
+        Map<LocalDate, Integer> byDay = achievementCalculationService.calcAchievementByDay(dailyCount, oneDose);
+        return toDailyAchievementRate(byDay, startDate.toLocalDate());
     }
 
 
 
     //퍼센트를 가지고 DailyAchievementRate를 만든다.
-    private DailyAchievementRate toDailyAchievementRate(Map<DayOfWeek, Integer> byDay) {
+    private DailyAchievementRate toDailyAchievementRate(Map<LocalDate, Integer> byDay, LocalDate weekStartMonday) {
         DailyAchievementRate.DailyAchievementRateBuilder b = DailyAchievementRate.builder();
 
         // 값이 없으면 0으로 기본값 처리 (필요 시 조정)
-        b.mon(byDay.getOrDefault(DayOfWeek.MONDAY, 0));
-        b.tue(byDay.getOrDefault(DayOfWeek.TUESDAY, 0));
-        b.wed(byDay.getOrDefault(DayOfWeek.WEDNESDAY, 0));
-        b.thu(byDay.getOrDefault(DayOfWeek.THURSDAY, 0));
-        b.fri(byDay.getOrDefault(DayOfWeek.FRIDAY, 0));
-        b.sat(byDay.getOrDefault(DayOfWeek.SATURDAY, 0));
-        b.sun(byDay.getOrDefault(DayOfWeek.SUNDAY, 0));
+        b.mon(byDay.getOrDefault(weekStartMonday, 0));
+        b.tue(byDay.getOrDefault(weekStartMonday.plusDays(1), 0));
+        b.wed(byDay.getOrDefault(weekStartMonday.plusDays(2), 0));
+        b.thu(byDay.getOrDefault(weekStartMonday.plusDays(3), 0));
+        b.fri(byDay.getOrDefault(weekStartMonday.plusDays(4), 0));
+        b.sat(byDay.getOrDefault(weekStartMonday.plusDays(5), 0));
+        b.sun(byDay.getOrDefault(weekStartMonday.plusDays(6), 0));
 
         DailyAchievementRate dto = b.build();
         dto.calTotal(); // 총합/평균을 DTO 내부에서 계산하도록 유지

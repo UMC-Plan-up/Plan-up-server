@@ -64,6 +64,11 @@ public enum ErrorStatus implements BaseErrorCode {
     EMAIL_VERIFICATION_FAILED(INTERNAL_SERVER_ERROR, "EMAIL5001", "이메일 인증 처리 중 오류가 발생했습니다."),
     EMAIL_VERIFICATION_REQUIRED(HttpStatus.BAD_REQUEST, "VERIFICATION_001", "이메일 인증이 필요합니다"),
 
+    // 카카오 소셜 로그인 관련 에러
+    KAKAO_AUTH_FAILED(BAD_REQUEST, "KAKAO4001", "카카오 인증에 실패했습니다."),
+    KAKAO_TOKEN_INVALID(BAD_REQUEST, "KAKAO4002", "유효하지 않은 카카오 토큰입니다."),
+    KAKAO_USER_INFO_FAILED(INTERNAL_SERVER_ERROR, "KAKAO5001", "카카오 사용자 정보 조회에 실패했습니다."),
+
     // Comment 관련 에러
     NOT_FOUND_COMMENT(HttpStatus.NOT_FOUND, "COMMENT4001", "존재하지 않는 댓글입니다."),
     UNAUTHORIZED_COMMENT_ACCESS(HttpStatus.FORBIDDEN, "COMMENT4002", "댓글에 대한 권한이 없습니다."),
@@ -72,7 +77,8 @@ public enum ErrorStatus implements BaseErrorCode {
     UNAUTHORIZED_GOAL_ACCESS(HttpStatus.FORBIDDEN, "COMMENT4005", "해당 목표에 접근할 권한이 없습니다."),
 
     // Goal 관련 에러
-    NOT_FOUND_GOAL(HttpStatus.NOT_FOUND, "GOAL4001", "존재하지 않는 목표입니다."),    ;
+    NOT_FOUND_GOAL(HttpStatus.NOT_FOUND, "GOAL4001", "존재하지 않는 목표입니다."),
+  ;
 
 
     private final HttpStatus httpStatus;

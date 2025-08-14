@@ -5,6 +5,7 @@ import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.Status;
+import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.TimeChallenge;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 
@@ -28,6 +29,7 @@ public class ChallengeConverter {
                 .penalty(dto.penalty())
                 .period(dto.period())
                 .frequency(dto.frequency())
+                .verificationType(VerificationType.PHOTO)
                 .build();
     }
 
@@ -43,6 +45,7 @@ public class ChallengeConverter {
                 .status(dto.status())
                 .penalty(dto.penalty())
                 .targetTime(dto.timeChallenge().targetTime())
+                .verificationType(VerificationType.TIMER)
                 .build();
     }
 
