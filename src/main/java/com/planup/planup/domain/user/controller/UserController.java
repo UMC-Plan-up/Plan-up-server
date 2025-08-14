@@ -277,6 +277,7 @@ public class UserController {
                 currentUser.getEmail(), request.getEmail());
         
         return ApiResponse.onSuccess(response);
+    }
 
     @Operation(summary = "카카오 소셜 인증",
             description = "카카오 인가코드로 로그인/회원가입 여부를 판단합니다")
@@ -300,6 +301,5 @@ public class UserController {
     public ApiResponse<KakaoAuthResponseDTO> emailAuthAlternative(@Valid @RequestBody KakaoAuthRequestDTO request) {
         KakaoAuthResponseDTO result = userService.kakaoAuth(request);
         return ApiResponse.onSuccess(result);
-
     }
 }
