@@ -230,8 +230,9 @@ public class ChallengeServiceImpl implements ChallengeService{
     }
 
     @Override
-    public ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(User user, Long challengeId) {
+    public ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId) {
         Challenge challenge = getChallengeById(challengeId);
+        User user = userService.getUserbyUserId(userId);
 
         UserGoal myUserGoal = getUserGoalByUserAndChallenge(user, challenge);
 
@@ -269,6 +270,9 @@ public class ChallengeServiceImpl implements ChallengeService{
 
         int targetTotal = challenge.getFrequency() * 100;
 
+        if (targetTotal == 0) {
+            return 0;
+        }
         return (sum / targetTotal) * 100;
     }
 

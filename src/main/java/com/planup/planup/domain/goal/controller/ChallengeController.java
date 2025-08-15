@@ -82,8 +82,8 @@ public class ChallengeController {
 
     @GetMapping("/{challengeId}/result")
     @Operation(summary = "챌린지의 결과를 확인한다.")
-    public ApiResponse<ChallengeResponseDTO.ChallengeResultResponseDTO> requestChallengeResult(@Parameter(hidden = true) @CurrentUser User user, @PathVariable Long challengeId) {
-        ChallengeResponseDTO.ChallengeResultResponseDTO challengeResult = challengeService.getChallengeResult(user, challengeId);
+    public ApiResponse<ChallengeResponseDTO.ChallengeResultResponseDTO> requestChallengeResult(@CurrentUser Long userId, @PathVariable Long challengeId) {
+        ChallengeResponseDTO.ChallengeResultResponseDTO challengeResult = challengeService.getChallengeResult(userId, challengeId);
         return ApiResponse.onSuccess(challengeResult);
     }
 }

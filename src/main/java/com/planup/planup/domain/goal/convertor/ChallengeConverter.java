@@ -72,9 +72,9 @@ public class ChallengeConverter {
                 .goalType(timeChallenge.getGoalType())
                 .goalAmount(timeChallenge.getGoalAmount())
                 .endDate(convertToLocalDateTime(timeChallenge.getEndDate()))
-                .period(timeChallenge.getPeriod())
-                .frequency(0)
-                .targetTime(timeChallenge.getTargetTime())
+                    .period(timeChallenge.getPeriod())
+                    .frequency(0)
+                    .targetTime(timeChallenge.getTargetTime())
                 .build();
     }
 

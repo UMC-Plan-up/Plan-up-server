@@ -20,7 +20,7 @@ public interface ChallengeService {
 
     String getChallengeName(Long userId, Long challengeId);
 
-    ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(User user, Long challengeId);
+    ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId);
 
     void checkChallengeFin(UserGoal userGoal);
 }
