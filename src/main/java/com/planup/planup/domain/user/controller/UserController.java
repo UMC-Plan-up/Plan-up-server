@@ -263,6 +263,9 @@ public class UserController {
             EmailVerifyLinkResponseDTO response = emailService.handleEmailChangeLink(token);
             
             if (response.isVerified()) {
+                // 실제 이메일 변경 실행
+                userService.completeEmailChange(token);
+                
                 // 성공 시 HTML 페이지 표시
                 String deepLinkUrl = "planup://email/change/complete?verified=true&token=" + token;
                 String html = emailService.createSuccessHtml(response.getEmail(), deepLinkUrl);
