@@ -777,6 +777,9 @@ public class UserServiceImpl implements UserService {
         // 기존 이메일 인증 정보 정리
         emailService.clearVerificationToken(currentEmail);
         
+        // 이메일 변경 토큰 삭제 (완료 후)
+        emailService.clearEmailChangeToken(token);
+        
         userRepository.save(user);
     }
 
