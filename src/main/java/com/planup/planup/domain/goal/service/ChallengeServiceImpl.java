@@ -27,6 +27,7 @@ import com.planup.planup.domain.verification.service.PhotoVerificationService;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChallengeServiceImpl implements ChallengeService{
 
     private final TimeChallengeRepository timeChallengeRepository;
@@ -69,18 +71,26 @@ public class ChallengeServiceImpl implements ChallengeService{
             }
 
             TimeChallenge timeChallenge = ChallengeConverter.toTimeChallenge(dto);
-            createUserGoal(user, friend, timeChallenge, VerificationType.TIMER);
+            TimeChallenge save = timeChallengeRepository.save(timeChallenge);
+            challengeRepository.flush();
 
-            return timeChallengeRepository.save(timeChallenge);
+            userGoalService.joinGoal(user.getId(), save.getId());
+            userGoalService.joinGoal(friend.getId(), save.getId());
+
+            return save;
         }
 
         //photo 케이스
         if (dto.goalType() == GoalType.CHALLENGE_PHOTO) {
 
             Challenge photoChallenge = ChallengeConverter.toPhotoChallenge(dto);
-            createUserGoal(user, friend, photoChallenge, VerificationType.PHOTO);
+            Challenge save = challengeRepository.save(photoChallenge);
+            challengeRepository.flush();
 
-            return challengeRepository.save(photoChallenge);
+            userGoalService.joinGoal(user.getId(), save.getId());
+            userGoalService.joinGoal(friend.getId(), save.getId());
+
+            return save;
         }
 
         throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_TYPE);
@@ -110,15 +120,15 @@ public class ChallengeServiceImpl implements ChallengeService{
 
         List<UserGoal> userGoalList = userGoalService.getUserGoalListByGoal(goal);
 
-        UserGoal first = userGoalList.stream().filter(userGoal ->
-                userGoal.getStatus().equals(Status.ADMIN)
-        ).findFirst().orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_CHALLENGE));
-
-        String nickname = first.getUser().getNickname();
+//        UserGoal first = userGoalList.stream().filter(userGoal ->
+//                userGoal.getStatus().equals(Status.ADMIN)
+//        ).findFirst().orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_CHALLENGE));
+//
+//        String nickname = first.getUser().getNickname();
 
         if (goal.getGoalType() == GoalType.CHALLENGE_PHOTO) {
             if (goal instanceof Challenge photoChallenge) {
-                return ChallengeConverter.toChallengeResponseInfoPhotoVer(photoChallenge, nickname);
+                return ChallengeConverter.toChallengeResponseInfoPhotoVer(photoChallenge);
 
             }
         } else if (goal.getGoalType() == GoalType.CHALLENGE_TIME) {
