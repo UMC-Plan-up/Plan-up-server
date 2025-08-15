@@ -214,7 +214,6 @@ public class GoalServiceImpl implements GoalService{
     }
 
 
-    //목표 삭제
     @Transactional
     public void deleteGoal(Long goalId, Long userId) {
         Goal goal = findGoalById(goalId);
@@ -228,8 +227,9 @@ public class GoalServiceImpl implements GoalService{
             throw new RuntimeException("목표를 삭제할 권한이 없습니다.");
         }
 
-        List<UserGoal> allUserGoals = userGoalRepository.findByGoalId(goalId);
+        goalMemoRepository.deleteByGoalId(goalId);
 
+        List<UserGoal> allUserGoals = userGoalRepository.findByGoalId(goalId);
         userGoalRepository.deleteAll(allUserGoals);
 
         commentRepository.deleteByGoalId(goalId);

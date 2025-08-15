@@ -88,7 +88,7 @@ public class UserGoal extends BaseTimeEntity {
     }
 
     public void setActive(boolean active) {
-        this.setActive(active);
+        this.isActive= active;
     }
 
     public int increaseVerificationCount() {
