@@ -50,7 +50,6 @@ public class ChallengeServiceImpl implements ChallengeService{
     private final UserGoalService userGoalService;
     private final NotificationCreateService notificationCreateService;
     private final AchievementCalculationService achievementCalculationService;
-    private final NotificationService notificationService;
     private final PhotoVerificationReadService photoVerificationReadService;
     private final TimerVerificationReadService timerVerificationReadService;
 
