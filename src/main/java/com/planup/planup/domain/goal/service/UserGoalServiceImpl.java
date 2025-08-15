@@ -115,7 +115,7 @@ public class UserGoalServiceImpl implements UserGoalService{
     @Override
     @Transactional(readOnly = true)
     public UserGoal getByGoalIdAndUserId(Long goalId, Long userId) {
-        return userGoalRepository.findByGoalIdAndUserId(goalId, userId).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
+        return userGoalRepository.findByGoalIdAndUserId(goalId, userId);
     }
 
     @Override

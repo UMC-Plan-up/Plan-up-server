@@ -27,6 +27,7 @@ import com.planup.planup.domain.verification.service.PhotoVerificationService;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +43,7 @@ public class ChallengeServiceImpl implements ChallengeService{
 
     private final TimeChallengeRepository timeChallengeRepository;
     private final ChallengeRepository challengeRepository;
+    @Lazy
     private final GoalService goalService;
     private final UserService userService;
     private final UserGoalRepository userGoalRepository;
@@ -200,6 +202,11 @@ public class ChallengeServiceImpl implements ChallengeService{
         return challengeById.getGoalName();
     }
 
+    @Override
+    public ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId) {
+        return null;
+    }
+
     private boolean isChallengeMember(User user, Challenge challenge) {
         List<UserGoal> userGoalList = userGoalService.getUserGoalListByGoal(challenge);
         for (UserGoal userGoal : userGoalList) {
@@ -229,10 +236,8 @@ public class ChallengeServiceImpl implements ChallengeService{
         }
     }
 
-    @Override
-    public ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId) {
+    public ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(User user, Long challengeId) {
         Challenge challenge = getChallengeById(challengeId);
-        User user = userService.getUserbyUserId(userId);
 
         UserGoal myUserGoal = getUserGoalByUserAndChallenge(user, challenge);
 

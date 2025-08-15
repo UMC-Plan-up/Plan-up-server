@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -40,6 +41,14 @@ public interface TimerVerificationRepository extends JpaRepository<TimerVerifica
     );
 
     List<TimerVerification> findAllByUserGoal(UserGoal userGoal);
+
+   @Query("SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END " +
+                  "FROM TimerVerification t " +
+                  "WHERE t.userGoal.id = :userGoalId " +
+                  "AND DATE(t.createdAt) = :date " +
+                  "AND t.endTime IS NOT NULL")
+    boolean existsByUserGoalAndDate(@Param("userGoalId") Long userGoalId,
+                                    @Param("date") LocalDate date);
 }
 
 

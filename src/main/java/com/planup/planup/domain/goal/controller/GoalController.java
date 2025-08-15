@@ -10,13 +10,14 @@ import com.planup.planup.domain.goal.service.CommentService;
 import com.planup.planup.domain.goal.service.GoalService;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.validation.annotation.CurrentUser;
-import com.planup.planup.validation.jwt.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -197,6 +198,75 @@ public class GoalController {
 
         commentService.deleteComment(commentId, userId);
         return ApiResponse.onSuccess(null);
+    }
+
+    @GetMapping("/{goalId}/friendstimer")
+    @Operation(summary = "친구 타이머 현황 조회 API", description = "특정 목표에 참여 중인 친구들의 타이머 현황을 조회합니다.")
+    public ApiResponse<List<GoalResponseDto.FriendTimerStatusDto>> getFriendTimerStatus(
+            @Parameter(description = "목표 ID", example = "1")
+            @PathVariable Long goalId,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        List<GoalResponseDto.FriendTimerStatusDto> result = goalService.getFriendTimerStatus(goalId, userId);
+
+        return ApiResponse.onSuccess(result);
+    }
+
+    @PostMapping("/{goalId}/memo")
+    @Operation(
+            summary = "목표 메모 저장",
+            description = "목표의 특정 날짜 메모를 생성/수정/삭제합니다. " +
+                    "메모 내용이 있으면 생성 또는 수정, 빈 값이면 삭제됩니다."
+    )
+    public ApiResponse<GoalResponseDto.GoalMemoResponseDto> saveMemo(
+            @Parameter(description = "목표 ID", example = "1")
+            @PathVariable Long goalId,
+            @Parameter(hidden = true) @CurrentUser Long userId,
+            @Valid @RequestBody GoalRequestDto.CreateMemoRequestDto request) {
+
+        GoalResponseDto.GoalMemoResponseDto response = goalService.saveMemo(
+                userId, goalId, request);
+
+        return ApiResponse.onSuccess(response);
+    }
+
+    @GetMapping("/daily/{date}")
+    @Operation(summary = "날짜별 인증한 목표 조회 API", description = "특정 날짜에 인증한 목표들의 리스트를 조회합니다.")
+    public ApiResponse<GoalResponseDto.DailyVerifiedGoalsResponse> getDailyVerifiedGoals(
+            @Parameter(description = "조회할 날짜 (yyyy-MM-dd)", example = "2025-01-15")
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        GoalResponseDto.DailyVerifiedGoalsResponse result = goalService.getDailyVerifiedGoals(userId, date);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @GetMapping("/{goalId}/memo/{date}")
+    @Operation(summary = "특정 날짜 메모 조회", description = "목표의 특정 날짜 메모를 조회합니다.")
+    public ApiResponse<GoalResponseDto.GoalMemoReadDto> getMemo(
+            @PathVariable Long goalId,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        GoalResponseDto.GoalMemoReadDto memo = goalService.getMemo(userId, goalId, date);
+        return ApiResponse.onSuccess(memo);
+    }
+
+    @GetMapping("/{goalId}/memo/period")
+    @Operation(
+            summary = "기간별 메모 조회",
+            description = "목표의 특정 기간 동안의 메모를 조회합니다."
+    )
+    public ApiResponse<List<GoalResponseDto.GoalMemoReadDto>> getMemosByPeriod(
+            @PathVariable Long goalId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        List<GoalResponseDto.GoalMemoReadDto> memos = goalService.getMemosByPeriod(
+                userId, goalId, startDate, endDate);
+
+        return ApiResponse.onSuccess(memos);
     }
 }
 

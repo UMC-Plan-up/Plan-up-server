@@ -1,6 +1,5 @@
 package com.planup.planup.domain.verification.service;
 
-import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.service.ChallengeService;
 import com.planup.planup.domain.goal.service.UserGoalService;
@@ -10,37 +9,43 @@ import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;
 import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+
 
 @Service
-@RequiredArgsConstructor
-public class TimerVerificationService implements VerificationService{
+public class TimerVerificationService implements VerificationService {
     private final UserGoalRepository userGoalRepository;
     private final UserGoalService userGoalService;
     private final TimerVerificationRepository timerVerificationRepository;
-    private final ChallengeService challengeService;
+    private ChallengeService challengeService;
 
-    //userGoal과 관련된 모든 인증 조회
+    public TimerVerificationService(
+            UserGoalRepository userGoalRepository,
+            UserGoalService userGoalService,
+            TimerVerificationRepository timerVerificationRepository,
+            @Lazy ChallengeService challengeService) {
+        this.userGoalRepository = userGoalRepository;
+        this.userGoalService = userGoalService;
+        this.timerVerificationRepository = timerVerificationRepository;
+        this.challengeService = challengeService;
+    }
+
     public List<TimerVerification> getVerificationByUserGoal(UserGoal userGoal) {
         List<TimerVerification> ver = timerVerificationRepository.findAllByUserGoal(userGoal);
         return ver;
     }
 
-
     //타이머 시작 -> DB 레코드 생성(TimerVerification)
     public TimerVerificationResponseDto.TimerStartResponseDto startTimer(Long userId, Long goalId) {
         UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
         //에러 처리 필요
+
+        //목표 타입 확인 필요
 
         List<TimerVerification> runningTimers = timerVerificationRepository
                 .findByUserGoal_User_IdAndEndTimeIsNull(userId);
@@ -107,6 +112,5 @@ public class TimerVerificationService implements VerificationService{
         //true 반환
         return spentTime.toMinutes() >= goalTimeMinutes;
     }
-
 
 }
