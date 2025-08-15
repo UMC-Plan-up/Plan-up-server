@@ -26,6 +26,9 @@ public interface UserService {
 
     // 이메일 존재 확인 (비밀번호 변경용)
     void checkEmailExists(String email);
+    
+    // 이메일 사용 가능 여부 확인
+    boolean isEmailAvailable(String email);
 
     // 비밀번호 변경 이메일 발송
     EmailSendResponseDTO sendPasswordChangeEmail(String email);
