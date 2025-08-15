@@ -120,9 +120,19 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void updatePassword(Long userId, String password) {
         User user = getUserbyUserId(userId);
-
+        
+        // 비밀번호 변경 이메일 인증 완료 여부 확인
+        if (!emailService.isPasswordChangeEmailVerified(user.getEmail())) {
+            throw new IllegalArgumentException("비밀번호 변경을 위해 이메일 인증을 먼저 완료해주세요.");
+        }
+        
         String encodedPassword = passwordEncoder.encode(password);
         user.setPassword(encodedPassword);
+    }
+    
+    @Override
+    public Boolean isPasswordChangeEmailVerified(String email) {
+        return emailService.isPasswordChangeEmailVerified(email);
     }
 
 
@@ -730,4 +740,59 @@ public class UserServiceImpl implements UserService {
         return inviterUser.getNickname();
     }
 
+
+    @Override
+    @Transactional
+    public EmailSendResponseDTO sendEmailChangeVerification(String currentEmail, String newEmail) {
+        // 새 이메일이 이미 사용 중인지 확인
+        checkEmail(newEmail);
+        
+        // 이메일 변경 인증 메일 발송
+        String changeToken = emailService.sendEmailChangeVerificationEmail(currentEmail, newEmail);
+        
+        return EmailSendResponseDTO.builder()
+                .email(newEmail)
+                .message("이메일 변경 확인 메일이 발송되었습니다")
+                .verificationToken(changeToken)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void completeEmailChange(String token) {
+        String emailPair = emailService.validateEmailChangeToken(token);
+        String[] emails = emailPair.split(":");
+        String currentEmail = emails[0];
+        String newEmail = emails[1];
+        
+        // 사용자 조회
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
+        
+        // 새 이메일로 업데이트
+        user.setEmail(newEmail);
+        user.setEmailVerified(true);
+        user.setEmailVerifiedAt(LocalDateTime.now());
+        
+        // 기존 이메일 인증 정보 정리
+        emailService.clearVerificationToken(currentEmail);
+        
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public EmailSendResponseDTO resendEmailChangeVerification(String currentEmail, String newEmail) {
+        // 새 이메일이 이미 사용 중인지 확인
+        checkEmail(newEmail);
+        
+        // 이메일 변경 인증 메일 재발송
+        String changeToken = emailService.resendEmailChangeVerificationEmail(currentEmail, newEmail);
+        
+        return EmailSendResponseDTO.builder()
+                .email(newEmail)
+                .message("이메일 변경 확인 메일이 재발송되었습니다")
+                .verificationToken(changeToken)
+                .build();
+    }
 }
