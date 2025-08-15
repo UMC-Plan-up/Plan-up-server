@@ -1,5 +1,8 @@
 package com.planup.planup.domain.goal.service;
 
+import com.planup.planup.domain.friend.repository.FriendRepository;
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.ChallengeException;
 import com.planup.planup.domain.friend.service.FriendService;
 import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
@@ -8,7 +11,9 @@ import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
+import com.planup.planup.domain.goal.entity.GoalMemo;
 import com.planup.planup.domain.goal.repository.CommentRepository;
+import com.planup.planup.domain.goal.repository.GoalMemoRepository;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
@@ -18,14 +23,20 @@ import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.GoalRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.user.repository.UserRepository;
+import com.planup.planup.domain.verification.service.TimerVerificationReadService;
+import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.RequiredArgsConstructor;
 import com.planup.planup.domain.user.entity.User;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,8 +48,14 @@ public class GoalServiceImpl implements GoalService{
     private final UserRepository userRepository;
     private final TimerVerificationRepository timerVerificationRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
+    private final CommentService commentService;
     private final CommentRepository commentRepository;
     private final FriendService friendService;
+    private final FriendRepository friendRepository;
+    private final GoalMemoRepository goalMemoRepository;
+    @Lazy
+    private final TimerVerificationService timerVerificationService;
+    private final TimerVerificationReadService timerVerificationReadService;
 
     //목표 생성
     @Transactional
@@ -213,8 +230,9 @@ public class GoalServiceImpl implements GoalService{
             throw new RuntimeException("목표를 삭제할 권한이 없습니다.");
         }
 
-        List<UserGoal> allUserGoals = userGoalRepository.findByGoalId(goalId);
+        goalMemoRepository.deleteByGoalId(goalId);
 
+        List<UserGoal> allUserGoals = userGoalRepository.findByGoalId(goalId);
         userGoalRepository.deleteAll(allUserGoals);
 
         commentRepository.deleteByGoalId(goalId);
@@ -250,8 +268,163 @@ public class GoalServiceImpl implements GoalService{
                 .collect(Collectors.toList());
     }
 
+    //친구 타이머 현황 api
+    @Transactional(readOnly = true)
+    public List<GoalResponseDto.FriendTimerStatusDto> getFriendTimerStatus(Long goalId, Long userId) {
+        Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
+
+        UserGoal myuserGoal = userGoalService.getByGoalIdAndUserId(goalId,userId);
+
+        List<UserGoal> userGoals = userGoalRepository.findByGoalId(goalId);
+
+        return userGoals.stream()
+                .map(userGoal -> {
+                    User user = userGoal.getUser();
+                    String todayTime;
+
+                    if (goal.getVerificationType() == VerificationType.TIMER) {
+                        // 타이머인 경우 실제 시간 계산
+                        LocalTime totalTime = timerVerificationReadService.getTodayTotalTime(myuserGoal);
+                        todayTime = String.format("%02d:%02d:%02d",
+                                totalTime.getHour(),
+                                totalTime.getMinute(),
+                                totalTime.getSecond());
+                    } else {
+                        todayTime = "00:00:00";
+                    }
+
+                    return GoalConvertor.toFriendTimerStatusDto(user, todayTime, goal.getVerificationType());
+                })
+                .collect(Collectors.toList());
+    }
+
+    //메모 관련 메서드들
+    public GoalResponseDto.GoalMemoResponseDto saveMemo(
+            Long userId,
+            Long goalId,
+            GoalRequestDto.CreateMemoRequestDto request) {
+
+        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+
+        Optional<GoalMemo> existingMemoOpt = goalMemoRepository
+                .findByUserGoalAndMemoDate(userGoal, request.getMemoDate());
+
+        if (existingMemoOpt.isEmpty()) {
+            return handleNoExistingMemo(userGoal, request);
+        }
+
+        return handleExistingMemo(existingMemoOpt.get(), request);
+    }
+
+    private GoalResponseDto.GoalMemoResponseDto handleNoExistingMemo(
+            UserGoal userGoal,
+            GoalRequestDto.CreateMemoRequestDto request) {
+
+        if (request.hasContent()) {
+            GoalMemo newMemo = GoalConvertor.toMemo(
+                    userGoal,
+                    request.getTrimmedMemo(),
+                    request.getMemoDate()
+            );
+
+            GoalMemo savedMemo = goalMemoRepository.save(newMemo);
+
+            return GoalConvertor.toCreatedResponse(savedMemo);
+        } else {
+            return GoalConvertor.toNoChangeResponse(request.getMemoDate());
+        }
+    }
+
+    //특정일 메모 조회
+    @Transactional(readOnly = true)
+    public GoalResponseDto.GoalMemoReadDto getMemo(Long userId, Long goalId, LocalDate date) {
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
+
+        Optional<GoalMemo> memoOpt = goalMemoRepository
+                .findByUserGoalAndMemoDate(userGoal, date);
+
+        if (memoOpt.isPresent()) {
+            GoalMemo memo = memoOpt.get();
+            return GoalResponseDto.GoalMemoReadDto.builder()
+                    .memo(memo.getMemo())
+                    .memoDate(memo.getMemoDate())
+                    .exists(true)
+                    .build();
+        } else {
+            return GoalResponseDto.GoalMemoReadDto.builder()
+                    .memo("")
+                    .memoDate(date)
+                    .exists(false)
+                    .build();
+        }
+    }
+
+    //리포트용 특정 기간 메모 조회
+    @Transactional(readOnly = true)
+    public List<GoalResponseDto.GoalMemoReadDto> getMemosByPeriod(
+            Long userId,
+            Long goalId,
+            LocalDate startDate,
+            LocalDate endDate) {
+
+        List<GoalResponseDto.GoalMemoReadDto> memoList = new ArrayList<>();
+
+        LocalDate currentDate = startDate;
+        while (!currentDate.isAfter(endDate)) {
+            GoalResponseDto.GoalMemoReadDto memo = getMemo(userId, goalId, currentDate);
+            memoList.add(memo);
+            currentDate = currentDate.plusDays(1);
+        }
+
+        return memoList;
+    }
+
+    private GoalResponseDto.GoalMemoResponseDto handleExistingMemo(
+            GoalMemo existingMemo,
+            GoalRequestDto.CreateMemoRequestDto request) {
+
+        if (request.hasContent()) {
+            String newContent = request.getTrimmedMemo();
+
+            if (existingMemo.getMemo().equals(newContent)) {
+                return GoalConvertor.toNoChangeResponse(request.getMemoDate());
+            }
+
+            GoalConvertor.updateMemoContent(existingMemo, newContent);
+            GoalMemo updatedMemo = goalMemoRepository.save(existingMemo);
+
+            return GoalConvertor.toUpdatedResponse(updatedMemo);
+        } else {
+            goalMemoRepository.delete(existingMemo);
+
+            return GoalConvertor.toDeletedResponse(request.getMemoDate());
+        }
+    }
+
+    public GoalResponseDto.DailyVerifiedGoalsResponse getDailyVerifiedGoals(Long userId, LocalDate date) {
+        List<UserGoal> userGoals = userGoalRepository.findByUserId(userId);
+        List<Goal> verifiedGoals = new ArrayList<>();
+
+        for (UserGoal userGoal : userGoals) {
+            Goal goal = userGoal.getGoal();
+            boolean hasVerification = false;
+
+            if (goal.getVerificationType() == VerificationType.TIMER) {
+                hasVerification = timerVerificationRepository.existsByUserGoalAndDate(userGoal.getId(), date);
+            } else if (goal.getVerificationType() == VerificationType.PHOTO) {
+                hasVerification = photoVerificationRepository.existsByUserGoalAndDate(userGoal.getId(), date);
+            }
+            if (hasVerification) {
+                verifiedGoals.add(goal);
+            }
+        }
+
+        return GoalConvertor.toDailyVerifiedGoalsResponse(date, verifiedGoals);
+    }
+
     @Override
     public Goal getGoalById(Long id) {
-        return null;
+        return goalRepository.findById(id).orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
     }
 }

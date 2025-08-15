@@ -22,6 +22,8 @@
 ## 🛠 기술 스택
 
 ### Backend
+<img width="792" height="663" alt="Image" src="https://github.com/user-attachments/assets/083fc4b7-1112-4126-98f7-803460a5700f" />
+
 - **Framework**: Spring Boot 3.3.4
 - **Language**: Java 17
 - **Database**: MySQL 8.0

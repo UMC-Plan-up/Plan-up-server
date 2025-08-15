@@ -25,4 +25,7 @@ public interface UserGoalService {
 
     @Transactional(readOnly = true)
     UserGoal getByGoalIdAndUserId(Long goalId, Long userId);
+
+    @Transactional(readOnly = true)
+    boolean existUserGoal(Long goalId, Long userId);
 }

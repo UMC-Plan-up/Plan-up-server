@@ -27,6 +27,8 @@ import com.planup.planup.domain.verification.service.PhotoVerificationService;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,17 +38,18 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChallengeServiceImpl implements ChallengeService{
 
     private final TimeChallengeRepository timeChallengeRepository;
     private final ChallengeRepository challengeRepository;
+    @Lazy
     private final GoalService goalService;
     private final UserService userService;
     private final UserGoalRepository userGoalRepository;
     private final UserGoalService userGoalService;
     private final NotificationCreateService notificationCreateService;
     private final AchievementCalculationService achievementCalculationService;
-    private final NotificationService notificationService;
     private final PhotoVerificationReadService photoVerificationReadService;
     private final TimerVerificationReadService timerVerificationReadService;
 
@@ -69,28 +72,29 @@ public class ChallengeServiceImpl implements ChallengeService{
             }
 
             TimeChallenge timeChallenge = ChallengeConverter.toTimeChallenge(dto);
-            createUserGoal(user, friend, timeChallenge, VerificationType.TIMER);
+            TimeChallenge save = timeChallengeRepository.save(timeChallenge);
+            challengeRepository.flush();
 
-            return timeChallengeRepository.save(timeChallenge);
+            userGoalService.joinGoal(user.getId(), save.getId());
+            userGoalService.joinGoal(friend.getId(), save.getId());
+
+            return save;
         }
 
         //photo 케이스
         if (dto.goalType() == GoalType.CHALLENGE_PHOTO) {
 
             Challenge photoChallenge = ChallengeConverter.toPhotoChallenge(dto);
-            createUserGoal(user, friend, photoChallenge, VerificationType.PHOTO);
+            Challenge save = challengeRepository.save(photoChallenge);
+            challengeRepository.flush();
 
-            return challengeRepository.save(photoChallenge);
+            userGoalService.joinGoal(user.getId(), save.getId());
+            userGoalService.joinGoal(friend.getId(), save.getId());
+
+            return save;
         }
 
         throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_TYPE);
-    }
-
-    private void createUserGoal(User user, User friend, Goal timeChallenge, VerificationType type) {
-        //TODO: 별도의 서비스 로직으로 이전
-        createPerUserGoal(user, type, Status.ADMIN, timeChallenge);
-
-        createPerUserGoal(friend, type, Status.MEMBER, timeChallenge);
     }
 
     private void createPerUserGoal(User friend, VerificationType type, Status member, Goal timeChallenge) {
@@ -110,15 +114,15 @@ public class ChallengeServiceImpl implements ChallengeService{
 
         List<UserGoal> userGoalList = userGoalService.getUserGoalListByGoal(goal);
 
-        UserGoal first = userGoalList.stream().filter(userGoal ->
-                userGoal.getStatus().equals(Status.ADMIN)
-        ).findFirst().orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_CHALLENGE));
-
-        String nickname = first.getUser().getNickname();
+//        UserGoal first = userGoalList.stream().filter(userGoal ->
+//                userGoal.getStatus().equals(Status.ADMIN)
+//        ).findFirst().orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_CHALLENGE));
+//
+//        String nickname = first.getUser().getNickname();
 
         if (goal.getGoalType() == GoalType.CHALLENGE_PHOTO) {
             if (goal instanceof Challenge photoChallenge) {
-                return ChallengeConverter.toChallengeResponseInfoPhotoVer(photoChallenge, nickname);
+                return ChallengeConverter.toChallengeResponseInfoPhotoVer(photoChallenge);
 
             }
         } else if (goal.getGoalType() == GoalType.CHALLENGE_TIME) {
@@ -180,7 +184,7 @@ public class ChallengeServiceImpl implements ChallengeService{
         challenge.setPenalty(dto.penalty());
 
         //새롭게 챌린지에 추가한 유저에 대해 usergoal을 추가한다. (기존에 없어야 한다.)
-        addChallengeMember(dto.friendIdList(), challenge);
+        addChallengeMember(user, dto.friendIdList(), challenge);
     }
 
     @Override
@@ -190,6 +194,7 @@ public class ChallengeServiceImpl implements ChallengeService{
         return challengeById.getGoalName();
     }
 
+
     private boolean isChallengeMember(User user, Challenge challenge) {
         List<UserGoal> userGoalList = userGoalService.getUserGoalListByGoal(challenge);
         for (UserGoal userGoal : userGoalList) {
@@ -198,7 +203,7 @@ public class ChallengeServiceImpl implements ChallengeService{
         return false;
     }
 
-    private void addChallengeMember(List<Long> friendList, Challenge challenge) {
+    private void addChallengeMember(User user, List<Long> friendList, Challenge challenge) {
         List<UserGoal> userGoalList = userGoalService.getUserGoalListByGoal(challenge);
         List<User> users = userGoalList.stream().map(UserGoal::getUser).toList();
 
@@ -206,21 +211,24 @@ public class ChallengeServiceImpl implements ChallengeService{
                 .map(User::getId)
                 .collect(Collectors.toSet());
 
-        VerificationType type = challenge.getGoalType().equals(GoalType.CHALLENGE_PHOTO)
-                ? VerificationType.PHOTO
-                : VerificationType.TIMER;
-
         for (Long friendId : friendList) {
             if (existingUserIds.contains(friendId)) {
                 continue; // 이미 존재하는 유저면 건너뜀
             }
-            User user = userService.getUserbyUserId(friendId);
-            createPerUserGoal(user, type, Status.MEMBER, challenge);
+
+            Challenge newChall = ChallengeConverter.challengeToChallenge(challenge);
+            Challenge save = challengeRepository.save(newChall);
+            challengeRepository.flush();
+
+            userGoalService.joinGoal(user.getId(), save.getId());
+            userGoalService.joinGoal(friendId, save.getId());
         }
     }
 
     @Override
-    public ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(User user, Long challengeId) {
+    @Transactional
+    public ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId) {
+        User user = userService.getUserbyUserId(userId);
         Challenge challenge = getChallengeById(challengeId);
 
         UserGoal myUserGoal = getUserGoalByUserAndChallenge(user, challenge);
@@ -259,6 +267,9 @@ public class ChallengeServiceImpl implements ChallengeService{
 
         int targetTotal = challenge.getFrequency() * 100;
 
+        if (targetTotal == 0) {
+            return 0;
+        }
         return (sum / targetTotal) * 100;
     }
 

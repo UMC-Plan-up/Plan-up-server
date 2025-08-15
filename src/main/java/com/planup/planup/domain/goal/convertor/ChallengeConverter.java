@@ -41,7 +41,7 @@ public class ChallengeConverter {
                 .goalType(dto.goalType())
                 .oneDose(dto.oneDose())
                 .endDate(convertToDate(dto.endDate()))
-                .limitFriendCount(1)
+                .limitFriendCount(2)
                 .status(dto.status())
                 .penalty(dto.penalty())
                 .targetTime(dto.timeChallenge().targetTime())
@@ -49,11 +49,25 @@ public class ChallengeConverter {
                 .build();
     }
 
-    public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoPhotoVer(Challenge photoChallenge, String name) {
+    public static Challenge challengeToChallenge(Challenge challenge) {
+        return Challenge.builder()
+                .goalName(challenge.getGoalName())
+                .goalAmount(challenge.getGoalAmount())
+                .goalCategory(GoalCategory.CHALLENGE)
+                .goalType(challenge.getGoalType())
+                .oneDose(challenge.getOneDose())
+                .endDate(challenge.getEndDate())
+                .limitFriendCount(2)
+                .status(challenge.getStatus())
+                .penalty(challenge.getPenalty())
+                .verificationType(challenge.getVerificationType())
+                .build();
+    }
+
+    public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoPhotoVer(Challenge photoChallenge) {
 
        return ChallengeResponseDTO.ChallengeResponseInfo.builder()
                 .id(photoChallenge.getId())
-                .name(name)
                 .goalName(photoChallenge.getGoalName())
                 .goalType(photoChallenge.getGoalType())
                 .goalAmount(photoChallenge.getGoalAmount())
@@ -66,8 +80,6 @@ public class ChallengeConverter {
 
     public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoTimeVer(TimeChallenge timeChallenge) {
 
-        List<UserGoal> userGoals = timeChallenge.getUserGoals().stream().filter(userGoal -> userGoal.getStatus().equals(Status.ADMIN)).toList();
-
         return ChallengeResponseDTO.ChallengeResponseInfo.builder()
                 .id(timeChallenge.getId())
 //                .name(userGoal.getUser().getNickname())
@@ -75,9 +87,9 @@ public class ChallengeConverter {
                 .goalType(timeChallenge.getGoalType())
                 .goalAmount(timeChallenge.getGoalAmount())
                 .endDate(convertToLocalDateTime(timeChallenge.getEndDate()))
-                .period(timeChallenge.getPeriod())
-                .frequency(0)
-                .targetTime(timeChallenge.getTargetTime())
+                    .period(timeChallenge.getPeriod())
+                    .frequency(0)
+                    .targetTime(timeChallenge.getTargetTime())
                 .build();
     }
 
