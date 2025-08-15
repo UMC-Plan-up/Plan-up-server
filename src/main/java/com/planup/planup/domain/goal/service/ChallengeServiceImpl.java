@@ -194,10 +194,6 @@ public class ChallengeServiceImpl implements ChallengeService{
         return challengeById.getGoalName();
     }
 
-    @Override
-    public ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId) {
-        return null;
-    }
 
     private boolean isChallengeMember(User user, Challenge challenge) {
         List<UserGoal> userGoalList = userGoalService.getUserGoalListByGoal(challenge);
@@ -229,7 +225,10 @@ public class ChallengeServiceImpl implements ChallengeService{
         }
     }
 
-    public ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(User user, Long challengeId) {
+    @Override
+    @Transactional
+    public ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId) {
+        User user = userService.getUserbyUserId(userId);
         Challenge challenge = getChallengeById(challengeId);
 
         UserGoal myUserGoal = getUserGoalByUserAndChallenge(user, challenge);
