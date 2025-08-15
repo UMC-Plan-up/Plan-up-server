@@ -49,6 +49,21 @@ public class ChallengeConverter {
                 .build();
     }
 
+    public static Challenge challengeToChallenge(Challenge challenge) {
+        return Challenge.builder()
+                .goalName(challenge.getGoalName())
+                .goalAmount(challenge.getGoalAmount())
+                .goalCategory(GoalCategory.CHALLENGE)
+                .goalType(challenge.getGoalType())
+                .oneDose(challenge.getOneDose())
+                .endDate(challenge.getEndDate())
+                .limitFriendCount(2)
+                .status(challenge.getStatus())
+                .penalty(challenge.getPenalty())
+                .verificationType(challenge.getVerificationType())
+                .build();
+    }
+
     public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoPhotoVer(Challenge photoChallenge) {
 
        return ChallengeResponseDTO.ChallengeResponseInfo.builder()
