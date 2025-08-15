@@ -40,9 +40,8 @@ public class UserGoalServiceImpl implements UserGoalService{
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
 
-        UserGoal existingUserGoal = getByGoalIdAndUserId(goalId, userId);
-        if (existingUserGoal != null) {
-            throw new RuntimeException("이미 참가한 목표입니다.");
+        if (existUserGoal(goalId, userId)) {
+            return UserGoalConvertor.toJoinGoalResponseDto(getUserGoalByUserAndGoal(user, goal), goal, user);
         }
 
         if (goal.getGoalType() == GoalType.FRIEND) {
@@ -53,10 +52,10 @@ public class UserGoalServiceImpl implements UserGoalService{
         if (currentParticipants >= goal.getLimitFriendCount()) {
             throw new RuntimeException("목표 정원이 초과되었습니다.");
         }
-
-        if (goal.getEndDate() != null && goal.getEndDate().before(new Date())) {
-            throw new RuntimeException("이미 종료된 목표입니다.");
-        }
+//
+//        if (goal.getEndDate() != null && goal.getEndDate().before(new Date())) {
+//            throw new RuntimeException("이미 종료된 목표입니다.");
+//        }
 
         UserGoal userGoal = UserGoal.builder()
                 .user(user)
@@ -117,5 +116,11 @@ public class UserGoalServiceImpl implements UserGoalService{
     @Transactional(readOnly = true)
     public UserGoal getByGoalIdAndUserId(Long goalId, Long userId) {
         return userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean existUserGoal(Long goalId, Long userId) {
+        return userGoalRepository.existsUserGoalByGoalIdAndUserId(goalId, userId);
     }
 }

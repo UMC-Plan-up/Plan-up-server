@@ -1,6 +1,8 @@
 package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.domain.friend.repository.FriendRepository;
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.ChallengeException;
 import com.planup.planup.domain.friend.service.FriendService;
 import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
@@ -214,6 +216,7 @@ public class GoalServiceImpl implements GoalService{
     }
 
 
+    //목표 삭제
     @Transactional
     public void deleteGoal(Long goalId, Long userId) {
         Goal goal = findGoalById(goalId);
@@ -422,6 +425,6 @@ public class GoalServiceImpl implements GoalService{
 
     @Override
     public Goal getGoalById(Long id) {
-        return null;
+        return goalRepository.findById(id).orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
     }
 }
