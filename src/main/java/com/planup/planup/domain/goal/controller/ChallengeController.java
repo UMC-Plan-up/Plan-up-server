@@ -30,7 +30,7 @@ public class ChallengeController {
 
     @PostMapping("/create")
     @Operation(summary = "챌린지 생성 요청", description = "goal을 상속한 challenge를 생성하고 userGoal도 생성한다.")
-    public ApiResponse<Void> craeteChallenge(@CurrentUser Long userId, @RequestBody @Valid ChallengeRequestDTO.create createDTO) {
+    public ApiResponse<Void> createChallenge(@CurrentUser Long userId, @RequestBody @Valid ChallengeRequestDTO.create createDTO) {
         challengeService.createChallenge(userId, createDTO);
         return ApiResponse.onSuccess(null);
     }

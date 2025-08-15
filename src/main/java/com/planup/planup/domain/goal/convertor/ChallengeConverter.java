@@ -41,7 +41,7 @@ public class ChallengeConverter {
                 .goalType(dto.goalType())
                 .oneDose(dto.oneDose())
                 .endDate(convertToDate(dto.endDate()))
-                .limitFriendCount(1)
+                .limitFriendCount(2)
                 .status(dto.status())
                 .penalty(dto.penalty())
                 .targetTime(dto.timeChallenge().targetTime())
