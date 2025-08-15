@@ -97,13 +97,6 @@ public class ChallengeServiceImpl implements ChallengeService{
         throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_TYPE);
     }
 
-    private void createUserGoal(User user, User friend, Goal timeChallenge, VerificationType type) {
-        //TODO: 별도의 서비스 로직으로 이전
-        createPerUserGoal(user, type, Status.ADMIN, timeChallenge);
-
-        createPerUserGoal(friend, type, Status.MEMBER, timeChallenge);
-    }
-
     private void createPerUserGoal(User friend, VerificationType type, Status member, Goal timeChallenge) {
         UserGoal userGoalMember = UserGoal.builder()
                 .user(friend)
@@ -191,7 +184,7 @@ public class ChallengeServiceImpl implements ChallengeService{
         challenge.setPenalty(dto.penalty());
 
         //새롭게 챌린지에 추가한 유저에 대해 usergoal을 추가한다. (기존에 없어야 한다.)
-        addChallengeMember(dto.friendIdList(), challenge);
+        addChallengeMember(user, dto.friendIdList(), challenge);
     }
 
     @Override
@@ -214,7 +207,7 @@ public class ChallengeServiceImpl implements ChallengeService{
         return false;
     }
 
-    private void addChallengeMember(List<Long> friendList, Challenge challenge) {
+    private void addChallengeMember(User user, List<Long> friendList, Challenge challenge) {
         List<UserGoal> userGoalList = userGoalService.getUserGoalListByGoal(challenge);
         List<User> users = userGoalList.stream().map(UserGoal::getUser).toList();
 
@@ -222,16 +215,17 @@ public class ChallengeServiceImpl implements ChallengeService{
                 .map(User::getId)
                 .collect(Collectors.toSet());
 
-        VerificationType type = challenge.getGoalType().equals(GoalType.CHALLENGE_PHOTO)
-                ? VerificationType.PHOTO
-                : VerificationType.TIMER;
-
         for (Long friendId : friendList) {
             if (existingUserIds.contains(friendId)) {
                 continue; // 이미 존재하는 유저면 건너뜀
             }
-            User user = userService.getUserbyUserId(friendId);
-            createPerUserGoal(user, type, Status.MEMBER, challenge);
+
+            Challenge newChall = ChallengeConverter.challengeToChallenge(challenge);
+            Challenge save = challengeRepository.save(newChall);
+            challengeRepository.flush();
+
+            userGoalService.joinGoal(user.getId(), save.getId());
+            userGoalService.joinGoal(friendId, save.getId());
         }
     }
 
