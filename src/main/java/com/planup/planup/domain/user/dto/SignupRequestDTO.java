@@ -31,9 +31,6 @@ public class SignupRequestDTO {
     @Size(max = 20)
     private String nickname;
 
-    @Schema(description = "초대 코드", example = "123456")
-    private String inviteCode;
-
     @Schema(description = "프로필 이미지 경로", example = "https://example.com/image.jpg")
     private String profileImg;
 
