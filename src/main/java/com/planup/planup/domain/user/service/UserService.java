@@ -46,7 +46,9 @@ public interface UserService {
 
     InviteCodeResponseDTO getMyInviteCode(Long userId);
 
-    ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode, Long currentUserId);
+    InviteCodeProcessResponseDTO processInviteCode(String inviteCode, Long userId);
+
+    ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode);
 
     WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request);
 

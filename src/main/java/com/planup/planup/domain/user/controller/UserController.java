@@ -141,12 +141,20 @@ public class UserController {
         return ApiResponse.onSuccess(response);
     }
 
+    @Operation(summary = "초대코드 처리", description = "초대코드를 검증하고 친구 관계를 생성합니다")
+    @PostMapping("/users/invite-code/process")
+    public ApiResponse<InviteCodeProcessResponseDTO> processInviteCode(
+            @Valid @RequestBody InviteCodeProcessRequestDTO request,
+            @Parameter(hidden = true) @CurrentUser User currentUser) {
+        InviteCodeProcessResponseDTO response = userService.processInviteCode(request.getInviteCode(), currentUser.getId());
+        return ApiResponse.onSuccess(response);
+    }
+
     @Operation(summary = "초대코드 실시간 검증", description = "입력된 초대코드가 유효한지 실시간으로 검증합니다")
     @PostMapping("/users/invite-code/validate")
     public ApiResponse<ValidateInviteCodeResponseDTO> validateInviteCode(
-            @Valid @RequestBody ValidateInviteCodeRequestDTO request,
-            @Parameter(hidden = true) @CurrentUser User currentUser) {
-        ValidateInviteCodeResponseDTO response = userService.validateInviteCode(request.getInviteCode(), currentUser.getId());
+            @Valid @RequestBody ValidateInviteCodeRequestDTO request) {
+        ValidateInviteCodeResponseDTO response = userService.validateInviteCode(request.getInviteCode());
         return ApiResponse.onSuccess(response);
     }
 

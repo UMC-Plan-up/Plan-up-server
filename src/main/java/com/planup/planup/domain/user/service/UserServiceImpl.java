@@ -41,6 +41,7 @@ import java.util.UUID;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+
 @Transactional(readOnly = true)
 @Builder
 public class UserServiceImpl implements UserService {
@@ -168,16 +169,6 @@ public class UserServiceImpl implements UserService {
             throw new UserException(ErrorStatus.EMAIL_VERIFICATION_REQUIRED);
         }
 
-        // 초대코드 처리
-        Long inviterId = null;
-        String friendNickname = null;
-        if (request.getInviteCode() != null && !request.getInviteCode().trim().isEmpty()) {
-            inviterId = inviteCodeService.findInviterByCode(request.getInviteCode());
-            if (inviterId == null) {
-                throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
-            }
-        }
-
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         // User 엔티티 생성
@@ -199,31 +190,8 @@ public class UserServiceImpl implements UserService {
         // 약관 동의 추가
         addTermsAgreements(savedUser, request.getAgreements());
 
-        // 초대 관계 처리 (초대코드가 있었다면)
-        if (inviterId != null) {
-
-            // 친구 관계 생성 (양방향)
-            User inviterUser = getUserbyUserId(inviterId);
-            friendNickname = inviterUser.getNickname();
-
-            Friend friendship1 = Friend.builder()
-                    .user(savedUser)
-                    .friend(inviterUser)
-                    .status(FriendStatus.ACCEPTED)
-                    .build();
-
-            Friend friendship2 = Friend.builder()
-                    .user(inviterUser)
-                    .friend(savedUser)
-                    .status(FriendStatus.ACCEPTED)
-                    .build();
-
-            friendRepository.save(friendship1);
-            friendRepository.save(friendship2);
-
-            // 초대코드 사용 완료
-            inviteCodeService.useInviteCode(request.getInviteCode());
-        }
+        // JWT 토큰 생성
+        String accessToken = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole().toString(), savedUser.getId());
 
         // 인증 토큰 정리
         emailService.clearVerificationToken(request.getEmail());
@@ -231,7 +199,7 @@ public class UserServiceImpl implements UserService {
         return SignupResponseDTO.builder()
                 .id(savedUser.getId())
                 .email(savedUser.getEmail())
-                .friendNickname(friendNickname)
+                .accessToken(accessToken)
                 .build();
     }
 
@@ -371,8 +339,87 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
+    public InviteCodeProcessResponseDTO processInviteCode(String inviteCode, Long userId) {
+        // 빈 코드 체크
+        if (inviteCode == null || inviteCode.trim().isEmpty()) {
+            return InviteCodeProcessResponseDTO.builder()
+                    .success(false)
+                    .message("초대코드를 입력해주세요.")
+                    .build();
+        }
+
+        try {
+            // InviteCodeService를 통해 초대자 찾기
+            Long inviterId = inviteCodeService.findInviterByCode(inviteCode);
+
+            if (inviterId == null) {
+                return InviteCodeProcessResponseDTO.builder()
+                        .success(false)
+                        .message("유효하지 않은 초대코드입니다.")
+                        .build();
+            }
+
+            // 본인 코드인지 확인
+            if (inviterId.equals(userId)) {
+                return InviteCodeProcessResponseDTO.builder()
+                        .success(false)
+                        .message("자신의 초대코드는 사용할 수 없습니다.")
+                        .build();
+            }
+
+            // 이미 친구인지 확인
+            User currentUser = getUserbyUserId(userId);
+            User inviterUser = getUserbyUserId(inviterId);
+            
+            boolean alreadyFriend = friendRepository.findByUserAndFriend_NicknameAndStatus(
+                    currentUser, inviterUser.getNickname(), FriendStatus.ACCEPTED).isPresent() ||
+                    friendRepository.findByUserAndFriend_NicknameAndStatus(
+                            inviterUser, currentUser.getNickname(), FriendStatus.ACCEPTED).isPresent();
+
+            if (alreadyFriend) {
+                return InviteCodeProcessResponseDTO.builder()
+                        .success(false)
+                        .message("이미 친구인 사용자입니다.")
+                        .build();
+            }
+
+            // 친구 관계 생성 (양방향)
+            Friend friendship1 = Friend.builder()
+                    .user(currentUser)
+                    .friend(inviterUser)
+                    .status(FriendStatus.ACCEPTED)
+                    .build();
+
+            Friend friendship2 = Friend.builder()
+                    .user(inviterUser)
+                    .friend(currentUser)
+                    .status(FriendStatus.ACCEPTED)
+                    .build();
+
+            friendRepository.save(friendship1);
+            friendRepository.save(friendship2);
+
+            // 초대코드 사용 완료
+            inviteCodeService.useInviteCode(inviteCode);
+
+            return InviteCodeProcessResponseDTO.builder()
+                    .success(true)
+                    .friendNickname(inviterUser.getNickname())
+                    .message("친구 관계가 성공적으로 생성되었습니다.")
+                    .build();
+
+        } catch (Exception e) {
+            return InviteCodeProcessResponseDTO.builder()
+                    .success(false)
+                    .message("초대코드 처리 중 오류가 발생했습니다.")
+                    .build();
+        }
+    }
+
+    @Override
     @Transactional(readOnly = true)
-    public ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode, Long currentUserId) {
+    public ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode) {
         // 빈 코드 체크
         if (inviteCode == null || inviteCode.trim().isEmpty()) {
             return ValidateInviteCodeResponseDTO.builder()
@@ -392,29 +439,8 @@ public class UserServiceImpl implements UserService {
                         .build();
             }
 
-            // 본인 코드인지 확인
-            if (inviterId.equals(currentUserId)) {
-                return ValidateInviteCodeResponseDTO.builder()
-                        .valid(false)
-                        .message("본인의 초대코드는 사용할 수 없습니다.")
-                        .build();
-            }
-
-            // 이미 친구인지 확인
-            User currentUser = getUserbyUserId(currentUserId);
+            // 기본적인 유효성 검증 (초대코드 존재 여부, 초대자 정보)
             User inviterUser = getUserbyUserId(inviterId);
-
-            boolean alreadyFriend = friendRepository.findByUserAndFriend_NicknameAndStatus(
-                    currentUser, inviterUser.getNickname(), FriendStatus.ACCEPTED).isPresent() ||
-                    friendRepository.findByUserAndFriend_NicknameAndStatus(
-                            inviterUser, currentUser.getNickname(), FriendStatus.ACCEPTED).isPresent();
-
-            if (alreadyFriend) {
-                return ValidateInviteCodeResponseDTO.builder()
-                        .valid(false)
-                        .message("이미 친구로 등록된 사용자입니다.")
-                        .build();
-            }
 
             return ValidateInviteCodeResponseDTO.builder()
                     .valid(true)
@@ -503,8 +529,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public void checkEmailExists(String email) {
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty() || user.get().getUserActivate() != UserActivate.ACTIVE) {
+        Optional<User> user = userRepository.findByEmailAndUserActivate(email, UserActivate.ACTIVE);
+        if (user.isEmpty()) {
             throw new UserException(ErrorStatus.NOT_FOUND_USER);
         }
     }
@@ -624,11 +650,7 @@ public class UserServiceImpl implements UserService {
             processNickname(user, request.getNickname());
         }
 
-        // 초대코드 처리
-        String friendNickname = null;
-        if (request.getInviteCode() != null && !request.getInviteCode().trim().isEmpty()) {
-            friendNickname = processInviteCode(user, request.getInviteCode());
-        }
+        // 초대코드 처리는 별도 API로 분리 (카카오 회원가입에서는 제거)
 
         // 약관 동의 처리
         if (request.getAgreements() != null) {
@@ -644,7 +666,6 @@ public class UserServiceImpl implements UserService {
         return SignupResponseDTO.builder()
                 .id(user.getId())
                 .email(user.getEmail())
-                .friendNickname(friendNickname)
                 .accessToken(accessToken)
                 .build();
     }
@@ -705,51 +726,7 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
-    // 초대코드 처리
-    private String processInviteCode(User user, String inviteCode) {
-        // 기존 validateInviteCode 로직 재사용
-        Long inviterId = inviteCodeService.findInviterByCode(inviteCode);
-        if (inviterId == null) {
-            throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
-        }
 
-        // 본인 코드인지 확인
-        if (inviterId.equals(user.getId())) {
-            throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
-        }
-
-        // 이미 친구인지 확인
-        User inviterUser = getUserbyUserId(inviterId);
-        boolean alreadyFriend = friendRepository.findByUserAndFriend_NicknameAndStatus(
-                user, inviterUser.getNickname(), FriendStatus.ACCEPTED).isPresent() ||
-                friendRepository.findByUserAndFriend_NicknameAndStatus(
-                        inviterUser, user.getNickname(), FriendStatus.ACCEPTED).isPresent();
-
-        if (alreadyFriend) {
-            throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
-        }
-
-        // 친구 관계 생성
-        Friend friendship1 = Friend.builder()
-                .user(user)
-                .friend(inviterUser)
-                .status(FriendStatus.ACCEPTED)
-                .build();
-
-        Friend friendship2 = Friend.builder()
-                .user(inviterUser)
-                .friend(user)
-                .status(FriendStatus.ACCEPTED)
-                .build();
-
-        friendRepository.save(friendship1);
-        friendRepository.save(friendship2);
-
-        // 초대코드 사용 완료
-        inviteCodeService.useInviteCode(inviteCode);
-
-        return inviterUser.getNickname();
-    }
 
 
     @Override
@@ -777,7 +754,7 @@ public class UserServiceImpl implements UserService {
         String newEmail = emails[1];
         
         // 사용자 조회
-        User user = userRepository.findByEmail(currentEmail)
+        User user = userRepository.findByEmailAndUserActivate(currentEmail, UserActivate.ACTIVE)
                 .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
         
         // 새 이메일로 업데이트
