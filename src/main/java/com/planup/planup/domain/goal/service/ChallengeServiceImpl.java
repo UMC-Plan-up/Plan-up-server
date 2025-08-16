@@ -97,28 +97,9 @@ public class ChallengeServiceImpl implements ChallengeService{
         throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_TYPE);
     }
 
-    private void createPerUserGoal(User friend, VerificationType type, Status member, Goal timeChallenge) {
-        UserGoal userGoalMember = UserGoal.builder()
-                .user(friend)
-                .isActive(false)
-                .status(member)
-                .goal(timeChallenge)
-                .build();
-
-        userGoalRepository.save(userGoalMember);
-    }
-
     @Transactional(readOnly = true)
     public ChallengeResponseDTO.ChallengeResponseInfo getChallengeInfo(Long challengeId) {
         Goal goal = goalService.getGoalById(challengeId);
-
-        List<UserGoal> userGoalList = userGoalService.getUserGoalListByGoal(goal);
-
-//        UserGoal first = userGoalList.stream().filter(userGoal ->
-//                userGoal.getStatus().equals(Status.ADMIN)
-//        ).findFirst().orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_CHALLENGE));
-//
-//        String nickname = first.getUser().getNickname();
 
         if (goal.getGoalType() == GoalType.CHALLENGE_PHOTO) {
             if (goal instanceof Challenge photoChallenge) {
@@ -287,7 +268,6 @@ public class ChallengeServiceImpl implements ChallengeService{
     @Transactional
     public void checkChallengeFin(UserGoal userGoal) {
         Challenge challenge = (Challenge) userGoal.getGoal();
-        User user = userGoal.getUser();
 
         //챌린지가 종료되었는지 확인한다.
         int myPercent = calcAchievementRate(challenge, userGoal);
