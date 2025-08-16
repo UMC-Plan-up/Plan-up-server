@@ -94,6 +94,13 @@ public class UserController {
         return ApiResponse.onSuccess(response);
     }
 
+    @Operation(summary = "닉네임 중복 확인", description = "닉네임이 이미 사용 중인지 확인합니다")
+    @GetMapping("/users/nickname/check-duplicate")
+    public ApiResponse<EmailDuplicateResponseDTO> checkNicknameDuplicate(@RequestParam String nickname) {
+        EmailDuplicateResponseDTO response = userService.checkNicknameDuplicate(nickname);
+        return ApiResponse.onSuccess(response);
+    }
+
     @Operation(summary = "회원가입", description = "이메일/비밀번호로 새 계정을 생성합니다")
     @PostMapping("/users/signup")
     public ApiResponse<SignupResponseDTO> signup(@Valid @RequestBody SignupRequestDTO request) {

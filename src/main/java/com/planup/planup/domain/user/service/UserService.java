@@ -66,4 +66,7 @@ public interface UserService {
 
     // 이메일 변경 인증 메일 재발송
     EmailSendResponseDTO resendEmailChangeVerification(String currentEmail, String newEmail);
+
+    // 닉네임 중복 확인
+    EmailDuplicateResponseDTO checkNicknameDuplicate(String nickname);
 }

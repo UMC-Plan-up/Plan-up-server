@@ -786,4 +786,19 @@ public class UserServiceImpl implements UserService {
                 .verificationToken(changeToken)
                 .build();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EmailDuplicateResponseDTO checkNicknameDuplicate(String nickname) {
+        boolean isAvailable = !userRepository.existsByNickname(nickname);
+        
+        String message = isAvailable ? 
+            "사용 가능한 닉네임입니다." : 
+            "이미 사용 중인 닉네임입니다.";
+        
+        return EmailDuplicateResponseDTO.builder()
+                .available(isAvailable)
+                .message(message)
+                .build();
+    }
 }
