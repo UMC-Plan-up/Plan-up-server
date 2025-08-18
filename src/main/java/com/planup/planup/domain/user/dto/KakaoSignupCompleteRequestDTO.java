@@ -24,7 +24,4 @@ public class KakaoSignupCompleteRequestDTO {
     
     @Schema(description = "약관 동의 정보", example = "[{\"termsId\": 1, \"isAgreed\": true}, {\"termsId\": 2, \"isAgreed\": true}]")
     private List<TermsAgreementRequestDTO> agreements;
-    
-    @Schema(description = "초대 코드 (선택사항)", example = "123456")
-    private String inviteCode; // 선택사항
 }

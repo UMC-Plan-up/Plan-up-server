@@ -81,6 +81,26 @@ public class UserController {
         return ApiResponse.onSuccess(userInfo);
     }
 
+    @Operation(summary = "이메일 중복 확인", description = "이메일이 이미 사용 중인지 확인합니다")
+    @GetMapping("/users/email/check-duplicate")
+    public ApiResponse<EmailDuplicateResponseDTO> checkEmailDuplicate(@RequestParam String email) {
+        boolean isAvailable = userService.isEmailAvailable(email);
+        
+        EmailDuplicateResponseDTO response = EmailDuplicateResponseDTO.builder()
+                .available(isAvailable)
+                .message(isAvailable ? "사용 가능한 이메일입니다." : "이미 사용 중인 이메일입니다.")
+                .build();
+        
+        return ApiResponse.onSuccess(response);
+    }
+
+    @Operation(summary = "닉네임 중복 확인", description = "닉네임이 이미 사용 중인지 확인합니다")
+    @GetMapping("/users/nickname/check-duplicate")
+    public ApiResponse<EmailDuplicateResponseDTO> checkNicknameDuplicate(@RequestParam String nickname) {
+        EmailDuplicateResponseDTO response = userService.checkNicknameDuplicate(nickname);
+        return ApiResponse.onSuccess(response);
+    }
+
     @Operation(summary = "회원가입", description = "이메일/비밀번호로 새 계정을 생성합니다")
     @PostMapping("/users/signup")
     public ApiResponse<SignupResponseDTO> signup(@Valid @RequestBody SignupRequestDTO request) {
@@ -128,12 +148,20 @@ public class UserController {
         return ApiResponse.onSuccess(response);
     }
 
+    @Operation(summary = "초대코드 처리", description = "초대코드를 검증하고 친구 관계를 생성합니다")
+    @PostMapping("/users/invite-code/process")
+    public ApiResponse<InviteCodeProcessResponseDTO> processInviteCode(
+            @Valid @RequestBody InviteCodeProcessRequestDTO request,
+            @Parameter(hidden = true) @CurrentUser User currentUser) {
+        InviteCodeProcessResponseDTO response = userService.processInviteCode(request.getInviteCode(), currentUser.getId());
+        return ApiResponse.onSuccess(response);
+    }
+
     @Operation(summary = "초대코드 실시간 검증", description = "입력된 초대코드가 유효한지 실시간으로 검증합니다")
     @PostMapping("/users/invite-code/validate")
     public ApiResponse<ValidateInviteCodeResponseDTO> validateInviteCode(
-            @Valid @RequestBody ValidateInviteCodeRequestDTO request,
-            @Parameter(hidden = true) @CurrentUser User currentUser) {
-        ValidateInviteCodeResponseDTO response = userService.validateInviteCode(request.getInviteCode(), currentUser.getId());
+            @Valid @RequestBody ValidateInviteCodeRequestDTO request) {
+        ValidateInviteCodeResponseDTO response = userService.validateInviteCode(request.getInviteCode());
         return ApiResponse.onSuccess(response);
     }
 
@@ -263,6 +291,9 @@ public class UserController {
             EmailVerifyLinkResponseDTO response = emailService.handleEmailChangeLink(token);
             
             if (response.isVerified()) {
+                // 실제 이메일 변경 실행
+                userService.completeEmailChange(token);
+                
                 // 성공 시 HTML 페이지 표시
                 String deepLinkUrl = "planup://email/change/complete?verified=true&token=" + token;
                 String html = emailService.createSuccessHtml(response.getEmail(), deepLinkUrl);

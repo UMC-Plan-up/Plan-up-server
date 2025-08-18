@@ -41,11 +41,26 @@ public class ChallengeConverter {
                 .goalType(dto.goalType())
                 .oneDose(dto.oneDose())
                 .endDate(convertToDate(dto.endDate()))
-                .limitFriendCount(1)
+                .limitFriendCount(2)
                 .status(dto.status())
                 .penalty(dto.penalty())
                 .targetTime(dto.timeChallenge().targetTime())
                 .verificationType(VerificationType.TIMER)
+                .build();
+    }
+
+    public static Challenge challengeToChallenge(Challenge challenge) {
+        return Challenge.builder()
+                .goalName(challenge.getGoalName())
+                .goalAmount(challenge.getGoalAmount())
+                .goalCategory(GoalCategory.CHALLENGE)
+                .goalType(challenge.getGoalType())
+                .oneDose(challenge.getOneDose())
+                .endDate(challenge.getEndDate())
+                .limitFriendCount(2)
+                .status(challenge.getStatus())
+                .penalty(challenge.getPenalty())
+                .verificationType(challenge.getVerificationType())
                 .build();
     }
 

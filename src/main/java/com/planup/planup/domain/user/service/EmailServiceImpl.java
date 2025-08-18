@@ -338,6 +338,14 @@ public class EmailServiceImpl implements EmailService {
                     margin: 5px 0;
                 }
             </style>
+            <script>
+                // 3초 후 자동으로 앱으로 리다이렉트
+                console.log("딥링크 URL:", "%s");
+                setTimeout(function() {
+                    console.log("딥링크 실행 시도...");
+                    window.location.href = "%s";
+                }, 3000);
+            </script>
         </head>
         <body>
             <div class="container">
@@ -348,16 +356,16 @@ public class EmailServiceImpl implements EmailService {
                     <h2>이메일 인증 완료</h2>
                     <p>
                         인증이 성공하였습니다!<br>
-                        Plan-Up 앱으로 돌아가서 다음 단계를 진행해주세요.
+                        잠시 후 Plan-Up 앱으로 자동 이동합니다.
                     </p>
                 </div>
                 <div class="footer">
-                    <p>* 이 창을 닫고 앱으로 돌아가주세요.</p>
+                    <p>* 자동으로 앱이 열리지 않는다면 Plan-Up 앱을 직접 실행해주세요.</p>
                 </div>
             </div>
         </body>
         </html>
-        """;
+        """.formatted(deepLinkUrl);
     }
 
     @Override
@@ -469,8 +477,7 @@ public class EmailServiceImpl implements EmailService {
             throw new IllegalArgumentException("만료되거나 유효하지 않은 이메일 변경 토큰입니다.");
         }
         
-        // 토큰 사용 후 삭제
-        redisTemplate.delete("email-change:" + token);
+        // 토큰은 이메일 변경 완료 후 삭제
         
         return emailPair; // "currentEmail:newEmail" 형태로 반환
     }
@@ -571,5 +578,10 @@ public class EmailServiceImpl implements EmailService {
                 }
             }
         }
+    }
+    
+    @Override
+    public void clearEmailChangeToken(String token) {
+        redisTemplate.delete("email-change:" + token);
     }
 }
