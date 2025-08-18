@@ -85,6 +85,7 @@ public class ChallengeServiceImpl implements ChallengeService {
             userGoalService.joinGoal(user.getId(), save.getId());
             userGoalService.joinGoal(friend.getId(), save.getId());
             notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_REQUEST_SENT, TargetType.CHALLENGE, save.getId());
+            notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_REQUEST_RECEIVED, TargetType.CHALLENGE, save.getId());
 
             return save;
         }
@@ -99,6 +100,7 @@ public class ChallengeServiceImpl implements ChallengeService {
             userGoalService.joinGoal(user.getId(), save.getId());
             userGoalService.joinGoal(friend.getId(), save.getId());
             notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_REQUEST_SENT, TargetType.CHALLENGE, save.getId());
+            notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_REQUEST_RECEIVED, TargetType.CHALLENGE, save.getId());
 
             return save;
         }
@@ -147,7 +149,12 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         User friend = getOtherMember(user, challenge);
 
-        notificationService.createNotification(friend.getId(), userId, NotificationType.CHALLENGE_REQUEST_REJECTED, TargetType.CHALLENGE, challengeId);
+        if (challenge.isRePenalty()) {
+            notificationService.createNotification(friend.getId(), userId, NotificationType.PENALTY_REJECTED, TargetType.CHALLENGE, challengeId);
+        } else {
+            notificationService.createNotification(friend.getId(), userId, NotificationType.CHALLENGE_REQUEST_REJECTED, TargetType.CHALLENGE, challengeId);
+        }
+
     }
 
     //챌린지 요청을 수락한다.
@@ -164,7 +171,8 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         User friend = getOtherMember(user, challenge);
 
-        notificationService.createNotification(friend.getId(), userId, NotificationType.CHALLENGE_REQUEST_ACCEPTED, TargetType.CHALLENGE, challengeId);
+        //알림 전송
+        notificationCreateService.createChallengeStartNoti(user, friend, challenge);
     }
 
     //챌린지에 대한 새로운 패널티 제안
