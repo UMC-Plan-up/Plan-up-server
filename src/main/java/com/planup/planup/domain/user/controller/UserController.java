@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -25,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
 
     private final UserService userService;
@@ -210,6 +212,14 @@ public class UserController {
                     .body(html);
 
         } catch (IllegalArgumentException e) {
+            log.error("이메일 인증 실패 - 토큰: {}, 오류: {}", token, e.getMessage());
+            String html = emailService.createFailureHtml();
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
+                    .body(html);
+        } catch (Exception e) {
+            log.error("이메일 인증 처리 중 예상치 못한 오류 - 토큰: {}, 오류: {}", token, e.getMessage());
             String html = emailService.createFailureHtml();
 
             return ResponseEntity.ok()

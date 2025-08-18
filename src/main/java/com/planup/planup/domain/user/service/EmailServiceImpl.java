@@ -30,15 +30,19 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public String sendVerificationEmail(String email) {
-
         String verificationToken = UUID.randomUUID().toString();
 
-        redisTemplate.opsForValue().set(
-                "email-verification:" + verificationToken,
-                email,
-                30,
-                TimeUnit.MINUTES
-        );
+        try {
+            redisTemplate.opsForValue().set(
+                    "email-verification:" + verificationToken,
+                    email,
+                    30,
+                    TimeUnit.MINUTES
+            );
+        } catch (Exception e) {
+            log.error("Redis 토큰 저장 실패: {}", e.getMessage());
+            throw new RuntimeException("이메일 인증 토큰 저장에 실패했습니다.");
+        }
 
         String verificationUrl = appDomain + "/users/email/verify-link?token=" + verificationToken;
         sendEmail(email, verificationUrl);
@@ -57,20 +61,37 @@ public class EmailServiceImpl implements EmailService {
         try {
             email = getEmailByToken(verificationToken);
         } catch (IllegalArgumentException e) {
+            log.error("토큰 검증 실패: {}", e.getMessage());
             throw new IllegalArgumentException("토큰이 만료되었거나 이미 사용되었습니다.");
         }
 
         if (isEmailVerified(email)) {
-            log.info("이미 인증된 이메일: {}", email);
+            // 이미 인증된 경우에도 토큰은 삭제
+            try {
+                redisTemplate.delete("email-verification:" + verificationToken);
+            } catch (Exception e) {
+                log.warn("토큰 삭제 실패 (이미 인증된 경우): {}", e.getMessage());
+            }
             return email;
         }
-        redisTemplate.opsForValue().set(
-                "email-verified:" + email,
-                "VERIFIED",
-                60,
-                TimeUnit.MINUTES
-        );
-        log.info("이메일 인증 완료: {}", email);
+        
+        try {
+            // 이메일 인증 완료 표시
+            redisTemplate.opsForValue().set(
+                    "email-verified:" + email,
+                    "VERIFIED",
+                    60,
+                    TimeUnit.MINUTES
+            );
+            
+            // 사용된 토큰 삭제
+            redisTemplate.delete("email-verification:" + verificationToken);
+            
+        } catch (Exception e) {
+            log.error("Redis 저장/삭제 실패: {}", e.getMessage());
+            throw new RuntimeException("이메일 인증 처리 중 오류가 발생했습니다.");
+        }
+        
         return email;
     }
 
@@ -161,12 +182,17 @@ public class EmailServiceImpl implements EmailService {
     }
 
     private String getEmailByToken(String token) {
-        String email = redisTemplate.opsForValue().get("email-verification:" + token);
+        try {
+            String email = redisTemplate.opsForValue().get("email-verification:" + token);
 
-        if (email == null) {
-            throw new IllegalArgumentException("만료되거나 유효하지 않은 토큰입니다.");
+            if (email == null) {
+                throw new IllegalArgumentException("만료되거나 유효하지 않은 토큰입니다.");
+            }
+            return email;
+        } catch (Exception e) {
+            log.error("Redis 조회 중 오류 발생: {}", e.getMessage());
+            throw new IllegalArgumentException("토큰 검증 중 오류가 발생했습니다.");
         }
-        return email;
     }
 
     private void clearExistingTokens(String email) {
@@ -365,7 +391,7 @@ public class EmailServiceImpl implements EmailService {
             </div>
         </body>
         </html>
-        """.formatted(deepLinkUrl);
+        """.formatted(deepLinkUrl, deepLinkUrl);
     }
 
     @Override
