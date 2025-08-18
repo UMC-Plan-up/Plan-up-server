@@ -25,7 +25,7 @@ public class ChallengeResponseDTO {
             String goalName,
 
             @Schema(description = "목표 달성량", example = "2000ml")
-            String goalAmount,
+            int oneDose,
 
             @Schema(description = "목표 유형", example = "TIME")
             GoalType goalType,
