@@ -3,12 +3,12 @@ package com.planup.planup.domain.verification.service;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.service.ChallengeService;
 import com.planup.planup.domain.goal.service.UserGoalService;
+import com.planup.planup.domain.goal.service.UserLevelService;
 import com.planup.planup.domain.verification.convertor.TimerVerificationConverter;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
 import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;
 import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -22,16 +22,18 @@ public class TimerVerificationService implements VerificationService {
     private final UserGoalRepository userGoalRepository;
     private final UserGoalService userGoalService;
     private final TimerVerificationRepository timerVerificationRepository;
+    private final UserLevelService userLevelService;
     private ChallengeService challengeService;
 
     public TimerVerificationService(
             UserGoalRepository userGoalRepository,
             UserGoalService userGoalService,
-            TimerVerificationRepository timerVerificationRepository,
+            TimerVerificationRepository timerVerificationRepository, UserLevelService userLevelService,
             @Lazy ChallengeService challengeService) {
         this.userGoalRepository = userGoalRepository;
         this.userGoalService = userGoalService;
         this.timerVerificationRepository = timerVerificationRepository;
+        this.userLevelService = userLevelService;
         this.challengeService = challengeService;
     }
 
@@ -99,6 +101,8 @@ public class TimerVerificationService implements VerificationService {
         if (userGoal.getGoal().isChallenge()) {
             challengeService.checkChallengeFin(userGoal);
         }
+
+        userLevelService.checkAndUpgradeLevel(userGoal.getUser().getId());
 
         return TimerVerificationConverter.toTimerStopResponse(savedTimer, achieved);
     }
