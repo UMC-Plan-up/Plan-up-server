@@ -2,7 +2,6 @@ package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
-import com.planup.planup.apiPayload.exception.custom.UserGoalException;
 import com.planup.planup.domain.global.service.AchievementCalculationService;
 import com.planup.planup.domain.goal.convertor.ChallengeConverter;
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
@@ -10,22 +9,20 @@ import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Enum.ChallengeStatus;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
-import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.TimeChallenge;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.ChallengeRepository;
 import com.planup.planup.domain.goal.repository.TimeChallengeRepository;
-import com.planup.planup.domain.goal.repository.UserGoalRepository;
+import com.planup.planup.domain.notification.entity.NotificationType;
+import com.planup.planup.domain.notification.entity.TargetType;
 import com.planup.planup.domain.notification.service.NotificationCreateService;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.domain.verification.service.PhotoVerificationReadService;
-import com.planup.planup.domain.verification.service.PhotoVerificationService;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
-import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import lombok.extern.slf4j.Slf4j;
@@ -39,19 +36,29 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ChallengeServiceImpl implements ChallengeService{
+public class ChallengeServiceImpl implements ChallengeService {
 
     private final TimeChallengeRepository timeChallengeRepository;
     private final ChallengeRepository challengeRepository;
     @Lazy
     private final GoalService goalService;
     private final UserService userService;
-    private final UserGoalRepository userGoalRepository;
     private final UserGoalService userGoalService;
     private final NotificationCreateService notificationCreateService;
+    private final NotificationService notificationService;
     private final AchievementCalculationService achievementCalculationService;
     private final PhotoVerificationReadService photoVerificationReadService;
     private final TimerVerificationReadService timerVerificationReadService;
+
+    @Override
+    @Transactional
+    public User getOtherMember(User user, Challenge challenge) {
+
+        return Optional.ofNullable(goalService.getOtherMember(user, challenge))
+                .filter(list -> !list.isEmpty())
+                .map(list -> list.get(0))
+                .orElseThrow(() -> new ChallengeException(ErrorStatus.INVALID_CHALLENGE_DATA));
+    }
 
     @Override
     @Transactional
@@ -77,6 +84,7 @@ public class ChallengeServiceImpl implements ChallengeService{
 
             userGoalService.joinGoal(user.getId(), save.getId());
             userGoalService.joinGoal(friend.getId(), save.getId());
+            notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_REQUEST_SENT, TargetType.CHALLENGE, save.getId());
 
             return save;
         }
@@ -90,9 +98,11 @@ public class ChallengeServiceImpl implements ChallengeService{
 
             userGoalService.joinGoal(user.getId(), save.getId());
             userGoalService.joinGoal(friend.getId(), save.getId());
+            notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_REQUEST_SENT, TargetType.CHALLENGE, save.getId());
 
             return save;
         }
+
 
         throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_TYPE);
     }
@@ -130,10 +140,14 @@ public class ChallengeServiceImpl implements ChallengeService{
     @Transactional
     public void rejectChallengeRequest(Long userId, Long challengeId) {
         User user = userService.getUserbyUserId(userId);
-        Goal goal = goalService.getGoalById(challengeId);
         Challenge challenge = getChallengeById(challengeId);
 
+        //챌린지 상태를 거절로 업데이트 한다.
         challenge.setChallengeStatus(ChallengeStatus.REJECTED);
+
+        User friend = getOtherMember(user, challenge);
+
+        notificationService.createNotification(friend.getId(), userId, NotificationType.CHALLENGE_REQUEST_REJECTED, TargetType.CHALLENGE, challengeId);
     }
 
     //챌린지 요청을 수락한다.
@@ -147,6 +161,10 @@ public class ChallengeServiceImpl implements ChallengeService{
 
         challenge.setChallengeStatus(ChallengeStatus.ACCEPTED);
         userGoal.setActive(true, user);
+
+        User friend = getOtherMember(user, challenge);
+
+        notificationService.createNotification(friend.getId(), userId, NotificationType.CHALLENGE_REQUEST_ACCEPTED, TargetType.CHALLENGE, challengeId);
     }
 
     //챌린지에 대한 새로운 패널티 제안
@@ -166,6 +184,11 @@ public class ChallengeServiceImpl implements ChallengeService{
 
         //새롭게 챌린지에 추가한 유저에 대해 usergoal을 추가한다. (기존에 없어야 한다.)
         addChallengeMember(user, dto.friendIdList(), challenge);
+
+        User otherMember = getOtherMember(user, challenge);
+
+        //관련된 알림
+        notificationService.createNotification(otherMember.getId(), userId, NotificationType.PENALTY_PROPOSAL_RECEIVED, TargetType.CHALLENGE, challenge.getId());
     }
 
     @Override
@@ -280,5 +303,15 @@ public class ChallengeServiceImpl implements ChallengeService{
 
         //관련 알림 전송
         notificationCreateService.createChallengeNotification(challenge);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void remindPenalty(Long userId, Long challengeId) {
+        User user = userService.getUserbyUserId(userId);
+        Challenge challenge = getChallengeById(challengeId);
+        User otherMember = getOtherMember(user, challenge);
+
+        notificationService.createNotification(otherMember.getId(), userId, NotificationType.PENALTY_REMINDER_SENT, TargetType.CHALLENGE, challengeId);
     }
 }

@@ -427,4 +427,18 @@ public class GoalServiceImpl implements GoalService{
     public Goal getGoalById(Long id) {
         return goalRepository.findById(id).orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getOtherMember(User user, Goal goal) {
+        List<UserGoal> userGoals = goal.getUserGoals();
+
+        if (userGoals == null) {
+            return null;
+        }
+
+        return userGoals.stream().map(UserGoal::getUser)
+                .filter(userGoalUser -> !userGoalUser.getId().equals(user.getId()))
+                .toList();
+    }
 }

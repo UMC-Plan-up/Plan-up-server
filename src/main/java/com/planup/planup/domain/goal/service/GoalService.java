@@ -4,6 +4,7 @@ import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Goal;
+import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,4 +38,7 @@ public interface GoalService {
     List<GoalResponseDto.GoalMemoReadDto> getMemosByPeriod(Long userId, Long goalId, LocalDate startDate, LocalDate endDate);
 
     Goal getGoalById(Long challengeId);
+
+    @Transactional(readOnly = true)
+    List<User> getOtherMember(User user, Goal goal);
 }
