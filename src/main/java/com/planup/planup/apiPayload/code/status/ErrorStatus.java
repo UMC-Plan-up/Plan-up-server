@@ -78,10 +78,10 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // Goal 관련 에러
     NOT_FOUND_GOAL(HttpStatus.NOT_FOUND, "GOAL4001", "존재하지 않는 목표입니다."),
+    GOAL_CREATION_LIMIT_EXCEEDED(HttpStatus.FORBIDDEN, "GOAL4002", "목표 생성 제한을 초과했습니다"),
 
     // 랜덤 닉네임 관련 에러
-    NICKNAME_DATA_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "NICKNAME5001", "닉네임 생성에 필요한 데이터가 없습니다."),
-  ;
+    NICKNAME_DATA_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "NICKNAME5001", "닉네임 생성에 필요한 데이터가 없습니다.");
 
 
     private final HttpStatus httpStatus;
