@@ -1,5 +1,7 @@
 package com.planup.planup.domain.goal.service;
 
+import com.planup.planup.apiPayload.exception.custom.GoalException;
+import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
@@ -14,6 +16,8 @@ import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.GoalMemo;
 import com.planup.planup.domain.goal.repository.CommentRepository;
 import com.planup.planup.domain.goal.repository.GoalMemoRepository;
+import com.planup.planup.domain.user.entity.UserLevel;
+import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
@@ -56,10 +60,14 @@ public class GoalServiceImpl implements GoalService{
     @Lazy
     private final TimerVerificationService timerVerificationService;
     private final TimerVerificationReadService timerVerificationReadService;
+    private final UserService userService;
 
     //목표 생성
     @Transactional
     public GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto createGoalDto){
+        User user = userService.getUserbyUserId(userId);
+        validateGoalCreationLimit(user);
+
         Goal goal = GoalConvertor.toGoal(createGoalDto);
         Goal savedGoal = goalRepository.save(goal);
 
@@ -73,19 +81,6 @@ public class GoalServiceImpl implements GoalService{
                 .verificationCount(0)
                 .build();
         UserGoal savedUserGoal = userGoalRepository.save(userGoal);
-
-        //Refactor : 인증 테이블 자동 생성
-        TimerVerification timerVerification = TimerVerification.builder()
-                .spentTime(Duration.ZERO)
-                .userGoal(savedUserGoal)
-                .build();
-        timerVerificationRepository.save(timerVerification);
-
-        PhotoVerification photoVerification = PhotoVerification.builder()
-                .photoImg(null)
-                .userGoal(savedUserGoal)
-                .build();
-        photoVerificationRepository.save(photoVerification);
 
         return GoalConvertor.toGoalResultDto(savedGoal);
     }
@@ -423,8 +418,66 @@ public class GoalServiceImpl implements GoalService{
         return GoalConvertor.toDailyVerifiedGoalsResponse(date, verifiedGoals);
     }
 
+    public User getUser(Long userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
+    }
+
     @Override
     public Goal getGoalById(Long id) {
         return goalRepository.findById(id).orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
+    }
+
+    private void validateGoalCreationLimit(User user) {
+        if (user.getUserLevel() == UserLevel.LEVEL_MAX) {
+            return;
+        }
+
+        int currentActiveGoals = userGoalRepository.countByUserIdAndIsActiveTrue(user.getId());
+        int maxGoalCount = user.getUserLevel().getValue();
+
+        if (currentActiveGoals > maxGoalCount) {
+            String levelUpGuide = getLevelUpGuide(user.getUserLevel());
+                throw new GoalException(ErrorStatus.GOAL_CREATION_LIMIT_EXCEEDED)
+                        .setCustomMessage(String.format(
+                                "현재 레벨 %d에서는 최대 %d개의 목표만 생성할 수 있습니다.%s",
+                                user.getUserLevel().getValue(), maxGoalCount, levelUpGuide));
+        }
+    }
+
+    private String getLevelUpGuide(UserLevel currentLevel) {
+        switch (currentLevel) {
+            case LEVEL_1:
+                return "다음 단계: 첫 번째 목표를 7일 내에 50% 이상 달성하면 목표 2개까지 생성할 수 있어요!";
+
+            case LEVEL_2:
+                return "다음 단계: 새로운 목표를 추가하고 매일 1회씩 7일간 기록하면 목표 3개까지 생성할 수 있어요!";
+
+            case LEVEL_3:
+                return "다음 단계: 2개의 활성 목표를 모두 7일 내에 50% 이상 달성하면 목표 4개까지 생성할 수 있어요!";
+
+            case LEVEL_4:
+                return "다음 단계: 7일간 2개 이상의 활성화 목표 달성률을 50% 이상으로 유지하면 목표 5개까지 생성할 수 있어요!";
+
+            case LEVEL_5:
+                return "다음 단계: 새 목표를 추가하고 14일간 3개 이상의 활성화 목표 달성률을 50% 이상으로 유지하면 목표 6개까지 생성할 수 있어요!";
+
+            case LEVEL_6:
+                return "다음 단계: 7일간 전체 활성화 목표 달성률을 50% 이상으로 유지하면 목표 7개까지 생성할 수 있어요!";
+
+            case LEVEL_7:
+                return "다음 단계: 14일간 2개 이상의 활성화 목표 달성률을 50% 이상으로 유지하면 목표 8개까지 생성할 수 있어요!";
+
+            case LEVEL_8:
+                return "다음 단계: 14일간 전체 활성화 목표 달성률을 50% 이상으로 유지하면 목표 9개까지 생성할 수 있어요!";
+
+            case LEVEL_9:
+                return "다음 단계: 새 목표를 추가하고 14일간 3개 이상의 활성화 목표 달성률을 50% 이상으로 유지하면 목표 10개까지 생성할 수 있어요!";
+
+            case LEVEL_10:
+                return "프리미엄 구독으로 무제한 목표 생성이 가능해요!";
+
+            default:
+                return "목표를 꾸준히 달성하여 레벨을 올려보세요!";
+        }
     }
 }
