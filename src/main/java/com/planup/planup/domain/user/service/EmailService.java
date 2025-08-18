@@ -55,4 +55,7 @@ public interface EmailService {
 
     // 이메일 변경 인증 메일 재발송
     String resendEmailChangeVerificationEmail(String currentEmail, String newEmail);
+    
+    // 이메일 변경 토큰 정리
+    void clearEmailChangeToken(String token);
 }

@@ -26,6 +26,9 @@ public interface UserService {
 
     // 이메일 존재 확인 (비밀번호 변경용)
     void checkEmailExists(String email);
+    
+    // 이메일 사용 가능 여부 확인
+    boolean isEmailAvailable(String email);
 
     // 비밀번호 변경 이메일 발송
     EmailSendResponseDTO sendPasswordChangeEmail(String email);
@@ -43,7 +46,9 @@ public interface UserService {
 
     InviteCodeResponseDTO getMyInviteCode(Long userId);
 
-    ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode, Long currentUserId);
+    InviteCodeProcessResponseDTO processInviteCode(String inviteCode, Long userId);
+
+    ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode);
 
     WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request);
 
@@ -61,4 +66,7 @@ public interface UserService {
 
     // 이메일 변경 인증 메일 재발송
     EmailSendResponseDTO resendEmailChangeVerification(String currentEmail, String newEmail);
+
+    // 닉네임 중복 확인
+    EmailDuplicateResponseDTO checkNicknameDuplicate(String nickname);
 }

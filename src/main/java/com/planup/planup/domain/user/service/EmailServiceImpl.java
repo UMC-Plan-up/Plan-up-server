@@ -469,8 +469,7 @@ public class EmailServiceImpl implements EmailService {
             throw new IllegalArgumentException("만료되거나 유효하지 않은 이메일 변경 토큰입니다.");
         }
         
-        // 토큰 사용 후 삭제
-        redisTemplate.delete("email-change:" + token);
+        // 토큰은 이메일 변경 완료 후 삭제
         
         return emailPair; // "currentEmail:newEmail" 형태로 반환
     }
@@ -571,5 +570,10 @@ public class EmailServiceImpl implements EmailService {
                 }
             }
         }
+    }
+    
+    @Override
+    public void clearEmailChangeToken(String token) {
+        redisTemplate.delete("email-change:" + token);
     }
 }
