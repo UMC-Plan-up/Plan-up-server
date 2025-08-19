@@ -248,25 +248,38 @@ public class UserController {
     @GetMapping("/users/password/change-link")
     public ResponseEntity<String> handlePasswordChangeLink(@RequestParam String token) {
         try {
-            String email = emailService.validatePasswordChangeToken(token);
+            String[] tokenInfo = emailService.validatePasswordChangeTokenInfo(token);
+            String email = tokenInfo[0]; 
+            Boolean isLoggedIn = Boolean.parseBoolean(tokenInfo[1]);
             
             // 비밀번호 변경 이메일 인증 완료 표시
             emailService.markPasswordChangeEmailAsVerified(email);
             
-            String deepLinkUrl = "planup://password/change?email=" +
-                    java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) +
-                    "&verified=true&token=" + token +
-                    "&from=password_change";
+             // 로그인 상태에 따른 딥링크 경로 분기
+            String deepLinkUrl;
+            if (isLoggedIn) {
+                // 로그인한 상태: 마이페이지로 이동
+                deepLinkUrl = "planup://mypage/password/change?email=" +
+                        java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) +
+                        "&verified=true&token=" + token +
+                        "&from=password_change&loggedIn=true";
+            } else {
+                // 로그인하지 않은 상태: 로그인 화면으로 이동
+                deepLinkUrl = "planup://login/password/change?email=" +
+                        java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) +
+                        "&verified=true&token=" + token +
+                        "&from=password_change&loggedIn=false";
+            }
 
             String html = emailService.createSuccessHtml(email, deepLinkUrl);
-
+    
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
                     .body(html);
-
+    
         } catch (IllegalArgumentException e) {
             String html = emailService.createFailureHtml();
-
+    
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
                     .body(html);

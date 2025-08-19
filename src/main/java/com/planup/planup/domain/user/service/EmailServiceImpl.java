@@ -111,24 +111,25 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public String resendPasswordChangeEmail(String email) {
         clearExistingPasswordChangeTokens(email);
-        return sendPasswordChangeEmail(email);
+        return sendPasswordChangeEmail(email, false);
     }
 
     @Override
     public String sendPasswordChangeEmail(String email, Boolean isLoggedIn) {
-        String token = generateToken();
+        String token = UUID.randomUUID().toString();
+    
+        // Redis에 토큰 저장 (기존 이메일 변경 방식과 동일)
+        // "email:isLoggedIn" 형태로 저장
+        redisTemplate.opsForValue().set(
+            "password-change:" + token,
+            email + ":" + isLoggedIn,
+            30,
+            TimeUnit.MINUTES
+        );
         
-        // Redis에 토큰과 로그인 상태 정보 저장
-        String redisKey = "password-change:" + token;
-        PasswordChangeTokenInfo tokenInfo = PasswordChangeTokenInfo.builder()
-                .email(email)
-                .isLoggedIn(isLoggedIn)
-                .build();
-        
-        redisTemplate.opsForValue().set(redisKey, tokenInfo, Duration.ofMinutes(30));
-        
-        // 이메일 발송 (로그인 상태에 따른 다른 템플릿 사용 가능)
-        sendPasswordChangeEmailWithTemplate(email, token, isLoggedIn);
+        // 이메일 발송 (기존 방식과 동일)
+        String changeUrl = appDomain + "/users/password/change-link?token=" + token;
+        sendPasswordChangeEmailContent(email, changeUrl);
         
         return token;
     }
@@ -147,12 +148,15 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public String validatePasswordChangeToken(String token) {
-        String email = redisTemplate.opsForValue().get("password-change:" + token);
+        String value = redisTemplate.opsForValue().get("password-change:" + token);
 
-        if (email == null) {
+        if (value == null) {
             throw new IllegalArgumentException("만료되거나 유효하지 않은 비밀번호 변경 토큰입니다.");
         }
 
+        // "email:isLoggedIn" 형태에서 email만 추출
+        String email = value.split(":")[0];
+        
         // 토큰 사용 후 삭제
         redisTemplate.delete("password-change:" + token);
         
