@@ -1,10 +1,12 @@
 package com.planup.planup.domain.report.entity;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
+import com.planup.planup.domain.goal.entity.Comment;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -40,6 +42,10 @@ public class GoalReport extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "weekly_report_id")
     private WeeklyReport weeklyReport;
+
+    @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> commentList = new ArrayList<>();
+
 
     public void setReportUsers(List<ReportUser> reportUsers) {
         this.reportUsers = reportUsers;

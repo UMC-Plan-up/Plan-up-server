@@ -231,4 +231,9 @@ public class GoalReportServiceImpl implements GoalReportService {
         dto.calTotal(); // 총합/평균을 DTO 내부에서 계산하도록 유지
         return dto;
     }
+
+    @Override
+    public GoalReport getGoalReportById(Long id) {
+        return goalReportRepository.findById(id).orElseThrow(() -> new ReportException(ErrorStatus.NOT_FOUND_GOAL_REPORT));
+    }
 }
