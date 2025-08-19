@@ -65,7 +65,7 @@ public class UserController {
         return ApiResponse.onSuccess(result);
     }
 
-    @Operation(summary = "비밀번호 변경", description = "사용자로부터 새로운 비밀번호를 입력받고 변경한다.")
+    @Operation(summary = "비밀번호 변경 (로그인 필요)", description = "로그인한 사용자의 비밀번호를 변경한다.")
     @PostMapping("/mypage/profile/password/update")
     public ApiResponse<Boolean> updatePassword(@Parameter(hidden = true) @CurrentUser Long userId, String password) {
         try {
@@ -73,6 +73,20 @@ public class UserController {
             return ApiResponse.onSuccess(true);
         } catch (IllegalArgumentException e) {
             return ApiResponse.onFailure("PASSWORD4002", e.getMessage(), false);
+        }
+    }
+
+    @Operation(summary = "비밀번호 변경 (토큰 기반)", description = "이메일 인증 토큰으로 비밀번호를 변경한다.")
+    @PostMapping("/users/password/change")
+    public ApiResponse<Boolean> changePasswordWithToken(@RequestBody PasswordChangeWithTokenRequestDTO request) {
+        try {
+            userService.changePasswordWithToken(request.getToken(), request.getNewPassword());
+            return ApiResponse.onSuccess(true);
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.onFailure("PASSWORD4002", e.getMessage(), false);
+        } catch (Exception e) {
+            log.error("비밀번호 변경 실패: {}", e.getMessage());
+            return ApiResponse.onFailure("PASSWORD4003", "비밀번호 변경에 실패했습니다.", false);
         }
     }
 
