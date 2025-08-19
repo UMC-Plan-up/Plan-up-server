@@ -39,6 +39,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -65,8 +66,14 @@ public class GoalServiceImpl implements GoalService{
     //목표 생성
     @Transactional
     public GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto createGoalDto){
+        //목표 제목 에러 처리
+        validateGoalName(createGoalDto.getGoalName(), userId);
+        //유저 검증
         User user = userService.getUserbyUserId(userId);
+        //레벨 별 목표 생성 제한
         validateGoalCreationLimit(user);
+        //종료일 에러 처리
+        validateEndDate(createGoalDto.getEndDate());
 
         Goal goal = GoalConvertor.toGoal(createGoalDto);
         Goal savedGoal = goalRepository.save(goal);
@@ -441,6 +448,24 @@ public class GoalServiceImpl implements GoalService{
                         .setCustomMessage(String.format(
                                 "현재 레벨 %d에서는 최대 %d개의 목표만 생성할 수 있습니다.%s",
                                 user.getUserLevel().getValue(), maxGoalCount, levelUpGuide));
+        }
+    }
+
+    private void validateEndDate(Date endDate) {
+        LocalDate endLocalDate = endDate.toInstant()
+                .atZone(java.time.ZoneId.systemDefault())
+                .toLocalDate();
+        if (endLocalDate.isBefore(LocalDate.now())) {
+            throw new GoalException(ErrorStatus.INVALID_GOAL_END_DATE);
+        }
+    }
+
+    private void validateGoalName(String goalName, Long userId) {
+        if (goalName == null || goalName.trim().isEmpty()) {
+            throw new GoalException(ErrorStatus.NOT_FOUND_GOAL_TITLE);
+        }
+        if (goalRepository.existsByGoalNameAndUserId(goalName, userId)) {
+            throw new GoalException(ErrorStatus.DUPLICATE_GOAL_NAME);
         }
     }
 
