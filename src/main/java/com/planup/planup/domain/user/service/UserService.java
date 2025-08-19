@@ -29,7 +29,7 @@ public interface UserService {
     boolean isEmailAvailable(String email);
 
     // 비밀번호 변경 이메일 발송
-    EmailSendResponseDTO sendPasswordChangeEmail(String email);
+    EmailSendResponseDTO sendPasswordChangeEmail(String email, Boolean isLoggedIn);
 
     // 비밀번호 변경 이메일 재발송
     EmailSendResponseDTO resendPasswordChangeEmail(String email);
