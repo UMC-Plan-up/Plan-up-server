@@ -551,12 +551,12 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional
-    public EmailSendResponseDTO sendPasswordChangeEmail(String email) {
+    public EmailSendResponseDTO sendPasswordChangeEmail(String email, Boolean isLoggedIn) {
         // 이메일이 등록된 사용자인지 확인
         checkEmailExists(email);
 
-        // 비밀번호 변경 이메일 발송
-        String changeToken = emailService.sendPasswordChangeEmail(email);
+        // 비밀번호 변경 이메일 발송 (로그인 상태 정보 포함)
+        String changeToken = emailService.sendPasswordChangeEmail(email, isLoggedIn);
 
         // 응답 DTO 생성
         return EmailSendResponseDTO.builder()
