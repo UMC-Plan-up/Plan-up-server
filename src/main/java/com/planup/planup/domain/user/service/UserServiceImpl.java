@@ -801,4 +801,14 @@ public class UserServiceImpl implements UserService {
                 .message(message)
                 .build();
     }
+
+    @Override
+    public List<User> getFriendsByUserId(Long creatorId) {
+        User user = getUserbyUserId(creatorId);
+        List<Friend> friends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
+                FriendStatus.ACCEPTED, user.getId(), FriendStatus.ACCEPTED, user.getId()
+        );        return friends.stream()
+                .map(Friend::getFriend)
+                .toList();
+    }
 }
