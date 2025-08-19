@@ -145,10 +145,8 @@ public class GoalServiceImpl implements GoalService{
     @Transactional(readOnly = true)
     public List<GoalResponseDto.FriendGoalListDto> getFriendGoals(Long userId, Long friendsId) {
         User user = userService.getUserbyUserId(userId);
+        userService.getUserbyUserId(friendsId);
 
-        userRepository.findById(friendsId)
-                .orElseThrow(() -> new RuntimeException("친구를 찾을 수 없습니다."));
-        //친구 관계 검증 필요, 추후 구현
         friendService.isFriend(userId, friendsId);
 
         List<UserGoal> userGoals = userGoalRepository.findByUserIdAndIsPublicTrue(friendsId);
@@ -211,14 +209,6 @@ public class GoalServiceImpl implements GoalService{
             }
         }
     }
-
-    @Override
-    @Transactional
-    public Goal findGoalById(Long goalId) {
-        return goalRepository.findById(goalId)
-                .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
-    }
-
 
     //목표 삭제
     @Transactional
@@ -427,6 +417,7 @@ public class GoalServiceImpl implements GoalService{
         return GoalConvertor.toDailyVerifiedGoalsResponse(date, verifiedGoals);
     }
 
+    //헬퍼 메서드
     public User getUser(Long userId) {
         return userRepository.findById(userId).orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
     }
@@ -451,6 +442,13 @@ public class GoalServiceImpl implements GoalService{
                                 "현재 레벨 %d에서는 최대 %d개의 목표만 생성할 수 있습니다.%s",
                                 user.getUserLevel().getValue(), maxGoalCount, levelUpGuide));
         }
+    }
+
+    @Override
+    @Transactional
+    public Goal findGoalById(Long goalId) {
+        return goalRepository.findById(goalId)
+                .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
     }
 
     private void validateEndDate(Date endDate) {
