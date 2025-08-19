@@ -43,7 +43,7 @@ public class GoalReport extends BaseTimeEntity {
     @JoinColumn(name = "weekly_report_id")
     private WeeklyReport weeklyReport;
 
-    @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "goalReport", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> commentList = new ArrayList<>();
 
 
