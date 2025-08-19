@@ -107,29 +107,9 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
-    @Override
-    @Transactional
-    public boolean checkPassword(Long userId, String password) {
-        User user = getUserbyUserId(userId);
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new UserException(ErrorStatus.PASSWORD_MISMATCH);
-        }
-        return true;
-    }
 
-    @Override
-    @Transactional
-    public void updatePassword(Long userId, String password) {
-        User user = getUserbyUserId(userId);
-        
-        // 비밀번호 변경 이메일 인증 완료 여부 확인
-        if (!emailService.isPasswordChangeEmailVerified(user.getEmail())) {
-            throw new IllegalArgumentException("비밀번호 변경을 위해 이메일 인증을 먼저 완료해주세요.");
-        }
-        
-        String encodedPassword = passwordEncoder.encode(password);
-        user.setPassword(encodedPassword);
-    }
+
+
     
     @Override
     public Boolean isPasswordChangeEmailVerified(String email) {

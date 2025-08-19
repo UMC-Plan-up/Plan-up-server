@@ -13,9 +13,7 @@ public interface UserService {
 
     boolean updateNotificationAgree(Long userId);
 
-    boolean checkPassword(Long userId, String password);
 
-    void updatePassword(Long userId, String password);
     
     // 비밀번호 변경 이메일 인증 완료 여부 확인
     Boolean isPasswordChangeEmailVerified(String email);
