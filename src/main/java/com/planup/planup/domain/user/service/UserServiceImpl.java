@@ -136,7 +136,26 @@ public class UserServiceImpl implements UserService {
         return emailService.isPasswordChangeEmailVerified(email);
     }
 
-
+    @Override
+    @Transactional
+    public void changePasswordWithToken(String token, String newPassword) {
+        // 토큰으로 이메일 검증
+        String email = emailService.validatePasswordChangeToken(token);
+        
+        // 해당 이메일의 사용자 조회
+        User user = userRepository.findByEmailAndUserActivate(email, UserActivate.ACTIVE)
+                .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
+        
+        // 새 비밀번호 암호화 및 설정
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        user.setPassword(encodedPassword);
+        
+        // 사용자 저장
+        userRepository.save(user);
+        
+        // 비밀번호 변경 완료 후 인증 토큰 정리
+        emailService.clearPasswordChangeToken(email);
+    }
 
     @Override
     @Transactional(readOnly = true)
