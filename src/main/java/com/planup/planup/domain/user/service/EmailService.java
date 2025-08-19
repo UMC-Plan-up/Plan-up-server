@@ -58,4 +58,7 @@ public interface EmailService {
     
     // 이메일 변경 토큰 정리
     void clearEmailChangeToken(String token);
+
+    // 비밀번호 변경 토큰 정리
+    void clearPasswordChangeToken(String email);
 }
