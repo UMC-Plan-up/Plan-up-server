@@ -39,7 +39,7 @@ public enum ErrorStatus implements BaseErrorCode {
     MISSING_PHOTO_CHALLENGE_INFO(HttpStatus.BAD_REQUEST, "CHALLENGE4002", "사진 챌린지 정보가 필요합니다."),
     INVALID_HTTP_CHALLENGE_METHOD(HttpStatus.METHOD_NOT_ALLOWED, "CHALLENGE4007", "챌린지 생성 요청이 아닙니다."),
     INVALID_CHALLENGE_TYPE(HttpStatus.BAD_REQUEST, "CHALLENGE4003", "올바르지 않는 챌리지 타입입니다"),
-
+    INVALID_CHALLENGE_STATUS(BAD_REQUEST, "CHALLENGE4004", "요청을 처리할 수 없는 챌린지 상태입니다."),
 
 
     //Report 관련 에러
@@ -81,8 +81,8 @@ public enum ErrorStatus implements BaseErrorCode {
     NOT_FOUND_GOAL(HttpStatus.NOT_FOUND, "GOAL4001", "존재하지 않는 목표입니다."),
 
     // 랜덤 닉네임 관련 에러
-    NICKNAME_DATA_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "NICKNAME5001", "닉네임 생성에 필요한 데이터가 없습니다."),
-  ;
+    NICKNAME_DATA_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "NICKNAME5001", "닉네임 생성에 필요한 데이터가 없습니다.");
+
 
 
     private final HttpStatus httpStatus;

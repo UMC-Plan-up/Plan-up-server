@@ -100,11 +100,10 @@ public class ChallengeServiceImpl implements ChallengeService {
             userGoalService.joinGoal(user.getId(), save.getId());
             userGoalService.joinGoal(friend.getId(), save.getId());
             notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_REQUEST_SENT, TargetType.CHALLENGE, save.getId());
-            notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_REQUEST_RECEIVED, TargetType.CHALLENGE, save.getId());
+            notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_REQUEST_RECEIVED, TargetType.CHALLENGE, save.getId());
 
             return save;
         }
-
 
         throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_TYPE);
     }
@@ -143,6 +142,10 @@ public class ChallengeServiceImpl implements ChallengeService {
     public void rejectChallengeRequest(Long userId, Long challengeId) {
         User user = userService.getUserbyUserId(userId);
         Challenge challenge = getChallengeById(challengeId);
+
+        if (!challenge.getStatus().equals(ChallengeStatus.REQUESTED)) {
+            throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_STATUS);
+        }
 
         //챌린지 상태를 거절로 업데이트 한다.
         challenge.setChallengeStatus(ChallengeStatus.REJECTED);
@@ -210,12 +213,17 @@ public class ChallengeServiceImpl implements ChallengeService {
     private boolean isChallengeMember(User user, Challenge challenge) {
         List<UserGoal> userGoalList = userGoalService.getUserGoalListByGoal(challenge);
         for (UserGoal userGoal : userGoalList) {
-            if (userGoal.getUser().equals(user)) return true;
+            if (userGoal.getUser().getId().equals(user.getId())) return true;
         }
         return false;
     }
 
     private void addChallengeMember(User user, List<Long> friendList, Challenge challenge) {
+
+        if (friendList.isEmpty()) {
+            return;
+        }
+
         List<UserGoal> userGoalList = userGoalService.getUserGoalListByGoal(challenge);
         List<User> users = userGoalList.stream().map(UserGoal::getUser).toList();
 
@@ -282,11 +290,11 @@ public class ChallengeServiceImpl implements ChallengeService {
         if (targetTotal == 0) {
             return 0;
         }
-        return (sum / targetTotal) * 100;
+        return (int) Math.round((sum * 100.0) / targetTotal);
     }
 
     private Map<LocalDate, Integer> getCalcVerification(Challenge challenge, UserGoal myUserGoal) {
-        Map<LocalDate, Integer> verifications = null;
+        Map<LocalDate, Integer> verifications = Collections.EMPTY_MAP;
         if (challenge.getVerificationType().equals(VerificationType.TIMER)) {
             verifications = timerVerificationReadService.calculateVerificationWithGoal(myUserGoal);
         } else if (challenge.getVerificationType().equals(VerificationType.PHOTO)) {
@@ -314,7 +322,7 @@ public class ChallengeServiceImpl implements ChallengeService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public void remindPenalty(Long userId, Long challengeId) {
         User user = userService.getUserbyUserId(userId);
         Challenge challenge = getChallengeById(challengeId);
