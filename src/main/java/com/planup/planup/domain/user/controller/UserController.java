@@ -228,8 +228,12 @@ public class UserController {
 
     @Operation(summary = "비밀번호 변경 확인 이메일 발송", description = "비밀번호 변경을 위한 확인 메일을 발송하고 토큰을 반환합니다")
     @PostMapping("/users/password/change-email/send")
-    public ApiResponse<EmailSendResponseDTO> sendPasswordChangeEmail(@RequestBody @Valid EmailVerificationRequestDTO request) {
-        EmailSendResponseDTO response = userService.sendPasswordChangeEmail(request.getEmail());
+    public ApiResponse<EmailSendResponseDTO> sendPasswordChangeEmail(
+            @RequestBody @Valid PasswordChangeEmailRequestDTO request) {
+        EmailSendResponseDTO response = userService.sendPasswordChangeEmail(
+                request.getEmail(), 
+                request.getIsLoggedIn() // 로그인 상태 추가
+        );
         return ApiResponse.onSuccess(response);
     }
 
