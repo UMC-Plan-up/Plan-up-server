@@ -37,14 +37,22 @@ public class GoalController {
         return ApiResponse.onSuccess(result);
     }
 
-    @GetMapping("/create/list")
-    @Operation(summary = "카테고리별 목표 조회 API", description = "목표 생성 시 선택한 카테고리의 친구/커뮤니티 목표 목록을 조회하는 API입니다.")
-    public ApiResponse<List<GoalResponseDto.GoalCreateListDto>> getGoalList(
+    @GetMapping("/create/list/friend")
+    @Operation(summary = "카테고리별 친구 목표 조회 API", description = "선택한 카테고리의 친구 목표 목록을 조회합니다.")
+    public ApiResponse<List<GoalResponseDto.GoalCreateListDto>> getFriendGoalsByCategory(
             @RequestParam GoalCategory goalCategory,
             @Parameter(hidden = true) @CurrentUser Long userId) {
 
-        List<GoalResponseDto.GoalCreateListDto> result = goalService.getGoalList(userId, goalCategory);
+        List<GoalResponseDto.GoalCreateListDto> result = goalService.getFriendGoalsByCategory(userId, goalCategory);
+        return ApiResponse.onSuccess(result);
+    }
 
+    @GetMapping("/create/list/community")
+    @Operation(summary = "카테고리별 커뮤니티 목표 조회 API", description = "선택한 카테고리의 커뮤니티 목표 목록을 조회합니다.")
+    public ApiResponse<List<GoalResponseDto.GoalCreateListDto>> getCommunityGoalsByCategory(
+            @RequestParam GoalCategory goalCategory) {
+
+        List<GoalResponseDto.GoalCreateListDto> result = goalService.getCommunityGoalsByCategory(goalCategory);
         return ApiResponse.onSuccess(result);
     }
 

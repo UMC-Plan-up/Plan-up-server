@@ -96,37 +96,38 @@ public class GoalServiceImpl implements GoalService{
         return GoalConvertor.toGoalResultDto(savedGoal);
     }
 
-    //목표 리스트 조회(목표 생성시 -> 세부 내용 조회X)
-    //두개로 찢기 친구별 카테고리별
+    //목표 리스트 조회(목표 생성시 -> 세부 내용 조회X) 카테고리별 친구 목표
     @Transactional(readOnly = true)
-    public List<GoalResponseDto.GoalCreateListDto> getGoalList(Long userId, GoalCategory goalCategory) {
-        User user = userService.getUserbyUserId(userId);
-
-        List<GoalResponseDto.GoalCreateListDto> result = new ArrayList<>();
+    public List<GoalResponseDto.GoalCreateListDto> getFriendGoalsByCategory(Long userId, GoalCategory goalCategory) {
+        userService.getUserbyUserId(userId);
 
         List<UserGoal> friendGoals = userGoalRepository.findFriendGoalsByCategory(userId, goalCategory);
-        for (UserGoal userGoal : friendGoals) {
-            User creator = userGoalRepository.findByGoalIdAndStatus(
-                    userGoal.getGoal().getId(), Status.ADMIN).getUser();
 
-            int currentParticipants = userGoalRepository.countByGoalId(userGoal.getGoal().getId());
-            int remainingSlots = userGoal.getGoal().getLimitFriendCount() - currentParticipants;
+        return friendGoals.stream()
+                .map(userGoal -> {
+                    User creator = userGoalRepository.findByGoalIdAndStatus(
+                            userGoal.getGoal().getId(), Status.ADMIN).getUser();
+                    int currentParticipants = userGoalRepository.countByGoalId(userGoal.getGoal().getId());
+                    int remainingSlots = userGoal.getGoal().getLimitFriendCount() - currentParticipants;
+                    return GoalConvertor.toGoalCreateListDto(userGoal, creator, remainingSlots);
+                })
+                .collect(Collectors.toList());
+    }
 
-            result.add(GoalConvertor.toGoalCreateListDto(userGoal, creator, remainingSlots));
-        }
-
+    //목표 리스트 조회(목표 생성시 -> 세부 내용 조회X) 카테고리별 커뮤니티 목표
+    @Transactional(readOnly = true)
+    public List<GoalResponseDto.GoalCreateListDto> getCommunityGoalsByCategory(GoalCategory goalCategory) {
         List<UserGoal> communityGoals = userGoalRepository.findCommunityGoalsByCategory(goalCategory);
-        for (UserGoal userGoal : communityGoals) {
-            User creator = userGoalRepository.findByGoalIdAndStatus(
-                    userGoal.getGoal().getId(), Status.ADMIN).getUser();
 
-            int currentParticipants = userGoalRepository.countByGoalId(userGoal.getGoal().getId());
-            int remainingSlots = userGoal.getGoal().getLimitFriendCount() - currentParticipants;
-
-            result.add(GoalConvertor.toGoalCreateListDto(userGoal, creator, remainingSlots));
-        }
-
-        return result;
+        return communityGoals.stream()
+                .map(userGoal -> {
+                    User creator = userGoalRepository.findByGoalIdAndStatus(
+                            userGoal.getGoal().getId(), Status.ADMIN).getUser();
+                    int currentParticipants = userGoalRepository.countByGoalId(userGoal.getGoal().getId());
+                    int remainingSlots = userGoal.getGoal().getLimitFriendCount() - currentParticipants;
+                    return GoalConvertor.toGoalCreateListDto(userGoal, creator, remainingSlots);
+                })
+                .collect(Collectors.toList());
     }
 
     //내 목표 조회(리스트)
