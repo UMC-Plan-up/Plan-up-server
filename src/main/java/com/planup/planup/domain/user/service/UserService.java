@@ -32,7 +32,7 @@ public interface UserService {
     EmailSendResponseDTO sendPasswordChangeEmail(String email, Boolean isLoggedIn);
 
     // 비밀번호 변경 이메일 재발송
-    EmailSendResponseDTO resendPasswordChangeEmail(String email);
+    EmailSendResponseDTO resendPasswordChangeEmail(String email, Boolean isLoggedIn);
 
     // 토큰 기반 비밀번호 변경
     void changePasswordWithToken(String token, String newPassword);

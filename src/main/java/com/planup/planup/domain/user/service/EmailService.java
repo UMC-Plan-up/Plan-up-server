@@ -26,7 +26,7 @@ public interface EmailService {
     String sendPasswordChangeEmail(String email, Boolean isLoggedIn);
 
     // 비밀번호 변경 이메일 재발송
-    String resendPasswordChangeEmail(String email);
+    String resendPasswordChangeEmail(String email, Boolean isLoggedIn);
 
     // 비밀번호 변경 토큰 검증
     String validatePasswordChangeToken(String token);

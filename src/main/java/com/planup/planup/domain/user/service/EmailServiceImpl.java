@@ -109,9 +109,9 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public String resendPasswordChangeEmail(String email) {
+    public String resendPasswordChangeEmail(String email, Boolean isLoggedIn) {
         clearExistingPasswordChangeTokens(email);
-        return sendPasswordChangeEmail(email, false);
+        return sendPasswordChangeEmail(email, isLoggedIn);  // 실제 로그인 상태 전달
     }
 
     @Override
@@ -147,20 +147,19 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public String validatePasswordChangeToken(String token) {
+    public String[] validatePasswordChangeToken(String token) {
         String value = redisTemplate.opsForValue().get("password-change:" + token);
 
         if (value == null) {
             throw new IllegalArgumentException("만료되거나 유효하지 않은 비밀번호 변경 토큰입니다.");
         }
 
-        // "email:isLoggedIn" 형태에서 email만 추출
-        String email = value.split(":")[0];
+        // "email:isLoggedIn" 형태로 분리
+        String[] parts = value.split(":");
+        String email = parts[0];
+        String isLoggedIn = parts[1];
         
-        // 토큰 사용 후 삭제
-        redisTemplate.delete("password-change:" + token);
-        
-        return email;
+        return new String[]{email, isLoggedIn};
     }
     
     @Override

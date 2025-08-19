@@ -239,8 +239,12 @@ public class UserController {
 
     @Operation(summary = "비밀번호 변경 확인 이메일 재발송", description = "비밀번호 변경을 위한 확인 메일을 재발송합니다")
     @PostMapping("/users/password/change-email/resend")
-    public ApiResponse<EmailSendResponseDTO> resendPasswordChangeEmail(@RequestBody @Valid ResendEmailRequestDTO request) {
-        EmailSendResponseDTO response = userService.resendPasswordChangeEmail(request.getEmail());
+    public ApiResponse<EmailSendResponseDTO> resendPasswordChangeEmail(
+            @RequestBody @Valid PasswordChangeEmailRequestDTO request) {  // ResendEmailRequestDTO → PasswordChangeEmailRequestDTO
+        EmailSendResponseDTO response = userService.resendPasswordChangeEmail(
+                request.getEmail(), 
+                request.getIsLoggedIn()  // 로그인 상태 포함
+        );
         return ApiResponse.onSuccess(response);
     }
 

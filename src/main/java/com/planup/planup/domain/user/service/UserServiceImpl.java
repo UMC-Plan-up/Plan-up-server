@@ -572,21 +572,20 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional
-    public EmailSendResponseDTO resendPasswordChangeEmail(String email) {
+    public EmailSendResponseDTO resendPasswordChangeEmail(String email, Boolean isLoggedIn) {
         // 이메일이 등록된 사용자인지 확인
         checkEmailExists(email);
-
-        // 비밀번호 변경 이메일 재발송
-        String changeToken = emailService.resendPasswordChangeEmail(email);
-
-        // 비밀번호 변경 확인 메일이 재발송되었습니다
+    
+        // 비밀번호 변경 이메일 재발송 (로그인 상태 포함)
+        String changeToken = emailService.resendPasswordChangeEmail(email, isLoggedIn);
+    
         return EmailSendResponseDTO.builder()
                 .email(email)
                 .message("비밀번호 변경 확인 메일이 재발송되었습니다")
                 .verificationToken(changeToken)
                 .build();
     }
-
+    
     @Override
     public KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request) {
         KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());
