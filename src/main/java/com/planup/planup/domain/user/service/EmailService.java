@@ -23,7 +23,7 @@ public interface EmailService {
     void clearVerificationToken(String email);
 
     // 비밀번호 변경용 딥링크 이메일 발송
-    String sendPasswordChangeEmail(String email);
+    String sendPasswordChangeEmail(String email, Boolean isLoggedIn);
 
     // 비밀번호 변경 이메일 재발송
     String resendPasswordChangeEmail(String email);
