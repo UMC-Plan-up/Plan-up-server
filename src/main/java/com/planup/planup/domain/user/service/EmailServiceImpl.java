@@ -610,4 +610,21 @@ public class EmailServiceImpl implements EmailService {
     public void clearEmailChangeToken(String token) {
         redisTemplate.delete("email-change:" + token);
     }
+
+    @Override
+    public void clearPasswordChangeToken(String email) {
+        // 해당 이메일의 비밀번호 변경 관련 토큰들 정리
+        redisTemplate.delete("password-change-verified:" + email);
+        
+        // 기존 비밀번호 변경 토큰들도 정리
+        Set<String> keys = redisTemplate.keys("password-change:*");
+        if (keys != null) {
+            for (String key : keys) {
+                String storedEmail = redisTemplate.opsForValue().get(key);
+                if (email.equals(storedEmail)) {
+                    redisTemplate.delete(key);
+                }
+            }
+        }
+    }
 }
