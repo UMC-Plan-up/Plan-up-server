@@ -4,6 +4,8 @@ import com.planup.planup.domain.user.dto.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.planup.planup.domain.user.entity.User;
 
+import java.util.List;
+
 public interface UserService {
     User getUserbyUserId(Long userId);
 
@@ -69,4 +71,6 @@ public interface UserService {
 
     // 닉네임 중복 확인
     EmailDuplicateResponseDTO checkNicknameDuplicate(String nickname);
+
+    List<User> getFriendsByUserId(Long creatorId);
 }

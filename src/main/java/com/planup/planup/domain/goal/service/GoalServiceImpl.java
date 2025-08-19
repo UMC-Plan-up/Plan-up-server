@@ -16,6 +16,8 @@ import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.GoalMemo;
 import com.planup.planup.domain.goal.repository.CommentRepository;
 import com.planup.planup.domain.goal.repository.GoalMemoRepository;
+import com.planup.planup.domain.notification.service.NotificationCreateService;
+import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.user.entity.UserLevel;
 import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
@@ -62,7 +64,7 @@ public class GoalServiceImpl implements GoalService{
     private final TimerVerificationService timerVerificationService;
     private final TimerVerificationReadService timerVerificationReadService;
     private final UserService userService;
-
+    private final NotificationCreateService notificationCreateService;
     //목표 생성
     @Transactional
     public GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto createGoalDto){
@@ -89,14 +91,16 @@ public class GoalServiceImpl implements GoalService{
                 .build();
         UserGoal savedUserGoal = userGoalRepository.save(userGoal);
 
+        notificationCreateService.createGoalCreatedNotification(userId, goal.getId());
+
         return GoalConvertor.toGoalResultDto(savedGoal);
     }
 
     //목표 리스트 조회(목표 생성시 -> 세부 내용 조회X)
+    //두개로 찢기 친구별 카테고리별
     @Transactional(readOnly = true)
     public List<GoalResponseDto.GoalCreateListDto> getGoalList(Long userId, GoalCategory goalCategory) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        User user = userService.getUserbyUserId(userId);
 
         List<GoalResponseDto.GoalCreateListDto> result = new ArrayList<>();
 
@@ -128,8 +132,7 @@ public class GoalServiceImpl implements GoalService{
     //내 목표 조회(리스트)
     @Transactional(readOnly = true)
     public List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        User user = userService.getUserbyUserId(userId);
 
         List<UserGoal> userGoals = userGoalRepository.findByUserId(userId);
 
@@ -141,8 +144,7 @@ public class GoalServiceImpl implements GoalService{
     //친구 목표 조회(리스트)
     @Transactional(readOnly = true)
     public List<GoalResponseDto.FriendGoalListDto> getFriendGoals(Long userId, Long friendsId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        User user = userService.getUserbyUserId(userId);
 
         userRepository.findById(friendsId)
                 .orElseThrow(() -> new RuntimeException("친구를 찾을 수 없습니다."));
