@@ -115,20 +115,22 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public String sendPasswordChangeEmail(String email) {
-        String changeToken = UUID.randomUUID().toString();
-
-        redisTemplate.opsForValue().set(
-                "password-change:" + changeToken,
-                email,
-                30,
-                TimeUnit.MINUTES
-        );
-
-        String changeUrl = appDomain + "/users/password/change-link?token=" + changeToken;
-        sendPasswordChangeEmailContent(email, changeUrl);
-
-        return changeToken;
+    public String sendPasswordChangeEmail(String email, Boolean isLoggedIn) {
+        String token = generateToken();
+        
+        // Redis에 토큰과 로그인 상태 정보 저장
+        String redisKey = "password-change:" + token;
+        PasswordChangeTokenInfo tokenInfo = PasswordChangeTokenInfo.builder()
+                .email(email)
+                .isLoggedIn(isLoggedIn)
+                .build();
+        
+        redisTemplate.opsForValue().set(redisKey, tokenInfo, Duration.ofMinutes(30));
+        
+        // 이메일 발송 (로그인 상태에 따른 다른 템플릿 사용 가능)
+        sendPasswordChangeEmailWithTemplate(email, token, isLoggedIn);
+        
+        return token;
     }
 
     private void clearExistingPasswordChangeTokens(String email) {
