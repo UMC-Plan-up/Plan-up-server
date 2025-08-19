@@ -165,7 +165,7 @@ public class GoalController {
             @Valid @RequestBody CommentRequestDto.CommentCreateRequestDto requestDto,
             @Parameter(hidden = true) @CurrentUser Long userId) {
 
-        CommentResponseDto.CommentDto result = commentService.createComment(goalId, userId, requestDto);
+        CommentResponseDto.CommentDto result = commentService.createCommentByGoal(goalId, userId, requestDto);
         return ApiResponse.onSuccess(result);
     }
 

@@ -1,5 +1,6 @@
 package com.planup.planup.domain.report.converter;
 
+import com.planup.planup.domain.goal.dto.CommentResponseDto;
 import com.planup.planup.domain.report.entity.DailyAchievementRate;
 import com.planup.planup.domain.report.entity.GoalReport;
 import com.planup.planup.domain.report.entity.ReportUser;
@@ -12,17 +13,18 @@ import static com.planup.planup.domain.report.dto.GoalReportResponseDTO.*;
 
 public class GoalReportConverter {
 
-    public static GoalReportResponse toResponse(GoalReport entity) {
+    public static GoalReportResponse toResponse(GoalReport entity, List<CommentResponseDto.CommentDto> commentDtoList) {
         return new GoalReportResponse(
                 entity.getId(),
                 entity.getGoalId(),
                 entity.getGoalTitle(),
                 entity.getGoalCriteria(),
-                Long.valueOf(entity.getDailyAchievementRate().getTotal()),
+                (long) entity.getDailyAchievementRate().getTotal(),
                 entity.getReportType(),
                 toThreeWeekAchievementRateResponse(entity.getThreeWeekAhcievementRate()),
                 toDailyAchievementRateResponse(entity.getDailyAchievementRate()),
-                toReportUserResponseList(entity.getReportUsers())
+                toReportUserResponseList(entity.getReportUsers()),
+                commentDtoList
         );
     }
 

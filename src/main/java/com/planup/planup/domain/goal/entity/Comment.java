@@ -2,6 +2,8 @@ package com.planup.planup.domain.goal.entity;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.Enum.CommentStatus;
+import com.planup.planup.domain.report.entity.GoalReport;
+import com.planup.planup.domain.report.entity.WeeklyReport;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -36,6 +38,10 @@ public class Comment extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "goal_id")
     private Goal goal;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "goal_report_id")
+    private GoalReport goalReport;
 
     public void updateContent(String content) {
         this.content = content;

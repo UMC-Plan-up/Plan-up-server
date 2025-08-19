@@ -86,4 +86,11 @@ public class ChallengeController {
         ChallengeResponseDTO.ChallengeResultResponseDTO challengeResult = challengeService.getChallengeResult(userId, challengeId);
         return ApiResponse.onSuccess(challengeResult);
     }
+
+    @GetMapping("/{challendeId}/penalty_remind")
+    @Operation(summary = "챌린지의 패자에게 리마인드 알림을 전송한다")
+    public ApiResponse<Void> remindPenalty(@CurrentUser Long userId, Long challengeId) {
+        challengeService.remindPenalty(userId, challengeId);
+        return ApiResponse.onSuccess(null);
+    }
 }

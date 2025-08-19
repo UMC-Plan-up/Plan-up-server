@@ -4,6 +4,7 @@ import com.planup.planup.domain.goal.dto.CommentResponseDto;
 import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.CommentStatus;
 import com.planup.planup.domain.goal.entity.Goal;
+import com.planup.planup.domain.report.entity.GoalReport;
 import com.planup.planup.domain.user.entity.User;
 
 public class CommentConverter {
@@ -13,6 +14,16 @@ public class CommentConverter {
                 .content(content)
                 .writer(writer)
                 .goal(goal)
+                .parentComment(parentComment)
+                .status(CommentStatus.ACTIVE)
+                .build();
+    }
+
+    public static Comment createCommentForReport(String content, User writer, GoalReport goalReport, Comment parentComment) {
+        return Comment.builder()
+                .content(content)
+                .writer(writer)
+                .goalReport(goalReport)
                 .parentComment(parentComment)
                 .status(CommentStatus.ACTIVE)
                 .build();
