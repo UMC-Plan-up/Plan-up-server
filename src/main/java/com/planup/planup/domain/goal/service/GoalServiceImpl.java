@@ -465,9 +465,6 @@ public class GoalServiceImpl implements GoalService{
         if (goalName == null || goalName.trim().isEmpty()) {
             throw new GoalException(ErrorStatus.NOT_FOUND_GOAL_TITLE);
         }
-        if (goalRepository.existsByGoalNameAndUserId(goalName, userId)) {
-            throw new GoalException(ErrorStatus.DUPLICATE_GOAL_NAME);
-        }
     }
 
     private String getLevelUpGuide(UserLevel currentLevel) {

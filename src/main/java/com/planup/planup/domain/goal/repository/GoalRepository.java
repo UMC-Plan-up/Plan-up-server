@@ -11,6 +11,4 @@ import java.util.List;
 public interface GoalRepository extends JpaRepository<Goal, Long> {
 
     List<Goal> findByEndDateBeforeAndIsActiveTrue(Date now);
-
-    boolean existsByGoalNameAndUserId(String goalName, Long userId);
 }
