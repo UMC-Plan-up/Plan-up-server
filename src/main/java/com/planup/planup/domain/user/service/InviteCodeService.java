@@ -49,10 +49,7 @@ public class InviteCodeService {
         return null;
     }
 
-    // 초대코드 사용 완료 처리
-    public void useInviteCode(String inviteCode) {
-        redisTemplate.delete("invite_code:" + inviteCode);
-    }
+
 
     // 6자리 랜덤 코드 생성
     private String generateCode() {
