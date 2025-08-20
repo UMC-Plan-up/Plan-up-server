@@ -240,6 +240,16 @@ public class GoalConvertor {
                 .build();
     }
 
+    public static GoalResponseDto.DailyAchievementDto toDailyAchievementDto(
+            LocalDate date,
+            int achievementRate) {
+
+        return GoalResponseDto.DailyAchievementDto.builder()
+                .date(date)
+                .achievementRate(achievementRate)
+                .build();
+    }
+
     public static void updateMemoContent(GoalMemo existingMemo, String newMemo) {
         existingMemo.updateMemo(newMemo.trim());
     }
