@@ -1,5 +1,6 @@
 package com.planup.planup.domain.report.dto;
 
+import com.planup.planup.domain.goal.dto.CommentResponseDto;
 import com.planup.planup.domain.report.entity.ReportType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -35,7 +36,10 @@ public class GoalReportResponseDTO {
             DailyAchievementRateResponse dailyAchievementRate,
 
             @Schema(description = "사용자별 성취율 리스트")
-            List<ReportUserResponse> reportUsers
+            List<ReportUserResponse> reportUsers,
+
+            @Schema(description = "comment 들")
+            List<CommentResponseDto.CommentDto> comments
     ) {
     }
 

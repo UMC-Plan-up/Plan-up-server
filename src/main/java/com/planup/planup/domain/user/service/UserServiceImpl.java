@@ -400,9 +400,6 @@ public class UserServiceImpl implements UserService {
             friendRepository.save(friendship1);
             friendRepository.save(friendship2);
 
-            // 초대코드 사용 완료
-            inviteCodeService.useInviteCode(inviteCode);
-
             return InviteCodeProcessResponseDTO.builder()
                     .success(true)
                     .friendNickname(inviterUser.getNickname())

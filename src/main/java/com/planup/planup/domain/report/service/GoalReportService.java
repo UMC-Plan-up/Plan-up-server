@@ -16,7 +16,7 @@ public interface GoalReportService {
     void createGoalReportsByUserGoal(LocalDateTime startDate, LocalDateTime endDate);
 
     List<GoalReport> findByGoalIdRecent2(Long id);
-    GoalReportResponseDTO.GoalReportResponse findDTOById(Long id);
+    GoalReportResponseDTO.GoalReportResponse findDTOById(Long id, Long userId);
 
     @Transactional(readOnly = true)
     List<GoalReport> getListByUserIdOneDay(Long userId, LocalDateTime start, LocalDateTime end);
@@ -26,4 +26,6 @@ public interface GoalReportService {
 
     @Transactional
     void createReportUsersFromRedis(UserGoal userGoal, LocalDateTime startDate);
+
+    GoalReport getGoalReportById(Long id);
 }

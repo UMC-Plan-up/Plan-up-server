@@ -5,6 +5,7 @@ import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.entity.TargetType;
 import com.planup.planup.domain.user.entity.User;
+import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,20 @@ public class NotificationCreateService {
                 NotificationType.CHALLENGE_ENDED, TargetType.CHALLENGE, challenge.getId(), null);
         notificationService.createNotification(nicknameList.get(1), nicknameList.get(0),
                 NotificationType.CHALLENGE_ENDED, TargetType.CHALLENGE, challenge.getId(), null);
+
+    }
+
+    public void createChallengeStartNoti(User user, User friend, Challenge challenge) {
+
+        if (challenge.isRePenalty()) {
+            notificationService.createNotification(friend.getId(), user.getId(), NotificationType.PENALTY_ACCEPTED, TargetType.CHALLENGE, challenge.getId());
+
+        } else {
+            notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_REQUEST_ACCEPTED, TargetType.CHALLENGE, challenge.getId());
+        }
+
+        notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_STARTED, TargetType.CHALLENGE, challenge.getId());
+        notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_STARTED, TargetType.CHALLENGE, challenge.getId());
 
     }
 

@@ -74,7 +74,7 @@ public class NotificationMessageProvider {
             case PENALTY_PROPOSAL_RECEIVED ->
                     String.format("[%s]님이 새로운 패널티를 제안했어요.", senderName);
             case PENALTY_ACCEPTED ->
-                    String.format("[%s]님의 패널티 제안을 수락했어요.", receiverName);
+                    String.format("[%s]님이 패널티 제안을 수락했어요.", receiverName);
             case PENALTY_REJECTED ->
                     String.format("[%s]님의 패널티 제안을 거절했어요. 다른 친구에게 참여를 요청해 보세요.", receiverName);
             case CHALLENGE_STARTED ->

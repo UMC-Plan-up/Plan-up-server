@@ -4,6 +4,9 @@ import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ReportException;
 import com.planup.planup.domain.global.redis.RedisServiceForReport;
 import com.planup.planup.domain.global.service.AchievementCalculationService;
+import com.planup.planup.domain.goal.convertor.CommentConverter;
+import com.planup.planup.domain.goal.dto.CommentResponseDto;
+import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
@@ -15,12 +18,8 @@ import com.planup.planup.domain.report.entity.*;
 import com.planup.planup.domain.report.repository.GoalReportRepository;
 import com.planup.planup.domain.report.repository.ReportUserRepository;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.verification.entity.PhotoVerification;
-import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.verification.service.PhotoVerificationReadService;
-import com.planup.planup.domain.verification.service.PhotoVerificationService;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
-import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,6 +29,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -64,9 +64,11 @@ public class GoalReportServiceImpl implements GoalReportService {
 
     @Override
     @Transactional(readOnly = true)
-    public GoalReportResponseDTO.GoalReportResponse findDTOById(Long id) {
+    public GoalReportResponseDTO.GoalReportResponse findDTOById(Long id, Long userId) {
         GoalReport goalReport = goalReportRepository.findById(id).orElseThrow(() -> new ReportException(ErrorStatus.NOT_FOUND_GOAL_REPORT));
-        return GoalReportConverter.toResponse(goalReport);
+        List<Comment> commentList = goalReport.getCommentList();
+        List<CommentResponseDto.CommentDto> commentDtoList = commentList.stream().map(c -> CommentConverter.toResponseDto(c, userId)).collect(Collectors.toList());
+        return GoalReportConverter.toResponse(goalReport, commentDtoList);
     }
 
     @Override
@@ -230,5 +232,10 @@ public class GoalReportServiceImpl implements GoalReportService {
         DailyAchievementRate dto = b.build();
         dto.calTotal(); // 총합/평균을 DTO 내부에서 계산하도록 유지
         return dto;
+    }
+
+    @Override
+    public GoalReport getGoalReportById(Long id) {
+        return goalReportRepository.findById(id).orElseThrow(() -> new ReportException(ErrorStatus.NOT_FOUND_GOAL_REPORT));
     }
 }
