@@ -199,6 +199,16 @@ public class FriendServiceImpl implements FriendService {
 
         if (friend != null) {
             friendRepository.delete(friend); // 엔티티 삭제
+            
+            // 친구 신청 거절 알림 생성
+            notificationService.createNotification(
+                friendId,           // receiverId (친구 신청을 보낸 사람)
+                userId,             // senderId (친구 신청을 거절한 사람)
+                NotificationType.FRIEND_REQUEST_REJECTED,
+                TargetType.USER,
+                userId              // targetId (친구 신청을 거절한 사람의 ID)
+            );
+            
             return true;
         }
         // 친구 신청을 찾지 못했을 때
