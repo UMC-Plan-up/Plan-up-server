@@ -49,6 +49,8 @@ public interface TimerVerificationRepository extends JpaRepository<TimerVerifica
                   "AND t.endTime IS NOT NULL")
     boolean existsByUserGoalAndDate(@Param("userGoalId") Long userGoalId,
                                     @Param("date") LocalDate date);
+
+    boolean existsByUserGoal_User_IdAndCreatedAtAfter(Long userId, LocalDateTime localDateTime);
 }
 
 

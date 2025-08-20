@@ -84,13 +84,13 @@ kakao:
   auth-url: https://kauth.kakao.com/oauth/token
   api-url: https://kapi.kakao.com/v2/user/me
   redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:8080/test/kakao/callback}
-
-management:
-  health:
-    db:
-      enabled: false
-  endpoints:
-    web:
-      exposure:
-        include: health, info, metrics, prometheus
-      base-path: /v1/actuator
+#
+#management:
+#  health:
+#    db:
+#      enabled: false
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health, info, metrics, prometheus
+#      base-path: /v1/actuator

@@ -58,4 +58,8 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     List<UserGoal> findByGoalIdOrderByVerificationCountDesc(Long goalId);
 
     boolean existsUserGoalByGoalIdAndUserId(Long goalId, Long userId);
+
+    int countByUserIdAndIsActiveTrue(Long id);
+
+    List<UserGoal> findByUserIdAndIsActiveTrueOrderByCreatedAtAsc(Long id);
 }

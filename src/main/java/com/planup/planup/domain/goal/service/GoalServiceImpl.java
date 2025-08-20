@@ -1,5 +1,7 @@
 package com.planup.planup.domain.goal.service;
 
+import com.planup.planup.apiPayload.exception.custom.GoalException;
+import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
@@ -14,6 +16,10 @@ import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.GoalMemo;
 import com.planup.planup.domain.goal.repository.CommentRepository;
 import com.planup.planup.domain.goal.repository.GoalMemoRepository;
+import com.planup.planup.domain.notification.service.NotificationCreateService;
+import com.planup.planup.domain.notification.service.NotificationService;
+import com.planup.planup.domain.user.entity.UserLevel;
+import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
@@ -35,6 +41,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -56,10 +63,20 @@ public class GoalServiceImpl implements GoalService{
     @Lazy
     private final TimerVerificationService timerVerificationService;
     private final TimerVerificationReadService timerVerificationReadService;
-
+    private final UserService userService;
+    private final NotificationCreateService notificationCreateService;
     //목표 생성
     @Transactional
     public GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto createGoalDto){
+        //목표 제목 에러 처리
+        validateGoalName(createGoalDto.getGoalName(), userId);
+        //유저 검증
+        User user = userService.getUserbyUserId(userId);
+        //레벨 별 목표 생성 제한
+        validateGoalCreationLimit(user);
+        //종료일 에러 처리
+        validateEndDate(createGoalDto.getEndDate());
+
         Goal goal = GoalConvertor.toGoal(createGoalDto);
         Goal savedGoal = goalRepository.save(goal);
 
@@ -74,60 +91,49 @@ public class GoalServiceImpl implements GoalService{
                 .build();
         UserGoal savedUserGoal = userGoalRepository.save(userGoal);
 
-        //Refactor : 인증 테이블 자동 생성
-        TimerVerification timerVerification = TimerVerification.builder()
-                .spentTime(Duration.ZERO)
-                .userGoal(savedUserGoal)
-                .build();
-        timerVerificationRepository.save(timerVerification);
-
-        PhotoVerification photoVerification = PhotoVerification.builder()
-                .photoImg(null)
-                .userGoal(savedUserGoal)
-                .build();
-        photoVerificationRepository.save(photoVerification);
+        notificationCreateService.createGoalCreatedNotification(userId, goal.getId());
 
         return GoalConvertor.toGoalResultDto(savedGoal);
     }
 
-    //목표 리스트 조회(목표 생성시 -> 세부 내용 조회X)
+    //목표 리스트 조회(목표 생성시 -> 세부 내용 조회X) 카테고리별 친구 목표
     @Transactional(readOnly = true)
-    public List<GoalResponseDto.GoalCreateListDto> getGoalList(Long userId, GoalCategory goalCategory) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
-
-        List<GoalResponseDto.GoalCreateListDto> result = new ArrayList<>();
+    public List<GoalResponseDto.GoalCreateListDto> getFriendGoalsByCategory(Long userId, GoalCategory goalCategory) {
+        userService.getUserbyUserId(userId);
 
         List<UserGoal> friendGoals = userGoalRepository.findFriendGoalsByCategory(userId, goalCategory);
-        for (UserGoal userGoal : friendGoals) {
-            User creator = userGoalRepository.findByGoalIdAndStatus(
-                    userGoal.getGoal().getId(), Status.ADMIN).getUser();
 
-            int currentParticipants = userGoalRepository.countByGoalId(userGoal.getGoal().getId());
-            int remainingSlots = userGoal.getGoal().getLimitFriendCount() - currentParticipants;
+        return friendGoals.stream()
+                .map(userGoal -> {
+                    User creator = userGoalRepository.findByGoalIdAndStatus(
+                            userGoal.getGoal().getId(), Status.ADMIN).getUser();
+                    int currentParticipants = userGoalRepository.countByGoalId(userGoal.getGoal().getId());
+                    int remainingSlots = userGoal.getGoal().getLimitFriendCount() - currentParticipants;
+                    return GoalConvertor.toGoalCreateListDto(userGoal, creator, remainingSlots);
+                })
+                .collect(Collectors.toList());
+    }
 
-            result.add(GoalConvertor.toGoalCreateListDto(userGoal, creator, remainingSlots));
-        }
-
+    //목표 리스트 조회(목표 생성시 -> 세부 내용 조회X) 카테고리별 커뮤니티 목표
+    @Transactional(readOnly = true)
+    public List<GoalResponseDto.GoalCreateListDto> getCommunityGoalsByCategory(GoalCategory goalCategory) {
         List<UserGoal> communityGoals = userGoalRepository.findCommunityGoalsByCategory(goalCategory);
-        for (UserGoal userGoal : communityGoals) {
-            User creator = userGoalRepository.findByGoalIdAndStatus(
-                    userGoal.getGoal().getId(), Status.ADMIN).getUser();
 
-            int currentParticipants = userGoalRepository.countByGoalId(userGoal.getGoal().getId());
-            int remainingSlots = userGoal.getGoal().getLimitFriendCount() - currentParticipants;
-
-            result.add(GoalConvertor.toGoalCreateListDto(userGoal, creator, remainingSlots));
-        }
-
-        return result;
+        return communityGoals.stream()
+                .map(userGoal -> {
+                    User creator = userGoalRepository.findByGoalIdAndStatus(
+                            userGoal.getGoal().getId(), Status.ADMIN).getUser();
+                    int currentParticipants = userGoalRepository.countByGoalId(userGoal.getGoal().getId());
+                    int remainingSlots = userGoal.getGoal().getLimitFriendCount() - currentParticipants;
+                    return GoalConvertor.toGoalCreateListDto(userGoal, creator, remainingSlots);
+                })
+                .collect(Collectors.toList());
     }
 
     //내 목표 조회(리스트)
     @Transactional(readOnly = true)
     public List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        User user = userService.getUserbyUserId(userId);
 
         List<UserGoal> userGoals = userGoalRepository.findByUserId(userId);
 
@@ -139,12 +145,9 @@ public class GoalServiceImpl implements GoalService{
     //친구 목표 조회(리스트)
     @Transactional(readOnly = true)
     public List<GoalResponseDto.FriendGoalListDto> getFriendGoals(Long userId, Long friendsId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        User user = userService.getUserbyUserId(userId);
+        userService.getUserbyUserId(friendsId);
 
-        userRepository.findById(friendsId)
-                .orElseThrow(() -> new RuntimeException("친구를 찾을 수 없습니다."));
-        //친구 관계 검증 필요, 추후 구현
         friendService.isFriend(userId, friendsId);
 
         List<UserGoal> userGoals = userGoalRepository.findByUserIdAndIsPublicTrue(friendsId);
@@ -207,14 +210,6 @@ public class GoalServiceImpl implements GoalService{
             }
         }
     }
-
-    @Override
-    @Transactional
-    public Goal findGoalById(Long goalId) {
-        return goalRepository.findById(goalId)
-                .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
-    }
-
 
     //목표 삭제
     @Transactional
@@ -423,6 +418,11 @@ public class GoalServiceImpl implements GoalService{
         return GoalConvertor.toDailyVerifiedGoalsResponse(date, verifiedGoals);
     }
 
+    //헬퍼 메서드
+    public User getUser(Long userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
+    }
+
     @Override
     public Goal getGoalById(Long id) {
         return goalRepository.findById(id).orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
@@ -440,5 +440,81 @@ public class GoalServiceImpl implements GoalService{
         return userGoals.stream().map(UserGoal::getUser)
                 .filter(userGoalUser -> !userGoalUser.getId().equals(user.getId()))
                 .toList();
+    }
+
+    private void validateGoalCreationLimit(User user) {
+        if (user.getUserLevel() == UserLevel.LEVEL_MAX) {
+            return;
+        }
+
+        int currentActiveGoals = userGoalRepository.countByUserIdAndIsActiveTrue(user.getId());
+        int maxGoalCount = user.getUserLevel().getValue();
+
+        if (currentActiveGoals > maxGoalCount) {
+            String levelUpGuide = getLevelUpGuide(user.getUserLevel());
+                throw new GoalException(ErrorStatus.GOAL_CREATION_LIMIT_EXCEEDED)
+                        .setCustomMessage(String.format(
+                                "현재 레벨 %d에서는 최대 %d개의 목표만 생성할 수 있습니다.%s",
+                                user.getUserLevel().getValue(), maxGoalCount, levelUpGuide));
+        }
+    }
+
+    @Override
+    @Transactional
+    public Goal findGoalById(Long goalId) {
+        return goalRepository.findById(goalId)
+                .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
+    }
+
+    private void validateEndDate(Date endDate) {
+        LocalDate endLocalDate = endDate.toInstant()
+                .atZone(java.time.ZoneId.systemDefault())
+                .toLocalDate();
+        if (endLocalDate.isBefore(LocalDate.now())) {
+            throw new GoalException(ErrorStatus.INVALID_GOAL_END_DATE);
+        }
+    }
+
+    private void validateGoalName(String goalName, Long userId) {
+        if (goalName == null || goalName.trim().isEmpty()) {
+            throw new GoalException(ErrorStatus.NOT_FOUND_GOAL_TITLE);
+        }
+    }
+
+    private String getLevelUpGuide(UserLevel currentLevel) {
+        switch (currentLevel) {
+            case LEVEL_1:
+                return "다음 단계: 첫 번째 목표를 7일 내에 50% 이상 달성하면 목표 2개까지 생성할 수 있어요!";
+
+            case LEVEL_2:
+                return "다음 단계: 새로운 목표를 추가하고 매일 1회씩 7일간 기록하면 목표 3개까지 생성할 수 있어요!";
+
+            case LEVEL_3:
+                return "다음 단계: 2개의 활성 목표를 모두 7일 내에 50% 이상 달성하면 목표 4개까지 생성할 수 있어요!";
+
+            case LEVEL_4:
+                return "다음 단계: 7일간 2개 이상의 활성화 목표 달성률을 50% 이상으로 유지하면 목표 5개까지 생성할 수 있어요!";
+
+            case LEVEL_5:
+                return "다음 단계: 새 목표를 추가하고 14일간 3개 이상의 활성화 목표 달성률을 50% 이상으로 유지하면 목표 6개까지 생성할 수 있어요!";
+
+            case LEVEL_6:
+                return "다음 단계: 7일간 전체 활성화 목표 달성률을 50% 이상으로 유지하면 목표 7개까지 생성할 수 있어요!";
+
+            case LEVEL_7:
+                return "다음 단계: 14일간 2개 이상의 활성화 목표 달성률을 50% 이상으로 유지하면 목표 8개까지 생성할 수 있어요!";
+
+            case LEVEL_8:
+                return "다음 단계: 14일간 전체 활성화 목표 달성률을 50% 이상으로 유지하면 목표 9개까지 생성할 수 있어요!";
+
+            case LEVEL_9:
+                return "다음 단계: 새 목표를 추가하고 14일간 3개 이상의 활성화 목표 달성률을 50% 이상으로 유지하면 목표 10개까지 생성할 수 있어요!";
+
+            case LEVEL_10:
+                return "프리미엄 구독으로 무제한 목표 생성이 가능해요!";
+
+            default:
+                return "목표를 꾸준히 달성하여 레벨을 올려보세요!";
+        }
     }
 }

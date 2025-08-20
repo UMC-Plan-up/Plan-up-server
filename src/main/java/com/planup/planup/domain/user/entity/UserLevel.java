@@ -11,7 +11,10 @@ public enum UserLevel {
     LEVEL_6(6),
     LEVEL_7(7),
     LEVEL_8(8),
-    LEVEL_9(9);
+    LEVEL_9(9),
+    LEVEL_10(10),
+    LEVEL_MAX(11);
+
 
     private final int value;
 

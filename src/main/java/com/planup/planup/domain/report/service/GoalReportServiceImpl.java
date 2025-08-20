@@ -189,7 +189,7 @@ public class GoalReportServiceImpl implements GoalReportService {
     }
 
     //각 인증을 취합하여 DailyAchievementRate를 생성한다.
-    private DailyAchievementRate calculateVerification(UserGoal userGoal, Goal goal, LocalDateTime startDate) {
+    public DailyAchievementRate calculateVerification(UserGoal userGoal, Goal goal, LocalDateTime startDate) {
 
 
         //날짜별 인증을 저장한다
