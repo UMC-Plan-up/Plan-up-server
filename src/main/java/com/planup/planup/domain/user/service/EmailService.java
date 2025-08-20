@@ -23,10 +23,10 @@ public interface EmailService {
     void clearVerificationToken(String email);
 
     // 비밀번호 변경용 딥링크 이메일 발송
-    String sendPasswordChangeEmail(String email);
+    String sendPasswordChangeEmail(String email, Boolean isLoggedIn);
 
     // 비밀번호 변경 이메일 재발송
-    String resendPasswordChangeEmail(String email);
+    String resendPasswordChangeEmail(String email, Boolean isLoggedIn);
 
     // 비밀번호 변경 토큰 검증
     String validatePasswordChangeToken(String token);
@@ -36,6 +36,9 @@ public interface EmailService {
     
     // 비밀번호 변경 이메일 인증 완료 표시
     void markPasswordChangeEmailAsVerified(String email);
+
+    // 비밀번호 변경 토큰에서 이메일과 로그인 상태 정보 모두 반환
+    String[] validatePasswordChangeTokenInfo(String token);
 
 
     String createSuccessHtml(String email, String deepLinkUrl);
@@ -58,4 +61,7 @@ public interface EmailService {
     
     // 이메일 변경 토큰 정리
     void clearEmailChangeToken(String token);
+
+    // 비밀번호 변경 토큰 정리
+    void clearPasswordChangeToken(String email);
 }

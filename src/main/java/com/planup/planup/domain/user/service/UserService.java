@@ -15,9 +15,7 @@ public interface UserService {
 
     boolean updateNotificationAgree(Long userId);
 
-    boolean checkPassword(Long userId, String password);
 
-    void updatePassword(Long userId, String password);
     
     // 비밀번호 변경 이메일 인증 완료 여부 확인
     Boolean isPasswordChangeEmailVerified(String email);
@@ -33,10 +31,13 @@ public interface UserService {
     boolean isEmailAvailable(String email);
 
     // 비밀번호 변경 이메일 발송
-    EmailSendResponseDTO sendPasswordChangeEmail(String email);
+    EmailSendResponseDTO sendPasswordChangeEmail(String email, Boolean isLoggedIn);
 
     // 비밀번호 변경 이메일 재발송
-    EmailSendResponseDTO resendPasswordChangeEmail(String email);
+    EmailSendResponseDTO resendPasswordChangeEmail(String email, Boolean isLoggedIn);
+
+    // 토큰 기반 비밀번호 변경
+    void changePasswordWithToken(String token, String newPassword);
 
     SignupResponseDTO signup(SignupRequestDTO request);
 
