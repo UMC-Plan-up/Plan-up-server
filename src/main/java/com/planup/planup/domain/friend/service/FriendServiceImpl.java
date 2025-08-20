@@ -9,6 +9,9 @@ import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
+import com.planup.planup.domain.notification.service.NotificationService;
+import com.planup.planup.domain.notification.entity.NotificationType;
+import com.planup.planup.domain.notification.entity.TargetType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,7 @@ public class FriendServiceImpl implements FriendService {
     private final FriendConverter friendConverter;
     private final TimerVerificationReadService timerVerificationService;
     private final PhotoVerificationRepository photoVerificationRepository;
+    private final NotificationService notificationService;  
 
     @Override
     @Transactional(readOnly = true)
@@ -255,6 +259,16 @@ public class FriendServiceImpl implements FriendService {
         friendRequest.setStatus(FriendStatus.REQUESTED);
 
         friendRepository.save(friendRequest);
+        
+        // 친구 신청 알림 생성
+        notificationService.createNotification(
+            friendId,           // receiverId (친구 신청 받는 사람)
+            userId,             // senderId (친구 신청 보내는 사람)
+            NotificationType.FRIEND_REQUEST_SENT,
+            TargetType.USER,
+            userId              // targetId (친구 신청 보낸 사람의 ID)
+        );
+        
         return true;
     }
 
