@@ -28,8 +28,6 @@ public interface EmailService {
     // 비밀번호 변경 이메일 재발송
     String resendPasswordChangeEmail(String email, Boolean isLoggedIn);
 
-    // 비밀번호 변경 토큰 검증
-    String validatePasswordChangeToken(String token);
     
     // 비밀번호 변경 이메일 인증 완료 여부 확인
     Boolean isPasswordChangeEmailVerified(String email);
@@ -38,7 +36,7 @@ public interface EmailService {
     void markPasswordChangeEmailAsVerified(String email);
 
     // 비밀번호 변경 토큰에서 이메일과 로그인 상태 정보 모두 반환
-    String[] validatePasswordChangeTokenInfo(String token);
+    String[] validatePasswordChangeToken(String token);
 
 
     String createSuccessHtml(String email, String deepLinkUrl);

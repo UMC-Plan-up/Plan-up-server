@@ -120,7 +120,8 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void changePasswordWithToken(String token, String newPassword) {
         // 토큰으로 이메일 검증
-        String email = emailService.validatePasswordChangeToken(token);
+        String[] tokenInfo = emailService.validatePasswordChangeToken(token);
+        String email = tokenInfo[0];  // 이메일만 추출
         
         // 해당 이메일의 사용자 조회
         User user = userRepository.findByEmailAndUserActivate(email, UserActivate.ACTIVE)
@@ -585,7 +586,7 @@ public class UserServiceImpl implements UserService {
                 .verificationToken(changeToken)
                 .build();
     }
-    
+
     @Override
     public KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request) {
         KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());

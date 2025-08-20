@@ -252,7 +252,7 @@ public class UserController {
     @GetMapping("/users/password/change-link")
     public ResponseEntity<String> handlePasswordChangeLink(@RequestParam String token) {
         try {
-            String[] tokenInfo = emailService.validatePasswordChangeTokenInfo(token);
+            String[] tokenInfo = emailService.validatePasswordChangeToken(token);
             String email = tokenInfo[0]; 
             Boolean isLoggedIn = Boolean.parseBoolean(tokenInfo[1]);
             
