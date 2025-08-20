@@ -154,6 +154,7 @@ public class UserGoalServiceImpl implements UserGoalService{
     @Transactional(readOnly = true)
     public UserGoalResponseDto.GoalTotalAchievementDto calculateGoalTotalAchievement(Long goalId, Long userId) {
         UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+
         if (userGoal == null) {
             throw new UserGoalException(ErrorStatus.NOT_FOUND_GOAL);
         }
