@@ -1,0 +1,101 @@
+package com.planup.planup.domain.global.message;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+
+import java.util.Map;
+
+@Service
+public class EncouragementService {
+
+    private final WebClient webClient;
+    private final String endpoint;
+    private final String model;
+
+    public EncouragementService(
+            WebClient.Builder builder,
+            @Value("${gemini.endpoint}") String endpoint,
+            @Value("${gemini.model}") String model,
+            @Value("${gemini.api-key}") String apiKey
+    ) {
+        this.webClient = builder
+                .baseUrl(endpoint)
+                .defaultHeader("x-goog-api-key", apiKey)
+                .build();
+        this.endpoint = endpoint;
+        this.model = model;
+    }
+
+    public Mono<MessageResponse> generate(MessageRequest req) {
+        String prompt = buildPrompt(
+                req.name(),
+                req.context(),
+                req.tone(),
+                req.formality(),
+                req.emoji() == null ? Boolean.TRUE : req.emoji()
+        );
+
+        Map<String, Object> body = Map.of(
+                "contents", new Object[]{
+                        Map.of("parts", new Object[]{ Map.of("text", prompt) })
+                },
+                "generationConfig", Map.of(
+                        "maxOutputTokens", 128,
+                        "temperature", 0.8
+                )
+        );
+
+        String path = String.format("/%s:generateContent", model);
+
+        return webClient.post()
+                .uri(path)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .map(this::extractText)        // Gemini 응답 → 텍스트
+                .map(MessageResponse::new);
+    }
+
+    private String extractText(Map<?, ?> resp) {
+        // 응답: candidates[0].content.parts[*].text 를 이어붙임
+        try {
+            var candidates = (java.util.List<?>) resp.get("candidates");
+            if (candidates == null || candidates.isEmpty()) return "";
+            var cand0 = (Map<?, ?>) candidates.get(0);
+            var content = (Map<?, ?>) cand0.get("content");
+            var parts = (java.util.List<?>) content.get("parts");
+            StringBuilder sb = new StringBuilder();
+            for (Object p : parts) {
+                var m = (Map<?, ?>) p;
+                var t = (String) m.get("text");
+                if (StringUtils.hasText(t)) sb.append(t);
+            }
+            // 따옴표/개행 정리
+            return sb.toString().replaceAll("^[\"“”‘’\\s]+|[\"“”‘’\\s]+$", "");
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private String buildPrompt(String name, String context, String tone, String formality, boolean emoji) {
+        return """
+                시스템: 너는 따뜻하고 센스있는 카피라이터야.
+                규칙:
+                - 한국어로만 작성.
+                - 최대 2문장, 80자 이내.
+                - 톤: %s
+                - 존댓말 여부: %s
+                - 이모지 사용: %s (true면 1~2개 사용)
+                - 비속어/혐오/민감 조언 금지, 반복 피하기
+                컨텍스트:
+                - 받는 사람: %s
+                - 상황/목표: %s
+                출력: 메시지 한 개만 반환. 따옴표 없이 본문만.
+                """.formatted(tone, formality, emoji, name, context).trim();
+    }
+}
