@@ -44,4 +44,6 @@ public interface PhotoVerificationRepository extends JpaRepository<PhotoVerifica
                                     @Param("date") LocalDate date);
 
     List<PhotoVerification> findAllByUserGoal(UserGoal userGoal);
+
+    boolean existsByUserGoal_User_IdAndCreatedAtAfter(Long userId, LocalDateTime localDateTime);
 }
