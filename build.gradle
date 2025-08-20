@@ -55,4 +55,7 @@ dependencies {
 
 	// 카카오 API 호출용 (HTTP 클라이언트)
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 }
