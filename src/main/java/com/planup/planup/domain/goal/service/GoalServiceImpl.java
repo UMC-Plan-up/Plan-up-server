@@ -517,4 +517,9 @@ public class GoalServiceImpl implements GoalService{
                 return "목표를 꾸준히 달성하여 레벨을 올려보세요!";
         }
     }
+
+    public String getGoalNameById(Long id) {
+        Goal goal = getGoalById(id);
+        return goal.getGoalName();
+    }
 }

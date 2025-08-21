@@ -1,6 +1,7 @@
 package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.domain.friend.service.FriendService;
+import com.planup.planup.domain.global.redis.CacheAggregation;
 import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.convertor.UserGoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
@@ -16,17 +17,19 @@ public class UserGoalAggregationServiceImpl implements UserGoalAggregationServic
 
     private final UserGoalService userGoalService;
     private final FriendService friendService;
-    private final UserGoalCacheService userGoalCacheService;
+    private final CacheAggregation cacheAggregation;
 
     @Override
     public GoalResponseDto.DailyAchievementDto getDailyAchievement(Long userId, LocalDate targetDate) {
 
-        Integer dailyAchievement = userGoalCacheService.getDailyAchievement(userId.toString());
+        String key = generateKey(userId.toString(), targetDate.toString());
 
-        if (dailyAchievement == null) {
-            dailyAchievement = userGoalService.calculateDailyAchievement(userId, targetDate);
-            userGoalCacheService.saveUserDailyAchievement(userId.toString(), dailyAchievement);
-        }
+        Integer dailyAchievement = cacheAggregation.getOrCompute(
+                key,
+                CacheAggregation.ttlUntilMidnight(),
+                Integer.class,
+                () -> userGoalService.calculateDailyAchievement(userId, targetDate)
+        );
 
         return GoalConvertor.toDailyAchievementDto(targetDate, dailyAchievement);
     }
@@ -34,13 +37,14 @@ public class UserGoalAggregationServiceImpl implements UserGoalAggregationServic
     @Override
     public UserGoalResponseDto.GoalTotalAchievementDto getTotalAchievement(Long goalId, Long userId) {
 
-        Integer totalAchievementGoal = userGoalCacheService.getTotalAchievementGoal(goalId.toString(), userId.toString());
+        String key = generateKeyUserAndGoal(userId.toString(), goalId.toString());
 
-        if (totalAchievementGoal == null) {
-            UserGoalResponseDto.GoalTotalAchievementDto dto = userGoalService.calculateGoalTotalAchievement(goalId, userId);
-            userGoalCacheService.saveTotalAchievementGoal(userId.toString(), goalId.toString(), dto.getTotalAchievementRate());
-            return dto;
-        }
+        Integer totalAchievementGoal = cacheAggregation.getOrCompute(
+                key,
+                CacheAggregation.ttlUntilMidnight(),
+                Integer.class,
+                () -> userGoalService.calculateGoalTotalAchievement(goalId, userId).getTotalAchievementRate()
+        );
 
         return UserGoalConvertor.toGoalTotalAchievementDto(goalId, totalAchievementGoal);
     }
@@ -49,14 +53,23 @@ public class UserGoalAggregationServiceImpl implements UserGoalAggregationServic
     public UserGoalResponseDto.GoalTotalAchievementDto getFriendGoalTotalAchievement(Long userId, Long goalId, Long friendId) {
         friendService.isFriend(userId, friendId);
 
-        Integer totalAchievementGoal = userGoalCacheService.getTotalAchievementGoal(goalId.toString(), friendId.toString());
+        String key = generateKeyUserAndGoal(friendId.toString(), goalId.toString());
 
-        if (totalAchievementGoal == null) {
-            UserGoalResponseDto.GoalTotalAchievementDto dto = userGoalService.calculateGoalTotalAchievement(goalId, friendId);
-            userGoalCacheService.saveTotalAchievementGoal(friendId.toString(), goalId.toString(), dto.getTotalAchievementRate());
-            return dto;
-        }
+        Integer totalAchievementGoal = cacheAggregation.getOrCompute(
+                key,
+                CacheAggregation.ttlUntilMidnight(),
+                Integer.class,
+                () -> userGoalService.calculateGoalTotalAchievement(goalId, friendId).getTotalAchievementRate()
+        );
 
         return UserGoalConvertor.toGoalTotalAchievementDto(goalId, totalAchievementGoal);
+    }
+
+    private String generateKey(String userId, String suffix) {
+        return "user:" + userId + ":" + suffix;
+    }
+
+    private String generateKeyUserAndGoal(String userId, String goalId) {
+        return "user:" + userId + ":goal:" + goalId + ":" + "goalAchievement";
     }
 }

@@ -1,5 +1,10 @@
 package com.planup.planup.domain.global.message;
 
+import com.planup.planup.domain.goal.dto.GoalResponseDto;
+import com.planup.planup.domain.goal.dto.UserGoalResponseDto;
+import com.planup.planup.domain.goal.service.GoalService;
+import com.planup.planup.domain.goal.service.UserGoalAggregationService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -7,7 +12,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class EncouragementService {
@@ -15,12 +24,16 @@ public class EncouragementService {
     private final WebClient webClient;
     private final String endpoint;
     private final String model;
+    private final UserGoalAggregationService userGoalAggregationService;
+    private final GoalService goalService;
 
     public EncouragementService(
             WebClient.Builder builder,
             @Value("${gemini.endpoint}") String endpoint,
             @Value("${gemini.model}") String model,
-            @Value("${gemini.api-key}") String apiKey
+            @Value("${gemini.api-key}") String apiKey,
+            UserGoalAggregationService userGoalAggregationService,
+            GoalService goalService
     ) {
         this.webClient = builder
                 .baseUrl(endpoint)
@@ -28,15 +41,34 @@ public class EncouragementService {
                 .build();
         this.endpoint = endpoint;
         this.model = model;
+        this.userGoalAggregationService = userGoalAggregationService;
+        this.goalService = goalService;
     }
 
     public Mono<MessageResponse> generate(MessageRequest req) {
+        int achievementRate = userGoalAggregationService.getDailyAchievement(req.userId(), LocalDate.now()).getAchievementRate();
+
+        Map<String, Integer> goalAchList = new HashMap<>();
+
+        List<UserGoalResponseDto.GoalTotalAchievementDto> dtoList = req.goalIdList().stream()
+                .map(goalId -> userGoalAggregationService.getTotalAchievement(req.userId(), goalId))
+                .toList();
+
+        // Map에 값 넣기
+        dtoList.forEach(dto -> goalAchList.put(
+                dto.getGoalId().toString(),
+                dto.getTotalAchievementRate()
+        ));
+
+
         String prompt = buildPrompt(
                 req.name(),
                 req.context(),
                 req.tone(),
                 req.formality(),
-                req.emoji() == null ? Boolean.TRUE : req.emoji()
+                req.emoji() == null ? Boolean.TRUE : req.emoji(),
+                achievementRate,
+                goalAchList
         );
 
         Map<String, Object> body = Map.of(
@@ -82,20 +114,39 @@ public class EncouragementService {
         }
     }
 
-    private String buildPrompt(String name, String context, String tone, String formality, boolean emoji) {
+    private String buildPrompt(
+            String name,
+            String context,
+            String tone,
+            String formality,
+            boolean emoji,
+            int dailyAchievementRate, // 일일 성취율 %
+            Map<String, Integer> goalAchievementRates // 목표별 성취율
+    ) {
         return """
-                시스템: 너는 따뜻하고 센스있는 카피라이터야.
-                규칙:
-                - 한국어로만 작성.
-                - 최대 2문장, 80자 이내.
-                - 톤: %s
-                - 존댓말 여부: %s
-                - 이모지 사용: %s (true면 1~2개 사용)
-                - 비속어/혐오/민감 조언 금지, 반복 피하기
-                컨텍스트:
-                - 받는 사람: %s
-                - 상황/목표: %s
-                출력: 메시지 한 개만 반환. 따옴표 없이 본문만.
-                """.formatted(tone, formality, emoji, name, context).trim();
+            시스템: 너는 따뜻하고 센스있는 카피라이터야.
+            규칙:
+            - 한국어로만 작성.
+            - 최대 2문장, 80자 이내.
+            - 톤: %s
+            - 존댓말 여부: %s
+            - 이모지 사용: %s (true면 1~2개 사용)
+            - 비속어/혐오/민감 조언 금지, 반복 피하기
+            참고 데이터:
+            - 오늘의 전체 성취율: %d%%
+            - 목표별 성취율: %s
+            컨텍스트:
+            - 받는 사람: %s
+            - 상황/목표: %s
+            출력: 응원 메시지 한 개만 반환. 따옴표 없이 본문만.
+            """.formatted(
+                tone,
+                formality,
+                emoji,
+                dailyAchievementRate,
+                goalAchievementRates.toString(),
+                name,
+                context
+        ).trim();
     }
 }
