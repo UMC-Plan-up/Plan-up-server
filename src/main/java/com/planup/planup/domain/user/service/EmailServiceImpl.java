@@ -109,26 +109,29 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public String resendPasswordChangeEmail(String email) {
+    public String resendPasswordChangeEmail(String email, Boolean isLoggedIn) {
         clearExistingPasswordChangeTokens(email);
-        return sendPasswordChangeEmail(email);
+        return sendPasswordChangeEmail(email, isLoggedIn);  // 실제 로그인 상태 전달
     }
 
     @Override
-    public String sendPasswordChangeEmail(String email) {
-        String changeToken = UUID.randomUUID().toString();
-
+    public String sendPasswordChangeEmail(String email, Boolean isLoggedIn) {
+        String token = UUID.randomUUID().toString();
+    
+        // Redis에 토큰 저장 (기존 이메일 변경 방식과 동일)
+        // "email:isLoggedIn" 형태로 저장
         redisTemplate.opsForValue().set(
-                "password-change:" + changeToken,
-                email,
-                30,
-                TimeUnit.MINUTES
+            "password-change:" + token,
+            email + ":" + isLoggedIn,
+            30,
+            TimeUnit.MINUTES
         );
-
-        String changeUrl = appDomain + "/users/password/change-link?token=" + changeToken;
+        
+        // 이메일 발송 (기존 방식과 동일)
+        String changeUrl = appDomain + "/users/password/change-link?token=" + token;
         sendPasswordChangeEmailContent(email, changeUrl);
-
-        return changeToken;
+        
+        return token;
     }
 
     private void clearExistingPasswordChangeTokens(String email) {
@@ -144,17 +147,19 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public String validatePasswordChangeToken(String token) {
-        String email = redisTemplate.opsForValue().get("password-change:" + token);
+    public String[] validatePasswordChangeToken(String token) {
+        String value = redisTemplate.opsForValue().get("password-change:" + token);
 
-        if (email == null) {
+        if (value == null) {
             throw new IllegalArgumentException("만료되거나 유효하지 않은 비밀번호 변경 토큰입니다.");
         }
 
-        // 토큰 사용 후 삭제
-        redisTemplate.delete("password-change:" + token);
+        // "email:isLoggedIn" 형태로 분리
+        String[] parts = value.split(":");
+        String email = parts[0];
+        String isLoggedIn = parts[1];
         
-        return email;
+        return new String[]{email, isLoggedIn};
     }
     
     @Override
@@ -609,5 +614,22 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void clearEmailChangeToken(String token) {
         redisTemplate.delete("email-change:" + token);
+    }
+
+    @Override
+    public void clearPasswordChangeToken(String email) {
+        // 해당 이메일의 비밀번호 변경 관련 토큰들 정리
+        redisTemplate.delete("password-change-verified:" + email);
+        
+        // 기존 비밀번호 변경 토큰들도 정리
+        Set<String> keys = redisTemplate.keys("password-change:*");
+        if (keys != null) {
+            for (String key : keys) {
+                String storedEmail = redisTemplate.opsForValue().get(key);
+                if (email.equals(storedEmail)) {
+                    redisTemplate.delete(key);
+                }
+            }
+        }
     }
 }
