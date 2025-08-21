@@ -1,6 +1,7 @@
 package com.planup.planup.domain.goal.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
+import com.planup.planup.domain.friend.service.FriendService;
 import com.planup.planup.domain.goal.dto.CommentRequestDto;
 import com.planup.planup.domain.goal.dto.CommentResponseDto;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
@@ -8,6 +9,8 @@ import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.service.CommentService;
 import com.planup.planup.domain.goal.service.GoalService;
+import com.planup.planup.domain.user.entity.User;
+import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,6 +29,8 @@ import java.util.List;
 public class GoalController {
     private final GoalService goalService;
     private final CommentService commentService;
+    private final UserService userService;
+    private final FriendService friendService;
 
     @PostMapping("/create")
     @Operation(summary = "목표 생성 API", description = "목표를 생성하는 API입니다.")
@@ -37,14 +42,22 @@ public class GoalController {
         return ApiResponse.onSuccess(result);
     }
 
-    @GetMapping("/create/list")
-    @Operation(summary = "카테고리별 목표 조회 API", description = "목표 생성 시 선택한 카테고리의 친구/커뮤니티 목표 목록을 조회하는 API입니다.")
-    public ApiResponse<List<GoalResponseDto.GoalCreateListDto>> getGoalList(
+    @GetMapping("/create/list/friend")
+    @Operation(summary = "카테고리별 친구 목표 조회 API", description = "선택한 카테고리의 친구 목표 목록을 조회합니다.")
+    public ApiResponse<List<GoalResponseDto.GoalCreateListDto>> getFriendGoalsByCategory(
             @RequestParam GoalCategory goalCategory,
             @Parameter(hidden = true) @CurrentUser Long userId) {
 
-        List<GoalResponseDto.GoalCreateListDto> result = goalService.getGoalList(userId, goalCategory);
+        List<GoalResponseDto.GoalCreateListDto> result = goalService.getFriendGoalsByCategory(userId, goalCategory);
+        return ApiResponse.onSuccess(result);
+    }
 
+    @GetMapping("/create/list/community")
+    @Operation(summary = "카테고리별 커뮤니티 목표 조회 API", description = "선택한 카테고리의 커뮤니티 목표 목록을 조회합니다.")
+    public ApiResponse<List<GoalResponseDto.GoalCreateListDto>> getCommunityGoalsByCategory(
+            @RequestParam GoalCategory goalCategory) {
+
+        List<GoalResponseDto.GoalCreateListDto> result = goalService.getCommunityGoalsByCategory(goalCategory);
         return ApiResponse.onSuccess(result);
     }
 
@@ -157,6 +170,22 @@ public class GoalController {
         return ApiResponse.onSuccess(result);
     }
 
+    //친구 목표 업로드 사진 조회
+    @GetMapping("/friend/{friendId}/goal/{goalId}/photos")
+    @Operation(summary = "친구 목표 인증 사진 조회 API", description = "친구의 특정 목표에 업로드한 인증 사진들을 조회합니다.")
+    public ApiResponse<List<PhotoVerificationResponseDto.uploadPhotoResponseDto>> getFriendGoalPhotos(
+            @PathVariable Long friendId,
+            @PathVariable Long goalId,
+            @CurrentUser Long userId) {
+        User user = userService.getUserbyUserId(userId);
+        friendService.isFriend(userId, friendId);
+
+        List<PhotoVerificationResponseDto.uploadPhotoResponseDto> result =
+                goalService.getGoalPhotos(friendId, goalId);
+
+        return ApiResponse.onSuccess(result);
+    }
+
     // 댓글 CRUD
     @PostMapping("/{goalId}/comments")
     @Operation(summary = "댓글 작성 API", description = "특정 목표에 댓글을 작성합니다.")
@@ -165,7 +194,7 @@ public class GoalController {
             @Valid @RequestBody CommentRequestDto.CommentCreateRequestDto requestDto,
             @Parameter(hidden = true) @CurrentUser Long userId) {
 
-        CommentResponseDto.CommentDto result = commentService.createComment(goalId, userId, requestDto);
+        CommentResponseDto.CommentDto result = commentService.createCommentByGoal(goalId, userId, requestDto);
         return ApiResponse.onSuccess(result);
     }
 

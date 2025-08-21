@@ -1,14 +1,17 @@
 package com.planup.planup.domain.report.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
+import com.planup.planup.domain.goal.dto.CommentRequestDto;
+import com.planup.planup.domain.goal.dto.CommentResponseDto;
+import com.planup.planup.domain.goal.service.CommentService;
 import com.planup.planup.domain.report.dto.WeeklyReportResponseDTO;
 import com.planup.planup.domain.report.service.WeeklyReportService;
+import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -18,6 +21,7 @@ import java.util.List;
 public class WeeklyReportController {
 
     private final WeeklyReportService weeklyReportService;
+    private final CommentService commentService;
 
     @Operation(summary = "목표 달성 기록 조회 페이지 데이터 생성", description = "목표 달성 페이지의 알림, 메시지, 뱃지 내용을 조회")
     @GetMapping("/reports")
@@ -39,5 +43,16 @@ public class WeeklyReportController {
     public ApiResponse<WeeklyReportResponseDTO.WeeklyReportResponse> getWeeklyReport(Long userId, int year, int month, int week) {
         WeeklyReportResponseDTO.WeeklyReportResponse weeklyReport = weeklyReportService.getWeeklyReport(userId, year, month, week);
         return ApiResponse.onSuccess(weeklyReport);
+    }
+
+    @PostMapping("/{goalId}/comments")
+    @Operation(summary = "댓글 작성 API", description = "특정 목표에 댓글을 작성합니다.")
+    public ApiResponse<CommentResponseDto.CommentDto> createComment(
+            @PathVariable Long goalId,
+            @Valid @RequestBody CommentRequestDto.CommentCreateRequestDto requestDto,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        CommentResponseDto.CommentDto result = commentService.createCommentByGoal(goalId, userId, requestDto);
+        return ApiResponse.onSuccess(result);
     }
 }

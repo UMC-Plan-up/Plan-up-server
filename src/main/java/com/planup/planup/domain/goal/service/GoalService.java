@@ -4,6 +4,7 @@ import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Goal;
+import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,7 +16,9 @@ public interface GoalService {
 
     //Command Service
     GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto dto);
-    List<GoalResponseDto.GoalCreateListDto> getGoalList(Long userId, GoalCategory goalCategory);
+    List<GoalResponseDto.GoalCreateListDto> getFriendGoalsByCategory(Long userId, GoalCategory goalCategory);
+    List<GoalResponseDto.GoalCreateListDto> getCommunityGoalsByCategory(GoalCategory goalCategory);
+
     GoalResponseDto.MyGoalDetailDto getMyGoalDetails(Long goalId, Long userId);
     void updatePublicGoal(Long goalId, Long userId);
 
@@ -37,4 +40,7 @@ public interface GoalService {
     List<GoalResponseDto.GoalMemoReadDto> getMemosByPeriod(Long userId, Long goalId, LocalDate startDate, LocalDate endDate);
 
     Goal getGoalById(Long challengeId);
+
+    @Transactional(readOnly = true)
+    List<User> getOtherMember(User user, Goal goal);
 }

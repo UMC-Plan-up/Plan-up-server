@@ -1,8 +1,10 @@
 package com.planup.planup.domain.verification.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
+import com.planup.planup.domain.friend.service.FriendService;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.service.UserGoalService;
+import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.domain.verification.convertor.TimerVerificationConverter;
 import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;
 import com.planup.planup.domain.verification.service.PhotoVerificationService;
@@ -28,6 +30,8 @@ public class VerificationController {
     private final TimerVerificationService timerVerificationService;
     private final PhotoVerificationService photoVerificationService;
     private final UserGoalService userGoalService;
+    private final FriendService friendService;
+    private final UserService userService;
 
     @PostMapping("/timer/start")
     @Operation(summary = "타이머 시작 API", description = "선택한 목표의 타이머 인증을 시작합니다.")
@@ -61,6 +65,26 @@ public class VerificationController {
 
 
         UserGoal userGoal = userGoalService.getByGoalIdAndUserId(userId, goalId);
+        LocalTime totalTime = timerVerificationReadService.getTodayTotalTime(userGoal);
+
+        TimerVerificationResponseDto.TodayTotalTimeResponseDto result =
+                TimerVerificationConverter.toTodayTotalTimeResponse(totalTime);
+
+        return ApiResponse.onSuccess(result);
+    }
+
+    @GetMapping("/friend/{friendId}/timer/today-total")
+    @Operation(summary = "친구의 오늘 총 타이머 시간 조회 API", description = "친구의 특정 목표에 대한 오늘 총 타이머 시간을 조회합니다.")
+    public ApiResponse<TimerVerificationResponseDto.TodayTotalTimeResponseDto> getFriendTodayTotalTime(
+            @Parameter(description = "친구 ID", example = "2")
+            @PathVariable Long friendId,
+            @Parameter(description = "목표 ID", example = "1")
+            @RequestParam("goalId") Long goalId,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+        userService.getUserbyUserId(userId);
+        friendService.isFriend(userId, friendId);
+
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(friendId, goalId);
         LocalTime totalTime = timerVerificationReadService.getTodayTotalTime(userGoal);
 
         TimerVerificationResponseDto.TodayTotalTimeResponseDto result =

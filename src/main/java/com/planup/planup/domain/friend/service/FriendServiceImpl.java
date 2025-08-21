@@ -9,6 +9,9 @@ import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
+import com.planup.planup.domain.notification.service.NotificationService;
+import com.planup.planup.domain.notification.entity.NotificationType;
+import com.planup.planup.domain.notification.entity.TargetType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,7 @@ public class FriendServiceImpl implements FriendService {
     private final FriendConverter friendConverter;
     private final TimerVerificationReadService timerVerificationService;
     private final PhotoVerificationRepository photoVerificationRepository;
+    private final NotificationService notificationService;  
 
     @Override
     @Transactional(readOnly = true)
@@ -195,6 +199,16 @@ public class FriendServiceImpl implements FriendService {
 
         if (friend != null) {
             friendRepository.delete(friend); // 엔티티 삭제
+            
+            // 친구 신청 거절 알림 생성
+            notificationService.createNotification(
+                friendId,           // receiverId (친구 신청을 보낸 사람)
+                userId,             // senderId (친구 신청을 거절한 사람)
+                NotificationType.FRIEND_REQUEST_REJECTED,
+                TargetType.USER,
+                userId              // targetId (친구 신청을 거절한 사람의 ID)
+            );
+            
             return true;
         }
         // 친구 신청을 찾지 못했을 때
@@ -216,6 +230,26 @@ public class FriendServiceImpl implements FriendService {
         if (friend != null) {
             friend.setStatus(FriendStatus.ACCEPTED); // 상태를 ACCEPTED로 변경
             friendRepository.save(friend);
+            
+            // 친구 신청 수락 알림 생성 - 양쪽 모두에게
+            // 1. 친구 신청을 보낸 사람에게 알림
+            notificationService.createNotification(
+                friendId,           // receiverId (친구 신청을 보낸 사람)
+                userId,             // senderId (친구 신청을 수락한 사람)
+                NotificationType.FRIEND_REQUEST_ACCEPTED,
+                TargetType.USER,
+                userId              // targetId (친구 신청을 수락한 사람의 ID)
+            );
+            
+            // 2. 친구 신청을 수락한 사람에게도 알림
+            notificationService.createNotification(
+                userId,             // receiverId (친구 신청을 수락한 사람)
+                friendId,           // senderId (친구 신청을 보낸 사람)
+                NotificationType.FRIEND_REQUEST_ACCEPTED,
+                TargetType.USER,
+                friendId            // targetId (친구 신청을 보낸 사람의 ID)
+            );
+            
             return true;
         }
         // 친구 신청을 찾지 못했을 때
@@ -255,6 +289,16 @@ public class FriendServiceImpl implements FriendService {
         friendRequest.setStatus(FriendStatus.REQUESTED);
 
         friendRepository.save(friendRequest);
+        
+        // 친구 신청 알림 생성
+        notificationService.createNotification(
+            friendId,           // receiverId (친구 신청 받는 사람)
+            userId,             // senderId (친구 신청 보내는 사람)
+            NotificationType.FRIEND_REQUEST_SENT,
+            TargetType.USER,
+            userId              // targetId (친구 신청 보낸 사람의 ID)
+        );
+        
         return true;
     }
 

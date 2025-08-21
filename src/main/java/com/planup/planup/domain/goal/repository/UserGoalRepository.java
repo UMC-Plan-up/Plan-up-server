@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -58,4 +59,13 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     List<UserGoal> findByGoalIdOrderByVerificationCountDesc(Long goalId);
 
     boolean existsUserGoalByGoalIdAndUserId(Long goalId, Long userId);
-}
+
+    int countByUserIdAndIsActiveTrue(Long id);
+
+    List<UserGoal> findByUserIdAndIsActiveTrueOrderByCreatedAtAsc(Long id);
+
+    @Query("SELECT ug FROM UserGoal ug " +
+            "WHERE ug.user = :user " +
+            "AND ug.isActive = true " +
+            "AND (ug.goal.endDate IS NULL OR ug.goal.endDate >= :targetDate)")
+    List<UserGoal> findActiveUserGoalsByUser(@Param("user") User user, @Param("targetDate") LocalDate targetDate);}

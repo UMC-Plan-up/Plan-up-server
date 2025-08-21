@@ -26,7 +26,7 @@ public class GoalRequestDto {
         int oneDose;
         int frequency;
         GoalPeriod period;
-        Date endDate;
+        LocalDate endDate;
         VerificationType verificationType;
         int limitFriendCount;
         Integer goalTime;

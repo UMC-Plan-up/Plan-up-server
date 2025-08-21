@@ -35,9 +35,9 @@ public class AchievementCalculationService {
         return result;
     }
 
-    public void calcChallengeAchievement(Map<LocalDate, Integer> dailyCount, Challenge challenge) {
-        Date endDate = challenge.getEndDate();
-    }
+//    public void calcChallengeAchievement(Map<LocalDate, Integer> dailyCount, Challenge challenge) {
+//        Date endDate = challenge.getEndDate();
+//    }
 
 
 

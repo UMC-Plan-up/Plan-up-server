@@ -58,21 +58,19 @@ public class UserController {
         return ApiResponse.onSuccess(true);
     }
 
-    @Operation(summary = "비밀번호 변경 위해 기존 비밀번호 입력", description = "입력된 기존 비밀번호를 확인하고 true/false 반환")
-    @PostMapping("/mypage/profile/password")
-    public ApiResponse<Boolean> checkPassword(@Parameter(hidden = true) @CurrentUser Long userId, String password) {
-        boolean result = userService.checkPassword(userId, password);
-        return ApiResponse.onSuccess(result);
-    }
 
-    @Operation(summary = "비밀번호 변경", description = "사용자로부터 새로운 비밀번호를 입력받고 변경한다.")
-    @PostMapping("/mypage/profile/password/update")
-    public ApiResponse<Boolean> updatePassword(@Parameter(hidden = true) @CurrentUser Long userId, String password) {
+
+    @Operation(summary = "비밀번호 변경", description = "이메일 인증 토큰으로 비밀번호를 변경한다.")
+    @PostMapping("/users/password/change")
+    public ApiResponse<Boolean> changePasswordWithToken(@RequestBody PasswordChangeWithTokenRequestDTO request) {
         try {
-            userService.updatePassword(userId, password);
+            userService.changePasswordWithToken(request.getToken(), request.getNewPassword());
             return ApiResponse.onSuccess(true);
         } catch (IllegalArgumentException e) {
             return ApiResponse.onFailure("PASSWORD4002", e.getMessage(), false);
+        } catch (Exception e) {
+            log.error("비밀번호 변경 실패: {}", e.getMessage());
+            return ApiResponse.onFailure("PASSWORD4003", "비밀번호 변경에 실패했습니다.", false);
         }
     }
 
@@ -230,15 +228,23 @@ public class UserController {
 
     @Operation(summary = "비밀번호 변경 확인 이메일 발송", description = "비밀번호 변경을 위한 확인 메일을 발송하고 토큰을 반환합니다")
     @PostMapping("/users/password/change-email/send")
-    public ApiResponse<EmailSendResponseDTO> sendPasswordChangeEmail(@RequestBody @Valid EmailVerificationRequestDTO request) {
-        EmailSendResponseDTO response = userService.sendPasswordChangeEmail(request.getEmail());
+    public ApiResponse<EmailSendResponseDTO> sendPasswordChangeEmail(
+            @RequestBody @Valid PasswordChangeEmailRequestDTO request) {
+        EmailSendResponseDTO response = userService.sendPasswordChangeEmail(
+                request.getEmail(), 
+                request.getIsLoggedIn() // 로그인 상태 추가
+        );
         return ApiResponse.onSuccess(response);
     }
 
     @Operation(summary = "비밀번호 변경 확인 이메일 재발송", description = "비밀번호 변경을 위한 확인 메일을 재발송합니다")
     @PostMapping("/users/password/change-email/resend")
-    public ApiResponse<EmailSendResponseDTO> resendPasswordChangeEmail(@RequestBody @Valid ResendEmailRequestDTO request) {
-        EmailSendResponseDTO response = userService.resendPasswordChangeEmail(request.getEmail());
+    public ApiResponse<EmailSendResponseDTO> resendPasswordChangeEmail(
+            @RequestBody @Valid PasswordChangeEmailRequestDTO request) {  // ResendEmailRequestDTO → PasswordChangeEmailRequestDTO
+        EmailSendResponseDTO response = userService.resendPasswordChangeEmail(
+                request.getEmail(), 
+                request.getIsLoggedIn()  // 로그인 상태 포함
+        );
         return ApiResponse.onSuccess(response);
     }
 
@@ -246,25 +252,38 @@ public class UserController {
     @GetMapping("/users/password/change-link")
     public ResponseEntity<String> handlePasswordChangeLink(@RequestParam String token) {
         try {
-            String email = emailService.validatePasswordChangeToken(token);
+            String[] tokenInfo = emailService.validatePasswordChangeToken(token);
+            String email = tokenInfo[0]; 
+            Boolean isLoggedIn = Boolean.parseBoolean(tokenInfo[1]);
             
             // 비밀번호 변경 이메일 인증 완료 표시
             emailService.markPasswordChangeEmailAsVerified(email);
             
-            String deepLinkUrl = "planup://password/change?email=" +
-                    java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) +
-                    "&verified=true&token=" + token +
-                    "&from=password_change";
+             // 로그인 상태에 따른 딥링크 경로 분기
+            String deepLinkUrl;
+            if (isLoggedIn) {
+                // 로그인한 상태: 마이페이지로 이동
+                deepLinkUrl = "planup://mypage/password/change?email=" +
+                        java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) +
+                        "&verified=true&token=" + token +
+                        "&from=password_change&loggedIn=true";
+            } else {
+                // 로그인하지 않은 상태: 로그인 화면으로 이동
+                deepLinkUrl = "planup://login/password/change?email=" +
+                        java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) +
+                        "&verified=true&token=" + token +
+                        "&from=password_change&loggedIn=false";
+            }
 
             String html = emailService.createSuccessHtml(email, deepLinkUrl);
-
+    
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
                     .body(html);
-
+    
         } catch (IllegalArgumentException e) {
             String html = emailService.createFailureHtml();
-
+    
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
                     .body(html);

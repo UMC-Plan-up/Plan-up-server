@@ -107,36 +107,36 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
-    @Override
-    @Transactional
-    public boolean checkPassword(Long userId, String password) {
-        User user = getUserbyUserId(userId);
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new UserException(ErrorStatus.PASSWORD_MISMATCH);
-        }
-        return true;
-    }
 
-    @Override
-    @Transactional
-    public void updatePassword(Long userId, String password) {
-        User user = getUserbyUserId(userId);
-        
-        // 비밀번호 변경 이메일 인증 완료 여부 확인
-        if (!emailService.isPasswordChangeEmailVerified(user.getEmail())) {
-            throw new IllegalArgumentException("비밀번호 변경을 위해 이메일 인증을 먼저 완료해주세요.");
-        }
-        
-        String encodedPassword = passwordEncoder.encode(password);
-        user.setPassword(encodedPassword);
-    }
+
+
     
     @Override
     public Boolean isPasswordChangeEmailVerified(String email) {
         return emailService.isPasswordChangeEmailVerified(email);
     }
 
-
+    @Override
+    @Transactional
+    public void changePasswordWithToken(String token, String newPassword) {
+        // 토큰으로 이메일 검증
+        String[] tokenInfo = emailService.validatePasswordChangeToken(token);
+        String email = tokenInfo[0];  // 이메일만 추출
+        
+        // 해당 이메일의 사용자 조회
+        User user = userRepository.findByEmailAndUserActivate(email, UserActivate.ACTIVE)
+                .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
+        
+        // 새 비밀번호 암호화 및 설정
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        user.setPassword(encodedPassword);
+        
+        // 사용자 저장
+        userRepository.save(user);
+        
+        // 비밀번호 변경 완료 후 인증 토큰 정리
+        emailService.clearPasswordChangeToken(email);
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -400,9 +400,6 @@ public class UserServiceImpl implements UserService {
             friendRepository.save(friendship1);
             friendRepository.save(friendship2);
 
-            // 초대코드 사용 완료
-            inviteCodeService.useInviteCode(inviteCode);
-
             return InviteCodeProcessResponseDTO.builder()
                     .success(true)
                     .friendNickname(inviterUser.getNickname())
@@ -552,12 +549,12 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional
-    public EmailSendResponseDTO sendPasswordChangeEmail(String email) {
+    public EmailSendResponseDTO sendPasswordChangeEmail(String email, Boolean isLoggedIn) {
         // 이메일이 등록된 사용자인지 확인
         checkEmailExists(email);
 
-        // 비밀번호 변경 이메일 발송
-        String changeToken = emailService.sendPasswordChangeEmail(email);
+        // 비밀번호 변경 이메일 발송 (로그인 상태 정보 포함)
+        String changeToken = emailService.sendPasswordChangeEmail(email, isLoggedIn);
 
         // 응답 DTO 생성
         return EmailSendResponseDTO.builder()
@@ -573,14 +570,13 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     @Transactional
-    public EmailSendResponseDTO resendPasswordChangeEmail(String email) {
+    public EmailSendResponseDTO resendPasswordChangeEmail(String email, Boolean isLoggedIn) {
         // 이메일이 등록된 사용자인지 확인
         checkEmailExists(email);
-
-        // 비밀번호 변경 이메일 재발송
-        String changeToken = emailService.resendPasswordChangeEmail(email);
-
-        // 비밀번호 변경 확인 메일이 재발송되었습니다
+    
+        // 비밀번호 변경 이메일 재발송 (로그인 상태 포함)
+        String changeToken = emailService.resendPasswordChangeEmail(email, isLoggedIn);
+    
         return EmailSendResponseDTO.builder()
                 .email(email)
                 .message("비밀번호 변경 확인 메일이 재발송되었습니다")
@@ -800,5 +796,15 @@ public class UserServiceImpl implements UserService {
                 .available(isAvailable)
                 .message(message)
                 .build();
+    }
+
+    @Override
+    public List<User> getFriendsByUserId(Long creatorId) {
+        User user = getUserbyUserId(creatorId);
+        List<Friend> friends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
+                FriendStatus.ACCEPTED, user.getId(), FriendStatus.ACCEPTED, user.getId()
+        );        return friends.stream()
+                .map(Friend::getFriend)
+                .toList();
     }
 }
