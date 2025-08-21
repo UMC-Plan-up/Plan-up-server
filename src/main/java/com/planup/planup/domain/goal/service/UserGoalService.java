@@ -1,5 +1,6 @@
 package com.planup.planup.domain.goal.service;
 
+import com.planup.planup.domain.goal.dto.UserGoalResponseDto;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.dto.CommunityResponseDto;
 import com.planup.planup.domain.goal.entity.Goal;
@@ -8,6 +9,7 @@ import com.planup.planup.domain.user.entity.User;
 import org.springframework.cglib.core.Local;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,4 +30,8 @@ public interface UserGoalService {
 
     @Transactional(readOnly = true)
     boolean existUserGoal(Long goalId, Long userId);
-}
+
+    int calculateDailyAchievement(Long userId, LocalDate targetDate);
+    UserGoalResponseDto.GoalTotalAchievementDto calculateGoalTotalAchievement(Long goalId, Long userId);
+    List<UserGoal> getActiveUserGoalsByUser(Long userId, LocalDate targetDate);
+    }
