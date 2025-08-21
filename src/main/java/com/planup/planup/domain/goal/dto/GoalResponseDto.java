@@ -166,4 +166,16 @@ public class GoalResponseDto {
         private GoalPeriod period;
         private int frequency;
     }
+
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DailyAchievementDto {
+        @Schema(description = "조회 날짜", example = "2024-08-21")
+        private LocalDate date;
+
+        @Schema(description = "일별 총 달성률 (퍼센트)", example = "70")
+        private int achievementRate;
+    }
 }
