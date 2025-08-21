@@ -4,7 +4,13 @@ package com.planup.planup.domain.report.service;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ReportException;
 import com.planup.planup.domain.bedge.entity.BadgeType;
+import com.planup.planup.domain.global.message.EncouragementService;
+import com.planup.planup.domain.global.message.MessageRequest;
+import com.planup.planup.domain.global.message.MessageResponse;
+import com.planup.planup.domain.goal.dto.GoalResponseDto;
+import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.goal.service.GoalService;
 import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.notification.service.NotificationService;
@@ -28,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
@@ -49,6 +56,8 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
     private final GoalReportService goalReportService;
     private final PhotoVerificationRepository photoVerificationRepository;
     private final TimerVerificationRepository timerVerificationRepository;
+    private final EncouragementService encouragementService;
+    private final GoalService goalService;
 
 
     @Override
@@ -72,8 +81,16 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
 
         List<NotificationResponseDTO.NotificationDTO> notificationList = notificationService.getTop5RecentByUser(userId);
         List<UserBadge> userBadgeList = userBadgeService.getTop5Recent(user);
+        List<Long> goalName = goalService.getMyGoals(userId).stream().map(GoalResponseDto.MyGoalListDto::getGoalId).toList();
 
         List<BadgeType> badges = userBadgeList.stream().map(UserBadge::getBadgeType).toList();
+        MessageRequest messageRequest = new MessageRequest(
+                user.getNickname(),
+                "목표를 향해 더 노력할 수 있도록 응원 받아야 함.",
+                userId,
+                goalName
+        );
+        Mono<MessageResponse> generate = encouragementService.generate(messageRequest);
 
         return WeeklyReportResponseConverter.toAchievementDTO(badges, notificationList);
 

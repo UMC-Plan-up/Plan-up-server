@@ -64,9 +64,9 @@ public class EncouragementService {
         String prompt = buildPrompt(
                 req.name(),
                 req.context(),
-                req.tone(),
-                req.formality(),
-                req.emoji() == null ? Boolean.TRUE : req.emoji(),
+                "밝게",
+                "존댓말",
+                true,
                 achievementRate,
                 goalAchList
         );

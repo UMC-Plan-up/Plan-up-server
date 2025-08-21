@@ -15,17 +15,6 @@ public record MessageRequest(
         @NotBlank
         String context,
 
-        @Schema(description = "메시지의 톤 (밝게/차분하게/장난스럽게)", example = "밝게")
-        @NotBlank
-        String tone,
-
-        @Schema(description = "말투의 형식 (존댓말/반말)", example = "존댓말")
-        @NotBlank
-        String formality,
-
-        @Schema(description = "이모지를 포함할지 여부 (null이면 기본 true)", example = "true")
-        Boolean emoji,
-
         @Schema(description = "작성자 id", example = "16")
         Long userId,
 

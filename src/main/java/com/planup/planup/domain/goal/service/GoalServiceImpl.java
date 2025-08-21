@@ -55,13 +55,9 @@ public class GoalServiceImpl implements GoalService{
     private final UserRepository userRepository;
     private final TimerVerificationRepository timerVerificationRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
-    private final CommentService commentService;
     private final CommentRepository commentRepository;
     private final FriendService friendService;
-    private final FriendRepository friendRepository;
     private final GoalMemoRepository goalMemoRepository;
-    @Lazy
-    private final TimerVerificationService timerVerificationService;
     private final TimerVerificationReadService timerVerificationReadService;
     private final UserService userService;
     private final NotificationCreateService notificationCreateService;
