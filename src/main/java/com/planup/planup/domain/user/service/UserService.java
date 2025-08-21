@@ -57,6 +57,9 @@ public interface UserService {
 
     KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request);
 
+    // 카카오 계정 연동 (기존 API와 통합)
+    KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request, String mode, Long userId);
+
     SignupResponseDTO kakaoSignupComplete(KakaoSignupCompleteRequestDTO request);
 
     String updateEmail(Long userId, String newEmail);

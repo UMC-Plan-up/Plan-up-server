@@ -586,9 +586,65 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request) {
+        return kakaoAuth(request, null, null);
+    }
+
+    @Override
+    public KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request, String mode, Long userId) {
         KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());
         String email = kakaoUserInfo.getEmail();
 
+        // 계정 연동 모드인 경우
+        if ("link".equals(mode) && userId != null) {
+            return handleKakaoAccountLinking(userId, kakaoUserInfo, email);
+        }
+
+        // 기존 로그인/회원가입 모드
+        return handleKakaoAuth(kakaoUserInfo, email);
+    }
+
+    // 카카오 계정 연동 처리
+    private KakaoAuthResponseDTO handleKakaoAccountLinking(Long userId, KakaoUserInfo kakaoUserInfo, String email) {
+        User user = getUserbyUserId(userId);
+        
+        // 이미 카카오 계정이 연동되어 있는지 확인
+        Optional<OAuthAccount> existingOAuth = oAuthAccountRepository
+                .findByUserAndProvider(user, AuthProvideerEnum.KAKAO);
+        
+        if (existingOAuth.isPresent()) {
+            throw new UserException(ErrorStatus.KAKAO_ACCOUNT_ALREADY_LINKED);
+        }
+        
+        // 다른 사용자가 이미 해당 카카오 계정을 사용하고 있는지 확인
+        Optional<OAuthAccount> otherUserOAuth = oAuthAccountRepository
+                .findByEmailAndProvider(email, AuthProvideerEnum.KAKAO);
+        
+        if (otherUserOAuth.isPresent()) {
+            throw new UserException(ErrorStatus.KAKAO_ACCOUNT_ALREADY_USED);
+        }
+        
+        // OAuth 계정 생성 및 연결
+        OAuthAccount oAuthAccount = OAuthAccount.builder()
+                .provider(AuthProvideerEnum.KAKAO)
+                .email(email)
+                .user(user)
+                .build();
+        
+        oAuthAccountRepository.save(oAuthAccount);
+        
+        // 연동 성공 응답
+        KakaoAuthResponseDTO response = KakaoAuthResponseDTO.builder()
+                .isNewUser(false)
+                .accessToken(null) // 연동 모드에서는 토큰 불필요
+                .userInfo(UserInfoResponseDTO.from(user))
+                .isLinked(true)
+                .message("카카오 계정 연동이 완료되었습니다")
+                .build();
+        return response;
+    }
+
+    // 기존 카카오 로그인/회원가입 처리
+    private KakaoAuthResponseDTO handleKakaoAuth(KakaoUserInfo kakaoUserInfo, String email) {
         // 기존 사용자 확인
         Optional<OAuthAccount> existingOAuth = oAuthAccountRepository
                 .findByEmailAndProvider(email, AuthProvideerEnum.KAKAO);
@@ -603,10 +659,13 @@ public class UserServiceImpl implements UserService {
 
             String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
 
-            KakaoAuthResponseDTO response = new KakaoAuthResponseDTO();
-            response.setNewUser(false);
-            response.setAccessToken(accessToken);
-            response.setUserInfo(UserInfoResponseDTO.from(user));
+            KakaoAuthResponseDTO response = KakaoAuthResponseDTO.builder()
+                    .isNewUser(false)
+                    .accessToken(accessToken)
+                    .userInfo(UserInfoResponseDTO.from(user))
+                    .isLinked(false)
+                    .message("기존 카카오 계정으로 로그인되었습니다")
+                    .build();
             return response;
         } else {
             // 신규 사용자 - Redis에 카카오 정보만 저장
@@ -615,9 +674,12 @@ public class UserServiceImpl implements UserService {
 
             redisTemplate.opsForValue().set(redisKey, kakaoUserInfo, Duration.ofMinutes(TEMP_USER_EXPIRE_MINUTES));
 
-            KakaoAuthResponseDTO response = new KakaoAuthResponseDTO();
-            response.setNewUser(true);
-            response.setTempUserId(tempUserId);
+            KakaoAuthResponseDTO response = KakaoAuthResponseDTO.builder()
+                    .isNewUser(true)
+                    .tempUserId(tempUserId)
+                    .isLinked(false)
+                    .message("새로운 카카오 계정입니다. 회원가입을 완료해주세요")
+                    .build();
             return response;
         }
     }

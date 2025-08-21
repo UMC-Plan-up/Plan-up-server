@@ -362,10 +362,21 @@ public class UserController {
     }
 
     @Operation(summary = "카카오 소셜 인증",
-            description = "카카오 인가코드로 로그인/회원가입 여부를 판단합니다")
+            description = "카카오 인가코드로 로그인/회원가입 또는 계정 연동을 처리합니다. " +
+                         "mode=link로 요청하면 기존 계정에 카카오 계정을 연동합니다.")
     @PostMapping("/users/auth/kakao")
-    public ApiResponse<KakaoAuthResponseDTO> kakaoAuth(@Valid @RequestBody KakaoAuthRequestDTO request) {
-        KakaoAuthResponseDTO result = userService.kakaoAuth(request);
+    public ApiResponse<KakaoAuthResponseDTO> kakaoAuth(
+            @Valid @RequestBody KakaoAuthRequestDTO request,
+            @Parameter(description = "연동 모드: 'link' 또는 생략") 
+            @RequestParam(required = false) String mode,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+        
+        // mode가 "link"이고 userId가 null이면 에러
+        if ("link".equals(mode) && userId == null) {
+            throw new UserException(ErrorStatus._UNAUTHORIZED);
+        }
+        
+        KakaoAuthResponseDTO result = userService.kakaoAuth(request, mode, userId);
         return ApiResponse.onSuccess(result);
     }
 
