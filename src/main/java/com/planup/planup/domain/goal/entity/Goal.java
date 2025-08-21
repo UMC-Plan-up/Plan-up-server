@@ -11,6 +11,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -55,7 +56,7 @@ public class Goal extends BaseTimeEntity {
     //1회 분량//이거 수정
     private int oneDose;
     //종료일
-    private Date endDate;
+    private LocalDate endDate;
 
     @Builder.Default
     private boolean isActive = true;

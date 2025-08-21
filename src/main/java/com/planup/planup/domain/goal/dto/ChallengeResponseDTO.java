@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Builder;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class ChallengeResponseDTO {
@@ -31,7 +32,7 @@ public class ChallengeResponseDTO {
             GoalType goalType,
 
             @Schema(description = "목표 종료일", example = "2025-08-01T00:00:00.000Z")
-            LocalDateTime endDate,
+            LocalDate endDate,
 
             @Schema(description = "주기(종료일까지 몇일 해야하는지)", example = "7")
             GoalPeriod period,

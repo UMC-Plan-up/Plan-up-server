@@ -462,11 +462,8 @@ public class GoalServiceImpl implements GoalService{
                 .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
     }
 
-    private void validateEndDate(Date endDate) {
-        LocalDate endLocalDate = endDate.toInstant()
-                .atZone(java.time.ZoneId.systemDefault())
-                .toLocalDate();
-        if (endLocalDate.isBefore(LocalDate.now())) {
+    private void validateEndDate(LocalDate endDate) {
+        if (endDate.isBefore(LocalDate.now())) {
             throw new GoalException(ErrorStatus.INVALID_GOAL_END_DATE);
         }
     }

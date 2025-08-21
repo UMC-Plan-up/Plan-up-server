@@ -43,7 +43,6 @@ public class UserGoalServiceImpl implements UserGoalService{
     private final FriendService friendService;
     private final PhotoVerificationReadService photoVerificationReadService;
     private final TimerVerificationReadService timerVerificationReadService;
-    private final AchievementCalculationService achievementCalculationService;
 
     @Transactional
     public CommunityResponseDto.JoinGoalResponseDto joinGoal(Long userId, Long goalId) {
@@ -162,7 +161,7 @@ public class UserGoalServiceImpl implements UserGoalService{
         Goal goal = userGoal.getGoal();
 
         LocalDate startDate = userGoal.getCreatedAt().toLocalDate();
-        LocalDate endDate = convertToLocalDate(goal.getEndDate());
+        LocalDate endDate = goal.getEndDate();
         LocalDate today = LocalDate.now();
 
         long elapsedDays = ChronoUnit.DAYS.between(startDate, today.isAfter(endDate) ? endDate : today);
