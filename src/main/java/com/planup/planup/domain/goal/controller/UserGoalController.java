@@ -8,6 +8,7 @@ import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.dto.UserGoalResponseDto;
 import com.planup.planup.domain.goal.repository.GoalRepository;
 import com.planup.planup.domain.goal.service.GoalService;
+import com.planup.planup.domain.goal.service.UserGoalAggregationService;
 import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
@@ -27,7 +28,7 @@ public class UserGoalController {
 
     private final UserGoalService userGoalService;
     private final FriendService friendService;
-    private final UserService userService;
+    private final UserGoalAggregationService userGoalAggregationService;
 
     @PostMapping("/{goalId}/join")
     @Operation(summary = "목표 참가 API", description = "커뮤니티 또는 친구가 생성한 목표에 참가합니다.")
@@ -47,10 +48,7 @@ public class UserGoalController {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate targetDate,
             @Parameter(hidden = true) @CurrentUser Long userId) {
 
-        int achievementRate = userGoalService.calculateDailyAchievement(userId, targetDate);
-
-        GoalResponseDto.DailyAchievementDto result = GoalConvertor.toDailyAchievementDto(targetDate, achievementRate);
-
+        GoalResponseDto.DailyAchievementDto result = userGoalAggregationService.getDailyAchievement(userId, targetDate);
         return ApiResponse.onSuccess(result);
     }
 
@@ -61,8 +59,7 @@ public class UserGoalController {
             @PathVariable Long goalId,
             @Parameter(hidden = true) @CurrentUser Long userId) {
 
-        UserGoalResponseDto.GoalTotalAchievementDto result = userGoalService.calculateGoalTotalAchievement(goalId, userId);
-
+        UserGoalResponseDto.GoalTotalAchievementDto result = userGoalAggregationService.getTotalAchievement(goalId, userId);
         return ApiResponse.onSuccess(result);
     }
 
@@ -74,12 +71,8 @@ public class UserGoalController {
             @Parameter(description = "목표 ID", example = "1")
             @PathVariable Long goalId,
             @Parameter(hidden = true) @CurrentUser Long userId) {
-        User user = userService.getUserbyUserId(userId);
 
-        friendService.isFriend(userId, friendId);
-
-        UserGoalResponseDto.GoalTotalAchievementDto result =
-                userGoalService.calculateGoalTotalAchievement(goalId, friendId);
+        UserGoalResponseDto.GoalTotalAchievementDto result = userGoalAggregationService.getFriendGoalTotalAchievement(userId, goalId, friendId);
 
         return ApiResponse.onSuccess(result);
     }

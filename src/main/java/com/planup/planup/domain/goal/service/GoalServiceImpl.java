@@ -55,13 +55,9 @@ public class GoalServiceImpl implements GoalService{
     private final UserRepository userRepository;
     private final TimerVerificationRepository timerVerificationRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
-    private final CommentService commentService;
     private final CommentRepository commentRepository;
     private final FriendService friendService;
-    private final FriendRepository friendRepository;
     private final GoalMemoRepository goalMemoRepository;
-    @Lazy
-    private final TimerVerificationService timerVerificationService;
     private final TimerVerificationReadService timerVerificationReadService;
     private final UserService userService;
     private final NotificationCreateService notificationCreateService;
@@ -466,11 +462,8 @@ public class GoalServiceImpl implements GoalService{
                 .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
     }
 
-    private void validateEndDate(Date endDate) {
-        LocalDate endLocalDate = endDate.toInstant()
-                .atZone(java.time.ZoneId.systemDefault())
-                .toLocalDate();
-        if (endLocalDate.isBefore(LocalDate.now())) {
+    private void validateEndDate(LocalDate endDate) {
+        if (endDate.isBefore(LocalDate.now())) {
             throw new GoalException(ErrorStatus.INVALID_GOAL_END_DATE);
         }
     }
@@ -516,5 +509,10 @@ public class GoalServiceImpl implements GoalService{
             default:
                 return "목표를 꾸준히 달성하여 레벨을 올려보세요!";
         }
+    }
+
+    public String getGoalNameById(Long id) {
+        Goal goal = getGoalById(id);
+        return goal.getGoalName();
     }
 }
