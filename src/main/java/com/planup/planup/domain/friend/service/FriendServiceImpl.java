@@ -231,13 +231,23 @@ public class FriendServiceImpl implements FriendService {
             friend.setStatus(FriendStatus.ACCEPTED); // 상태를 ACCEPTED로 변경
             friendRepository.save(friend);
             
-            // 친구 신청 수락 알림 생성
+            // 친구 신청 수락 알림 생성 - 양쪽 모두에게
+            // 1. 친구 신청을 보낸 사람에게 알림
             notificationService.createNotification(
                 friendId,           // receiverId (친구 신청을 보낸 사람)
                 userId,             // senderId (친구 신청을 수락한 사람)
                 NotificationType.FRIEND_REQUEST_ACCEPTED,
                 TargetType.USER,
                 userId              // targetId (친구 신청을 수락한 사람의 ID)
+            );
+            
+            // 2. 친구 신청을 수락한 사람에게도 알림
+            notificationService.createNotification(
+                userId,             // receiverId (친구 신청을 수락한 사람)
+                friendId,           // senderId (친구 신청을 보낸 사람)
+                NotificationType.FRIEND_REQUEST_ACCEPTED,
+                TargetType.USER,
+                friendId            // targetId (친구 신청을 보낸 사람의 ID)
             );
             
             return true;
