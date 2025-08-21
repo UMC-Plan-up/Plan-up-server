@@ -31,9 +31,9 @@ public class InviteCodeService {
         // 새 코드 생성
         String newCode = generateCode();
 
-        // Redis에 저장 (60분 TTL)
-        redisTemplate.opsForValue().set(key, newCode, 60, TimeUnit.MINUTES);
-        redisTemplate.opsForValue().set("invite_code:" + newCode, userId.toString(), 60, TimeUnit.MINUTES);
+        // Redis에 저장 (3일 TTL)
+        redisTemplate.opsForValue().set(key, newCode, 3, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set("invite_code:" + newCode, userId.toString(), 3, TimeUnit.DAYS);
 
         return InviteCodeResponseDTO.of(newCode);
     }
