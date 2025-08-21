@@ -1,10 +1,8 @@
 package com.planup.planup.domain.global.message;
 
-import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.dto.UserGoalResponseDto;
 import com.planup.planup.domain.goal.service.GoalService;
 import com.planup.planup.domain.goal.service.UserGoalAggregationService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -16,7 +14,6 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class EncouragementService {
@@ -46,7 +43,7 @@ public class EncouragementService {
     }
 
     public Mono<MessageResponse> generate(MessageRequest req) {
-        int achievementRate = userGoalAggregationService.getDailyAchievement(req.userId(), LocalDate.now()).getAchievementRate();
+        int achievementRate = userGoalAggregationService.getDailyAchievement(req.userId(), LocalDate.now().minusDays(1)).getAchievementRate();
 
         Map<String, Integer> goalAchList = new HashMap<>();
 
@@ -133,7 +130,7 @@ public class EncouragementService {
             - 이모지 사용: %s (true면 1~2개 사용)
             - 비속어/혐오/민감 조언 금지, 반복 피하기
             참고 데이터:
-            - 오늘의 전체 성취율: %d%%
+            - 어제의 전체 성취율: %d%%
             - 목표별 성취율: %s
             컨텍스트:
             - 받는 사람: %s
