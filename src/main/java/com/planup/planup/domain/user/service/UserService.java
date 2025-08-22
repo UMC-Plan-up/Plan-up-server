@@ -45,7 +45,7 @@ public interface UserService {
 
     KakaoAccountResponseDTO getKakaoAccountStatus(Long userId);
 
-    ImageUploadResponseDTO uploadProfileImage(MultipartFile file, String email);
+    ImageUploadResponseDTO uploadProfileImage(MultipartFile file, Long userId);
 
     InviteCodeResponseDTO getMyInviteCode(Long userId);
 
