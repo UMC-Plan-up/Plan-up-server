@@ -90,9 +90,9 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
                 userId,
                 goalName
         );
-        Mono<MessageResponse> generate = encouragementService.generate(messageRequest);
+        MessageResponse generate = encouragementService.generate(messageRequest).block();
 
-        return WeeklyReportResponseConverter.toAchievementDTO(badges, notificationList);
+        return WeeklyReportResponseConverter.toAchievementDTO(badges, notificationList, generate.message());
 
     }
 
