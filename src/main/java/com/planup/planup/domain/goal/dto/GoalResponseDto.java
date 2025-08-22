@@ -72,6 +72,7 @@ public class GoalResponseDto {
         private String goalName;
         private GoalType goalType;
         private String goalAmount;
+        private GoalPeriod goalPeriod;
         private VerificationType verificationType;
         private Integer goalTime;
         private int frequency;
@@ -178,5 +179,52 @@ public class GoalResponseDto {
 
         @Schema(description = "일별 총 달성률 (퍼센트)", example = "70")
         private int achievementRate;
+    }
+
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GoalReactionDto {
+        @Schema(description = "목표 ID", example = "123")
+        private Long goalId;
+
+        @Schema(description = "응원해요 카운트", example = "15")
+        private int cheerCount;
+
+        @Schema(description = "분발해요 카운트", example = "8")
+        private int encourageCount;
+
+        @Schema(description = "사용자 반응 여부")
+        private UserReactionStatus userReactions;
+    }
+
+    //사용자 반응 상태 DTO
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserReactionStatus {
+        @Schema(description = "응원해요 클릭 여부", example = "true")
+        private boolean hasCheer;
+
+        @Schema(description = "분발해요 클릭 여부", example = "false")
+        private boolean hasEncourage;
+    }
+
+    //반응 추가 결과 DTO
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReactionResultDto {
+        @Schema(description = "처리 결과", example = "SUCCESS", allowableValues = {"SUCCESS", "ALREADY_REACTED", "ERROR"})
+        private String result;
+
+        @Schema(description = "결과 메시지", example = "응원이 등록되었습니다.")
+        private String message;
+
+        @Schema(description = "업데이트된 반응 정보")
+        private GoalReactionDto reactionData;
     }
 }
