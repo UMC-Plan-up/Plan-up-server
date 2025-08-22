@@ -297,5 +297,38 @@ public class GoalController {
 
         return ApiResponse.onSuccess(memos);
     }
+
+    @GetMapping("/{goalId}/reactions")
+    @Operation(summary = "목표 반응 조회 API", description = "특정 목표의 응원/분발 카운트와 현재 사용자의 반응 여부를 조회합니다.")
+    public ApiResponse<GoalResponseDto.GoalReactionDto> getGoalReactions(
+            @Parameter(description = "목표 ID", example = "1")
+            @PathVariable Long goalId,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        GoalResponseDto.GoalReactionDto result = goalService.getGoalReactions(goalId, userId);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @PostMapping("/{goalId}/reactions/cheer")
+    @Operation(summary = "응원하기 API", description = "특정 목표에 응원을 등록합니다. 하루에 한 번만 가능합니다.")
+    public ApiResponse<GoalResponseDto.ReactionResultDto> addCheer(
+            @Parameter(description = "목표 ID", example = "1")
+            @PathVariable Long goalId,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        GoalResponseDto.ReactionResultDto result = goalService.addCheer(goalId, userId);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @PostMapping("/{goalId}/reactions/encourage")
+    @Operation(summary = "분발하기 API", description = "특정 목표에 분발을 등록합니다. 하루에 한 번만 가능합니다.")
+    public ApiResponse<GoalResponseDto.ReactionResultDto> addEncourage(
+            @Parameter(description = "목표 ID", example = "1")
+            @PathVariable Long goalId,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        GoalResponseDto.ReactionResultDto result = goalService.addEncourage(goalId, userId);
+        return ApiResponse.onSuccess(result);
+    }
 }
 

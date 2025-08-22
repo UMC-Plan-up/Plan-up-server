@@ -83,6 +83,8 @@ public enum ErrorStatus implements BaseErrorCode {
     GOAL_CREATION_LIMIT_EXCEEDED(HttpStatus.FORBIDDEN, "GOAL4003", "목표 생성 제한을 초과했습니다"),
     INVALID_GOAL_END_DATE(HttpStatus.FORBIDDEN, "GOAL4004", "종료일이 생성일보다 빠릅니다."),
     DUPLICATE_GOAL_NAME(HttpStatus.FORBIDDEN, "GOAL4005", "중복되는 목표 입니다."),
+    ALREADY_REACTED(HttpStatus.FORBIDDEN,"GOAL4006", "이미 응원하였습니다."),
+    REACTION_ADD_FAILED(HttpStatus.FORBIDDEN,"GOAL4007", "응원 등록 중 오류가 발생했습니다."),
 
     // 랜덤 닉네임 관련 에러
     NICKNAME_DATA_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "NICKNAME5001", "닉네임 생성에 필요한 데이터가 없습니다.");

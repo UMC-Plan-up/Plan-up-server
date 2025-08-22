@@ -104,6 +104,8 @@ public class GoalConvertor {
         return GoalResponseDto.FriendGoalListDto.builder()
                 .goalId(goal.getId())
                 .goalName(goal.getGoalName())
+                .goalAmount(goal.getGoalAmount())
+                .goalPeriod(goal.getPeriod())
                 .goalType(goal.getGoalType())
                 .verificationType(goal.getVerificationType())
                 .goalTime(friendGoal.getGoalTime())
@@ -247,6 +249,46 @@ public class GoalConvertor {
         return GoalResponseDto.DailyAchievementDto.builder()
                 .date(date)
                 .achievementRate(achievementRate)
+                .build();
+    }
+
+    public static GoalResponseDto.UserReactionStatus toUserReactionStatus(
+            boolean hasCheer,
+            boolean hasEncourage) {
+
+        return GoalResponseDto.UserReactionStatus.builder()
+                .hasCheer(hasCheer)
+                .hasEncourage(hasEncourage)
+                .build();
+    }
+
+    // 목표 반응 DTO 변환
+    public static GoalResponseDto.GoalReactionDto toGoalReactionDto(
+            Long goalId,
+            int cheerCount,
+            int encourageCount,
+            boolean hasCheer,
+            boolean hasEncourage) {
+
+        GoalResponseDto.UserReactionStatus userReactions = toUserReactionStatus(hasCheer, hasEncourage);
+
+        return GoalResponseDto.GoalReactionDto.builder()
+                .goalId(goalId)
+                .cheerCount(cheerCount)
+                .encourageCount(encourageCount)
+                .userReactions(userReactions)
+                .build();
+    }
+
+    // 반응 성공 결과 DTO 변환
+    public static GoalResponseDto.ReactionResultDto toSuccessReactionResult(
+            String message,
+            GoalResponseDto.GoalReactionDto reactionData) {
+
+        return GoalResponseDto.ReactionResultDto.builder()
+                .result("SUCCESS")
+                .message(message)
+                .reactionData(reactionData)
                 .build();
     }
 
