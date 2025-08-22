@@ -28,6 +28,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/users/signup", "/users/login").permitAll()
+                        .requestMatchers("/profile/image").permitAll()
                         // Swagger 관련 경로
                         .requestMatchers(
                                 "/v3/api-docs/**",
