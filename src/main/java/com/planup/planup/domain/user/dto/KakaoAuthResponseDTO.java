@@ -17,6 +17,4 @@ public class KakaoAuthResponseDTO {
     private String tempUserId;   // 신규 사용자인 경우
     private String accessToken;  // 기존 사용자인 경우
     private UserInfoResponseDTO userInfo; // 기존 사용자인 경우
-    private boolean isLinked;    // 계정 연동 성공 여부
-    private String message;      // 연동 결과 메시지
 }
