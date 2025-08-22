@@ -38,6 +38,9 @@ public interface GoalService {
     GoalResponseDto.DailyVerifiedGoalsResponse getDailyVerifiedGoals(Long userId, LocalDate date);
     GoalResponseDto.GoalMemoReadDto getMemo(Long userId, Long goalId, LocalDate date);
     List<GoalResponseDto.GoalMemoReadDto> getMemosByPeriod(Long userId, Long goalId, LocalDate startDate, LocalDate endDate);
+    GoalResponseDto.GoalReactionDto getGoalReactions(Long goalId, Long userId);
+    GoalResponseDto.ReactionResultDto addCheer(Long goalId, Long userId);
+    GoalResponseDto.ReactionResultDto addEncourage(Long goalId, Long userId);
 
     Goal getGoalById(Long challengeId);
 

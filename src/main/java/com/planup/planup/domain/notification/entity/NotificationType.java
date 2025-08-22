@@ -67,7 +67,7 @@ public enum NotificationType {
     CHALLENGE_ENDED,
     PENALTY_REMINDER_SENT;
 
-    private final NotificationGroup group;
+    public final NotificationGroup group;
 
     NotificationType() {
         // 기본값은 이름으로 그룹 결정

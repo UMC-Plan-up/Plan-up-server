@@ -2,6 +2,7 @@ package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.apiPayload.exception.custom.GoalException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
+import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
@@ -20,6 +21,7 @@ import com.planup.planup.domain.notification.service.NotificationCreateService;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.user.entity.UserLevel;
 import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.user.service.UserStatService;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
@@ -34,11 +36,13 @@ import com.planup.planup.domain.verification.service.TimerVerificationService;
 import lombok.RequiredArgsConstructor;
 import com.planup.planup.domain.user.entity.User;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -61,6 +65,8 @@ public class GoalServiceImpl implements GoalService{
     private final TimerVerificationReadService timerVerificationReadService;
     private final UserService userService;
     private final NotificationCreateService notificationCreateService;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final UserStatService userStatService;
     //목표 생성
     @Transactional
     public GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto createGoalDto){
@@ -414,6 +420,65 @@ public class GoalServiceImpl implements GoalService{
         return GoalConvertor.toDailyVerifiedGoalsResponse(date, verifiedGoals);
     }
 
+    @Transactional(readOnly = true)
+    public GoalResponseDto.GoalReactionDto getGoalReactions(Long goalId, Long userId) {
+        findGoalById(goalId);
+
+        int cheerCount = getReactionCount(goalId, "cheer");
+        int encourageCount = getReactionCount(goalId, "encourage");
+
+        boolean hasCheer = hasUserReacted(goalId, userId, "cheer");
+        boolean hasEncourage = hasUserReacted(goalId, userId, "encourage");
+
+        return GoalConvertor.toGoalReactionDto(goalId, cheerCount, encourageCount, hasCheer, hasEncourage);
+    }
+
+    @Transactional
+    public GoalResponseDto.ReactionResultDto addCheer(Long goalId, Long userId) {
+        findGoalById(goalId);
+
+        if (hasUserReacted(goalId, userId, "cheer")) {
+            throw new GoalException(ErrorStatus.ALREADY_REACTED);
+        }
+
+        try {
+            addReactionToRedis(goalId, userId, "cheer");
+
+            updateUserStat(userId, "cheer");
+
+            GoalResponseDto.GoalReactionDto reactionData = getGoalReactions(goalId, userId);
+
+            return GoalConvertor.toSuccessReactionResult("응원이 등록되었습니다.", reactionData);
+
+        } catch (Exception e) {
+            throw new GoalException(ErrorStatus.REACTION_ADD_FAILED);
+        }
+    }
+
+    @Transactional
+    public GoalResponseDto.ReactionResultDto addEncourage(Long goalId, Long userId) {
+        findGoalById(goalId);
+
+        if (hasUserReacted(goalId, userId, "encourage")) {
+            throw new GoalException(ErrorStatus.ALREADY_REACTED)
+                    .setCustomMessage("이미 분발하셨습니다.");
+        }
+
+        try {
+            addReactionToRedis(goalId, userId, "encourage");
+
+            updateUserStat(userId, "encourage");
+
+            GoalResponseDto.GoalReactionDto reactionData = getGoalReactions(goalId, userId);
+
+            return GoalConvertor.toSuccessReactionResult("분발이 등록되었습니다.", reactionData);
+
+        } catch (Exception e) {
+            throw new GoalException(ErrorStatus.REACTION_ADD_FAILED);
+        }
+    }
+
+
     //헬퍼 메서드
     public User getUser(Long userId) {
         return userRepository.findById(userId).orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
@@ -514,5 +579,53 @@ public class GoalServiceImpl implements GoalService{
     public String getGoalNameById(Long id) {
         Goal goal = getGoalById(id);
         return goal.getGoalName();
+    }
+
+    //레디스 헬퍼 메서드
+    private int getReactionCount(Long goalId, String reactionType) {
+        String countKey = String.format("goal:%d:%s:count", goalId, reactionType);
+        String count = redisTemplate.opsForValue().get(countKey);
+        return count != null ? Integer.parseInt(count) : 0;
+    }
+
+    private boolean hasUserReacted(Long goalId, Long userId, String reactionType) {
+        String usersKey = String.format("goal:%d:%s:users", goalId, reactionType);
+        return redisTemplate.opsForSet().isMember(usersKey, userId.toString());
+    }
+
+    private void addReactionToRedis(Long goalId, Long userId, String reactionType) {
+        String countKey = String.format("goal:%d:%s:count", goalId, reactionType);
+        String usersKey = String.format("goal:%d:%s:users", goalId, reactionType);
+
+        redisTemplate.opsForSet().add(usersKey, userId.toString());
+
+        redisTemplate.opsForValue().increment(countKey);
+
+        long ttl = getSecondsUntilMidnight();
+        redisTemplate.expire(countKey, Duration.ofSeconds(ttl));
+        redisTemplate.expire(usersKey, Duration.ofSeconds(ttl));
+    }
+
+    // 자정까지 남은 초 계산
+    private long getSecondsUntilMidnight() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime midnight = now.toLocalDate().plusDays(1).atStartOfDay();
+        return Duration.between(now, midnight).getSeconds();
+    }
+
+    private void updateUserStat(Long userId, String reactionType) {
+        try {
+            UserStat userStat = userStatService.getUserStatByUserId(userId);
+
+            if ("cheer".equals(reactionType)) {
+                userStat.addLikeCnt();
+            } else if ("encourage".equals(reactionType)) {
+                userStat.addEncourageCnt();
+            }
+
+            userStat.addReactionButton();
+
+        } catch (Exception e) {
+        }
     }
 }
