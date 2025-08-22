@@ -45,10 +45,10 @@ public class NotificationMessageProvider {
             case COMMENT_ON_VERIFICATION ->
                     String.format("[%s]님이 댓글을 달았어요. ", senderName);
 
-            case GOAL_CHEERED ->
+            case FEEDBACK_CHEERED ->
                     String.format("[%s]님이 [%s] 목표에 ‘응원해요’ 버튼을 눌렀어요.", senderName, goalName);
 
-            case GOAL_ENCOURAGED ->
+            case FEEDBACK_ENCOURAGED ->
                     String.format("[%s]님이 [%s] 목표에 ‘분발해요’ 버튼을 눌렀어요.", senderName, goalName);
 
             case FRIEND_REQUEST_SENT ->
@@ -89,8 +89,8 @@ public class NotificationMessageProvider {
     private static boolean isTargetId(Notification notification) {
         NotificationType type = notification.getType();
 
-        if (type == NotificationType.GOAL_ENCOURAGED ||
-                type == NotificationType.GOAL_CHEERED ||
+        if (type == NotificationType.FEEDBACK_CHEERED ||
+                type == NotificationType.FEEDBACK_ENCOURAGED ||
                 type == NotificationType.GOAL_REMINDER ||
                 type == NotificationType.FRIEND_GOAL_COMPLETED ||
                 type == NotificationType.FRIEND_GOAL_CREATED) {

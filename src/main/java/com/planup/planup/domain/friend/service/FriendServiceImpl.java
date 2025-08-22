@@ -138,7 +138,7 @@ public class FriendServiceImpl implements FriendService {
     @Override
     @Transactional(readOnly = true)
     public List<FriendResponseDTO.FriendInfoSummary> getRequestedFriends(Long userId) {
-        List<Friend> friendRequests = friendRepository.findByStatusAndFriendIdOrderByCreatedAtDesc(
+        List<Friend> friendRequests = friendRepository.findByStatusAndFriend_IdOrderByCreatedAtDesc(
                 FriendStatus.REQUESTED, userId);
 
         // 신청한 친구(User) 정보 추출
@@ -160,7 +160,7 @@ public class FriendServiceImpl implements FriendService {
         boolean isNewPhotoVerify = checkTodayPhotoVerification(friend); // 서비스 내 유틸/레포 호출
         LocalTime todayTime = calculateTodayTotalTime(friend);          // 기존 메서드 유지
 
-        return friendConverter.toFriendSummary(friend, goalCnt, isNewPhotoVerify, todayTime);
+        return friendConverter.toFriendSummary(friend, goalCnt, isNewPhotoVerify, todayTime, friend.getProfileImg());
     }
 
     private LocalTime calculateTodayTotalTime(User user) {
@@ -189,7 +189,7 @@ public class FriendServiceImpl implements FriendService {
     @Transactional
     public boolean rejectFriendRequest(Long userId, Long friendId) {
         // 나(userId)에게 친구 신청한 친구(friendId)를 찾음
-        List<Friend> requests = friendRepository.findByStatusAndFriendIdOrderByCreatedAtDesc(
+        List<Friend> requests = friendRepository.findByStatusAndFriend_IdOrderByCreatedAtDesc(
                 FriendStatus.REQUESTED, userId);
 
         Friend friend = requests.stream()
@@ -219,7 +219,7 @@ public class FriendServiceImpl implements FriendService {
     @Transactional
     public boolean acceptFriendRequest(Long userId, Long friendId) {
         // 나(userId)에게 친구 신청한 친구(friendId)를 찾음
-        List<Friend> requests = friendRepository.findByStatusAndFriendIdOrderByCreatedAtDesc(
+        List<Friend> requests = friendRepository.findByStatusAndFriend_IdOrderByCreatedAtDesc(
                 FriendStatus.REQUESTED, userId);
 
         Friend friend = requests.stream()

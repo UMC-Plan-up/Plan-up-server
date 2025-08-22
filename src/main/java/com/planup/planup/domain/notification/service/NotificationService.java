@@ -13,6 +13,8 @@ public interface NotificationService {
 
     // 읽지 않은 알림 조회 (정렬 포함)
     List<NotificationResponseDTO.NotificationDTO> getUnreadNotifications(Long receiverId);
+    List<NotificationResponseDTO.NotificationDTO> getUnreadNotificationsWithType(Long receiverId, String type);
+
 
     // 전체 알림 조회 (정렬 포함)
     List<NotificationResponseDTO.NotificationDTO> getAllNotifications(Long receiverId);
