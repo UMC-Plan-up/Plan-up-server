@@ -363,7 +363,7 @@ public class UserController {
     }
 
     @Operation(summary = "카카오 소셜 인증",
-            description = "카카오 인가코드로 로그인/회원가입 여부를 판단합니다")
+        description = "카카오 인가코드로 로그인/회원가입 여부를 판단합니다")
     @PostMapping("/users/auth/kakao")
     public ApiResponse<KakaoAuthResponseDTO> kakaoAuth(@Valid @RequestBody KakaoAuthRequestDTO request) {
         KakaoAuthResponseDTO result = userService.kakaoAuth(request);
@@ -375,6 +375,16 @@ public class UserController {
     @PostMapping("/users/auth/kakao/complete")
     public ApiResponse<SignupResponseDTO> kakaoSignupComplete(@Valid @RequestBody KakaoSignupCompleteRequestDTO request) {
         SignupResponseDTO result = userService.kakaoSignupComplete(request);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "카카오 계정 연동",
+            description = "기존 계정에 카카오 계정을 연동합니다")
+    @PostMapping("/mypage/kakao-account/link")
+    public ApiResponse<KakaoLinkResponseDTO> linkKakaoAccount(
+            @Valid @RequestBody KakaoLinkRequestDTO request,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+        KakaoLinkResponseDTO result = userService.linkKakaoAccount(userId, request);
         return ApiResponse.onSuccess(result);
     }
 

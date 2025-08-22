@@ -608,7 +608,52 @@ public class UserServiceImpl implements UserService {
     public KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request) {
         KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());
         String email = kakaoUserInfo.getEmail();
+        return handleKakaoAuth(kakaoUserInfo, email);
+    }
 
+    @Override
+    @Transactional
+    public KakaoLinkResponseDTO linkKakaoAccount(Long userId, KakaoLinkRequestDTO request) {
+        KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());
+        String email = kakaoUserInfo.getEmail();
+        
+        User user = getUserbyUserId(userId);
+        
+        // 이미 카카오 계정이 연동되어 있는지 확인
+        Optional<OAuthAccount> existingOAuth = oAuthAccountRepository
+                .findByUserAndProvider(user, AuthProvideerEnum.KAKAO);
+        
+        if (existingOAuth.isPresent()) {
+            throw new UserException(ErrorStatus.KAKAO_ACCOUNT_ALREADY_LINKED);
+        }
+        
+        // 다른 사용자가 이미 해당 카카오 계정을 사용하고 있는지 확인
+        Optional<OAuthAccount> otherUserOAuth = oAuthAccountRepository
+                .findByEmailAndProvider(email, AuthProvideerEnum.KAKAO);
+        
+        if (otherUserOAuth.isPresent()) {
+            throw new UserException(ErrorStatus.KAKAO_ACCOUNT_ALREADY_USED);
+        }
+        
+        // OAuth 계정 생성 및 연결
+        OAuthAccount oAuthAccount = OAuthAccount.builder()
+                .provider(AuthProvideerEnum.KAKAO)
+                .email(email)
+                .user(user)
+                .build();
+        
+        oAuthAccountRepository.save(oAuthAccount);
+        
+        // 연동 성공 응답
+        return KakaoLinkResponseDTO.builder()
+                .success(true)
+                .message("카카오 계정 연동이 완료되었습니다")
+                .kakaoEmail(email)
+                .userInfo(UserInfoResponseDTO.from(user))
+                .build();
+    }
+    // 기존 카카오 로그인/회원가입 처리
+    private KakaoAuthResponseDTO handleKakaoAuth(KakaoUserInfo kakaoUserInfo, String email) {
         // 기존 사용자 확인
         Optional<OAuthAccount> existingOAuth = oAuthAccountRepository
                 .findByEmailAndProvider(email, AuthProvideerEnum.KAKAO);
@@ -623,11 +668,12 @@ public class UserServiceImpl implements UserService {
 
             String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
 
-            KakaoAuthResponseDTO response = new KakaoAuthResponseDTO();
-            response.setNewUser(false);
-            response.setAccessToken(accessToken);
-            response.setUserInfo(UserInfoResponseDTO.from(user));
-            return response;
+            KakaoAuthResponseDTO response = KakaoAuthResponseDTO.builder()
+            .isNewUser(false)
+            .accessToken(accessToken)
+            .userInfo(UserInfoResponseDTO.from(user))
+            .build();
+        return response;
         } else {
             // 신규 사용자 - Redis에 카카오 정보만 저장
             String tempUserId = UUID.randomUUID().toString();
@@ -635,9 +681,10 @@ public class UserServiceImpl implements UserService {
 
             redisTemplate.opsForValue().set(redisKey, kakaoUserInfo, Duration.ofMinutes(TEMP_USER_EXPIRE_MINUTES));
 
-            KakaoAuthResponseDTO response = new KakaoAuthResponseDTO();
-            response.setNewUser(true);
-            response.setTempUserId(tempUserId);
+            KakaoAuthResponseDTO response = KakaoAuthResponseDTO.builder()
+                    .isNewUser(true)
+                    .tempUserId(tempUserId)
+                    .build();
             return response;
         }
     }
