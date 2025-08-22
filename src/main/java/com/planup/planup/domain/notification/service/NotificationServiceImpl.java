@@ -38,8 +38,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(readOnly = true)
     public List<NotificationResponseDTO.NotificationDTO> getUnreadNotificationsWithType(Long receiverId, String type) {
         User receiver = userService.getUserbyUserId(receiverId);
-        List<Notification> notifications = notificationRepository.findByReceiverAndIsReadFalseOrderByCreatedAtDesc(receiver);
-        return notifications.stream().map(NotificationConverter::toNotificationDTO).collect(Collectors.toList());
+        List<Notification> notifications = notificationRepository.findUnreadByReceiverAndType(receiver);
+        List<Notification> filteredNotificationList = notifications.stream().filter(no -> no.getType().getGroup().toString().equals(type)).toList();
+        return filteredNotificationList.stream().map(NotificationConverter::toNotificationDTO).collect(Collectors.toList());
     }
 
     //유저의 모든 알림을 조회한다. (시간 순대로)
