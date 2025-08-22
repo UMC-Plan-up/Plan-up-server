@@ -129,8 +129,11 @@ public class ChallengeServiceImpl implements ChallengeService {
     //Goal Repo에 가서 challange를 찾아온다
     @Transactional(readOnly = true)
     public Challenge getChallengeById(Long challengeId) {
-        return challengeRepository.findById(challengeId)
-                .orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
+        Goal goal = goalService.getGoalById(challengeId);
+
+        if (goal instanceof Challenge) {
+            return (Challenge) goal;
+        } else throw new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE);
     }
 
     //챌린지 요청을 거절한다
