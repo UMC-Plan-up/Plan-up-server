@@ -35,7 +35,10 @@ public class FriendResponseDTO {
             LocalTime todayTime,
 
             @Schema(description = "새로운 사진 인증 여부", example = "true")
-            boolean isNewPhotoVerify
+            boolean isNewPhotoVerify,
+
+            @Schema(description = "친구의 프로필 사진", example = "")
+            String profileImg
     ) {}
 
     @Builder
