@@ -1,10 +1,9 @@
 package com.planup.planup.domain.global.message;
 
-import jakarta.validation.Valid;
+import com.planup.planup.validation.annotation.CurrentUser;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
@@ -19,8 +18,8 @@ public class EncourageMessageController {
         this.service = service;
     }
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<MessageResponse> create(@Valid @RequestBody MessageRequest req) {
-        return service.generate(req);
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<MessageResponse> create(@Parameter(hidden = true) @CurrentUser Long userId) {
+        return service.generate(userId);
     }
 }
