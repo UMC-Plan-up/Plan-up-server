@@ -160,7 +160,7 @@ public class FriendServiceImpl implements FriendService {
         boolean isNewPhotoVerify = checkTodayPhotoVerification(friend); // 서비스 내 유틸/레포 호출
         LocalTime todayTime = calculateTodayTotalTime(friend);          // 기존 메서드 유지
 
-        return friendConverter.toFriendSummary(friend, goalCnt, isNewPhotoVerify, todayTime);
+        return friendConverter.toFriendSummary(friend, goalCnt, isNewPhotoVerify, todayTime, friend.getProfileImg());
     }
 
     private LocalTime calculateTodayTotalTime(User user) {

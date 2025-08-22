@@ -22,7 +22,8 @@ public class FriendConverter {
             User friend,
             int goalCnt,
             boolean isNewPhotoVerify,
-            LocalTime todayTime
+            LocalTime todayTime,
+            String profile
     ) {
         return FriendResponseDTO.FriendInfoSummary.builder()
                 .id(friend.getId())
@@ -30,6 +31,7 @@ public class FriendConverter {
                 .goalCnt(goalCnt)
                 .todayTime(todayTime)
                 .isNewPhotoVerify(isNewPhotoVerify)
+                .profileImg(profile)
                 .build();
     }
 

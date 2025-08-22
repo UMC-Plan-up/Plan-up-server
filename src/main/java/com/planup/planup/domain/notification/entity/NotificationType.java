@@ -47,8 +47,8 @@ public enum NotificationType {
     COMMENT_ON_VERIFICATION,  // 내 달성 확인에 댓글
 
     // 목표 피드백
-    GOAL_CHEERED,    // 응원해요
-    GOAL_ENCOURAGED, // 분발해요
+    FEEDBACK_CHEERED,    // 응원해요
+    FEEDBACK_ENCOURAGED, // 분발해요
 
     // 친구 요청/응답
     FRIEND_REQUEST_SENT,    // 친구 신청 보냄
@@ -65,5 +65,28 @@ public enum NotificationType {
     PENALTY_REJECTED,
     CHALLENGE_STARTED,
     CHALLENGE_ENDED,
-    PENALTY_REMINDER_SENT
+    PENALTY_REMINDER_SENT;
+
+    private final NotificationGroup group;
+
+    NotificationType() {
+        // 기본값은 이름으로 그룹 결정
+        if (this.name().startsWith("GOAL") || this.name().startsWith("RANK") || this.name().startsWith("FRIEND")) {
+            this.group = NotificationGroup.GOAL;
+        } else if (this.name().startsWith("CHALLENGE") || this.name().startsWith("PENALTY")) {
+            this.group = NotificationGroup.CHALLENGE;
+        } else if (this.name().startsWith("COMMENT") || this.name().startsWith("FEED")) {
+            this.group = NotificationGroup.FEEDBACK;
+        } else {
+            this.group = NotificationGroup.ETC;
+        }
+    }
+
+    public NotificationGroup getGroup() {
+        return group;
+    }
+
+    public enum NotificationGroup {
+        GOAL, CHALLENGE, FEEDBACK, ETC
+    }
 }
