@@ -31,8 +31,7 @@ public class NotificationServiceImpl implements NotificationService {
     public List<NotificationResponseDTO.NotificationDTO> getUnreadNotifications(Long receiverId) {
         User receiver = userService.getUserbyUserId(receiverId);
         List<Notification> notifications = notificationRepository.findByReceiverAndIsReadFalseOrderByCreatedAtDesc(receiver);
-        List<NotificationResponseDTO.NotificationDTO> list = notifications.stream().map(NotificationConverter::toNotificationDTO).collect(Collectors.toList());
-        return list;
+        return notifications.stream().map(NotificationConverter::toNotificationDTO).collect(Collectors.toList());
     }
 
     @Override
@@ -40,8 +39,7 @@ public class NotificationServiceImpl implements NotificationService {
     public List<NotificationResponseDTO.NotificationDTO> getUnreadNotificationsWithType(Long receiverId, String type) {
         User receiver = userService.getUserbyUserId(receiverId);
         List<Notification> notifications = notificationRepository.findByReceiverAndIsReadFalseOrderByCreatedAtDesc(receiver);
-        List<NotificationResponseDTO.NotificationDTO> list = notifications.stream().map(NotificationConverter::toNotificationDTO).collect(Collectors.toList());
-        return list;
+        return notifications.stream().map(NotificationConverter::toNotificationDTO).collect(Collectors.toList());
     }
 
     //유저의 모든 알림을 조회한다. (시간 순대로)
