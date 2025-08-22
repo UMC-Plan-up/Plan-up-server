@@ -105,6 +105,7 @@ public class GoalConvertor {
                 .goalId(goal.getId())
                 .goalName(goal.getGoalName())
                 .goalAmount(goal.getGoalAmount())
+                .goalPeriod(goal.getPeriod())
                 .goalType(goal.getGoalType())
                 .verificationType(goal.getVerificationType())
                 .goalTime(friendGoal.getGoalTime())

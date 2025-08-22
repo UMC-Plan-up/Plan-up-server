@@ -72,6 +72,7 @@ public class GoalResponseDto {
         private String goalName;
         private GoalType goalType;
         private String goalAmount;
+        private GoalPeriod goalPeriod;
         private VerificationType verificationType;
         private Integer goalTime;
         private int frequency;
