@@ -55,25 +55,24 @@ public class EncouragementService {
         this.dailyLimitService = dailyLimitService;
     }
 
-    public Mono<MessageResponse> generate(MessageRequest req) {
-        // 간단한 응원 메시지 생성 (성취율 비교 제외)
-        Map<String, Integer> goalAchList = new HashMap<>();
-
-        List<UserGoalResponseDto.GoalTotalAchievementDto> dtoList = req.goalIdList().stream()
-                .map(goalId -> userGoalAggregationService.getTotalAchievement(goalId, req.userId()))
-                .toList();
-
-        // Map에 값 넣기
-        dtoList.forEach(dto -> goalAchList.put(
-                dto.getGoalId().toString(),
-                dto.getTotalAchievementRate()
-        ));
-
-        String prompt = buildSimplePrompt(
-                req.name(),
-                req.context(),
-                goalAchList
-        );
+    public Mono<MessageResponse> generate(Long userId) {
+        // Redis 기반 일일 제한 체크 - 이미 받은 경우 저장된 메시지 반환
+        if (dailyLimitService.hasReceivedToday(userId)) {
+            String savedMessage = dailyLimitService.getTodayMessage(userId);
+            // Redis에서 null이 반환되거나 빈 문자열인 경우 새로운 메시지 생성
+            if (savedMessage == null || savedMessage.trim().isEmpty()) {
+                // Redis 데이터 정리 후 새로운 메시지 생성
+                dailyLimitService.clearTodayData(userId);
+            } else {
+                return Mono.just(new MessageResponse(savedMessage));
+            }
+        }
+        
+        // 사용자 데이터 수집
+        UserData userData = collectUserData(userId);
+        
+        // AI 메시지 생성
+        String prompt = buildPrompt(userData);
 
         Map<String, Object> body = Map.of(
                 "contents", new Object[]{
@@ -93,9 +92,23 @@ public class EncouragementService {
                 .bodyValue(body)
                 .retrieve()
                 .bodyToMono(Map.class)
-                .map(this::extractText)        // Gemini 응답 → 텍스트
+                .map(this::extractText)
+                .map(text -> {
+                    // 빈 문자열인 경우 기본 메시지 사용
+                    if (text == null || text.trim().isEmpty()) {
+                        return getDefaultMessage(userData);
+                    }
+                    return text;
+                })
                 .map(MessageResponse::new)
-                .onErrorReturn(new MessageResponse(getDefaultMessage(req.name(), req.context())));
+                .doOnSuccess(response -> dailyLimitService.markAsReceived(userId, response.message()))
+                .onErrorReturn(new MessageResponse(getDefaultMessage(userData)))
+                .doOnSuccess(response -> {
+                    // 에러로 인한 기본 메시지인 경우에도 저장
+                    if (response.message().equals(getDefaultMessage(userData))) {
+                        dailyLimitService.markAsReceived(userId, response.message());
+                    }
+                });
     }
 
     private UserData collectUserData(Long userId) {
@@ -166,7 +179,6 @@ public class EncouragementService {
     }
 
     private String extractText(Map<?, ?> resp) {
-        // 응답: candidates[0].content.parts[*].text 를 이어붙임
         try {
             var candidates = (java.util.List<?>) resp.get("candidates");
             if (candidates == null || candidates.isEmpty()) return "";
