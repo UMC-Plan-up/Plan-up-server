@@ -586,25 +586,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request) {
-        return kakaoAuth(request, null, null);
-    }
-
-    @Override
-    public KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request, String mode, Long userId) {
         KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());
         String email = kakaoUserInfo.getEmail();
-
-        // 계정 연동 모드인 경우
-        if ("link".equals(mode) && userId != null) {
-            return handleKakaoAccountLinking(userId, kakaoUserInfo, email);
-        }
-
-        // 기존 로그인/회원가입 모드
         return handleKakaoAuth(kakaoUserInfo, email);
     }
 
-    // 카카오 계정 연동 처리
-    private KakaoAuthResponseDTO handleKakaoAccountLinking(Long userId, KakaoUserInfo kakaoUserInfo, String email) {
+    @Override
+    @Transactional
+    public KakaoLinkResponseDTO linkKakaoAccount(Long userId, KakaoLinkRequestDTO request) {
+        KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());
+        String email = kakaoUserInfo.getEmail();
+        
         User user = getUserbyUserId(userId);
         
         // 이미 카카오 계정이 연동되어 있는지 확인
@@ -633,16 +625,13 @@ public class UserServiceImpl implements UserService {
         oAuthAccountRepository.save(oAuthAccount);
         
         // 연동 성공 응답
-        KakaoAuthResponseDTO response = KakaoAuthResponseDTO.builder()
-                .isNewUser(false)
-                .accessToken(null) // 연동 모드에서는 토큰 불필요
-                .userInfo(UserInfoResponseDTO.from(user))
-                .isLinked(true)
+        return KakaoLinkResponseDTO.builder()
+                .success(true)
                 .message("카카오 계정 연동이 완료되었습니다")
+                .kakaoEmail(email)
+                .userInfo(UserInfoResponseDTO.from(user))
                 .build();
-        return response;
     }
-
     // 기존 카카오 로그인/회원가입 처리
     private KakaoAuthResponseDTO handleKakaoAuth(KakaoUserInfo kakaoUserInfo, String email) {
         // 기존 사용자 확인
