@@ -22,7 +22,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "goal_type")
 public class Goal extends BaseTimeEntity {
 
     @Id
