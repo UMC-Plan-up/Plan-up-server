@@ -496,7 +496,7 @@ public class UserServiceImpl implements UserService {
             friendRepository.deleteAll(userFriends);
 
             // 친구 신청 삭제
-            List<Friend> friendRequests = friendRepository.findByStatusAndFriendIdOrderByCreatedAtDesc(
+            List<Friend> friendRequests = friendRepository.findByStatusAndFriend_IdOrderByCreatedAtDesc(
                 FriendStatus.REQUESTED, user.getId());
             friendRepository.deleteAll(friendRequests);
 
