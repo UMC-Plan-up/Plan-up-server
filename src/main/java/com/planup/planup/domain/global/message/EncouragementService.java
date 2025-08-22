@@ -48,7 +48,7 @@ public class EncouragementService {
         Map<String, Integer> goalAchList = new HashMap<>();
 
         List<UserGoalResponseDto.GoalTotalAchievementDto> dtoList = req.goalIdList().stream()
-                .map(goalId -> userGoalAggregationService.getTotalAchievement(req.userId(), goalId))
+                .map(goalId -> userGoalAggregationService.getTotalAchievement(goalId, req.userId()))
                 .toList();
 
         // Map에 값 넣기
@@ -126,7 +126,7 @@ public class EncouragementService {
             - 한국어로만 작성.
             - 최대 2문장, 80자 이내.
             - 톤: %s
-            - 존댓말 여부: %s
+            - 존댓말 사용 필수: "[이름]님"으로 호칭하고 존댓말로 작성
             - 이모지 사용: %s (true면 1~2개 사용)
             - 비속어/혐오/민감 조언 금지, 반복 피하기
             참고 데이터:
@@ -135,10 +135,9 @@ public class EncouragementService {
             컨텍스트:
             - 받는 사람: %s
             - 상황/목표: %s
-            출력: 응원 메시지 한 개만 반환. 따옴표 없이 본문만.
+            출력: "[이름]님"으로 시작하는 존댓말 응원 메시지 한 개만 반환. 따옴표 없이 본문만.
             """.formatted(
                 tone,
-                formality,
                 emoji,
                 dailyAchievementRate,
                 goalAchievementRates.toString(),
