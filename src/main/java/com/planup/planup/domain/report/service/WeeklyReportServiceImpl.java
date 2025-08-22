@@ -84,13 +84,8 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
         List<Long> goalName = goalService.getMyGoals(userId).stream().map(GoalResponseDto.MyGoalListDto::getGoalId).toList();
 
         List<BadgeType> badges = userBadgeList.stream().map(UserBadge::getBadgeType).toList();
-        MessageRequest messageRequest = new MessageRequest(
-                user.getNickname(),
-                "목표를 향해 더 노력할 수 있도록 응원 받아야 함.",
-                userId,
-                goalName
-        );
-        Mono<MessageResponse> generate = encouragementService.generate(messageRequest);
+
+        Mono<MessageResponse> generate = encouragementService.generate(userId);
 
         return WeeklyReportResponseConverter.toAchievementDTO(badges, notificationList);
 
