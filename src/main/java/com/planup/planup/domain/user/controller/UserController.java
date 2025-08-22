@@ -134,9 +134,10 @@ public class UserController {
     public ApiResponse<ImageUploadResponseDTO> uploadProfileImage(
             @Parameter(description = "업로드할 이미지 파일", required = true)
             @RequestPart("file") MultipartFile file,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @Parameter(description = "회원가입할 이메일 주소", required = true)
+            @RequestParam String email) {
 
-        ImageUploadResponseDTO response = userService.uploadProfileImage(file, userId);
+        ImageUploadResponseDTO response = userService.uploadProfileImage(file, email);
         return ApiResponse.onSuccess(response);
     }
 

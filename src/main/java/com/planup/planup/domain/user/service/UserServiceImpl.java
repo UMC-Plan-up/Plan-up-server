@@ -339,13 +339,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public ImageUploadResponseDTO uploadProfileImage(MultipartFile file, Long userId) {
+    public ImageUploadResponseDTO uploadProfileImage(MultipartFile file, String email) {
         // 이미지 업로드
         String imageUrl = imageUploadService.uploadImage(file, "profile");
-        User user = getUserbyUserId(userId);
-
+        
         // Redis에 임시 저장 (1시간 TTL)
-        String redisKey = "temp_profile:" + user.getEmail();
+        String redisKey = "temp_profile:" + email;
         redisTemplate.opsForValue().set(redisKey, imageUrl, Duration.ofHours(1));
         
         return ImageUploadResponseDTO.builder()
