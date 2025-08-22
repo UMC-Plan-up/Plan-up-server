@@ -649,13 +649,11 @@ public class UserServiceImpl implements UserService {
             String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
 
             KakaoAuthResponseDTO response = KakaoAuthResponseDTO.builder()
-                    .isNewUser(false)
-                    .accessToken(accessToken)
-                    .userInfo(UserInfoResponseDTO.from(user))
-                    .isLinked(false)
-                    .message("기존 카카오 계정으로 로그인되었습니다")
-                    .build();
-            return response;
+            .isNewUser(false)
+            .accessToken(accessToken)
+            .userInfo(UserInfoResponseDTO.from(user))
+            .build();
+        return response;
         } else {
             // 신규 사용자 - Redis에 카카오 정보만 저장
             String tempUserId = UUID.randomUUID().toString();
@@ -666,8 +664,6 @@ public class UserServiceImpl implements UserService {
             KakaoAuthResponseDTO response = KakaoAuthResponseDTO.builder()
                     .isNewUser(true)
                     .tempUserId(tempUserId)
-                    .isLinked(false)
-                    .message("새로운 카카오 계정입니다. 회원가입을 완료해주세요")
                     .build();
             return response;
         }
