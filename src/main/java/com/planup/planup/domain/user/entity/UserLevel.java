@@ -13,7 +13,7 @@ public enum UserLevel {
     LEVEL_8(8),
     LEVEL_9(9),
     LEVEL_10(10),
-    LEVEL_MAX(11);
+    LEVEL_MAX(Integer.MAX_VALUE);
 
 
     private final int value;
