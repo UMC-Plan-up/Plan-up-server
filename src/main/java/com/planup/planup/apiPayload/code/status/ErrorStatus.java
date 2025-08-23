@@ -69,6 +69,8 @@ public enum ErrorStatus implements BaseErrorCode {
     KAKAO_AUTH_FAILED(BAD_REQUEST, "KAKAO4001", "카카오 인증에 실패했습니다."),
     KAKAO_TOKEN_INVALID(BAD_REQUEST, "KAKAO4002", "유효하지 않은 카카오 토큰입니다."),
     KAKAO_USER_INFO_FAILED(INTERNAL_SERVER_ERROR, "KAKAO5001", "카카오 사용자 정보 조회에 실패했습니다."),
+    KAKAO_ACCOUNT_ALREADY_LINKED(BAD_REQUEST, "KAKAO4003", "이미 카카오 계정이 연동되어 있습니다."),
+    KAKAO_ACCOUNT_ALREADY_USED(BAD_REQUEST, "KAKAO4004", "이미 다른 사용자에게 연동된 카카오 계정입니다."),
 
     // Comment 관련 에러
     NOT_FOUND_COMMENT(HttpStatus.NOT_FOUND, "COMMENT4001", "존재하지 않는 댓글입니다."),

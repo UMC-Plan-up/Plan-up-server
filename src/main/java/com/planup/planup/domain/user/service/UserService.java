@@ -45,7 +45,7 @@ public interface UserService {
 
     KakaoAccountResponseDTO getKakaoAccountStatus(Long userId);
 
-    ImageUploadResponseDTO uploadProfileImage(MultipartFile file, User currentUser);
+    ImageUploadResponseDTO uploadProfileImage(MultipartFile file, String email);
 
     InviteCodeResponseDTO getMyInviteCode(Long userId);
 
@@ -56,6 +56,9 @@ public interface UserService {
     WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request);
 
     KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request);
+
+    // 카카오 계정 연동
+    KakaoLinkResponseDTO linkKakaoAccount(Long userId, KakaoLinkRequestDTO request);
 
     SignupResponseDTO kakaoSignupComplete(KakaoSignupCompleteRequestDTO request);
 

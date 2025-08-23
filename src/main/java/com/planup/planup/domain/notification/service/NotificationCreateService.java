@@ -63,8 +63,7 @@ public class NotificationCreateService {
                     creatorId,
                     NotificationType.FRIEND_GOAL_CREATED,
                     TargetType.GOAL,
-                    goalId,
-                    null
+                    goalId
             );
         }
     }

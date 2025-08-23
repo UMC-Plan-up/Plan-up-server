@@ -22,13 +22,14 @@ public class WeeklyReportResponseConverter {
      * 목표 달성 페이지 생성을 위한 DTO 생성
      */
 
-    public static WeeklyReportResponseDTO.achievementResponse toAchievementDTO(List<BadgeType> badges, List<NotificationResponseDTO.NotificationDTO> notifications) {
+    public static WeeklyReportResponseDTO.achievementResponse toAchievementDTO(List<BadgeType> badges, List<NotificationResponseDTO.NotificationDTO> notifications, String message) {
         List<WeeklyReportResponseDTO.badgeDTO> badgeDTOS = toBadgeDTOs(badges);
 //        List<NotificationResponseDTO.NotificationDTO> notificationDTOS = toNotificationDTOs(notifications);
 
         return WeeklyReportResponseDTO.achievementResponse.builder()
                 .bedgeDTOList(badgeDTOS)
                 .notificationDTOList(notifications)
+                .cheering(message)
                 .build();
 
     }

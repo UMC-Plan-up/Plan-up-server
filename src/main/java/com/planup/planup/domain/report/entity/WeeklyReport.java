@@ -15,9 +15,12 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@ToString(exclude = {"user", "goalReports", "dailyRecords"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class WeeklyReport extends BaseTimeEntity {
 
     @Id
+    @EqualsAndHashCode.Include
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

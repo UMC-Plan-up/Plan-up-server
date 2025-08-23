@@ -171,6 +171,20 @@ public class UserServiceImpl implements UserService {
 
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
+        
+        // 임시 저장된 프로필 이미지 URL 가져오기
+        Object tempImageUrlObj = redisTemplate.opsForValue().get("temp_profile:" + request.getEmail());
+        String tempImageUrl = (tempImageUrlObj != null) ? (String) tempImageUrlObj : null;
+        
+        // 요청에서 받은 프로필 이미지 처리 (빈 문자열은 null로 변환)
+        String requestProfileImg = request.getProfileImg();
+        if (requestProfileImg != null && requestProfileImg.trim().isEmpty()) {
+            requestProfileImg = null;
+        }
+        
+        // 우선순위: Redis 임시 이미지 > 요청 이미지
+        String profileImgUrl = (tempImageUrl != null) ? tempImageUrl : requestProfileImg;
+
         // User 엔티티 생성
         User user = User.builder()
                 .email(request.getEmail())
@@ -180,7 +194,7 @@ public class UserServiceImpl implements UserService {
                 .userActivate(UserActivate.ACTIVE)
                 .userLevel(UserLevel.LEVEL_1)
                 .alarmAllow(true)
-                .profileImg(request.getProfileImg())
+                .profileImg(profileImgUrl)
                 .emailVerified(true)
                 .emailVerifiedAt(LocalDateTime.now())
                 .build();
@@ -195,6 +209,11 @@ public class UserServiceImpl implements UserService {
 
         // 인증 토큰 정리
         emailService.clearVerificationToken(request.getEmail());
+        
+        // 임시 프로필 이미지 URL 삭제
+        if (tempImageUrl != null) {
+            redisTemplate.delete("temp_profile:" + request.getEmail());
+        }
 
         return SignupResponseDTO.builder()
                 .id(savedUser.getId())
@@ -320,13 +339,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public ImageUploadResponseDTO uploadProfileImage(MultipartFile file, User currentUser) {
-
+    public ImageUploadResponseDTO uploadProfileImage(MultipartFile file, String email) {
+        // 이미지 업로드
         String imageUrl = imageUploadService.uploadImage(file, "profile");
-
-        currentUser.updateProfileImage(imageUrl);
-        userRepository.save(currentUser);
-
+        
+        // Redis에 임시 저장 (1시간 TTL)
+        String redisKey = "temp_profile:" + email;
+        redisTemplate.opsForValue().set(redisKey, imageUrl, Duration.ofHours(1));
+        
         return ImageUploadResponseDTO.builder()
                 .imageUrl(imageUrl)
                 .build();
@@ -588,7 +608,52 @@ public class UserServiceImpl implements UserService {
     public KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request) {
         KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());
         String email = kakaoUserInfo.getEmail();
+        return handleKakaoAuth(kakaoUserInfo, email);
+    }
 
+    @Override
+    @Transactional
+    public KakaoLinkResponseDTO linkKakaoAccount(Long userId, KakaoLinkRequestDTO request) {
+        KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());
+        String email = kakaoUserInfo.getEmail();
+        
+        User user = getUserbyUserId(userId);
+        
+        // 이미 카카오 계정이 연동되어 있는지 확인
+        Optional<OAuthAccount> existingOAuth = oAuthAccountRepository
+                .findByUserAndProvider(user, AuthProvideerEnum.KAKAO);
+        
+        if (existingOAuth.isPresent()) {
+            throw new UserException(ErrorStatus.KAKAO_ACCOUNT_ALREADY_LINKED);
+        }
+        
+        // 다른 사용자가 이미 해당 카카오 계정을 사용하고 있는지 확인
+        Optional<OAuthAccount> otherUserOAuth = oAuthAccountRepository
+                .findByEmailAndProvider(email, AuthProvideerEnum.KAKAO);
+        
+        if (otherUserOAuth.isPresent()) {
+            throw new UserException(ErrorStatus.KAKAO_ACCOUNT_ALREADY_USED);
+        }
+        
+        // OAuth 계정 생성 및 연결
+        OAuthAccount oAuthAccount = OAuthAccount.builder()
+                .provider(AuthProvideerEnum.KAKAO)
+                .email(email)
+                .user(user)
+                .build();
+        
+        oAuthAccountRepository.save(oAuthAccount);
+        
+        // 연동 성공 응답
+        return KakaoLinkResponseDTO.builder()
+                .success(true)
+                .message("카카오 계정 연동이 완료되었습니다")
+                .kakaoEmail(email)
+                .userInfo(UserInfoResponseDTO.from(user))
+                .build();
+    }
+    // 기존 카카오 로그인/회원가입 처리
+    private KakaoAuthResponseDTO handleKakaoAuth(KakaoUserInfo kakaoUserInfo, String email) {
         // 기존 사용자 확인
         Optional<OAuthAccount> existingOAuth = oAuthAccountRepository
                 .findByEmailAndProvider(email, AuthProvideerEnum.KAKAO);
@@ -603,11 +668,12 @@ public class UserServiceImpl implements UserService {
 
             String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
 
-            KakaoAuthResponseDTO response = new KakaoAuthResponseDTO();
-            response.setNewUser(false);
-            response.setAccessToken(accessToken);
-            response.setUserInfo(UserInfoResponseDTO.from(user));
-            return response;
+            KakaoAuthResponseDTO response = KakaoAuthResponseDTO.builder()
+            .isNewUser(false)
+            .accessToken(accessToken)
+            .userInfo(UserInfoResponseDTO.from(user))
+            .build();
+        return response;
         } else {
             // 신규 사용자 - Redis에 카카오 정보만 저장
             String tempUserId = UUID.randomUUID().toString();
@@ -615,9 +681,10 @@ public class UserServiceImpl implements UserService {
 
             redisTemplate.opsForValue().set(redisKey, kakaoUserInfo, Duration.ofMinutes(TEMP_USER_EXPIRE_MINUTES));
 
-            KakaoAuthResponseDTO response = new KakaoAuthResponseDTO();
-            response.setNewUser(true);
-            response.setTempUserId(tempUserId);
+            KakaoAuthResponseDTO response = KakaoAuthResponseDTO.builder()
+                    .isNewUser(true)
+                    .tempUserId(tempUserId)
+                    .build();
             return response;
         }
     }
@@ -636,9 +703,20 @@ public class UserServiceImpl implements UserService {
         // 기본 사용자 생성
         User user = createBasicKakaoUser(kakaoUserInfo, request);
 
-        // 프로필 이미지 처리
-        if (request.getProfileImg() != null) {
-            processProfileImage(user, request.getProfileImg());
+        // 임시 저장된 프로필 이미지 URL 가져오기
+        Object tempImageUrlObj = redisTemplate.opsForValue().get("temp_profile:" + kakaoUserInfo.getEmail());
+        String tempImageUrl = (tempImageUrlObj != null) ? (String) tempImageUrlObj : null;
+        
+        // 요청에서 받은 프로필 이미지 처리 (빈 문자열은 null로 변환)
+        String requestProfileImg = request.getProfileImg();
+        if (requestProfileImg != null && requestProfileImg.trim().isEmpty()) {
+            requestProfileImg = null;
+        }
+        
+        // 프로필 이미지 처리 (임시 저장된 이미지 우선, 없으면 요청에서 받은 이미지 사용)
+        String profileImgUrl = (tempImageUrl != null) ? tempImageUrl : requestProfileImg;
+        if (profileImgUrl != null) {
+            processProfileImage(user, profileImgUrl);
         }
 
         // 닉네임 처리
@@ -655,6 +733,11 @@ public class UserServiceImpl implements UserService {
 
         // Redis 데이터 삭제
         redisTemplate.delete(redisKey);
+        
+        // 임시 프로필 이미지 URL 삭제
+        if (tempImageUrl != null) {
+            redisTemplate.delete("temp_profile:" + kakaoUserInfo.getEmail());
+        }
 
         // JWT 토큰 생성 및 응답
         String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
