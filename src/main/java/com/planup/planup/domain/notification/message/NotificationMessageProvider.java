@@ -17,7 +17,7 @@ public class NotificationMessageProvider {
         String senderName = notification.getSender().getNickname();
         String receiverName = notification.getReceiver().getNickname();
         Long targetId = notification.getTargetId();
-        String updatedPartsStr = notification.getNotificationMessage();
+        String updatedPartsStr = notification.getUpdatedGoalInfo();
 
         String goalName = null;
         if (isTargetId(notification)) {

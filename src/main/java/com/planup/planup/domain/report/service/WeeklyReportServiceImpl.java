@@ -81,7 +81,6 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
 
         List<NotificationResponseDTO.NotificationDTO> notificationList = notificationService.getTop5RecentByUser(userId);
         List<UserBadge> userBadgeList = userBadgeService.getTop5Recent(user);
-        List<Long> goalName = goalService.getMyGoals(userId).stream().map(GoalResponseDto.MyGoalListDto::getGoalId).toList();
 
         List<BadgeType> badges = userBadgeList.stream().map(UserBadge::getBadgeType).toList();
 

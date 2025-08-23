@@ -62,4 +62,6 @@ public class Notification extends BaseTimeEntity {
     public String getNotificationUrl() {
         return NotificationUrlProvider.generate(this);
     }
+
+
 }

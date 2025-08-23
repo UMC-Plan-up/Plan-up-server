@@ -138,6 +138,10 @@ public class UserGoalServiceImpl implements UserGoalService{
 
         int actualCount = dailyCount.getOrDefault(targetDate, 0);
 
+        if (goal.getOneDose() == 0) {
+            return 0;
+        }
+
         return Math.min(100, (actualCount * 100) / goal.getOneDose());
     }
 
@@ -176,6 +180,11 @@ public class UserGoalServiceImpl implements UserGoalService{
 
     private int calculateExpectedVerifications(int frequency, GoalPeriod period, long days) {
         if (days <= 0) return 0;
+
+        // GoalPeriod 가 null 인 경우
+        if (period == null) {
+            return 0;
+        }
 
         switch (period) {
             case DAY:
