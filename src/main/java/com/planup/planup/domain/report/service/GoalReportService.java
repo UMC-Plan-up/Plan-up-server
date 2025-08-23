@@ -26,6 +26,7 @@ public interface GoalReportService {
 
     @Transactional
     void createReportUsersFromRedis(UserGoal userGoal, LocalDateTime startDate);
+    GoalReport getGoalReportsByUserAndPeriod(Long reportId);
 
-    GoalReport getGoalReportById(Long id);
+    public List<GoalReport> getGoalReportsByUserAndPeriod(Long userId, LocalDateTime start, LocalDateTime end);
 }

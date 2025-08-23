@@ -168,29 +168,40 @@ public class GoalReportServiceImpl implements GoalReportService {
         goalReport.setReportUsers(reportUsers);
     }
 
+    @Override
+    public GoalReport getGoalReportsByUserAndPeriod(Long reportId) {
+        return null;
+    }
+
     private ThreeWeekAchievementRate createThreeWeekAchievementRate(int thisWeekRate, UserGoal userGoal, LocalDateTime thisWeek) {
         List<GoalReport> goalReportList = findByGoalIdRecent2(userGoal.getGoal().getId());
+        // ✅ 날짜 범위로 조회하도록 Repository 메서드 추가 필요
+        LocalDateTime oneWeekStart = thisWeek.minusWeeks(1).with(DayOfWeek.MONDAY).toLocalDate().atStartOfDay();
+        LocalDateTime oneWeekEnd = oneWeekStart.plusDays(6).toLocalDate().atTime(23, 59, 59);
 
-        LocalDate oneWeekBefore = thisWeek.minusWeeks(1).with(DayOfWeek.MONDAY).toLocalDate();
-        LocalDate twoWeeksBefore = thisWeek.minusWeeks(2).with(DayOfWeek.MONDAY).toLocalDate();
+        LocalDateTime twoWeeksStart = thisWeek.minusWeeks(2).with(DayOfWeek.MONDAY).toLocalDate().atStartOfDay();
+        LocalDateTime twoWeeksEnd = twoWeeksStart.plusDays(6).toLocalDate().atTime(23, 59, 59);
 
-        Optional<GoalReport> first = goalReportList.stream()
-                .filter(r -> r.getCreatedAt().toLocalDate().equals(oneWeekBefore)).findFirst();
+        // Repository에 새 메서드 추가 필요
+        Optional<GoalReport> oneWeekReport = goalReportRepository
+                .findFirstByGoalIdAndCreatedAtBetween(
+                        userGoal.getGoal().getId(), oneWeekStart, oneWeekEnd
+                );
 
-        Optional<GoalReport> second = goalReportList.stream()
-                .filter(r -> r.getCreatedAt().toLocalDate().equals(twoWeeksBefore)).findFirst();
+        Optional<GoalReport> twoWeeksReport = goalReportRepository
+                .findFirstByGoalIdAndCreatedAtBetween(
+                        userGoal.getGoal().getId(), twoWeeksStart, twoWeeksEnd
+                );
 
-        ThreeWeekAchievementRate threeWeekAchievementRate = ThreeWeekAchievementRate.builder()
+        return ThreeWeekAchievementRate.builder()
                 .thisWeek(thisWeekRate)
-                .oneWeekBefore(first.map(report -> report.getDailyAchievementRate().getTotal()).orElse(0))
-                .twoWeekBefore(second.map(goalReport -> goalReport.getDailyAchievementRate().getTotal()).orElse(0))
+                .oneWeekBefore(oneWeekReport.map(r -> r.getDailyAchievementRate().getTotal()).orElse(0))
+                .twoWeekBefore(twoWeeksReport.map(r -> r.getDailyAchievementRate().getTotal()).orElse(0))
                 .build();
-        return threeWeekAchievementRate;
     }
 
     //각 인증을 취합하여 DailyAchievementRate를 생성한다.
     public DailyAchievementRate calculateVerification(UserGoal userGoal, Goal goal, LocalDateTime startDate) {
-
 
         //날짜별 인증을 저장한다
         Map<LocalDate, Integer> dailyCount;
@@ -204,9 +215,10 @@ public class GoalReportServiceImpl implements GoalReportService {
         } else {
             throw new RuntimeException();
         }
+        DailyAchievementRate result = getDailyAchievementRate(dailyCount, goal.getOneDose(), startDate);
 
         // 날짜별 성취도 계산
-        return getDailyAchievementRate(dailyCount, goal.getOneDose(), startDate);
+        return result;
     }
 
     private DailyAchievementRate getDailyAchievementRate(Map<LocalDate, Integer> dailyCount, int oneDose, LocalDateTime startDate) {
@@ -234,8 +246,8 @@ public class GoalReportServiceImpl implements GoalReportService {
         return dto;
     }
 
-    @Override
-    public GoalReport getGoalReportById(Long id) {
-        return goalReportRepository.findById(id).orElseThrow(() -> new ReportException(ErrorStatus.NOT_FOUND_GOAL_REPORT));
+    public List<GoalReport> getGoalReportsByUserAndPeriod(Long userId, LocalDateTime start, LocalDateTime end) {
+        return goalReportRepository.findAllByUserIdAndCreatedAtBetween(userId, start, end);
     }
+
 }

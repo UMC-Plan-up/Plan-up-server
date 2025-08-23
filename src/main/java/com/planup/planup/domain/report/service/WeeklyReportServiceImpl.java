@@ -126,13 +126,13 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
 
         //리포트 작성일을 기준으로 가장 최근 일주일의 값을 지정한다. 이때 작성된 GOALREPORT를 조회
         LocalDateTime startOfDay = startDate.toLocalDate().atStartOfDay(); // 2025-08-07T00:00
-        LocalDateTime endOfDay = startDate.toLocalDate().plusDays(1).atStartOfDay().minusNanos(1); // 2025-08-07T23:59:59.999999999
+        LocalDateTime endOfDay= startDate.plusDays(6).toLocalDate().atTime(23, 59, 59);  // 일요일 23:59
 
         //weeklyReport에 들어갈 리포트 조회
         List<GoalReport> goalReportList = goalReportService.getListByUserIdOneDay(userId, startOfDay, endOfDay);
 
         //weeklyReport에 들어갈 레코드 5개 조회
-        List<DailyRecord> dailyRecordForWeeklyReport = getDailyRecordForWeeklyReport(user, startDate, endOfDay);
+        List<DailyRecord> dailyRecordForWeeklyReport = getDailyRecordForWeeklyReport(user, startOfDay, endOfDay);
 
         WeeklyReport weeklyReport = WeeklyReport.builder()
                 .user(user) // User 엔티티

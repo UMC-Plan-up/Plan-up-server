@@ -19,4 +19,5 @@ public interface GoalReportRepository extends JpaRepository<GoalReport, Long> {
     List<GoalReport> findTop2ByGoalIdOrderByCreatedAt(Long id);
 
     List<GoalReport> findAllByUserIdAndCreatedAtBetween(Long userId, LocalDateTime start, LocalDateTime end);
+    Optional<GoalReport> findFirstByGoalIdAndCreatedAtBetween(Long id, LocalDateTime twoWeeksStart, LocalDateTime twoWeeksEnd);
 }
