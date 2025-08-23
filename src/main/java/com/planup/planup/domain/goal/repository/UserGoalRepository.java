@@ -28,11 +28,15 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
 
     @Query("SELECT ug FROM UserGoal ug " +
             "JOIN ug.goal g " +
-            "JOIN Friend f ON (f.user.id = :userId AND f.friend.id = ug.user.id AND f.status = 'ACCEPTED') " +
-            "OR (f.friend.id = :userId AND f.user.id = ug.user.id AND f.status = 'ACCEPTED') " +
             "WHERE ug.isPublic = true " +
             "AND g.goalCategory = :goalCategory " +
-            "AND g.goalType = 'FRIEND'")
+            "AND g.goalType = 'FRIEND' " +
+            "AND EXISTS (" +
+            "    SELECT 1 FROM Friend f " +
+            "    WHERE f.status = 'ACCEPTED' " +
+            "    AND ((f.user.id = :userId AND f.friend.id = ug.user.id) " +
+            "         OR (f.friend.id = :userId AND f.user.id = ug.user.id))" +
+            ")")
     List<UserGoal> findFriendGoalsByCategory(@Param("userId") Long userId,
                                              @Param("goalCategory") GoalCategory goalCategory);
 
