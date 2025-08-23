@@ -25,7 +25,7 @@ public class WeeklyReportController {
 
     @Operation(summary = "목표 달성 기록 조회 페이지 데이터 생성", description = "목표 달성 페이지의 알림, 메시지, 뱃지 내용을 조회")
     @GetMapping("/reports")
-    public ApiResponse<WeeklyReportResponseDTO.achievementResponse> getAchievementPage(Long userId) {
+    public ApiResponse<WeeklyReportResponseDTO.achievementResponse> getAchievementPage(@Parameter(hidden = true) @CurrentUser Long userId) {
         WeeklyReportResponseDTO.achievementResponse weeklyReport = weeklyReportService.getWeeklyGoalAchievements(userId);
         return ApiResponse.onSuccess(weeklyReport);
     }
