@@ -1,0 +1,230 @@
+package com.planup.planup.domain.goal.dto;
+
+import com.planup.planup.domain.goal.entity.Comment;
+import com.planup.planup.domain.goal.entity.Enum.*;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.*;
+
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.List;
+
+
+public class GoalResponseDto {
+
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GoalResultDto {
+        Long goalId;
+        String goalName;
+        String goalAmount;
+        GoalCategory goalCategory;
+        GoalType goalType;
+        int oneDose;
+        int frequency;
+        GoalPeriod period;
+        LocalDate endDate;
+        VerificationType verificationType;
+        int limitFriendCount;
+    }
+
+    //목표 조회 리스트 Dto
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GoalCreateListDto {
+        private Long goalId;
+        private String goalName;
+        private GoalCategory goalCategory;
+        private GoalType goalType;
+        private VerificationType verificationType;
+        private Integer goalTime;
+        private int frequency;
+        private int oneDose;
+        private String creatorNickname;
+        private String creatorProfileImg;
+        private int participantCount;
+    }
+
+    //내 목표 리스트 조회 DTO
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MyGoalListDto {
+        private Long goalId;
+        private String goalName;
+        private GoalType goalType;
+        private int frequency;
+        private int oneDose;
+    }
+
+    //친구 목표 조회 리스트 Dto
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class FriendGoalListDto {
+        private Long goalId;
+        private String goalName;
+        private GoalType goalType;
+        private String goalAmount;
+        private GoalPeriod goalPeriod;
+        private VerificationType verificationType;
+        private Integer goalTime;
+        private int frequency;
+        private int oneDose;
+    }
+
+    //목표 세부 조회 Dto
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MyGoalDetailDto {
+        private Long goalId;
+        private String goalName;
+        private int oneDose;
+        private boolean isPublic;
+        private List<Comment> commentList;
+    }
+
+    //랭킹 Dto
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RankingDto {
+        private Long goalId;
+        private Long userId;
+        private String nickName;
+        private String profileImg;
+        private int verificationCount;
+    }
+
+    //친구 타이머 현황 Dto
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class FriendTimerStatusDto {
+        private Long userId;
+        private String nickname;
+        private String profileImg;
+        private String todayTime;
+        private VerificationType verificationType;
+    }
+
+    //메모 Dto
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GoalMemoResponseDto {
+        @Schema(description = "처리 결과", example = "CREATED", allowableValues = {"CREATED", "UPDATED", "DELETED", "NO_CHANGE"})
+        private String action;
+
+        @Schema(description = "메모 ID (삭제된 경우 null)", example = "1")
+        private Long memoId;
+
+        @Schema(description = "메모 내용 (삭제된 경우 null)", example = "오늘의 메모")
+        private String memo;
+
+        private LocalDate memoDate;
+
+        @Schema(description = "처리 결과 메시지", example = "메모가 성공적으로 저장되었습니다.")
+        private String message;
+    }
+
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GoalMemoReadDto {
+        private String memo;
+        private LocalDate memoDate;
+        private boolean exists;
+    }
+
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DailyVerifiedGoalsResponse {
+        private LocalDate date;
+        private List<VerifiedGoalInfo> verifiedGoals;
+        private int totalCount;
+    }
+
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VerifiedGoalInfo {
+        private String goalName;
+        private GoalPeriod period;
+        private int frequency;
+    }
+
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DailyAchievementDto {
+        @Schema(description = "조회 날짜", example = "2024-08-21")
+        private LocalDate date;
+
+        @Schema(description = "일별 총 달성률 (퍼센트)", example = "70")
+        private int achievementRate;
+    }
+
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GoalReactionDto {
+        @Schema(description = "목표 ID", example = "123")
+        private Long goalId;
+
+        @Schema(description = "응원해요 카운트", example = "15")
+        private int cheerCount;
+
+        @Schema(description = "분발해요 카운트", example = "8")
+        private int encourageCount;
+
+        @Schema(description = "사용자 반응 여부")
+        private UserReactionStatus userReactions;
+    }
+
+    //사용자 반응 상태 DTO
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserReactionStatus {
+        @Schema(description = "응원해요 클릭 여부", example = "true")
+        private boolean hasCheer;
+
+        @Schema(description = "분발해요 클릭 여부", example = "false")
+        private boolean hasEncourage;
+    }
+
+    //반응 추가 결과 DTO
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReactionResultDto {
+        @Schema(description = "처리 결과", example = "SUCCESS", allowableValues = {"SUCCESS", "ALREADY_REACTED", "ERROR"})
+        private String result;
+
+        @Schema(description = "결과 메시지", example = "응원이 등록되었습니다.")
+        private String message;
+
+        @Schema(description = "업데이트된 반응 정보")
+        private GoalReactionDto reactionData;
+    }
+}
