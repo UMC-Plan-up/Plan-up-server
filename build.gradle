@@ -45,8 +45,10 @@ dependencies {
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
 
 	// AWS S3 의존성
-	implementation 'software.amazon.awssdk:s3:2.21.29'
+	implementation platform('software.amazon.awssdk:bom:2.21.29')  // BOM 추가
+	implementation 'software.amazon.awssdk:s3'
 	implementation 'software.amazon.awssdk:auth:2.21.29'
+	implementation 'software.amazon.awssdk:apache-client:2.21.29'
 
 	// Redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
