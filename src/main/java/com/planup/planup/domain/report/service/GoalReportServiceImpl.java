@@ -183,30 +183,39 @@ public class GoalReportServiceImpl implements GoalReportService {
     }
 
     private ThreeWeekAchievementRate createThreeWeekAchievementRate(int thisWeekRate, UserGoal userGoal, LocalDateTime thisWeek) {
-        List<GoalReport> goalReportList = findTop2RecentByGoalId(userGoal.getGoal().getId());
-        // ✅ 날짜 범위로 조회하도록 Repository 메서드 추가 필요
-        LocalDateTime oneWeekStart = thisWeek.minusWeeks(1).with(DayOfWeek.MONDAY).toLocalDate().atStartOfDay();
-        LocalDateTime oneWeekEnd = oneWeekStart.plusDays(6).toLocalDate().atTime(23, 59, 59);
 
-        LocalDateTime twoWeeksStart = thisWeek.minusWeeks(2).with(DayOfWeek.MONDAY).toLocalDate().atStartOfDay();
-        LocalDateTime twoWeeksEnd = twoWeeksStart.plusDays(6).toLocalDate().atTime(23, 59, 59);
+        //날짜 범위로 조회
+        LocalDate oneWeekMonday = thisWeek.minusWeeks(1).with(DayOfWeek.MONDAY).toLocalDate();
+        LocalDate twoWeekMonday = thisWeek.minusWeeks(2).with(DayOfWeek.MONDAY).toLocalDate();
 
-        // Repository에 새 메서드 추가 필요
-        Optional<GoalReport> oneWeekReport = goalReportRepository
-                .findFirstByGoalIdAndCreatedAtBetween(
-                        userGoal.getGoal().getId(), oneWeekStart, oneWeekEnd
-                );
+        LocalDateTime oneStart = oneWeekMonday.atStartOfDay();
+        LocalDateTime oneEndEx = oneStart.plusDays(7);
+        LocalDateTime twoStart = twoWeekMonday.atStartOfDay();
+        LocalDateTime twoEndEx = twoStart.plusDays(7);
 
-        Optional<GoalReport> twoWeeksReport = goalReportRepository
-                .findFirstByGoalIdAndCreatedAtBetween(
-                        userGoal.getGoal().getId(), twoWeeksStart, twoWeeksEnd
-                );
+        //해당 날짜대로 GoalReport 조회
+        GoalReport oneWeekReport = getFirstByIdAndPeriod(userGoal, oneStart, oneEndEx);
+        GoalReport twoWeeksReport = getFirstByIdAndPeriod(userGoal, twoStart, twoEndEx);
 
         return ThreeWeekAchievementRate.builder()
                 .thisWeek(thisWeekRate)
-                .oneWeekBefore(oneWeekReport.map(r -> r.getDailyAchievementRate().getTotal()).orElse(0))
-                .twoWeekBefore(twoWeeksReport.map(r -> r.getDailyAchievementRate().getTotal()).orElse(0))
+                .oneWeekBefore(getDailyAchievementRateOrZero(oneWeekReport))
+                .twoWeekBefore(getDailyAchievementRateOrZero(twoWeeksReport))
                 .build();
+    }
+
+    private int getDailyAchievementRateOrZero(GoalReport goalReport) {
+        return Optional.ofNullable(goalReport)
+                .map(GoalReport::getDailyAchievementRate)
+                .map(DailyAchievementRate::getTotal)
+                .orElse(0);
+    }
+
+    private GoalReport getFirstByIdAndPeriod(UserGoal userGoal, LocalDateTime oneWeekStart, LocalDateTime oneWeekEnd) {
+        return goalReportRepository
+                .findFirstByGoalIdAndCreatedAtBetween(
+                        userGoal.getGoal().getId(), oneWeekStart, oneWeekEnd
+                ).orElse(null);
     }
 
     //각 인증을 취합하여 DailyAchievementRate를 생성한다.
