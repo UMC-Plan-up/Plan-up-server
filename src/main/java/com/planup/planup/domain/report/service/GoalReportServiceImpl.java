@@ -182,11 +182,6 @@ public class GoalReportServiceImpl implements GoalReportService {
         goalReport.setReportUsers(reportUsers);
     }
 
-    @Override
-    public GoalReport getGoalReportsByUserAndPeriod(Long reportId) {
-        return null;
-    }
-
     private ThreeWeekAchievementRate createThreeWeekAchievementRate(int thisWeekRate, UserGoal userGoal, LocalDateTime thisWeek) {
         List<GoalReport> goalReportList = findTop2RecentByGoalId(userGoal.getGoal().getId());
         // ✅ 날짜 범위로 조회하도록 Repository 메서드 추가 필요

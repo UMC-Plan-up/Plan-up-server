@@ -64,7 +64,7 @@ public class CommentServiceImpl implements CommentService {
     public CommentResponseDto.CommentDto createCommentByGoalReport(Long reportId, Long userId, CommentRequestDto.CommentCreateRequestDto requestDto) {
 
         User writer = userService.getUserbyUserId(userId);
-        GoalReport goalReport = goalReportService.getGoalReportsByUserAndPeriod(reportId);
+        GoalReport goalReport = goalReportService.getGoalReportOrThrow(reportId);
 
         Comment parentComment = null;
         if (requestDto.isReply()) {
