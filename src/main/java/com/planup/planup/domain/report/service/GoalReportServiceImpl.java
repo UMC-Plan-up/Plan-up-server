@@ -29,7 +29,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -44,6 +43,7 @@ public class GoalReportServiceImpl implements GoalReportService {
     private final ReportUserRepository reportUserRepository;
     private final AchievementCalculationService achievementCalculationService;
     private final PhotoVerificationReadService photoVerificationReadService;
+    private final GoalReportService goalReportService;
 
     @Override
     public void createGoalReportsByUserGoal(LocalDateTime startDate, LocalDateTime endDate) {
@@ -62,18 +62,32 @@ public class GoalReportServiceImpl implements GoalReportService {
         }
     }
 
+    //리포트를 조회한다.
+    @Override
+    @Transactional(readOnly = true)
+    public GoalReport getGoalReportOrThrow(Long id) {
+        return goalReportRepository.findById(id)
+                .orElseThrow(() -> new ReportException(ErrorStatus.NOT_FOUND_GOAL_REPORT));
+    }
+
+    //goalReport와 해당 리포트의 댓글을 조회하여 DTO로 반환
     @Override
     @Transactional(readOnly = true)
     public GoalReportResponseDTO.GoalReportResponse findDTOById(Long id, Long userId) {
-        GoalReport goalReport = goalReportRepository.findById(id).orElseThrow(() -> new ReportException(ErrorStatus.NOT_FOUND_GOAL_REPORT));
+        GoalReport goalReport = getGoalReportOrThrow(id);
+        List<CommentResponseDto.CommentDto> commentDtoList = getCommentResponseDtoListByGoalReport(goalReport);
+        return GoalReportConverter.toGoalReportResponse(goalReport, commentDtoList);
+    }
+
+    //리포트에 연결된 코멘트 관련 조회 및 DTO 변환
+    private List<CommentResponseDto.CommentDto> getCommentResponseDtoListByGoalReport(GoalReport goalReport) {
         List<Comment> commentList = goalReport.getCommentList();
-        List<CommentResponseDto.CommentDto> commentDtoList = commentList.stream().map(c -> CommentConverter.toResponseDto(c, userId)).collect(Collectors.toList());
-        return GoalReportConverter.toResponse(goalReport, commentDtoList);
+        return commentList.stream().map(c -> CommentConverter.toResponseDto(c, goalReport.getUserId())).toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<GoalReport> findByGoalIdRecent2(Long id) {
+    public List<GoalReport> findTop2RecentByGoalId(Long id) {
         return goalReportRepository.findTop2ByGoalIdOrderByCreatedAt(id);
     }
 
@@ -174,7 +188,7 @@ public class GoalReportServiceImpl implements GoalReportService {
     }
 
     private ThreeWeekAchievementRate createThreeWeekAchievementRate(int thisWeekRate, UserGoal userGoal, LocalDateTime thisWeek) {
-        List<GoalReport> goalReportList = findByGoalIdRecent2(userGoal.getGoal().getId());
+        List<GoalReport> goalReportList = findTop2RecentByGoalId(userGoal.getGoal().getId());
         // ✅ 날짜 범위로 조회하도록 Repository 메서드 추가 필요
         LocalDateTime oneWeekStart = thisWeek.minusWeeks(1).with(DayOfWeek.MONDAY).toLocalDate().atStartOfDay();
         LocalDateTime oneWeekEnd = oneWeekStart.plusDays(6).toLocalDate().atTime(23, 59, 59);
