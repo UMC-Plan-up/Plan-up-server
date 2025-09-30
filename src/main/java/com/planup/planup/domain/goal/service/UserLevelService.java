@@ -218,7 +218,7 @@ public class UserLevelService {
         int period = (int) ((java.time.Duration.between(createdAt, now).toDays()) / 7);
         LocalDateTime periodStart = createdAt.plusDays(period * 7);
 
-        DailyAchievementRate rate = goalReportService.calculateVerification(
+        DailyAchievementRate rate = goalReportService.calculateDailyAchievementRate(
                 userGoal, userGoal.getGoal(), periodStart
         );
         return rate.getTotal();
@@ -230,8 +230,8 @@ public class UserLevelService {
         LocalDateTime week1Start = now.minusDays(7);
         LocalDateTime week2Start = now.minusDays(14);
 
-        int week1Rate = goalReportService.calculateVerification(userGoal, userGoal.getGoal(), week1Start).getTotal();
-        int week2Rate = goalReportService.calculateVerification(userGoal, userGoal.getGoal(), week2Start).getTotal();
+        int week1Rate = goalReportService.calculateDailyAchievementRate(userGoal, userGoal.getGoal(), week1Start).getTotal();
+        int week2Rate = goalReportService.calculateDailyAchievementRate(userGoal, userGoal.getGoal(), week2Start).getTotal();
 
         return (week1Rate + week2Rate) / 2;
     }
@@ -243,9 +243,9 @@ public class UserLevelService {
         LocalDateTime week2Start = now.minusDays(14);
         LocalDateTime week3Start = now.minusDays(21);
 
-        int week1Rate = goalReportService.calculateVerification(userGoal, userGoal.getGoal(), week1Start).getTotal();
-        int week2Rate = goalReportService.calculateVerification(userGoal, userGoal.getGoal(), week2Start).getTotal();
-        int week3Rate = goalReportService.calculateVerification(userGoal, userGoal.getGoal(), week3Start).getTotal();
+        int week1Rate = goalReportService.calculateDailyAchievementRate(userGoal, userGoal.getGoal(), week1Start).getTotal();
+        int week2Rate = goalReportService.calculateDailyAchievementRate(userGoal, userGoal.getGoal(), week2Start).getTotal();
+        int week3Rate = goalReportService.calculateDailyAchievementRate(userGoal, userGoal.getGoal(), week3Start).getTotal();
 
         return (week1Rate + week2Rate + week3Rate) / 3;
     }

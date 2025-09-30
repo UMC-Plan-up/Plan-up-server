@@ -4,6 +4,7 @@ import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ReportException;
 import com.planup.planup.domain.global.redis.RedisServiceForReport;
 import com.planup.planup.domain.global.service.AchievementCalculationService;
+import com.planup.planup.domain.global.service.AfterCommitExecutor;
 import com.planup.planup.domain.goal.convertor.CommentConverter;
 import com.planup.planup.domain.goal.dto.CommentResponseDto;
 import com.planup.planup.domain.goal.entity.Comment;
@@ -43,7 +44,7 @@ public class GoalReportServiceImpl implements GoalReportService {
     private final ReportUserRepository reportUserRepository;
     private final AchievementCalculationService achievementCalculationService;
     private final PhotoVerificationReadService photoVerificationReadService;
-    private final GoalReportService goalReportService;
+    private final AfterCommitExecutor afterCommitExecutor;
 
     @Override
     public void createGoalReportsByUserGoal(LocalDateTime startDate, LocalDateTime endDate) {
@@ -104,14 +105,11 @@ public class GoalReportServiceImpl implements GoalReportService {
         Goal goal = userGoal.getGoal();
 
         //dailyAchievementRate 계산
-        DailyAchievementRate dailyAchievementRate = calculateVerification(userGoal, goal, startDate);
-
-        //Redis에 나의 값을 저장
+        DailyAchievementRate dailyAchievementRate = calculateDailyAchievementRate(userGoal, goal, startDate);
         int thisWeekAchRate = dailyAchievementRate.getTotal();
-        redisServiceForReport.saveUserValue(user.getId().toString(), goal.getId().toString(), thisWeekAchRate);
 
         //GoalType을 ReportType으로 수정
-        ReportType rp = getReportType(goal);
+        ReportType reportType = getReportType(goal);
 
         ThreeWeekAchievementRate threeWeekAchievementRate = createThreeWeekAchievementRate(thisWeekAchRate, userGoal, startDate);
 
@@ -123,11 +121,18 @@ public class GoalReportServiceImpl implements GoalReportService {
                 .dailyAchievementRate(dailyAchievementRate)
                 .threeWeekAhcievementRate(threeWeekAchievementRate)
                 .reportUsers(null)
-                .reportType(rp)
+                .reportType(reportType)
                 .weeklyReport(null)
                 .build();
         GoalReport savedReport = goalReportRepository.save(goalReport);
-        redisServiceForReport.saveUserReport(user.getId().toString(), goal.getId().toString(), savedReport.getId());
+
+        //데이터베이스와 Redis 사이의 정합성을 위해 커밋 이후 레디스에 적용
+        afterCommitExecutor.run(() -> {
+            String userKey = user.getId().toString();
+            String goalKey = goal.getId().toString();
+            redisServiceForReport.saveUserValue(userKey, goalKey, thisWeekAchRate);
+            redisServiceForReport.saveUserReport(userKey, goalKey, savedReport.getId());
+        });
     }
 
     private static ReportType getReportType(Goal goal) {
@@ -219,7 +224,7 @@ public class GoalReportServiceImpl implements GoalReportService {
     }
 
     //각 인증을 취합하여 DailyAchievementRate를 생성한다.
-    public DailyAchievementRate calculateVerification(UserGoal userGoal, Goal goal, LocalDateTime startDate) {
+    public DailyAchievementRate calculateDailyAchievementRate(UserGoal userGoal, Goal goal, LocalDateTime startDate) {
 
         //날짜별 인증을 저장한다
         Map<LocalDate, Integer> dailyCount;
