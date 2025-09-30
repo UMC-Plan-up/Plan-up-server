@@ -224,21 +224,26 @@ public class GoalReportServiceImpl implements GoalReportService {
     }
 
     //각 인증을 취합하여 DailyAchievementRate를 생성한다.
+    @Override
+    @Transactional(readOnly = true)
     public DailyAchievementRate calculateDailyAchievementRate(UserGoal userGoal, Goal goal, LocalDateTime startDate) {
 
-        //날짜별 인증을 저장한다
+        //주간 경계 설정
+        LocalDate     monday     = startDate.toLocalDate().with(java.time.DayOfWeek.MONDAY);
+        LocalDateTime start      = monday.atStartOfDay();
+        LocalDateTime endEX      = start.plusDays(7);
+
         Map<LocalDate, Integer> dailyCount;
-        LocalDateTime endDate = startDate.plusDays(6);
 
         //각 케이스에 따라 값을 불러온다
         if (goal.getVerificationType().equals(VerificationType.PHOTO)) {
-            dailyCount = photoVerificationReadService.calculateVerification(userGoal, startDate, endDate);
+            dailyCount = photoVerificationReadService.calculateVerification(userGoal, start, endEX);
         } else if (goal.getVerificationType().equals(VerificationType.TIMER)) {
-            dailyCount = timerVerificationReadService.calculateVerification(userGoal, startDate, endDate);
+            dailyCount = timerVerificationReadService.calculateVerification(userGoal, start, endEX);
         } else {
             throw new RuntimeException();
         }
-        DailyAchievementRate result = getDailyAchievementRate(dailyCount, goal.getOneDose(), startDate);
+        DailyAchievementRate result = getDailyAchievementRate(dailyCount, goal.getOneDose(), start);
 
         // 날짜별 성취도 계산
         return result;

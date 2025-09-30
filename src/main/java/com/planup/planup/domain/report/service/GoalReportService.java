@@ -1,7 +1,9 @@
 package com.planup.planup.domain.report.service;
 
+import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.report.dto.GoalReportResponseDTO;
+import com.planup.planup.domain.report.entity.DailyAchievementRate;
 import com.planup.planup.domain.report.entity.GoalReport;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,9 @@ public interface GoalReportService {
 
     @Transactional
     void createReportUsersFromRedis(UserGoal userGoal, LocalDateTime startDate);
+
+    //각 인증을 취합하여 DailyAchievementRate를 생성한다.
+    DailyAchievementRate calculateDailyAchievementRate(UserGoal userGoal, Goal goal, LocalDateTime startDate);
 
     public List<GoalReport> getGoalReportsByUserAndPeriod(Long userId, LocalDateTime start, LocalDateTime end);
 }
