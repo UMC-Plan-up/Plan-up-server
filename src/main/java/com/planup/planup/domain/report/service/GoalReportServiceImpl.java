@@ -229,8 +229,7 @@ public class GoalReportServiceImpl implements GoalReportService {
     public DailyAchievementRate calculateDailyAchievementRate(UserGoal userGoal, Goal goal, LocalDateTime startDate) {
 
         //주간 경계 설정
-        LocalDate     monday     = startDate.toLocalDate().with(java.time.DayOfWeek.MONDAY);
-        LocalDateTime start      = monday.atStartOfDay();
+        LocalDateTime start = getStartOfWeek(startDate);
         LocalDateTime endEX      = start.plusDays(7);
 
         Map<LocalDate, Integer> dailyCount;
@@ -249,6 +248,11 @@ public class GoalReportServiceImpl implements GoalReportService {
         return result;
     }
 
+    private static LocalDateTime getStartOfWeek(LocalDateTime startDate) {
+        LocalDate monday = startDate.toLocalDate().with(DayOfWeek.MONDAY);
+        return monday.atStartOfDay();
+    }
+
     private DailyAchievementRate getDailyAchievementRate(Map<LocalDate, Integer> dailyCount, int oneDose, LocalDateTime startDate) {
         Map<LocalDate, Integer> byDay = achievementCalculationService.calcAchievementByDay(dailyCount, oneDose);
         return toDailyAchievementRate(byDay, startDate.toLocalDate());
@@ -259,21 +263,24 @@ public class GoalReportServiceImpl implements GoalReportService {
     //퍼센트를 가지고 DailyAchievementRate를 만든다.
     private DailyAchievementRate toDailyAchievementRate(Map<LocalDate, Integer> byDay, LocalDate weekStartMonday) {
         DailyAchievementRate.DailyAchievementRateBuilder b = DailyAchievementRate.builder();
+        LocalDateTime startOfWeek = getStartOfWeek(weekStartMonday.atStartOfDay());
 
         // 값이 없으면 0으로 기본값 처리 (필요 시 조정)
-        b.mon(byDay.getOrDefault(weekStartMonday, 0));
-        b.tue(byDay.getOrDefault(weekStartMonday.plusDays(1), 0));
-        b.wed(byDay.getOrDefault(weekStartMonday.plusDays(2), 0));
-        b.thu(byDay.getOrDefault(weekStartMonday.plusDays(3), 0));
-        b.fri(byDay.getOrDefault(weekStartMonday.plusDays(4), 0));
-        b.sat(byDay.getOrDefault(weekStartMonday.plusDays(5), 0));
-        b.sun(byDay.getOrDefault(weekStartMonday.plusDays(6), 0));
+        b.mon(byDay.getOrDefault(startOfWeek, 0));
+        b.tue(byDay.getOrDefault(startOfWeek.plusDays(1), 0));
+        b.wed(byDay.getOrDefault(startOfWeek.plusDays(2), 0));
+        b.thu(byDay.getOrDefault(startOfWeek.plusDays(3), 0));
+        b.fri(byDay.getOrDefault(startOfWeek.plusDays(4), 0));
+        b.sat(byDay.getOrDefault(startOfWeek.plusDays(5), 0));
+        b.sun(byDay.getOrDefault(startOfWeek.plusDays(6), 0));
 
         DailyAchievementRate dto = b.build();
         dto.calTotal(); // 총합/평균을 DTO 내부에서 계산하도록 유지
         return dto;
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public List<GoalReport> getGoalReportsByUserAndPeriod(Long userId, LocalDateTime start, LocalDateTime end) {
         return goalReportRepository.findAllByUserIdAndCreatedAtBetween(userId, start, end);
     }
