@@ -42,7 +42,7 @@ public class GoalReportReadServiceImpl implements GoalReportReadService {
     //TODO: comment 관련 클래스 만들어서 이동
     private List<CommentResponseDto.CommentDto> getCommentResponseDtoListByGoalReport(GoalReport goalReport) {
         List<Comment> commentList = goalReport.getCommentList();
-        return commentList.stream().map(c -> CommentConverter.toResponseDto(c, goalReport.getUserId())).toList();
+        return CommentConverter.toResponseDtoList(commentList, goalReport.getUserId());
     }
 
     //가장 최근의 리포트 2개를 반환한다.

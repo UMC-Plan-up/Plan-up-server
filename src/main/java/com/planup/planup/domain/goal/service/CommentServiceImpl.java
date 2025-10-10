@@ -92,8 +92,6 @@ public class CommentServiceImpl implements CommentService {
                 .collect(Collectors.toList());
     }
 
-    public
-
     @Override
     @Transactional
     public CommentResponseDto.CommentDto updateComment(Long commentId, Long userId, String content) {
