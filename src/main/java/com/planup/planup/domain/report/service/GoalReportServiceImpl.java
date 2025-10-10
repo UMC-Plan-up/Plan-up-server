@@ -258,8 +258,6 @@ public class GoalReportServiceImpl implements GoalReportService {
         return toDailyAchievementRate(byDay, startDate.toLocalDate());
     }
 
-
-
     //퍼센트를 가지고 DailyAchievementRate를 만든다.
     private DailyAchievementRate toDailyAchievementRate(Map<LocalDate, Integer> byDay, LocalDate weekStartMonday) {
         DailyAchievementRate.DailyAchievementRateBuilder b = DailyAchievementRate.builder();

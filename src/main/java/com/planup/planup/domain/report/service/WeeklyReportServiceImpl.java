@@ -57,7 +57,6 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
     private final PhotoVerificationRepository photoVerificationRepository;
     private final TimerVerificationRepository timerVerificationRepository;
     private final EncouragementService encouragementService;
-    private final GoalService goalService;
 
 
     @Override
@@ -84,11 +83,9 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
 
         List<BadgeType> badges = userBadgeList.stream().map(UserBadge::getBadgeType).toList();
 
-
         Mono<MessageResponse> generate = encouragementService.generate(userId);
 
         return WeeklyReportResponseConverter.toAchievementDTO(badges, notificationList, generate.block().message());
-
     }
 
     @Override
