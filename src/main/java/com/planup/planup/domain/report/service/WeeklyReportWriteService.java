@@ -6,6 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 
 public interface WeeklyReportWriteService {
+    void createWeeklyReportsByUserGoal(LocalDateTime startDate, LocalDateTime endDate);
+
     @Transactional
     void createWeeklyReport(User user, LocalDateTime startDate);
 }

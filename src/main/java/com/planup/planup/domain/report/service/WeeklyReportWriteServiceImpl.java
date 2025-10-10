@@ -1,26 +1,22 @@
 package com.planup.planup.domain.report.service;
 
-import com.planup.planup.domain.report.converter.DailyRecordConverter;
+import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.report.entity.DailyRecord;
 import com.planup.planup.domain.report.entity.GoalMessage;
 import com.planup.planup.domain.report.entity.GoalReport;
 import com.planup.planup.domain.report.entity.WeeklyReport;
 import com.planup.planup.domain.report.repository.WeeklyReportRepository;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.verification.entity.PhotoVerification;
-import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.verification.service.VerificationReadService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Stream;
 
 @Service
 @Transactional
@@ -29,12 +25,21 @@ public class WeeklyReportWriteServiceImpl implements WeeklyReportWriteService {
 
     private final GoalReportService goalReportService;
     private final VerificationReadService verificationReadService;
+    private final UserGoalService userGoalService;
 
     private final WeeklyReportRepository weeklyReportRepository;
 
-
     @Override
-    @Transactional
+    public void createWeeklyReportsByUserGoal(LocalDateTime startDate, LocalDateTime endDate) {
+
+        //이번주에 userGoal에 업데이트가 있었던 목표에 대해 대상이 된다.
+        List<UserGoal> userGoalList = userGoalService.getUserGoalInPeriod(startDate, endDate);
+
+        for (UserGoal userGoal : userGoalList) {
+            createWeeklyReport(userGoal.getUser(), startDate);
+        }
+    }
+    @Override
     public void createWeeklyReport(User user, LocalDateTime startDate) {
         Long userId = user.getId();
 
