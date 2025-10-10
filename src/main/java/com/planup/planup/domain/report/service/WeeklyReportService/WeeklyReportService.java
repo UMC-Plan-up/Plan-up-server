@@ -1,4 +1,4 @@
-package com.planup.planup.domain.report.service;
+package com.planup.planup.domain.report.service.WeeklyReportService;
 
 import com.planup.planup.domain.report.dto.WeeklyReportResponseDTO;
 import com.planup.planup.domain.user.entity.User;

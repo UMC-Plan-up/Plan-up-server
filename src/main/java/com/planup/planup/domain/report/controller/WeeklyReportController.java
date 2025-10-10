@@ -5,7 +5,7 @@ import com.planup.planup.domain.goal.dto.CommentRequestDto;
 import com.planup.planup.domain.goal.dto.CommentResponseDto;
 import com.planup.planup.domain.goal.service.CommentService;
 import com.planup.planup.domain.report.dto.WeeklyReportResponseDTO;
-import com.planup.planup.domain.report.service.WeeklyReportReadService;
+import com.planup.planup.domain.report.service.WeeklyReportService.WeeklyReportReadService;
 import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

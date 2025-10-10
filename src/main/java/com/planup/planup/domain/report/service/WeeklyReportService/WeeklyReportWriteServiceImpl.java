@@ -1,4 +1,4 @@
-package com.planup.planup.domain.report.service;
+package com.planup.planup.domain.report.service.WeeklyReportService;
 
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.service.UserGoalService;
@@ -7,6 +7,7 @@ import com.planup.planup.domain.report.entity.GoalMessage;
 import com.planup.planup.domain.report.entity.GoalReport;
 import com.planup.planup.domain.report.entity.WeeklyReport;
 import com.planup.planup.domain.report.repository.WeeklyReportRepository;
+import com.planup.planup.domain.report.service.GoalReportService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.verification.service.VerificationReadService;
 import lombok.RequiredArgsConstructor;

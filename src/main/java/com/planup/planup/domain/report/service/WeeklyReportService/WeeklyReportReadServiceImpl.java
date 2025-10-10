@@ -1,4 +1,4 @@
-package com.planup.planup.domain.report.service;
+package com.planup.planup.domain.report.service.WeeklyReportService;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ReportException;
