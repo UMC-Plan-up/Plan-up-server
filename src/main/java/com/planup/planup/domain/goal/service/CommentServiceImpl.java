@@ -10,9 +10,8 @@ import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.CommentRepository;
 import com.planup.planup.domain.goal.repository.GoalRepository;
-import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.report.entity.GoalReport;
-import com.planup.planup.domain.report.service.GoalReportService;
+import com.planup.planup.domain.report.service.GoalReportService.GoalReportReadService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.domain.user.service.UserService;
@@ -28,10 +27,9 @@ import java.util.stream.Collectors;
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final GoalRepository goalRepository;
-    private final UserGoalRepository userGoalRepository;
     private final UserGoalService userGoalService;
     private final UserService userService;
-    private final GoalReportService goalReportService;
+    private final GoalReportReadService goalReportService;
 
     @Override
     @Transactional
@@ -93,6 +91,8 @@ public class CommentServiceImpl implements CommentService {
                 .map(comment -> CommentConverter.toResponseDto(comment, userId))
                 .collect(Collectors.toList());
     }
+
+    public
 
     @Override
     @Transactional

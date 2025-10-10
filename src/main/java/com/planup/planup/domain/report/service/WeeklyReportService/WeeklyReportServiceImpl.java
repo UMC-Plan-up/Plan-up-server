@@ -18,7 +18,7 @@ import com.planup.planup.domain.report.entity.GoalMessage;
 import com.planup.planup.domain.report.entity.GoalReport;
 import com.planup.planup.domain.report.entity.WeeklyReport;
 import com.planup.planup.domain.report.repository.WeeklyReportRepository;
-import com.planup.planup.domain.report.service.GoalReportService;
+import com.planup.planup.domain.report.service.GoalReportService.GoalReportReadService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserBadge;
 import com.planup.planup.domain.user.service.UserBadgeService;
@@ -50,7 +50,7 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
     private final UserGoalService userGoalService;
     private final NotificationService notificationService;
     private final WeeklyReportRepository weeklyReportRepository;
-    private final GoalReportService goalReportService;
+    private final GoalReportReadService goalReportReadService;
     private final PhotoVerificationRepository photoVerificationRepository;
     private final TimerVerificationRepository timerVerificationRepository;
     private final EncouragementService encouragementService;
@@ -118,7 +118,7 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
         LocalDateTime endOfDay= startDate.plusDays(6).toLocalDate().atTime(23, 59, 59);  // 일요일 23:59
 
         //weeklyReport에 들어갈 리포트 조회
-        List<GoalReport> goalReportList = goalReportService.getListByUserIdOneDay(userId, startOfDay, endOfDay);
+        List<GoalReport> goalReportList = goalReportReadService.getListByUserIdOneDay(userId, startOfDay, endOfDay);
 
         //weeklyReport에 들어갈 레코드 5개 조회
         List<DailyRecord> dailyRecordForWeeklyReport = getDailyRecordForWeeklyReport(user, startOfDay, endOfDay);

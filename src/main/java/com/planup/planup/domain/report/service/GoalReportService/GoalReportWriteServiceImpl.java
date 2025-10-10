@@ -1,50 +1,45 @@
-package com.planup.planup.domain.report.service;
+package com.planup.planup.domain.report.service.GoalReportService;
 
-import com.planup.planup.apiPayload.code.status.ErrorStatus;
-import com.planup.planup.apiPayload.exception.custom.ReportException;
 import com.planup.planup.domain.global.redis.RedisServiceForReport;
 import com.planup.planup.domain.global.service.AchievementCalculationService;
 import com.planup.planup.domain.global.service.AfterCommitExecutor;
-import com.planup.planup.domain.goal.convertor.CommentConverter;
-import com.planup.planup.domain.goal.dto.CommentResponseDto;
-import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.service.UserGoalService;
-import com.planup.planup.domain.report.converter.GoalReportConverter;
-import com.planup.planup.domain.report.dto.GoalReportResponseDTO;
 import com.planup.planup.domain.report.entity.*;
 import com.planup.planup.domain.report.repository.GoalReportRepository;
 import com.planup.planup.domain.report.repository.ReportUserRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.verification.service.PhotoVerificationReadService;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
-@Transactional(readOnly = true)
-@AllArgsConstructor
-@Slf4j
-public class GoalReportServiceImpl implements GoalReportService {
+@RequiredArgsConstructor
+@Transactional
+public class GoalReportWriteServiceImpl implements GoalReportWriteService {
 
     private final GoalReportRepository goalReportRepository;
     private final UserGoalService userGoalService;
-    private final TimerVerificationReadService timerVerificationReadService;
+    private final AfterCommitExecutor afterCommitExecutor;
     private final RedisServiceForReport redisServiceForReport;
     private final ReportUserRepository reportUserRepository;
     private final AchievementCalculationService achievementCalculationService;
+    private final TimerVerificationReadService timerVerificationReadService;
     private final PhotoVerificationReadService photoVerificationReadService;
-    private final AfterCommitExecutor afterCommitExecutor;
+
 
     @Override
     public void createGoalReportsByUserGoal(LocalDateTime startDate, LocalDateTime endDate) {
@@ -61,41 +56,6 @@ public class GoalReportServiceImpl implements GoalReportService {
         for (UserGoal userGoal : userGoalList) {
             createReportUsersFromRedis(userGoal, startDate);
         }
-    }
-
-    //리포트를 조회한다.
-    @Override
-    @Transactional(readOnly = true)
-    public GoalReport getGoalReportOrThrow(Long id) {
-        return goalReportRepository.findById(id)
-                .orElseThrow(() -> new ReportException(ErrorStatus.NOT_FOUND_GOAL_REPORT));
-    }
-
-    //goalReport와 해당 리포트의 댓글을 조회하여 DTO로 반환
-    @Override
-    @Transactional(readOnly = true)
-    public GoalReportResponseDTO.GoalReportResponse findDTOById(Long id, Long userId) {
-        GoalReport goalReport = getGoalReportOrThrow(id);
-        List<CommentResponseDto.CommentDto> commentDtoList = getCommentResponseDtoListByGoalReport(goalReport);
-        return GoalReportConverter.toGoalReportResponse(goalReport, commentDtoList);
-    }
-
-    //리포트에 연결된 코멘트 관련 조회 및 DTO 변환
-    private List<CommentResponseDto.CommentDto> getCommentResponseDtoListByGoalReport(GoalReport goalReport) {
-        List<Comment> commentList = goalReport.getCommentList();
-        return commentList.stream().map(c -> CommentConverter.toResponseDto(c, goalReport.getUserId())).toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<GoalReport> findTop2RecentByGoalId(Long id) {
-        return goalReportRepository.findTop2ByGoalIdOrderByCreatedAt(id);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<GoalReport> getListByUserIdOneDay(Long userId, LocalDateTime start, LocalDateTime end) {
-        return goalReportRepository.findAllByUserIdAndCreatedAtBetween(userId, start, end);
     }
 
     @Override
@@ -223,14 +183,13 @@ public class GoalReportServiceImpl implements GoalReportService {
                 ).orElse(null);
     }
 
-    //각 인증을 취합하여 DailyAchievementRate를 생성한다.
     @Override
     @Transactional(readOnly = true)
     public DailyAchievementRate calculateDailyAchievementRate(UserGoal userGoal, Goal goal, LocalDateTime startDate) {
 
         //주간 경계 설정
         LocalDateTime start = getStartOfWeek(startDate);
-        LocalDateTime endEX      = start.plusDays(7);
+        LocalDateTime endEX = start.plusDays(7);
 
         Map<LocalDate, Integer> dailyCount;
 
@@ -275,12 +234,6 @@ public class GoalReportServiceImpl implements GoalReportService {
         DailyAchievementRate dto = b.build();
         dto.calTotal(); // 총합/평균을 DTO 내부에서 계산하도록 유지
         return dto;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<GoalReport> getGoalReportsByUserAndPeriod(Long userId, LocalDateTime start, LocalDateTime end) {
-        return goalReportRepository.findAllByUserIdAndCreatedAtBetween(userId, start, end);
     }
 
 }

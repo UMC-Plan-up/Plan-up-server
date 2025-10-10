@@ -7,7 +7,7 @@ import com.planup.planup.domain.report.entity.GoalMessage;
 import com.planup.planup.domain.report.entity.GoalReport;
 import com.planup.planup.domain.report.entity.WeeklyReport;
 import com.planup.planup.domain.report.repository.WeeklyReportRepository;
-import com.planup.planup.domain.report.service.GoalReportService;
+import com.planup.planup.domain.report.service.GoalReportService.GoalReportReadService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.verification.service.VerificationReadService;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class WeeklyReportWriteServiceImpl implements WeeklyReportWriteService {
 
-    private final GoalReportService goalReportService;
+    private final GoalReportReadService goalReportReadService;
     private final VerificationReadService verificationReadService;
     private final UserGoalService userGoalService;
 
@@ -49,7 +49,7 @@ public class WeeklyReportWriteServiceImpl implements WeeklyReportWriteService {
         LocalDateTime endOfDay= startDate.plusDays(6).toLocalDate().atTime(23, 59, 59);  // 일요일 23:59
 
         //weeklyReport에 들어갈 리포트 조회
-        List<GoalReport> goalReportList = goalReportService.getListByUserIdOneDay(userId, startOfDay, endOfDay);
+        List<GoalReport> goalReportList = goalReportReadService.getListByUserIdOneDay(userId, startOfDay, endOfDay);
 
         //weeklyReport에 들어갈 레코드 5개 조회
         List<DailyRecord> dailyRecordForWeeklyReport = verificationReadService.getDailyRecordForWeeklyReport(user, startOfDay, endOfDay);
