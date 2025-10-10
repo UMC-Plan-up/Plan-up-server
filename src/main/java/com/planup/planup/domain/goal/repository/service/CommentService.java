@@ -1,4 +1,4 @@
-package com.planup.planup.domain.goal.service;
+package com.planup.planup.domain.goal.repository.service;
 
 import com.planup.planup.domain.goal.dto.CommentRequestDto;
 import com.planup.planup.domain.goal.dto.CommentResponseDto;

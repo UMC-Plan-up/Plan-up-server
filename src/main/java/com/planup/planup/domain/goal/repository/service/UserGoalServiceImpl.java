@@ -1,9 +1,8 @@
-package com.planup.planup.domain.goal.service;
+package com.planup.planup.domain.goal.repository.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserGoalException;
 import com.planup.planup.domain.friend.service.FriendService;
-import com.planup.planup.domain.global.service.AchievementCalculationService;
 import com.planup.planup.domain.goal.dto.UserGoalResponseDto;
 import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;

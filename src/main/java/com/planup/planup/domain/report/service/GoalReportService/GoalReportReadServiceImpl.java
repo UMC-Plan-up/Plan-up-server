@@ -39,7 +39,6 @@ public class GoalReportReadServiceImpl implements GoalReportReadService {
     }
 
     //리포트에 연결된 코멘트 관련 조회 및 DTO 변환
-    //TODO: comment 관련 클래스 만들어서 이동
     private List<CommentResponseDto.CommentDto> getCommentResponseDtoListByGoalReport(GoalReport goalReport) {
         List<Comment> commentList = goalReport.getCommentList();
         return CommentConverter.toResponseDtoList(commentList, goalReport.getUserId());
