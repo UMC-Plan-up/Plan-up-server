@@ -1,0 +1,37 @@
+# Git 관련
+.git
+.gitignore
+.github
+
+# Gradle 빌드 산출물 (Dockerfile에서 다시 빌드)
+.gradle
+build
+!build/libs/*.jar
+
+# IDE 설정
+.idea
+.vscode
+*.iml
+*.iws
+*.ipr
+out/
+
+# OS 파일
+.DS_Store
+Thumbs.db
+
+# 로그 및 임시 파일
+*.log
+logs/
+*.tmp
+*.bak
+*.swp
+*~
+
+# 환경 설정 (보안)
+.env
+*.env
+
+# 문서
+*.md
+docs/
