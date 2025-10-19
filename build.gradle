@@ -59,4 +59,7 @@ dependencies {
 
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
+	//fireBase
+	implementation 'com.google.firebase:firebase-admin:9.3.0'
 }
