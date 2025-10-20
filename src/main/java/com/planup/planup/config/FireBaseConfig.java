@@ -39,4 +39,5 @@ public class FireBaseConfig {
             return FirebaseApp.initializeApp(options);
         }
         return FirebaseApp.getInstance();
+    }
 }
