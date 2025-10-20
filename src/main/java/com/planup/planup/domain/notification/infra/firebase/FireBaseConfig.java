@@ -1,4 +1,4 @@
-package com.planup.planup.config;
+package com.planup.planup.domain.notification.infra.firebase;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
