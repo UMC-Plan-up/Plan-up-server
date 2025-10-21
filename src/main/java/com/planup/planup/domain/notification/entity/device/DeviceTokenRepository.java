@@ -5,12 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Collection;
 import java.util.List;
 
-public interface DeviceTokenRepository extends JpaRepository<DeviceTokenJpa, Long> {
+public interface DeviceTokenRepository {
 
-    DeviceTokenJpa findByToken(String token);
-    List<DeviceTokenJpa> findActiveByUserId(Long userId);
-    void save(DeviceTokenJpa token);
-    void saveAll(Collection<DeviceTokenJpa> tokens);
+    DeviceToken findByToken(String token);
+    List<DeviceToken> findActiveByUserId(Long userId);
+    void save(DeviceToken token);
+    void saveAll(Collection<DeviceToken> tokens);
 
     /** 토큰 비활성화(무효 처리) */
     void deactivateByToken(String token);
