@@ -6,6 +6,7 @@ import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.MulticastMessage;
 import com.planup.planup.domain.notification.entity.device.PushSender;
 import org.springframework.stereotype.Component;
+import com.google.firebase.messaging.Notification;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,12 +55,16 @@ public class FirebasePushSender implements PushSender{
         for (var r : responses) {
             if (!r.isSuccessful()) {
                 var ex = r.getException();
-                String code = (ex instanceof FirebaseMessagingException fme) ? fme.getErrorCode() : "UNKNOWN";
-                failures.add(new PushSender.TokenFailure(new ArrayList<>(tokens).get(i), code, ex.getMessage()));
+                String code = ex.getErrorCode().toString();
+                failures.add(new PushSender.TokenFailure(
+                        new ArrayList<>(tokens).get(i),
+                        code,
+                        ex.getMessage()
+                ));
             }
             i++;
         }
         return new MulticastResult(res.getSuccessCount(), res.getFailureCount(), failures);
     }
 }
-}
+
