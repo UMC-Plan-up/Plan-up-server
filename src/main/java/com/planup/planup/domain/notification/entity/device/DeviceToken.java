@@ -33,4 +33,13 @@ public class DeviceToken {
         this.active = false;
         this.updatedAt = Instant.now();
     }
+
+    public void activate() {
+        this.active = true;
+        this.updatedAt = Instant.now();
+    }
+
+    public void setUserId(Long id) {
+        this.userId = id;
+    }
 }
