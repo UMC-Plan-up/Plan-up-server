@@ -12,6 +12,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
+
+/**
+ * fireBase 데이터베이스와 실제로 연결되는 부분
+ * 여기서 사용 중인 Notification은 우리가 프로젝트 안에서 정의한 Notification 아님. fireBase 내부적으로 사용되는 클래스
+ */
 @Component
 public class FirebasePushSender implements PushSender{
 
@@ -23,7 +28,7 @@ public class FirebasePushSender implements PushSender{
                 .setNotification(notification)
                 .putAllData(data == null ? Map.of() : data)
                 .build();
-        return FirebaseMessaging.getInstance().send(msg);
+        return FirebaseMessaging.getInstance().send(msg);           //전송 부분
     }
 
     @Override
