@@ -1,6 +1,7 @@
 package com.planup.planup.domain.notification.entity;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
+import com.planup.planup.domain.notification.message.MessageContext;
 import com.planup.planup.domain.notification.message.NotificationMessageProvider;
 import com.planup.planup.domain.notification.service.NotificationUrlProvider;
 import com.planup.planup.domain.user.entity.User;
@@ -56,7 +57,7 @@ public class Notification extends BaseTimeEntity {
     }
 
     public String getNotificationMessage() {
-        return NotificationMessageProvider.generate(this);
+        return NotificationMessageProvider.generate(MessageContext.of(this));
     }
 
     public String getNotificationUrl() {

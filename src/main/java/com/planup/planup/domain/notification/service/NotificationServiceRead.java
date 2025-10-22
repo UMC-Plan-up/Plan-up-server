@@ -1,6 +1,7 @@
 package com.planup.planup.domain.notification.service;
 
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
+import com.planup.planup.domain.notification.entity.Notification;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -20,4 +21,6 @@ public interface NotificationServiceRead {
     //유저에 따라 가장 최근의 5개 알림을 반환한다. (읽음 여부와 상관없이)
     @Transactional(readOnly = true)
     List<NotificationResponseDTO.NotificationDTO> getTop5RecentByUser(Long userId);
+
+    Notification getById(Long id);
 }

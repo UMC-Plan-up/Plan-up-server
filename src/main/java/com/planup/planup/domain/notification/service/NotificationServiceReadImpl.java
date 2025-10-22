@@ -23,7 +23,6 @@ public class NotificationServiceReadImpl implements NotificationServiceRead {
 
     //유저의 읽지 않은 알림을 시간 순 대로 가져온다
     @Override
-    @Transactional(readOnly = true)
     public List<NotificationResponseDTO.NotificationDTO> getUnreadNotifications(Long receiverId) {
         User receiver = userService.getUserbyUserId(receiverId);
         List<Notification> notifications = notificationRepository.findByReceiverAndIsReadFalseOrderByCreatedAtDesc(receiver);
@@ -31,7 +30,6 @@ public class NotificationServiceReadImpl implements NotificationServiceRead {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<NotificationResponseDTO.NotificationDTO> getUnreadNotificationsWithType(Long receiverId, String type) {
         User receiver = userService.getUserbyUserId(receiverId);
         List<Notification> notifications = notificationRepository.findUnreadByReceiverAndType(receiver);
@@ -41,7 +39,6 @@ public class NotificationServiceReadImpl implements NotificationServiceRead {
 
     //유저의 모든 알림을 조회한다. (시간 순대로)
     @Override
-    @Transactional(readOnly = true)
     public List<NotificationResponseDTO.NotificationDTO> getAllNotifications(Long receiverId) {
         User receiver = userService.getUserbyUserId(receiverId);
         return NotificationConverter.toNotificationDTOs(notificationRepository.findByReceiverIdOrderByCreatedAtDesc(receiver));
@@ -49,10 +46,15 @@ public class NotificationServiceReadImpl implements NotificationServiceRead {
 
     //유저에 따라 가장 최근의 5개 알림을 반환한다. (읽음 여부와 상관없이)
     @Override
-    @Transactional(readOnly = true)
     public List<NotificationResponseDTO.NotificationDTO> getTop5RecentByUser(Long userId) {
         User receiver = userService.getUserbyUserId(userId);
         List<Notification> notificationList = notificationRepository.findTop3ByReceiverOrderByCreatedAtDesc(receiver);
         return NotificationConverter.toNotificationDTOs(notificationList);
+    }
+
+    @Override
+    public Notification getById(Long id) {
+        Notification byId = notificationRepository.getById(id);
+        return byId;
     }
 }

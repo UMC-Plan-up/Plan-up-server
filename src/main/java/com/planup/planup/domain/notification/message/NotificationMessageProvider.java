@@ -8,24 +8,43 @@ import com.planup.planup.domain.notification.entity.NotificationType;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class NotificationMessageProvider {
 
-    public static String generate(Notification notification) {
+    private final GoalService goalService;
+
+    public String generate(Notification notification) {
+        return generate(MessageContext.of(notification));
+    }
+
+    public String generate(
+            NotificationType type,
+            String senderName,
+            String receiverName,
+            Long targetId,
+            String updatedPartsStr
+    ) {
+        return generate(new MessageContext(type, senderName, receiverName, targetId, updatedPartsStr, null));
+    }
+
+
+    public static String generate(MessageContext ctx) {
 
         GoalService goalService = SpringContext.getBean(GoalService.class);
 
-        String senderName = notification.getSender().getNickname();
-        String receiverName = notification.getReceiver().getNickname();
-        Long targetId = notification.getTargetId();
-        String updatedPartsStr = notification.getUpdatedGoalInfo();
+        String senderName = ctx.senderName();
+        String receiverName = ctx.receiverName();
+        Long targetId = ctx.targetId();
+        String updatedPartsStr = ctx.updatedPartsStr();
 
         String goalName = null;
-        if (isTargetId(notification)) {
+        if (ctx.needsGoalName()) {
             Goal goal = goalService.getGoalById(targetId);
             goalName = goal.getGoalName();
         }
 
-        return switch (notification.getType()) {
+        return switch (ctx.type()) {
 
             case RANK_DOWN ->
                     String.format("[%s]님의 랭킹 자리를 뺏겼어요!", receiverName);
@@ -84,18 +103,5 @@ public class NotificationMessageProvider {
             case PENALTY_REMINDER_SENT ->
                     String.format("[%s]님이 패널티 리마인드를 보냈어요! 챌린지 결과를 자세히 확인해 보세요.", senderName);
         };
-    }
-
-    private static boolean isTargetId(Notification notification) {
-        NotificationType type = notification.getType();
-
-        if (type == NotificationType.FEEDBACK_CHEERED ||
-                type == NotificationType.FEEDBACK_ENCOURAGED ||
-                type == NotificationType.GOAL_REMINDER ||
-                type == NotificationType.FRIEND_GOAL_COMPLETED ||
-                type == NotificationType.FRIEND_GOAL_CREATED) {
-            return true;
-        }
-        return false;
     }
 }
