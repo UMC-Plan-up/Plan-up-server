@@ -4,9 +4,13 @@ import lombok.Getter;
 
 import java.time.Instant;
 
+/**
+ * 비지니스 로직에서 사용하기 위해서 만든 DeviceToken 관련 클래스
+ */
+
 @Getter
 public class DeviceToken {
-    private Long id;
+
     private Long userId;
     private String token;
     private Platform platform;     // ANDROID/IOS/WEB 등

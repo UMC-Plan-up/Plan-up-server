@@ -8,6 +8,13 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 
+/**
+ * 토큰 관련 정보를 실재로 데이터 베이스에 저장하기 위해 사용하는 클래스
+ *
+ * 비지니스 로직에선 사용하지 않는다.
+ * Spring Data Jpa를 사용하지 않게 되더라도 비지니스 로직에 영향이 없도록
+ */
+
 @Entity
 @Table(name = "device_token", indexes = {
         @Index(name = "ix_device_token_user", columnList = "userId"),
