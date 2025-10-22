@@ -46,8 +46,8 @@ public class UserController {
 
     @Operation(summary = "새로운 nickname으로 수정", description = "입력된 닉네임을 중복 닉네임이 있는지 확인하고 수정")
     @PostMapping("/mypage/profile/nickname")
-    public ApiResponse<String> updateNickname(@Parameter(hidden = true) @CurrentUser Long userId, @RequestBody String nickname) {
-        String newNickname = userService.updateNickname(userId, nickname);
+    public ApiResponse<String> updateNickname(@Parameter(hidden = true) @CurrentUser Long userId, @Valid @RequestBody UpdateNicknameRequestDTO request) {
+        String newNickname = userService.updateNickname(userId, request.getNickname());
         return ApiResponse.onSuccess(newNickname);
     }
 
