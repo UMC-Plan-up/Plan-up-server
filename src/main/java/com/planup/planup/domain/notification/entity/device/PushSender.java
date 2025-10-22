@@ -15,7 +15,7 @@ public interface PushSender {
     String sendToTopic(String topic, String title, String body) throws Exception;
 
     /** 여러 토큰에 멀티캐스트 */
-    MulticastResult sendMulticast(Collection<String> tokens, String title, String body) throws Exception;
+    MulticastResult sendMulticast(Collection<String> tokens, String title, String body);
 
     /** 멀티캐스트 결과를 담는 도메인 타입 */
     record MulticastResult(int successCount, int failureCount, java.util.List<TokenFailure> failures) {}

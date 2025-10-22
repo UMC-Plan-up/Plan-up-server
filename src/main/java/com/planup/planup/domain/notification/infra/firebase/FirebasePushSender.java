@@ -4,6 +4,8 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.MulticastMessage;
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.PushSendException;
 import com.planup.planup.domain.notification.entity.device.PushSender;
 import org.springframework.stereotype.Component;
 import com.google.firebase.messaging.Notification;
@@ -47,29 +49,34 @@ public class FirebasePushSender implements PushSender{
     }
 
     @Override
-    public MulticastResult sendMulticast(Collection<String> tokens, String title, String body) throws FirebaseMessagingException {
-        var message = MulticastMessage.builder()
-                .setNotification(Notification.builder().setTitle(title).setBody(body).build())
-                .addAllTokens(tokens)
-                .build();
-        var res = FirebaseMessaging.getInstance().sendMulticast(message);
+    public MulticastResult sendMulticast(Collection<String> tokens, String title, String body) {
+        try {
+            var message = MulticastMessage.builder()
+                    .setNotification(Notification.builder().setTitle(title).setBody(body).build())
+                    .addAllTokens(tokens)
+                    .build();
+            var res = FirebaseMessaging.getInstance().sendMulticast(message);
 
-        var failures = new ArrayList<PushSender.TokenFailure>();
-        var responses = res.getResponses();
-        int i = 0;
-        for (var r : responses) {
-            if (!r.isSuccessful()) {
-                var ex = r.getException();
-                String code = ex.getErrorCode().toString();
-                failures.add(new PushSender.TokenFailure(
-                        new ArrayList<>(tokens).get(i),
-                        code,
-                        ex.getMessage()
-                ));
+            var failures = new ArrayList<PushSender.TokenFailure>();
+            var responses = res.getResponses();
+            int i = 0;
+            for (var r : responses) {
+                if (!r.isSuccessful()) {
+                    var ex = r.getException();
+                    String code = ex.getErrorCode().toString();
+                    failures.add(new PushSender.TokenFailure(
+                            new ArrayList<>(tokens).get(i),
+                            code,
+                            ex.getMessage()
+                    ));
+                }
+                i++;
             }
-            i++;
+            return new MulticastResult(res.getSuccessCount(), res.getFailureCount(), failures);
+        } catch (FirebaseMessagingException e) {
+            throw new PushSendException(ErrorStatus.PushSendError);
         }
-        return new MulticastResult(res.getSuccessCount(), res.getFailureCount(), failures);
+
     }
 }
 
