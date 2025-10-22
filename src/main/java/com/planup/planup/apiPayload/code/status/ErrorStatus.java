@@ -89,7 +89,10 @@ public enum ErrorStatus implements BaseErrorCode {
     REACTION_ADD_FAILED(HttpStatus.FORBIDDEN,"GOAL4007", "응원 등록 중 오류가 발생했습니다."),
 
     // 랜덤 닉네임 관련 에러
-    NICKNAME_DATA_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "NICKNAME5001", "닉네임 생성에 필요한 데이터가 없습니다.");
+    NICKNAME_DATA_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "NICKNAME5001", "닉네임 생성에 필요한 데이터가 없습니다."),
+
+    //PushSend Error
+    PushSendError(INTERNAL_SERVER_ERROR, "PUSHSENDERROR", "알림 전송에 문제가 발생했습니다");
 
 
 
