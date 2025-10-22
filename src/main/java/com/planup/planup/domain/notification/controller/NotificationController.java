@@ -5,6 +5,7 @@ import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
@@ -43,5 +44,11 @@ public class NotificationController {
                 notificationService.getUnreadNotificationsWithType(receiverId, type);
 
         return ApiResponse.onSuccess(unreadNotifications);
+    }
+
+    @GetMapping("/{userId}")
+    public ApiResponse<List<NotificationResponseDTO.NotificationDTO>> getNotificationByUserId(@PathVariable Long userId) {
+        List<NotificationResponseDTO.NotificationDTO> notificationDTOS = notificationService.getAllNotifications(userId);
+        return ApiResponse.onSuccess(notificationDTOS);
     }
 }
