@@ -1,7 +1,7 @@
 package com.planup.planup.domain.report.service.WeeklyReportService;
 
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
-import com.planup.planup.domain.goal.repository.service.UserGoalService;
+import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.report.entity.DailyRecord;
 import com.planup.planup.domain.report.entity.GoalMessage;
 import com.planup.planup.domain.report.entity.GoalReport;

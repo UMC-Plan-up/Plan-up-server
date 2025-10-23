@@ -3,7 +3,7 @@ package com.planup.planup.domain.verification.controller;
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.friend.service.FriendService;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
-import com.planup.planup.domain.goal.repository.service.UserGoalService;
+import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.domain.verification.convertor.TimerVerificationConverter;
 import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;

@@ -1,6 +1,6 @@
 package com.planup.planup.domain.global.scheduler;
 
-import com.planup.planup.domain.goal.repository.service.UserLevelService;
+import com.planup.planup.domain.goal.service.UserLevelService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
