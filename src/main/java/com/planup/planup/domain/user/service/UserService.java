@@ -47,6 +47,9 @@ public interface UserService {
 
     ImageUploadResponseDTO uploadProfileImage(MultipartFile file, String email);
 
+    // 마이페이지 프로필 이미지 업데이트
+    ImageUploadResponseDTO updateProfileImage(Long userId, MultipartFile file);
+
     InviteCodeResponseDTO getMyInviteCode(Long userId);
 
     InviteCodeProcessResponseDTO processInviteCode(String inviteCode, Long userId);

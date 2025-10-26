@@ -141,6 +141,17 @@ public class UserController {
         return ApiResponse.onSuccess(response);
     }
 
+    @Operation(summary = "마이페이지 프로필 사진 변경", description = "로그인한 사용자의 프로필 사진을 업로드하거나 변경합니다.")
+    @PostMapping(value = "/mypage/profile/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<ImageUploadResponseDTO> updateProfileImage(
+            @Parameter(description = "업로드할 이미지 파일", required = true)
+            @RequestPart("file") MultipartFile file,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        ImageUploadResponseDTO response = userService.updateProfileImage(userId, file);
+        return ApiResponse.onSuccess(response);
+    }
+
     @Operation(summary = "내 초대코드 조회", description = "내 초대코드를 조회하거나 새로 생성합니다")
     @GetMapping("/users/me/invite-code")
     public ApiResponse<InviteCodeResponseDTO> getMyInviteCode(

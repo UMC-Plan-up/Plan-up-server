@@ -352,6 +352,29 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public ImageUploadResponseDTO updateProfileImage(Long userId, MultipartFile file) {
+        // 사용자 조회
+        User user = getUserbyUserId(userId);
+        
+        // 기존 프로필 이미지가 있다면 S3에서 삭제
+        if (user.getProfileImg() != null && !user.getProfileImg().trim().isEmpty()) {
+            imageUploadService.deleteImage(user.getProfileImg());
+        }
+        
+        // 새 이미지 업로드
+        String newImageUrl = imageUploadService.uploadImage(file, "profile");
+        
+        // 사용자 프로필 이미지 업데이트
+        user.updateProfileImage(newImageUrl);
+        userRepository.save(user);
+        
+        return ImageUploadResponseDTO.builder()
+                .imageUrl(newImageUrl)
+                .build();
+    }
+
     // 내 초대코드 조회 메서드
     @Override
     public InviteCodeResponseDTO getMyInviteCode(Long userId) {
