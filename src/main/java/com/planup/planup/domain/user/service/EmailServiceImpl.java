@@ -66,12 +66,7 @@ public class EmailServiceImpl implements EmailService {
         }
 
         if (isEmailVerified(email)) {
-            // 이미 인증된 경우에도 토큰은 삭제
-            try {
-                redisTemplate.delete("email-verification:" + verificationToken);
-            } catch (Exception e) {
-                log.warn("토큰 삭제 실패 (이미 인증된 경우): {}", e.getMessage());
-            }
+            // 이미 인증된 경우: 토큰은 TTL까지 유지 (삭제하지 않음)
             return email;
         }
         
@@ -84,8 +79,7 @@ public class EmailServiceImpl implements EmailService {
                     TimeUnit.MINUTES
             );
             
-            // 사용된 토큰 삭제
-            redisTemplate.delete("email-verification:" + verificationToken);
+            // 사용된 토큰은 TTL까지 유지 (삭제하지 않음)
             
         } catch (Exception e) {
             log.error("Redis 저장/삭제 실패: {}", e.getMessage());
