@@ -81,6 +81,7 @@ public class ChallengeServiceImpl implements ChallengeService {
             TimeChallenge timeChallenge = ChallengeConverter.toTimeChallenge(dto);
             TimeChallenge save = timeChallengeRepository.save(timeChallenge);
 
+            //TODO: 실제 운영 서버에서 제거
             isTestUser(friend, user, save);
 
             challengeRepository.flush();
@@ -99,6 +100,7 @@ public class ChallengeServiceImpl implements ChallengeService {
             Challenge photoChallenge = ChallengeConverter.toPhotoChallenge(dto);
             Challenge save = challengeRepository.save(photoChallenge);
 
+            //TODO: 실제 운영 서버에서 제거
             isTestUser(friend, user, save);
 
             challengeRepository.flush();
