@@ -288,6 +288,9 @@ public class FriendServiceImpl implements FriendService {
         friendRequest.setFriend(friendUser);
         friendRequest.setStatus(FriendStatus.REQUESTED);
 
+        //TODO: 실제 서비스에서 제거
+        if (userId.equals("dummy11@planup.com")) friendRequest.setStatus(FriendStatus.ACCEPTED);
+
         friendRepository.save(friendRequest);
         
         // 친구 신청 알림 생성
