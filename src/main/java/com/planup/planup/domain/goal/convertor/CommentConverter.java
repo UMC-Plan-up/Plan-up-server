@@ -7,6 +7,10 @@ import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.report.entity.GoalReport;
 import com.planup.planup.domain.user.entity.User;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 public class CommentConverter {
 
     public static Comment createComment(String content, User writer, Goal goal, Comment parentComment) {
@@ -41,5 +45,13 @@ public class CommentConverter {
                 .parentCommentWriter(comment.getParentComment() != null ? comment.getParentComment().getWriter().getNickname() : null)
                 .isMyComment(comment.getWriter().getId().equals(currentUserId))
                 .build();
+    }
+
+    public static List<CommentResponseDto.CommentDto> toResponseDtoList(List<Comment> comments, Long currentUserId) {
+        return Optional.ofNullable(comments)
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(c -> CommentConverter.toResponseDto(c, currentUserId))
+                .toList();
     }
 }

@@ -11,7 +11,6 @@ import com.planup.planup.domain.verification.service.PhotoVerificationService;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import com.planup.planup.validation.annotation.CurrentUser;
-import com.planup.planup.validation.jwt.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;

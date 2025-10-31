@@ -1,6 +1,7 @@
 package com.planup.planup.domain.report.converter;
 
 import com.planup.planup.domain.goal.dto.CommentResponseDto;
+import com.planup.planup.domain.report.dto.GoalReportResponseDTO;
 import com.planup.planup.domain.report.entity.DailyAchievementRate;
 import com.planup.planup.domain.report.entity.GoalReport;
 import com.planup.planup.domain.report.entity.ReportUser;
@@ -58,5 +59,12 @@ public class GoalReportConverter {
                         user.getRate()
                 ))
                 .collect(Collectors.toList());
+    }
+
+    public static GoalReportResponseDTO.GoalReportResponse toGoalReportResponse(
+            GoalReport report,
+            List<CommentResponseDto.CommentDto> commentDtos
+    ) {
+        return GoalReportConverter.toResponse(report, commentDtos);
     }
 }

@@ -1,7 +1,9 @@
-package com.planup.planup.domain.report.service;
+package com.planup.planup.domain.report.service.GoalReportService;
 
+import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.report.dto.GoalReportResponseDTO;
+import com.planup.planup.domain.report.entity.DailyAchievementRate;
 import com.planup.planup.domain.report.entity.GoalReport;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +17,11 @@ public interface GoalReportService {
 
     void createGoalReportsByUserGoal(LocalDateTime startDate, LocalDateTime endDate);
 
-    List<GoalReport> findByGoalIdRecent2(Long id);
+    List<GoalReport> findTop2RecentByGoalId(Long id);
+
+    @Transactional(readOnly = true)
+    GoalReport getGoalReportOrThrow(Long id);
+
     GoalReportResponseDTO.GoalReportResponse findDTOById(Long id, Long userId);
 
     @Transactional(readOnly = true)
@@ -26,7 +32,9 @@ public interface GoalReportService {
 
     @Transactional
     void createReportUsersFromRedis(UserGoal userGoal, LocalDateTime startDate);
-    GoalReport getGoalReportsByUserAndPeriod(Long reportId);
+
+    //각 인증을 취합하여 DailyAchievementRate를 생성한다.
+    DailyAchievementRate calculateDailyAchievementRate(UserGoal userGoal, Goal goal, LocalDateTime startDate);
 
     public List<GoalReport> getGoalReportsByUserAndPeriod(Long userId, LocalDateTime start, LocalDateTime end);
 }
