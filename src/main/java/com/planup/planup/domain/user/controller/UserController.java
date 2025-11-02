@@ -54,8 +54,8 @@ public class UserController {
     @Operation(summary = "혜택 및 마케팅 동의 변경", description = "혜택 동의가 되어있다면 비활성화, 동의가 안되어있으면 동의로 변경")
     @PatchMapping("/mypage/notification/agree")
     public ApiResponse<Boolean> updateNotificationAgree(@Parameter(hidden = true) @CurrentUser Long userId) {
-        userService.updateNotificationAgree(userId);
-        return ApiResponse.onSuccess(true);
+        boolean result = userService.updateNotificationAgree(userId);
+        return ApiResponse.onSuccess(result);
     }
 
 
