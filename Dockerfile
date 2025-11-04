@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-slim
 
 LABEL maintainer="planup-team"
 LABEL description="Planup Backend"
