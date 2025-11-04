@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: planup-mysql-local
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: planup
+      MYSQL_USER: planup
+      MYSQL_PASSWORD: planup123
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --max_connections=200
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - planup-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: planup-redis-local
+    restart: unless-stopped
+    ports:
+      - "6380:6379"  # 로컬 Redis와 충돌 방지
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - planup-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: planup-app-local
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: planup
+      DB_USER: planup
+      DB_PASSWORD: planup123
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: local-test-jwt-secret-key-change-this-in-production
+      AWS_S3_BUCKET: umc-planup-2025
+      MAIL_HOST: smtp.gmail.com
+      KAKAO_REDIRECT_URI: http://localhost:8080/test/kakao/callback
+      APP_DOMAIN: http://localhost:8080
+      APP_FRONTEND_URL: http://localhost:3000
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - planup-network
+
+volumes:
+  mysql-data:
+  redis-data:
+
+networks:
+  planup-network:
+    driver: bridge
