@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class BlockedFriendResponseDTO {
     private Long friendId; // 차단된 친구의 ID
     private String friendNickname; // 차단된 친구의 닉네임
+    private String profileImg;
 } 

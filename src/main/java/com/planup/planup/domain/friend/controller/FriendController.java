@@ -114,8 +114,8 @@ public class FriendController {
 
     @Operation(summary = "친구 차단 해제", description = "친구 이름으로 차단된 친구를 차단 해제합니다")
     @PostMapping("/unblock")
-    public ApiResponse<Boolean> unblockFriend(@RequestBody UnblockFriendRequestDTO request) {
-        boolean result = friendService.unblockFriend(request.getUserId(), request.getFriendNickname());
+    public ApiResponse<Long> unblockFriend(@RequestBody UnblockFriendRequestDTO request) {
+        Long result = friendService.unblockFriend(request.getUserId(), request.getFriendNickname());
         return ApiResponse.onSuccess(result);
     }
 }
