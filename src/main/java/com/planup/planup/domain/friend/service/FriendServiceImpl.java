@@ -333,6 +333,7 @@ public class FriendServiceImpl implements FriendService {
                     return BlockedFriendResponseDTO.builder()
                             .friendId(blockedUser.getId())
                             .friendNickname(blockedUser.getNickname())
+                            .profileImg(blockedUser.getProfileImg())
                             .build();
                 })
                 .collect(Collectors.toList());
