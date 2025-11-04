@@ -2,6 +2,7 @@ package com.planup.planup.domain.friend.service;
 
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
+import com.planup.planup.domain.user.entity.User;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -10,10 +11,10 @@ public interface FriendService {
     List<FriendResponseDTO.FriendSummaryList> getFriendSummeryList(Long userId);
 
     // 친구 삭제
-    boolean deleteFriend(Long userId, Long friendId);
+    boolean deleteFriend(User user, Long friendId);
 
     // 친구 차단
-    boolean blockFriend(Long userId, Long friendId);
+    boolean blockFriend(User user, Long friendId);
 
     // 친구 신고
     boolean reportFriend(Long userId, Long friendId, String reason, boolean block);

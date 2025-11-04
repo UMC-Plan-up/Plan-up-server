@@ -47,7 +47,7 @@ public class FriendServiceImpl implements FriendService {
 
         List<Friend> friendList = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(FriendStatus.ACCEPTED, user.getId(), FriendStatus.ACCEPTED, user.getId());
 
-//        //Friend 객체의 friend, user 중 내가 아닌 친구를 뽑는다.
+//      Friend 객체의 friend, user 중 내가 아닌 친구를 뽑는다.
         List<User> list = friendList.stream()
                 .map(f -> f.getFriend().equals(user) ? f.getUser() : f.getFriend())
                 .distinct().toList();
@@ -59,13 +59,13 @@ public class FriendServiceImpl implements FriendService {
 
     @Override
     @Transactional
-    public boolean deleteFriend(Long userId, Long friendId) {
+    public boolean deleteFriend(User user, Long friendId) {
         // 1. userId와 friendId로 Friend 엔티티를 찾는다.
         // 2. 해당 Friend 엔티티를 삭제한다.
         // 3. 성공적으로 삭제했으면 true, 아니면 false 반환
 
         List<Friend> friends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
-                FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);
+                FriendStatus.ACCEPTED, user.getId(), FriendStatus.ACCEPTED, user.getId());
 
         Friend friend = friends.stream()
                 .filter(f -> (f.getUser().getId().equals(friendId) || f.getFriend().getId().equals(friendId)))
@@ -82,7 +82,8 @@ public class FriendServiceImpl implements FriendService {
 
     @Override
     @Transactional
-    public boolean blockFriend(Long userId, Long friendId) {
+    public boolean blockFriend(User user, Long friendId) {
+        Long userId = user.getId();
         // 1. userId와 friendId로 Friend 엔티티를 찾는다.
         List<Friend> friends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
                 FriendStatus.ACCEPTED, userId, FriendStatus.ACCEPTED, userId);

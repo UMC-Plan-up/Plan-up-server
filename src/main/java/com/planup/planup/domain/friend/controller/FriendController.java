@@ -5,6 +5,7 @@ import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
 import com.planup.planup.domain.friend.dto.UnblockFriendRequestDTO;
 import com.planup.planup.domain.friend.service.FriendService;
+import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,14 +30,9 @@ public class FriendController {
 
     private final FriendService friendService;
 
-  /*   @GetMapping()
-    public ApiResponse<FriendResponseDTO.FriendSummaryList> getFriendList(Long userId) {
-        friendService.getFriendSummeryList(userId);
-        return null;
-    } */
     @Operation(summary = "친구 화면 조회", description = "친구 화면에 진입했을 때 필요한 정보 조회")
     @GetMapping("/list")
-    public ApiResponse<List<FriendResponseDTO.FriendSummaryList>> getFriendList(@Parameter(hidden = true) @CurrentUser Long userId) {
+    public ApiResponse<List<FriendResponseDTO.FriendSummaryList>> getFriendList(@CurrentUser Long userId) {
         List<FriendResponseDTO.FriendSummaryList> friendSummaryList = friendService.getFriendSummeryList(userId);
         return ApiResponse.onSuccess(friendSummaryList);
     }
@@ -44,18 +40,18 @@ public class FriendController {
     @Operation(summary = "친구 삭제", description = "친구 삭제")
     @PostMapping("/delete")
     public ApiResponse<Boolean> deleteFriend(
-            @Parameter(hidden = true) @CurrentUser Long userId,
+            @CurrentUser User user,
             @RequestParam Long friendId) {
-        boolean result = friendService.deleteFriend(userId, friendId);
+        boolean result = friendService.deleteFriend(user, friendId);
         return ApiResponse.onSuccess(result);
     }
 
     @Operation(summary = "친구 차단", description = "친구 차단")
     @PostMapping("/block")
     public ApiResponse<Boolean> blockFriend(
-            @Parameter(hidden = true) @CurrentUser Long userId,
+            @CurrentUser User user,
             @RequestParam Long friendId) {
-        boolean result = friendService.blockFriend(userId, friendId);
+        boolean result = friendService.blockFriend(user, friendId);
         return ApiResponse.onSuccess(result);
     }
 
