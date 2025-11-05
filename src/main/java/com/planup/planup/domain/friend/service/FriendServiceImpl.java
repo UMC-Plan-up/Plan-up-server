@@ -171,8 +171,7 @@ public class FriendServiceImpl implements FriendService {
             long totalSeconds = user.getUserGoals().stream()
                     .mapToLong(userGoal -> {
                         try {
-                            LocalTime goalTime = timerVerificationService.getTodayTotalTimeByUserGoal(userGoal);
-                            return goalTime.toSecondOfDay();
+                            return timerVerificationService.getTodayTotalSecTimeByUserGoal(userGoal);
                         } catch (Exception e) {
                             log.warn("사용자 {} 목표 {} 타이머 시간 조회 실패: {}", user.getNickname(), userGoal.getGoal().getId(), e.getMessage());
                             return 0L;

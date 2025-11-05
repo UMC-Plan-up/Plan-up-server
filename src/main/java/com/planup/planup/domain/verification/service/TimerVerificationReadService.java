@@ -63,11 +63,10 @@ public class TimerVerificationReadService {
     }
 
     //오늘 userGoal 별 총 기록시간 조회
-    public LocalTime getTodayTotalTimeByUserGoal(UserGoal userGoal) {
+    public Integer getTodayTotalSecTimeByUserGoal(UserGoal userGoal) {
         if (userGoal == null) {
-            return LocalTime.of(0, 0, 0);
+            return 0;
         }
-
 
         //리포지토리에서 조건에 맞는 값들을 찾아서 다 더해 반환한다.
         Integer spendTimeInSeconds = timerVerificationRepository.sumTodayVerificationsByUserGoalId(userGoal.getId());
@@ -77,6 +76,10 @@ public class TimerVerificationReadService {
             spendTimeInSeconds = 0;
         }
 
-        return LocalTime.ofSecondOfDay(spendTimeInSeconds);
+        return spendTimeInSeconds;
+    }
+
+    public LocalTime getTodayTotalTimeByUserGoal(UserGoal userGoal) {
+        return LocalTime.ofSecondOfDay(getTodayTotalSecTimeByUserGoal(userGoal));
     }
 }
