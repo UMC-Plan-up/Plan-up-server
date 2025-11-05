@@ -4,6 +4,8 @@ import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -24,4 +26,30 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
 
     // 특정 사용자가 특정 친구를 차단한 관계 조회 (닉네임으로)
     Optional<Friend> findByUserAndFriend_NicknameAndStatus(User user, String friendNickname, FriendStatus status);
+
+    //친구 관계 상태에 따라 친구 리스트를 반환
+    @Query("""
+        select f
+        from Friend f
+        where f.status = :status
+          and ((f.user.id = :userId and f.friend.id = :friendId)
+          or (f.user.id = :friendId and f.friend.id = :userId))
+        order by f.createdAt desc
+    """)
+    Optional<Friend> findAcceptedByUserId(@Param("status") FriendStatus status,
+                                      @Param("userId") Long userId,
+                                      @Param("friendId") Long friendId);
+
+    //친구 관계 상태에 따라 친구 리스트를 반환(유저 정보도 같이 정리)
+    @Query("""
+        select f
+        from Friend f
+        join fetch f.user u
+        join fetch f.friend fr
+        where f.status = :status
+          and (u.id = :userId or fr.id = :userId)
+        order by f.createdAt desc
+    """)
+    List<Friend> findAcceptedByUserIdWithUsers(@Param("status") FriendStatus status,
+                                               @Param("userId") Long userId);
 }
