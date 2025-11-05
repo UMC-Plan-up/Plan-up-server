@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 import java.util.Optional;
@@ -72,4 +73,11 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
             "WHERE ug.user = :user " +
             "AND ug.isActive = true " +
             "AND (ug.goal.endDate IS NULL OR ug.goal.endDate >= :targetDate)")
-    List<UserGoal> findActiveUserGoalsByUser(@Param("user") User user, @Param("targetDate") LocalDate targetDate);}
+    List<UserGoal> findActiveUserGoalsByUser(@Param("user") User user, @Param("targetDate") LocalDate targetDate);
+
+    @Query("select count(ug) " +
+            "from UserGoal ug " +
+            "where ug.user.id = :userId")
+    Integer countByUserId(@Param("userId") Long userId);
+
+}

@@ -16,6 +16,7 @@ import com.planup.planup.domain.goal.repository.GoalRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.repository.UserRepository;
+import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.domain.verification.service.PhotoVerificationReadService;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,7 @@ public class UserGoalServiceImpl implements UserGoalService{
     private final FriendService friendService;
     private final PhotoVerificationReadService photoVerificationReadService;
     private final TimerVerificationReadService timerVerificationReadService;
+    private final UserService userService;
 
     @Transactional
     public CommunityResponseDto.JoinGoalResponseDto joinGoal(Long userId, Long goalId) {
@@ -237,5 +239,12 @@ public class UserGoalServiceImpl implements UserGoalService{
     @Transactional(readOnly = true)
     public boolean existUserGoal(Long goalId, Long userId) {
         return userGoalRepository.existsUserGoalByGoalIdAndUserId(goalId, userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Integer getUserGoalCount(Long userId) {
+        User user = userService.getUserbyUserId(userId);
+        return Math.toIntExact(userGoalRepository.countByUserId(userId));
     }
 }

@@ -113,6 +113,10 @@ public class User extends BaseTimeEntity {
         userGoal.setUser(this);
     }
 
+    public Integer getUserGoalCnt() {
+        return this.userGoals.size();
+    }
+
     public void updateProfileImage(String profileImg) {
         this.profileImg = profileImg;
     }
