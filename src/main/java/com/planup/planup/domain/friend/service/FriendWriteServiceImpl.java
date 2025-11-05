@@ -31,10 +31,25 @@ public class FriendWriteServiceImpl implements FriendWriteService {
                 FriendStatus.ACCEPTED, user.getId(), friendId);
 
         if (optinalFriend.isPresent()) {
-            friendRepository.delete(optinalFriend.);
+            friendRepository.delete(optinalFriend.get());
             return true;
         }
         // 친구를 찾지 못했을 때
+        throw new UserException(ErrorStatus._BAD_REQUEST);
+    }
+
+    @Override
+    public boolean blockFriend(User user, Long friendId) {
+        Long userId = user.getId();
+
+        Optional<Friend> optinalFriend = friendRepository.findAcceptedByUserId(
+                FriendStatus.ACCEPTED, user.getId(), friendId);
+
+        if (optinalFriend.isPresent()) {
+            optinalFriend.get().setStatus(FriendStatus.BLOCKED);
+            return true;
+        }
+
         throw new UserException(ErrorStatus._BAD_REQUEST);
     }
 }
