@@ -4,7 +4,6 @@ package com.planup.planup.domain.verification.service;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,27 +62,21 @@ public class TimerVerificationReadService {
         return calcVerificationLocalDate(verifications);
     }
 
-    //오늘 총 기록시간 조회
-    public LocalTime getTodayTotalTime(UserGoal userGoal) {
+    //오늘 userGoal 별 총 기록시간 조회
+    public LocalTime getTodayTotalTimeByUserGoal(UserGoal userGoal) {
         if (userGoal == null) {
             return LocalTime.of(0, 0, 0);
         }
-        List<TimerVerification> todayVerifications = timerVerificationRepository
-                .findTodayVerificationsByUserGoalId(userGoal.getId());
 
-        if (todayVerifications.isEmpty()) {
-            return LocalTime.of(0, 0, 0);
+
+        //리포지토리에서 조건에 맞는 값들을 찾아서 다 더해 반환한다.
+        Integer spendTimeInSeconds = timerVerificationRepository.sumTodayVerificationsByUserGoalId(userGoal.getId());
+
+        //예외처리
+        if (spendTimeInSeconds == null) {
+            spendTimeInSeconds = 0;
         }
 
-        Duration total = todayVerifications.stream()
-                .map(TimerVerification::getSpentTime)
-                .filter(Objects::nonNull)
-                .reduce(Duration.ZERO, Duration::plus);
-
-        return LocalTime.of(
-                (int) total.toHours(),
-                (int) (total.toMinutes() % 60),
-                (int) (total.getSeconds() % 60)
-        );
+        return LocalTime.ofSecondOfDay(spendTimeInSeconds);
     }
 }

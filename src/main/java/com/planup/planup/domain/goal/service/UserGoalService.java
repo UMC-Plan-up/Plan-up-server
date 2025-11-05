@@ -34,4 +34,7 @@ public interface UserGoalService {
     int calculateDailyAchievement(Long userId, LocalDate targetDate);
     UserGoalResponseDto.GoalTotalAchievementDto calculateGoalTotalAchievement(Long goalId, Long userId);
     List<UserGoal> getActiveUserGoalsByUser(Long userId, LocalDate targetDate);
-    }
+
+    @Transactional(readOnly = true)
+    Integer getUserGoalCount(Long userId);
+}

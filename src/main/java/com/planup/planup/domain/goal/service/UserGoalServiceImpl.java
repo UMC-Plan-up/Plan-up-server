@@ -244,7 +244,6 @@ public class UserGoalServiceImpl implements UserGoalService{
     @Override
     @Transactional(readOnly = true)
     public Integer getUserGoalCount(Long userId) {
-        User user = userService.getUserbyUserId(userId);
         return Math.toIntExact(userGoalRepository.countByUserId(userId));
     }
 }

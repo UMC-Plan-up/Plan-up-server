@@ -275,7 +275,7 @@ public class GoalServiceImpl implements GoalService{
 
                     if (goal.getVerificationType() == VerificationType.TIMER) {
                         // 타이머인 경우 실제 시간 계산
-                        LocalTime totalTime = timerVerificationReadService.getTodayTotalTime(myuserGoal);
+                        LocalTime totalTime = timerVerificationReadService.getTodayTotalTimeByUserGoal(myuserGoal);
                         todayTime = String.format("%02d:%02d:%02d",
                                 totalTime.getHour(),
                                 totalTime.getMinute(),

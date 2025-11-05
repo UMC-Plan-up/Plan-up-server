@@ -5,6 +5,7 @@ import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
+import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
@@ -14,8 +15,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -30,6 +29,7 @@ public class FriendReadServiceImpl implements FriendReadService {
 
     private final UserService userService;
     private final FriendConverter friendConverter;
+    private final UserGoalService userGoalService;
     private final TimerVerificationReadService timerVerificationService;
     private final PhotoVerificationRepository photoVerificationRepository;
     private final NotificationService notificationService;
@@ -58,7 +58,7 @@ public class FriendReadServiceImpl implements FriendReadService {
 
     private FriendResponseDTO.FriendInfoSummary getFriendInfoSummary(User friend) {
 
-        int goalCnt = friend.getUserGoals() != null ? friend.getUserGoals().size() : 0;
+        int goalCnt = userGoalService.getUserGoalCount(friend.getId());
         boolean isNewPhotoVerify = checkTodayPhotoVerification(friend); // 서비스 내 유틸/레포 호출
         LocalTime todayTime = calculateTodayTotalTime(friend);          // 기존 메서드 유지
 
@@ -71,6 +71,28 @@ public class FriendReadServiceImpl implements FriendReadService {
         } catch (Exception e) {
             log.warn("사용자 {} 오늘 사진 인증 조회 실패: {}", user.getNickname(), e.getMessage());
             return false;
+        }
+    }
+
+    private LocalTime calculateTodayTotalTime(User user) {
+        try {
+            // 사용자의 모든 목표에 대해 오늘 타이머 시간을 합계
+            long totalSeconds = user.getUserGoals().stream()
+                    .mapToLong(userGoal -> {
+                        try {
+                            LocalTime goalTime = timerVerificationService.getTodayTotalTimeByUserGoal(userGoal);
+                            return goalTime.toSecondOfDay();
+                        } catch (Exception e) {
+                            log.warn("사용자 {} 목표 {} 타이머 시간 조회 실패: {}", user.getNickname(), userGoal.getGoal().getId(), e.getMessage());
+                            return 0L;
+                        }
+                    })
+                    .sum();
+
+            return LocalTime.ofSecondOfDay(totalSeconds);
+        } catch (Exception e) {
+            log.warn("사용자 {} 오늘 타이머 시간 계산 실패: {}", user.getNickname(), e.getMessage());
+            return LocalTime.of(0, 0, 0);
         }
     }
 }

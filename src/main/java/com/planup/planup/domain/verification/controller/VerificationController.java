@@ -64,7 +64,7 @@ public class VerificationController {
 
 
         UserGoal userGoal = userGoalService.getByGoalIdAndUserId(userId, goalId);
-        LocalTime totalTime = timerVerificationReadService.getTodayTotalTime(userGoal);
+        LocalTime totalTime = timerVerificationReadService.getTodayTotalTimeByUserGoal(userGoal);
 
         TimerVerificationResponseDto.TodayTotalTimeResponseDto result =
                 TimerVerificationConverter.toTodayTotalTimeResponse(totalTime);
@@ -84,7 +84,7 @@ public class VerificationController {
         friendService.isFriend(userId, friendId);
 
         UserGoal userGoal = userGoalService.getByGoalIdAndUserId(friendId, goalId);
-        LocalTime totalTime = timerVerificationReadService.getTodayTotalTime(userGoal);
+        LocalTime totalTime = timerVerificationReadService.getTodayTotalTimeByUserGoal(userGoal);
 
         TimerVerificationResponseDto.TodayTotalTimeResponseDto result =
                 TimerVerificationConverter.toTodayTotalTimeResponse(totalTime);

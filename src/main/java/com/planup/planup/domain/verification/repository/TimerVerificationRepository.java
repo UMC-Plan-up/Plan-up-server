@@ -23,6 +23,12 @@ public interface TimerVerificationRepository extends JpaRepository<TimerVerifica
             "AND DATE(t.createdAt) = CURRENT_DATE")
     List<TimerVerification> findTodayVerificationsByUserGoalId(@Param("userGoalId") Long userGoalId);
 
+    @Query("SELECT SUM(t.spentTimeSeconds) " +
+            "FROM TimerVerification t " +
+            "WHERE t.userGoal.id = :userGoalId " +
+            "AND FUNCTION('DATE', t.createdAt) = CURRENT_DATE")
+    Integer sumTodayVerificationsByUserGoalId(@Param("userGoalId") Long userGoalId);
+
     List<TimerVerification> findByUserGoal_User_IdAndEndTimeIsNull(Long userId);
 
     List<TimerVerification> findAllByUserGoalAndCreatedAtBetweenOrderByCreatedAt(UserGoal userGoal, LocalDateTime start, LocalDateTime end);
