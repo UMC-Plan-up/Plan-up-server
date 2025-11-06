@@ -2,6 +2,7 @@ package com.planup.planup.domain.friend.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
+import com.planup.planup.domain.friend.dto.FriendReportRequestDTO;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
@@ -27,7 +28,7 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         // 2. 해당 Friend 엔티티를 삭제한다.
         // 3. 성공적으로 삭제했으면 true, 아니면 false 반환
 
-        Optional<Friend> optinalFriend = friendRepository.findAcceptedByUserId(
+        Optional<Friend> optinalFriend = friendRepository.findByUserIdAndFriendId(
                 FriendStatus.ACCEPTED, user.getId(), friendId);
 
         if (optinalFriend.isPresent()) {
@@ -40,16 +41,33 @@ public class FriendWriteServiceImpl implements FriendWriteService {
 
     @Override
     public boolean blockFriend(User user, Long friendId) {
-        Long userId = user.getId();
 
-        Optional<Friend> optinalFriend = friendRepository.findAcceptedByUserId(
+        Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendId(
                 FriendStatus.ACCEPTED, user.getId(), friendId);
 
-        if (optinalFriend.isPresent()) {
-            optinalFriend.get().setStatus(FriendStatus.BLOCKED);
+        if (optionalFriend.isPresent()) {
+            optionalFriend.get().setStatus(FriendStatus.BLOCKED);
             return true;
         }
 
         throw new UserException(ErrorStatus._BAD_REQUEST);
+    }
+
+    @Override
+    public boolean reportFriend(FriendReportRequestDTO request) {
+
+        //request에서 값 꺼내기
+        Long userId = request.getUserId();
+        Long friendId= request.getFriendId();
+        String reason = request.getReason();
+        boolean block = request.isBlock();
+
+        Optional<Friend> acceptedFriend = friendRepository.findByUserIdAndFriendId(
+                FriendStatus.ACCEPTED, userId, friendId);
+
+        Optional<Friend> blockedFriend = friendRepository.findByUserIdAndFriendId(
+                FriendStatus.BLOCKED, userId, friendId);
+
+
     }
 }
