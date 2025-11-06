@@ -10,8 +10,5 @@ public interface FriendWriteService {
     boolean blockFriend(User user, Long friendId);
 
     @Transactional
-    boolean reportFriend(Long userId, Long friendId, String reason, boolean block);
-
-    @Transactional
     boolean reportFriend(FriendReportRequestDTO request);
 }

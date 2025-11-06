@@ -62,12 +62,13 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         String reason = request.getReason();
         boolean block = request.isBlock();
 
-        Optional<Friend> acceptedFriend = friendRepository.findByUserIdAndFriendId(
-                FriendStatus.ACCEPTED, userId, friendId);
+        Optional<Friend> targetFriend = friendRepository.findByUserIdAndFriendIdAndStatusNot(userId, friendId, FriendStatus.REQUESTED);
 
-        Optional<Friend> blockedFriend = friendRepository.findByUserIdAndFriendId(
-                FriendStatus.BLOCKED, userId, friendId);
-
-
+        if (targetFriend.isPresent()) {
+            targetFriend.get().setStatus(FriendStatus.BLOCKED);
+            return true;
+        }
+        // 친구를 찾지 못했을 때
+        throw new UserException(ErrorStatus._BAD_REQUEST);
     }
 }
