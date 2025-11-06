@@ -10,6 +10,10 @@ import com.planup.planup.domain.user.service.EmailService;
 import com.planup.planup.domain.user.service.RandomNicknameService;
 import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.validation.annotation.CurrentUser;
+import com.planup.planup.validation.jwt.dto.TokenRefreshRequestDTO;
+import com.planup.planup.validation.jwt.dto.TokenRefreshResponseDTO;
+import com.planup.planup.validation.jwt.service.TokenService;
+import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
@@ -33,6 +37,7 @@ public class UserController {
     private final EmailService emailService;
     private final UserConverter userConverter;
     private final RandomNicknameService randomNicknameService;
+    private final TokenService tokenService;
 
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
@@ -115,11 +120,61 @@ public class UserController {
         return ApiResponse.onSuccess(result);
     }
 
-    @Operation(summary = "로그아웃", description = "현재 세션을 종료합니다")
+    @Operation(summary = "로그아웃", description = "현재 사용자를 로그아웃합니다")
     @PostMapping("/users/logout")
-    public ApiResponse<String> logout() {
-        // 간단한 로그아웃 구현 (JWT는 클라이언트에서 삭제)
-        return ApiResponse.onSuccess("로그아웃이 완료되었습니다");
+    public ApiResponse<String> logout(
+            @Parameter(hidden = true) @CurrentUser Long userId,
+            HttpServletRequest httpRequest) {
+        
+        try {
+            // 액세스 토큰 블랙리스트 추가
+            String authHeader = httpRequest.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String accessToken = authHeader.substring(7);
+                tokenService.blacklistAccessToken(accessToken);
+            }
+            
+            // 리프레시 토큰 삭제
+            tokenService.logout(userId);
+            
+            return ApiResponse.onSuccess("로그아웃되었습니다");
+            
+        } catch (Exception e) {
+            log.error("로그아웃 실패: {}", e.getMessage());
+            return ApiResponse.onFailure("LOGOUT_FAILED", e.getMessage(), null);
+        }
+    }
+
+    @Operation(summary = "토큰 갱신", description = "리프레쉬 토큰을 사용하여 새로운 액세스 토큰을 발급받습니다")
+    @PostMapping("/users/refresh")
+    public ApiResponse<TokenRefreshResponseDTO> refreshToken(
+            @Valid @RequestBody TokenRefreshRequestDTO request) {
+        
+        try {
+            TokenRefreshResponseDTO response = tokenService.refreshAccessToken(
+                request.getRefreshToken()
+            );
+            
+            return ApiResponse.onSuccess(response);
+            
+        } catch (Exception e) {
+            log.error("토큰 갱신 실패: {}", e.getMessage());
+            return ApiResponse.onFailure("TOKEN_REFRESH_FAILED", e.getMessage(), null);
+        }
+    }
+
+    @Operation(summary = "토큰 유효성 확인", description = "현재 액세스 토큰의 유효성을 확인합니다")
+    @GetMapping("/users/validate")
+    public ApiResponse<String> validateToken(
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+        
+        try {
+            return ApiResponse.onSuccess("토큰이 유효합니다");
+            
+        } catch (Exception e) {
+            log.error("토큰 유효성 확인 실패: {}", e.getMessage());
+            return ApiResponse.onFailure("TOKEN_VALIDATION_FAILED", e.getMessage(), null);
+        }
     }
 
     @Operation(summary = "카카오톡 계정 연동 상태 확인", description = "사용자의 카카오톡 계정 연동 여부와 연동된 이메일을 확인합니다")

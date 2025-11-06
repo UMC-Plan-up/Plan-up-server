@@ -13,6 +13,8 @@ import com.planup.planup.domain.user.repository.InvitedUserRepository;
 import com.planup.planup.domain.user.repository.TermsRepository;
 import com.planup.planup.domain.user.repository.UserRepository;
 import com.planup.planup.validation.jwt.JwtUtil;
+import com.planup.planup.validation.jwt.dto.TokenResponseDTO;
+import com.planup.planup.validation.jwt.service.TokenService;
 import com.planup.planup.domain.user.repository.UserTermsRepository;
 import com.planup.planup.domain.user.dto.UserInfoResponseDTO;
 import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
@@ -49,6 +51,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final TokenService tokenService;
     private final TermsRepository termsRepository;
     private final UserTermsRepository userTermsRepository;
     private final OAuthAccountRepository oAuthAccountRepository;
@@ -147,6 +150,7 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .profileImg(user.getProfileImg())
+                .alarmAllow(user.getAlarmAllow())
                 .build();
     }
 
@@ -204,8 +208,8 @@ public class UserServiceImpl implements UserService {
         // 약관 동의 추가
         addTermsAgreements(savedUser, request.getAgreements());
 
-        // JWT 토큰 생성
-        String accessToken = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole().toString(), savedUser.getId());
+        // 토큰 생성 (TokenService 사용)
+        TokenResponseDTO tokenResponse = tokenService.generateTokens(savedUser);
 
         // 인증 토큰 정리
         emailService.clearVerificationToken(request.getEmail());
@@ -218,7 +222,9 @@ public class UserServiceImpl implements UserService {
         return SignupResponseDTO.builder()
                 .id(savedUser.getId())
                 .email(savedUser.getEmail())
-                .accessToken(accessToken)
+                .accessToken(tokenResponse.getAccessToken())
+                .refreshToken(tokenResponse.getRefreshToken())
+                .expiresIn(tokenResponse.getExpiresIn())
                 .build();
     }
 
@@ -254,12 +260,14 @@ public class UserServiceImpl implements UserService {
                 throw new UserException(ErrorStatus.INVALID_CREDENTIALS);
             }
 
-            // JWT 토큰 생성
-            String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+            // 토큰 생성 (TokenService 사용)
+            TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
             // 응답 DTO 생성
             return LoginResponseDTO.builder()
-                    .accessToken(accessToken)
+                    .accessToken(tokenResponse.getAccessToken())
+                    .refreshToken(tokenResponse.getRefreshToken())
+                    .expiresIn(tokenResponse.getExpiresIn())
                     .nickname(user.getNickname())
                     .profileImgUrl(user.getProfileImg())
                     .message("로그인에 성공했습니다")
@@ -689,11 +697,14 @@ public class UserServiceImpl implements UserService {
                 throw new UserException(ErrorStatus.USER_INACTIVE);
             }
 
-            String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+            // 토큰 생성 (TokenService 사용)
+            TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
             KakaoAuthResponseDTO response = KakaoAuthResponseDTO.builder()
             .isNewUser(false)
-            .accessToken(accessToken)
+            .accessToken(tokenResponse.getAccessToken())
+            .refreshToken(tokenResponse.getRefreshToken())
+            .expiresIn(tokenResponse.getExpiresIn())
             .userInfo(UserInfoResponseDTO.from(user))
             .build();
         return response;
@@ -762,13 +773,15 @@ public class UserServiceImpl implements UserService {
             redisTemplate.delete("temp_profile:" + kakaoUserInfo.getEmail());
         }
 
-        // JWT 토큰 생성 및 응답
-        String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+        // 토큰 생성 (TokenService 사용)
+        TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
         return SignupResponseDTO.builder()
                 .id(user.getId())
                 .email(user.getEmail())
-                .accessToken(accessToken)
+                .accessToken(tokenResponse.getAccessToken())
+                .refreshToken(tokenResponse.getRefreshToken())
+                .expiresIn(tokenResponse.getExpiresIn())
                 .build();
     }
 
