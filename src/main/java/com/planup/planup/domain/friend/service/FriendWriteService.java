@@ -11,4 +11,6 @@ public interface FriendWriteService {
 
     @Transactional
     boolean reportFriend(FriendReportRequestDTO request);
+
+    boolean rejectFriendRequest(Long userId, Long friendId);
 }

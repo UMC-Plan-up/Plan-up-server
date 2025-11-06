@@ -45,9 +45,9 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
           and ((f.user.id = :userId and f.friend.id = :friendId)
           or (f.user.id = :friendId and f.friend.id = :userId))
     """)
-    Optional<Friend> findByUserIdAndFriendId(@Param("status") FriendStatus status,
-                                             @Param("userId") Long userId,
-                                             @Param("friendId") Long friendId);
+    Optional<Friend> findByUserIdAndFriendIdAndStatus(@Param("status") FriendStatus status,
+                                                      @Param("userId") Long userId,
+                                                      @Param("friendId") Long friendId);
 
     //친구 관계 상태에 따라 친구 리스트를 반환(유저 정보도 같이 정리)
     @Query("""

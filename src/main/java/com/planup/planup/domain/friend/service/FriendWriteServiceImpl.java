@@ -6,6 +6,9 @@ import com.planup.planup.domain.friend.dto.FriendReportRequestDTO;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
+import com.planup.planup.domain.notification.entity.NotificationType;
+import com.planup.planup.domain.notification.entity.TargetType;
+import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +24,7 @@ import java.util.Optional;
 public class FriendWriteServiceImpl implements FriendWriteService {
 
     private final FriendRepository friendRepository;
+    private final NotificationService notificationService;
 
     @Override
     public boolean deleteFriend(User user, Long friendId) {
@@ -28,7 +32,7 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         // 2. 해당 Friend 엔티티를 삭제한다.
         // 3. 성공적으로 삭제했으면 true, 아니면 false 반환
 
-        Optional<Friend> optinalFriend = friendRepository.findByUserIdAndFriendId(
+        Optional<Friend> optinalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(
                 FriendStatus.ACCEPTED, user.getId(), friendId);
 
         if (optinalFriend.isPresent()) {
@@ -42,7 +46,7 @@ public class FriendWriteServiceImpl implements FriendWriteService {
     @Override
     public boolean blockFriend(User user, Long friendId) {
 
-        Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendId(
+        Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(
                 FriendStatus.ACCEPTED, user.getId(), friendId);
 
         if (optionalFriend.isPresent()) {
@@ -70,6 +74,29 @@ public class FriendWriteServiceImpl implements FriendWriteService {
             return true;
         }
         // 친구를 찾지 못했을 때
+        throw new UserException(ErrorStatus._BAD_REQUEST);
+    }
+
+    @Override
+    public boolean rejectFriendRequest(Long userId, Long friendId) {
+
+        //나(userId)에게 친구 신청한 친구(friendId)를 찾음
+        Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.REQUESTED, userId, friendId);
+
+        if (optionalFriend.isPresent()) {
+            optionalFriend.get().setStatus(FriendStatus.REJECTED);
+
+            notificationService.createNotification(
+                    friendId,           // receiverId (친구 신청을 보낸 사람)
+                    userId,             // senderId (친구 신청을 거절한 사람)
+                    NotificationType.FRIEND_REQUEST_REJECTED,
+                    TargetType.USER,
+                    userId              // targetId (친구 신청을 거절한 사람의 ID)
+            );
+
+            return true;
+        }
+
         throw new UserException(ErrorStatus._BAD_REQUEST);
     }
 }
