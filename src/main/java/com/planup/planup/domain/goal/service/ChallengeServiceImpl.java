@@ -80,6 +80,10 @@ public class ChallengeServiceImpl implements ChallengeService {
 
             TimeChallenge timeChallenge = ChallengeConverter.toTimeChallenge(dto);
             TimeChallenge save = timeChallengeRepository.save(timeChallenge);
+
+            //TODO: 실제 운영 서버에서 제거
+            isTestUser(friend, user, save);
+
             challengeRepository.flush();
 
             userGoalService.joinGoal(user.getId(), save.getId());
@@ -95,6 +99,10 @@ public class ChallengeServiceImpl implements ChallengeService {
 
             Challenge photoChallenge = ChallengeConverter.toPhotoChallenge(dto);
             Challenge save = challengeRepository.save(photoChallenge);
+
+            //TODO: 실제 운영 서버에서 제거
+            isTestUser(friend, user, save);
+
             challengeRepository.flush();
 
             userGoalService.joinGoal(user.getId(), save.getId());
@@ -106,6 +114,12 @@ public class ChallengeServiceImpl implements ChallengeService {
         }
 
         throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_TYPE);
+    }
+
+    private static void isTestUser(User friend, User user, Challenge save) {
+        if (friend.getEmail().equals("dummy12@planup.com") && user.getEmail().equals("dummy11@planup.com")) {
+            save.setChallengeStatus(ChallengeStatus.ACCEPTED);
+        }
     }
 
     @Transactional(readOnly = true)

@@ -1,6 +1,7 @@
 package com.planup.planup.domain.user.converter;
 
 import com.planup.planup.domain.user.dto.EmailSendResponseDTO;
+import com.planup.planup.domain.user.dto.EmailVerificationStatusResponseDTO;
 import com.planup.planup.domain.user.dto.LoginResponseDTO;
 import com.planup.planup.domain.user.dto.SignupRequestDTO;
 import com.planup.planup.domain.user.dto.SignupResponseDTO;
@@ -90,5 +91,22 @@ public class UserConverter {
                 .message(message)
                 .verificationToken(verificationToken)
                 .build();
+    }
+
+    // 이메일 인증 상태 응답 DTO로 변환
+    public EmailVerificationStatusResponseDTO toEmailVerificationStatusResponseDTO(String email, boolean verified) {
+        if (email != null) {
+            return EmailVerificationStatusResponseDTO.builder()
+                    .verified(verified)
+                    .email(email)
+                    .tokenStatus(TokenStatus.VALID)
+                    .build();
+        } else {
+            return EmailVerificationStatusResponseDTO.builder()
+                    .verified(verified)
+                    .email(null)
+                    .tokenStatus(TokenStatus.EXPIRED_OR_INVALID)
+                    .build();
+        }
     }
 }

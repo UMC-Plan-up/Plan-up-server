@@ -266,6 +266,17 @@ public class UserController {
         return ApiResponse.onSuccess(response);
     }
 
+    @Operation(summary = "이메일 인증 여부 확인", description = "토큰으로 이메일을 확인하고 인증 상태를 반환합니다")
+    @GetMapping("/users/email/verification-status")
+    public ApiResponse<EmailVerificationStatusResponseDTO> getEmailVerificationStatus(@RequestParam("token") String token) {
+        String email = emailService.validateToken(token);
+        boolean verified = emailService.isEmailVerified(email);
+
+        EmailVerificationStatusResponseDTO response = userConverter.toEmailVerificationStatusResponseDTO(email, verified);
+
+        return ApiResponse.onSuccess(response);
+    }
+
     @Operation(summary = "이메일 링크 클릭 처리", description = "이메일 링크 클릭 시 인증 처리 후 웹페이지 표시")
     @GetMapping("/users/email/verify-link")
     public ResponseEntity<String> handleEmailLink(@RequestParam String token) {
@@ -474,5 +485,11 @@ public class UserController {
     public ApiResponse<RandomNicknameResponseDTO> generateRandomNickname() {
         RandomNicknameResponseDTO result = randomNicknameService.generateRandomNickname();
         return ApiResponse.onSuccess(result);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ApiResponse<EmailVerificationStatusResponseDTO> handleIllegalArgumentException(IllegalArgumentException e) {
+        EmailVerificationStatusResponseDTO response = userConverter.toEmailVerificationStatusResponseDTO(null, false);
+        return ApiResponse.onFailure(ErrorStatus.INVALID_EMAIL_TOKEN.getCode(), ErrorStatus.INVALID_EMAIL_TOKEN.getMessage(), response);
     }
 }
