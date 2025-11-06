@@ -13,7 +13,9 @@ public interface UserService {
 
     String updateNickname(Long userId, String nickname);
 
-    boolean updateNotificationAgree(Long userId);
+    boolean updateMarketingNotificationAllow(Long userId); // 혜택 및 마케팅 알림 변경
+    
+    boolean updateServiceNotificationAllow(Long userId); // 서비스 알림 변경
 
 
     

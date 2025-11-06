@@ -11,7 +11,8 @@ public class UserInfoResponseDTO {
     private String email;
     private String nickname;
     private String profileImg;
-    // 필요하다면 추가 필드
+    private Boolean serviceNotificationAllow; // 서비스 알림 동의 상태
+    private Boolean marketingNotificationAllow; // 혜택 및 마케팅 알림 동의 상태
 
     public static UserInfoResponseDTO from(User user) {
         return UserInfoResponseDTO.builder()
@@ -19,6 +20,8 @@ public class UserInfoResponseDTO {
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .profileImg(user.getProfileImg())
+                .serviceNotificationAllow(user.getServiceNotificationAllow())
+                .marketingNotificationAllow(user.getMarketingNotificationAllow())
                 .build();
     }
 }

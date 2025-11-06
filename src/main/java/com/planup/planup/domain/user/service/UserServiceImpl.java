@@ -104,12 +104,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public boolean updateNotificationAgree(Long userId) {
+    public boolean updateMarketingNotificationAllow(Long userId) {
         User user = getUserbyUserId(userId);
-        user.switchAlarmAllow();
+        user.updateMarketingNotificationAllow();
         return true;
     }
 
+    @Override
+    @Transactional
+    public boolean updateServiceNotificationAllow(Long userId) {
+        User user = getUserbyUserId(userId);
+        user.updateServiceNotificationAllow();
+        return true;
+    }
 
 
 
@@ -150,7 +157,8 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .profileImg(user.getProfileImg())
-                .alarmAllow(user.getAlarmAllow())
+                .serviceNotificationAllow(user.getServiceNotificationAllow())
+                .marketingNotificationAllow(user.getMarketingNotificationAllow())
                 .build();
     }
 
@@ -197,7 +205,8 @@ public class UserServiceImpl implements UserService {
                 .role(Role.USER)
                 .userActivate(UserActivate.ACTIVE)
                 .userLevel(UserLevel.LEVEL_1)
-                .alarmAllow(true)
+                .serviceNotificationAllow(true) // 서비스 알림 기본값: true
+                .marketingNotificationAllow(true) // 혜택 및 마케팅 알림 기본값: true
                 .profileImg(profileImgUrl)
                 .emailVerified(true)
                 .emailVerifiedAt(LocalDateTime.now())
@@ -800,7 +809,8 @@ public class UserServiceImpl implements UserService {
                 .role(Role.USER)
                 .userActivate(UserActivate.ACTIVE)
                 .userLevel(UserLevel.LEVEL_1)
-                .alarmAllow(true)
+                .serviceNotificationAllow(true) // 서비스 알림 기본값: true
+                .marketingNotificationAllow(true) // 혜택 및 마케팅 알림 기본값: true
                 .profileImg(request.getProfileImg())
                 .emailVerified(true)
                 .emailVerifiedAt(LocalDateTime.now())

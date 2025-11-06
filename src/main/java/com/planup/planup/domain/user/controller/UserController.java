@@ -56,10 +56,17 @@ public class UserController {
         return ApiResponse.onSuccess(newNickname);
     }
 
-    @Operation(summary = "혜택 및 마케팅 동의 변경", description = "혜택 동의가 되어있다면 비활성화, 동의가 안되어있으면 동의로 변경")
-    @PatchMapping("/mypage/notification/agree")
-    public ApiResponse<Boolean> updateNotificationAgree(@Parameter(hidden = true) @CurrentUser Long userId) {
-        userService.updateNotificationAgree(userId);
+    @Operation(summary = "서비스 알림 동의 변경", description = "서비스 알림 동의가 되어있다면 비활성화, 동의가 안되어있으면 동의로 변경")
+    @PatchMapping("/mypage/notification/service")
+    public ApiResponse<Boolean> updateServiceNotificationAllow(@Parameter(hidden = true) @CurrentUser Long userId) {
+        userService.updateServiceNotificationAllow(userId);
+        return ApiResponse.onSuccess(true);
+    }
+
+    @Operation(summary = "혜택 및 마케팅 동의 변경", description = "혜택 및 마케팅 알림 동의가 되어있다면 비활성화, 동의가 안되어있으면 동의로 변경")
+    @PatchMapping("/mypage/notification/marketing")
+    public ApiResponse<Boolean> updateMarketingNotificationAllow(@Parameter(hidden = true) @CurrentUser Long userId) {
+        userService.updateMarketingNotificationAllow(userId);
         return ApiResponse.onSuccess(true);
     }
 
