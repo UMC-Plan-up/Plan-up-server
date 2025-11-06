@@ -143,6 +143,9 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         //이미 친구 관계인지 확인
         isAlreadyFriend(userId, friendId);
 
+        //자기 자신에게 보내는 에러인지 확인
+        isSelfFriendRequest(userId, friendId);
+
         //이미 신청했는지 확인
         isAlreadyRequestedFriend(userId, friendId);
 
@@ -172,6 +175,10 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         );
 
         return true;
+    }
+
+    private void isSelfFriendRequest(Long userId, Long friendId) {
+        if (userId == friendId) throw new FriendException(ErrorStatus.SAME_USER);
     }
 
     private void isAlreadyRequestedFriend(Long userId, Long friendId) {
