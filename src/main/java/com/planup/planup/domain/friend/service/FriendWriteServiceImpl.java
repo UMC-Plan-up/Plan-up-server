@@ -187,4 +187,10 @@ public class FriendWriteServiceImpl implements FriendWriteService {
     }
 
 
+    @Override
+    public Long unblockFriend(Long userId, String friendNickname) {
+        User user = userService.getUserbyUserId(userId);
+
+
+    }
 }
