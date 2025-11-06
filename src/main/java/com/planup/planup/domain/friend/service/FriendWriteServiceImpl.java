@@ -185,4 +185,6 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         //차단된 사용자인지 확인
         friendValidator.ensureNotBlocked(userId, friendId);
     }
+
+
 }

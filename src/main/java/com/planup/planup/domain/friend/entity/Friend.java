@@ -33,10 +33,14 @@ public class Friend extends BaseTimeEntity {
 
 
     public Long getFriendId(Long myId) {
+        return getFriendNotMe(myId).getId();
+    }
+
+    public User getFriendNotMe(Long myId) {
         if (Objects.equals(user.getId(), myId)) {
-            return friend.getId();
+            return friend;
         } else if (Objects.equals(friend.getId(), myId)){
-            return user.getId();
+            return user;
         } else {
             return null;
         }

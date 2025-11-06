@@ -110,5 +110,12 @@ public class FriendReadServiceImpl implements FriendReadService {
                 .collect(Collectors.toList());
     }
 
-
+    @Override
+    public List<FriendResponseDTO.FriendInfoInChallengeCreate> getFrinedListInChallenge(Long userId) {
+        List<Friend> friendList = friendRepository.findAcceptedByUserIdWithUsers(FriendStatus.ACCEPTED, userId);
+        return friendList.stream()
+                .map(friend -> friendConverter.toFriendInfoChallenge(friend.getFriendNotMe(userId))) // 또는 getUser()
+                .distinct()
+                .collect(Collectors.toList());
+    }
 }
