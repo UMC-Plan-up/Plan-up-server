@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Objects;
+
 @Entity
 @Getter
 @Setter
@@ -32,4 +34,14 @@ public class Friend extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private FriendStatus status;
 
+
+    public Long getFriendId(Long myId) {
+        if (Objects.equals(user.getId(), myId)) {
+            return friend.getId();
+        } else if (Objects.equals(friend.getId(), myId)){
+            return user.getId();
+        } else {
+            return null;
+        }
+    }
 }
