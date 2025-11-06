@@ -21,6 +21,16 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
             FriendStatus status, Long friendId
     );
 
+    //나에게 보낸 친구 요청을 반환하되, 요청을 보낸 사람의 데이터도 같이 반환
+    @Query("""
+        select f
+        from Friend f
+        join fetch f.user u
+        join fetch f.friend fr
+        where f.status = :status and fr.id = :friendId
+    """)
+    List<Friend> findByStatusAndFriendIdOrderByCreatedAtDescWithUser(FriendStatus status, Long friendId);
+
     // 사용자가 차단한 친구 목록 조회
     List<Friend> findByUserAndStatusOrderByCreatedAtDesc(User user, FriendStatus status);
 

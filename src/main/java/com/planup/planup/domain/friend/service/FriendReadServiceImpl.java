@@ -17,7 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -94,4 +96,19 @@ public class FriendReadServiceImpl implements FriendReadService {
             return LocalTime.of(0, 0, 0);
         }
     }
+
+    @Override
+    public List<FriendResponseDTO.FriendInfoSummary> getRequestedFriends(Long userId) {
+        List<Friend> friendRequests = friendRepository.findByStatusAndFriendIdOrderByCreatedAtDescWithUser(FriendStatus.REQUESTED, userId);
+
+        //데이터가 없으면 빈 리스트를 만환한다.
+        if (friendRequests.isEmpty()) return Collections.emptyList();
+
+        return friendRequests.stream()
+                .map(Friend::getUser)
+                .map(this::getFriendInfoSummary)
+                .collect(Collectors.toList());
+    }
+
+
 }
