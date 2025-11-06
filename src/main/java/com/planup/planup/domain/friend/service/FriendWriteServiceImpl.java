@@ -151,10 +151,11 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         User friendUser = userService.getUserbyUserId(friendId);
 
         // Friend 엔티티 생성
-        Friend friendRequest = new Friend();
-        friendRequest.setUser(user);
-        friendRequest.setFriend(friendUser);
-        friendRequest.setStatus(FriendStatus.REQUESTED);
+        Friend friendRequest = Friend.builder()
+                .user(user)
+                .friend(friendUser)
+                .status(FriendStatus.REQUESTED)
+                .build();
 
         //TODO: 실제 서비스에서 제거
         if (userId.equals("dummy11@planup.com")) friendRequest.setStatus(FriendStatus.ACCEPTED);

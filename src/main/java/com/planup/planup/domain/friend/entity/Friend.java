@@ -3,20 +3,17 @@ package com.planup.planup.domain.friend.entity;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.util.Objects;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @SuperBuilder
 @AllArgsConstructor
+@Builder
 public class Friend extends BaseTimeEntity {
 
     @Id
@@ -43,5 +40,9 @@ public class Friend extends BaseTimeEntity {
         } else {
             return null;
         }
+    }
+
+    public void setStatus(FriendStatus status) {
+        this.status = status;
     }
 }
