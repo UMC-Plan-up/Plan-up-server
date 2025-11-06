@@ -1,6 +1,8 @@
 package com.planup.planup.domain.friend.converter;
 
+import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
+import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
@@ -56,5 +58,16 @@ public class FriendConverter {
      */
 
 
-
+    public List<BlockedFriendResponseDTO> toBlockedFriendDTO(Long userId, List<Friend> friends) {
+        return friends.stream()
+                .map(friend -> {
+                    User blockedUser = friend.getFriendNotMe(userId);
+                    return BlockedFriendResponseDTO.builder()
+                            .friendId(blockedUser.getId())
+                            .friendNickname(blockedUser.getNickname())
+                            .profileImg(blockedUser.getProfileImg())
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
 }

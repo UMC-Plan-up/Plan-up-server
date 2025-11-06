@@ -59,8 +59,8 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
           and (u.id = :userId or fr.id = :userId)
         order by f.createdAt desc
     """)
-    List<Friend> findAcceptedByUserIdWithUsers(@Param("status") FriendStatus status,
-                                               @Param("userId") Long userId);
+    List<Friend> findListByUserIdWithUsers(@Param("status") FriendStatus status,
+                                           @Param("userId") Long userId);
 
     @Query("""
         select f

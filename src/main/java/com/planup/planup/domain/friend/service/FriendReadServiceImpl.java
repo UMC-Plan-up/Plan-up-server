@@ -1,6 +1,7 @@
 package com.planup.planup.domain.friend.service;
 
 import com.planup.planup.domain.friend.converter.FriendConverter;
+import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
@@ -35,6 +36,7 @@ public class FriendReadServiceImpl implements FriendReadService {
     private final TimerVerificationReadService timerVerificationService;
     private final PhotoVerificationRepository photoVerificationRepository;
     private final NotificationService notificationService;
+    private
 
     //친구 리스트를 반환한다.
     public List<FriendResponseDTO.FriendSummaryList> getFriendSummeryList(Long userId) {
@@ -112,10 +114,17 @@ public class FriendReadServiceImpl implements FriendReadService {
 
     @Override
     public List<FriendResponseDTO.FriendInfoInChallengeCreate> getFrinedListInChallenge(Long userId) {
-        List<Friend> friendList = friendRepository.findAcceptedByUserIdWithUsers(FriendStatus.ACCEPTED, userId);
+        List<Friend> friendList = friendRepository.findListByUserIdWithUsers(FriendStatus.ACCEPTED, userId);
         return friendList.stream()
                 .map(friend -> friendConverter.toFriendInfoChallenge(friend.getFriendNotMe(userId))) // 또는 getUser()
                 .distinct()
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BlockedFriendResponseDTO> getBlockedFriends(Long userId) {
+        List<Friend> friends = friendRepository.findListByUserIdWithUsers(FriendStatus.BLOCKED, userId);
+
+        return friendConverter.toBlockedFriendDTO(userId, friends);
     }
 }
