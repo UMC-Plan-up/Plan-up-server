@@ -99,4 +99,40 @@ public class FriendWriteServiceImpl implements FriendWriteService {
 
         throw new UserException(ErrorStatus._BAD_REQUEST);
     }
+
+    @Override
+    public boolean acceptFriendRequest(Long userId, Long friendId) {
+        //나(userId)에게 친구 신청한 친구(friendId)를 찾음
+        Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.REQUESTED, userId, friendId);
+
+        if (optionalFriend.isPresent()) {
+            Friend friend = optionalFriend.get();
+            friend.setStatus(FriendStatus.ACCEPTED);
+
+            // 친구 신청 수락 알림 생성 - 양쪽 모두에게
+            // 1. 친구 신청을 보낸 사람에게 알림
+            notificationService.createNotification(
+                    friendId,           // receiverId (친구 신청을 보낸 사람)
+                    userId,             // senderId (친구 신청을 수락한 사람)
+                    NotificationType.FRIEND_REQUEST_ACCEPTED,
+                    TargetType.USER,
+                    userId              // targetId (친구 신청을 수락한 사람의 ID)
+            );
+
+            // 2. 친구 신청을 수락한 사람에게도 알림
+            notificationService.createNotification(
+                    userId,             // receiverId (친구 신청을 수락한 사람)
+                    friendId,           // senderId (친구 신청을 보낸 사람)
+                    NotificationType.FRIEND_REQUEST_ACCEPTED,
+                    TargetType.USER,
+                    friendId            // targetId (친구 신청을 보낸 사람의 ID)
+            );
+
+            return true;
+        }
+
+        throw new UserException(ErrorStatus._BAD_REQUEST);
+    }
+
+
 }

@@ -13,4 +13,6 @@ public interface FriendWriteService {
     boolean reportFriend(FriendReportRequestDTO request);
 
     boolean rejectFriendRequest(Long userId, Long friendId);
+
+    boolean acceptFriendRequest(Long userId, Long friendId);
 }
