@@ -7,6 +7,7 @@ import com.planup.planup.domain.friend.dto.FriendReportRequestDTO;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
+import com.planup.planup.domain.friend.service.policy.FriendValidator;
 import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.entity.TargetType;
 import com.planup.planup.domain.notification.service.NotificationService;
@@ -28,6 +29,7 @@ public class FriendWriteServiceImpl implements FriendWriteService {
     private final FriendRepository friendRepository;
     private final NotificationService notificationService;
     private final UserService userService;
+    private final FriendValidator friendValidator;
 
     @Override
     public boolean deleteFriend(User user, Long friendId) {
@@ -140,14 +142,7 @@ public class FriendWriteServiceImpl implements FriendWriteService {
     @Override
     public boolean sendFriendRequest(Long userId, Long friendId) {
 
-        //이미 친구 관계인지 확인
-        isAlreadyFriend(userId, friendId);
-
-        //자기 자신에게 보내는 에러인지 확인
-        isSelfFriendRequest(userId, friendId);
-
-        //이미 신청했는지 확인
-        isAlreadyRequestedFriend(userId, friendId);
+        checkRequestSendFriend(userId, friendId);
 
         // 유저 엔티티 조회
         User user = userService.getUserbyUserId(userId);
@@ -177,17 +172,17 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         return true;
     }
 
-    private void isSelfFriendRequest(Long userId, Long friendId) {
-        if (userId == friendId) throw new FriendException(ErrorStatus.SAME_USER);
-    }
+    private void checkRequestSendFriend(Long userId, Long friendId) {
+        //이미 친구 관계인지 확인
+        friendValidator.ensureNotAlreadyFriend(userId, friendId);
 
-    private void isAlreadyRequestedFriend(Long userId, Long friendId) {
-        Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.REQUESTED, userId, friendId);
-        if (optionalFriend.isPresent()) throw new FriendException(ErrorStatus.ALREADY_REQUESTED);
-    }
+        //자기 자신에게 보내는 에러인지 확인
+        friendValidator.ensureNotSelfRequest(userId, friendId);
 
-    private void isAlreadyFriend(Long userId, Long friendId) {
-        Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.ACCEPTED, userId, friendId);
-        if (optionalFriend.isPresent()) throw new FriendException(ErrorStatus.ALREADY_FRIEND);
+        //이미 신청했는지 확인
+        friendValidator.ensureNotAlreadyRequested(userId, friendId);
+
+        //차단된 사용자인지 확인
+        friendValidator.ensureNotBlocked(userId, friendId);
     }
 }
