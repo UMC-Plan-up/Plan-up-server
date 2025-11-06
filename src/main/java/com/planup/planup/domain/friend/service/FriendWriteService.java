@@ -15,4 +15,6 @@ public interface FriendWriteService {
     boolean rejectFriendRequest(Long userId, Long friendId);
 
     boolean acceptFriendRequest(Long userId, Long friendId);
+
+    boolean sendFriendRequest(Long userId, Long friendId);
 }

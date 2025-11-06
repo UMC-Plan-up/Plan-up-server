@@ -1,6 +1,7 @@
 package com.planup.planup.domain.friend.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.FriendException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.friend.dto.FriendReportRequestDTO;
 import com.planup.planup.domain.friend.entity.Friend;
@@ -10,6 +11,7 @@ import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.entity.TargetType;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.user.entity.User;
+import com.planup.planup.domain.user.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ public class FriendWriteServiceImpl implements FriendWriteService {
 
     private final FriendRepository friendRepository;
     private final NotificationService notificationService;
+    private final UserService userService;
 
     @Override
     public boolean deleteFriend(User user, Long friendId) {
@@ -134,5 +137,49 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         throw new UserException(ErrorStatus._BAD_REQUEST);
     }
 
+    @Override
+    public boolean sendFriendRequest(Long userId, Long friendId) {
 
+        //이미 친구 관계인지 확인
+        isAlreadyFriend(userId, friendId);
+
+        //이미 신청했는지 확인
+        isAlreadyRequestedFriend(userId, friendId);
+
+        // 유저 엔티티 조회
+        User user = userService.getUserbyUserId(userId);
+        User friendUser = userService.getUserbyUserId(friendId);
+
+        // Friend 엔티티 생성
+        Friend friendRequest = new Friend();
+        friendRequest.setUser(user);
+        friendRequest.setFriend(friendUser);
+        friendRequest.setStatus(FriendStatus.REQUESTED);
+
+        //TODO: 실제 서비스에서 제거
+        if (userId.equals("dummy11@planup.com")) friendRequest.setStatus(FriendStatus.ACCEPTED);
+
+        friendRepository.save(friendRequest);
+
+        // 친구 신청 알림 생성
+        notificationService.createNotification(
+                friendId,           // receiverId (친구 신청 받는 사람)
+                userId,             // senderId (친구 신청 보내는 사람)
+                NotificationType.FRIEND_REQUEST_SENT,
+                TargetType.USER,
+                userId              // targetId (친구 신청 보낸 사람의 ID)
+        );
+
+        return true;
+    }
+
+    private void isAlreadyRequestedFriend(Long userId, Long friendId) {
+        Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.REQUESTED, userId, friendId);
+        if (optionalFriend.isPresent()) throw new FriendException(ErrorStatus.ALREADY_REQUESTED);
+    }
+
+    private void isAlreadyFriend(Long userId, Long friendId) {
+        Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.ACCEPTED, userId, friendId);
+        if (optionalFriend.isPresent()) throw new FriendException(ErrorStatus.ALREADY_FRIEND);
+    }
 }
