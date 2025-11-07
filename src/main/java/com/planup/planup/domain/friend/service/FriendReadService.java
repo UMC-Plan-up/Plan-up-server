@@ -10,5 +10,5 @@ public interface FriendReadService {
 
     List<FriendResponseDTO.FriendInfoInChallengeCreate> getFrinedListInChallenge(Long userId);
 
-    List<BlockedFriendResponseDTO> getBlockedFriends(Long userId);
+    void isFriend(Long userId, Long friendId);
 }

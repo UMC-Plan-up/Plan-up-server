@@ -35,6 +35,8 @@ public enum ErrorStatus implements BaseErrorCode {
     ALREADY_REQUESTED(BAD_REQUEST, "FRIEND4002", "이미 친구 신청을 하였습니다."),
     SAME_USER(BAD_REQUEST, "FRIEND4003", "친구 신청자와 대상자가 동일 인물입니다."),
     FRIEND_BLOCKED(BAD_REQUEST, "FRIEND4004", "차단된 친구입니다."),
+    NOT_EXIST_USERBLOCK(BAD_REQUEST, "FRIEND4005", "이미 친구 차단 상태가 아닙니다."),
+    NOT_FRIEND(BAD_REQUEST, "FRIEND4006", "친구 관계가 아닙니다."),
 
     // 로그인, 회원가입 관련 에러
     USER_EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER4003", "이미 존재하는 이메일입니다"),

@@ -25,12 +25,6 @@ public class FriendValidator {
         }
     }
 
-    public void ensureNotBlocked(Long userId, Long friendId) {
-        if (friendRepository.existsByUsersAndStatus(userId, friendId, FriendStatus.BLOCKED)) {
-            throw new FriendException(ErrorStatus.FRIEND_BLOCKED);
-        }
-    }
-
     public void ensureNotSelfRequest(Long userId, Long friendId) {
         if (userId == friendId) throw new FriendException(ErrorStatus.SAME_USER);
     }

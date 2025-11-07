@@ -1,7 +1,8 @@
 package com.planup.planup.domain.friend.service;
 
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.FriendException;
 import com.planup.planup.domain.friend.converter.FriendConverter;
-import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
@@ -20,12 +21,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Transactional(readOnly = true)
 @Service
 @AllArgsConstructor
 @Slf4j
-@Transactional(readOnly = true)
 public class FriendReadServiceImpl implements FriendReadService {
 
     private final FriendRepository friendRepository;
@@ -36,7 +38,6 @@ public class FriendReadServiceImpl implements FriendReadService {
     private final TimerVerificationReadService timerVerificationService;
     private final PhotoVerificationRepository photoVerificationRepository;
     private final NotificationService notificationService;
-    private
 
     //친구 리스트를 반환한다.
     public List<FriendResponseDTO.FriendSummaryList> getFriendSummeryList(Long userId) {
@@ -122,9 +123,10 @@ public class FriendReadServiceImpl implements FriendReadService {
     }
 
     @Override
-    public List<BlockedFriendResponseDTO> getBlockedFriends(Long userId) {
-        List<Friend> friends = friendRepository.findListByUserIdWithUsers(FriendStatus.BLOCKED, userId);
-
-        return friendConverter.toBlockedFriendDTO(userId, friends);
+    public void isFriend(Long userId, Long friendId) {
+        Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.ACCEPTED, userId, friendId);
+        if (optionalFriend.isEmpty()) {
+            throw new FriendException(ErrorStatus.NOT_EXIST_USERBLOCK);
+        }
     }
 }

@@ -8,6 +8,7 @@ import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.friend.service.policy.FriendValidator;
+import com.planup.planup.domain.friend.service.policy.UserBlockValidator;
 import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.entity.TargetType;
 import com.planup.planup.domain.notification.service.NotificationService;
@@ -30,6 +31,8 @@ public class FriendWriteServiceImpl implements FriendWriteService {
     private final NotificationService notificationService;
     private final UserService userService;
     private final FriendValidator friendValidator;
+    private final UserBlockServiceImpl userBlockService;
+    private final UserBlockValidator userBlockValidator;
 
     @Override
     public boolean deleteFriend(User user, Long friendId) {
@@ -183,14 +186,14 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         friendValidator.ensureNotAlreadyRequested(userId, friendId);
 
         //차단된 사용자인지 확인
-        friendValidator.ensureNotBlocked(userId, friendId);
+        userBlockValidator.ensureExistUserBlock(userId, friendId);
     }
 
 
     @Override
-    public Long unblockFriend(Long userId, String friendNickname) {
+    public Long unblockFriend(Long userId, Long friendId) {
         User user = userService.getUserbyUserId(userId);
 
-
+        userBlockService.getBlockedFriends()
     }
 }

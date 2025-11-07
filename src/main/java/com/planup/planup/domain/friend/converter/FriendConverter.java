@@ -58,14 +58,13 @@ public class FriendConverter {
      */
 
 
-    public List<BlockedFriendResponseDTO> toBlockedFriendDTO(Long userId, List<Friend> friends) {
+    public List<BlockedFriendResponseDTO> toBlockedFriendDTO(Long userId, List<User> friends) {
         return friends.stream()
                 .map(friend -> {
-                    User blockedUser = friend.getFriendNotMe(userId);
                     return BlockedFriendResponseDTO.builder()
-                            .friendId(blockedUser.getId())
-                            .friendNickname(blockedUser.getNickname())
-                            .profileImg(blockedUser.getProfileImg())
+                            .friendId(friend.getId())
+                            .friendNickname(friend.getNickname())
+                            .profileImg(friend.getProfileImg())
                             .build();
                 })
                 .collect(Collectors.toList());

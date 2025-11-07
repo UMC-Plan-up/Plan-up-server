@@ -1,5 +1,5 @@
 package com.planup.planup.domain.friend.entity;
 
 public enum FriendStatus {
-    REQUESTED, REJECTED, ACCEPTED, BLOCKED;
+    REQUESTED, REJECTED, ACCEPTED;
 }
