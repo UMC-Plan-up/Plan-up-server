@@ -6,6 +6,7 @@ import com.planup.planup.domain.friend.entity.UserBlock;
 import com.planup.planup.domain.friend.repository.UserBlockRepository;
 import com.planup.planup.domain.friend.service.policy.UserBlockValidator;
 import com.planup.planup.domain.user.entity.User;
+import com.planup.planup.domain.user.service.UserValidator.UserValidator;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,7 @@ public class UserBlockServiceImpl {
     private final UserBlockRepository userBlockRepository;
     private final FriendConverter friendConverter;
     private final UserBlockValidator userBlockValidator;
-    private final UserRead\\\
+    private final UserValidator userValidator;
 
     public List<BlockedFriendResponseDTO> getBlockedFriends(Long userId) {
         List<UserBlock> friends = userBlockRepository.findBlockedByBlockerId(userId);
@@ -54,6 +55,6 @@ public class UserBlockServiceImpl {
     @Transactional
     public boolean blockFriend(User user, Long friendId) {
 
-        user
+        userValidator.existUserId(friendId);
     }
 }
