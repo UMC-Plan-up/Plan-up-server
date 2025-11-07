@@ -1,12 +1,7 @@
 package com.planup.planup.domain.user.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
-import com.planup.planup.apiPayload.code.status.ErrorStatus;
-import com.planup.planup.apiPayload.exception.custom.UserException;
-import com.planup.planup.domain.user.converter.UserConverter;
 import com.planup.planup.domain.user.dto.*;
-import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.service.EmailService;
 import com.planup.planup.domain.user.service.RandomNicknameService;
 import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.validation.annotation.CurrentUser;
@@ -15,14 +10,11 @@ import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,12 +22,7 @@ import java.nio.charset.StandardCharsets;
 public class UserController {
 
     private final UserService userService;
-    private final EmailService emailService;
-    private final UserConverter userConverter;
     private final RandomNicknameService randomNicknameService;
-
-    @Value("${app.frontend.url:http://localhost:3000}")
-    private String frontendUrl;
 
     @Operation(summary = "nickname 변경 요청", description = "닉네임을 변경하기 위해 기존 닉네임 호출")
     @GetMapping("/mypage/profile/nickname")
@@ -57,20 +44,11 @@ public class UserController {
         return ApiResponse.onSuccess(userService.updateNotificationAgree(userId));
     }
 
-
-
     @Operation(summary = "비밀번호 변경", description = "이메일 인증 토큰으로 비밀번호를 변경한다.")
     @PostMapping("/users/password/change")
     public ApiResponse<Boolean> changePasswordWithToken(@RequestBody PasswordChangeWithTokenRequestDTO request) {
-        try {
-            userService.changePasswordWithToken(request.getToken(), request.getNewPassword());
-            return ApiResponse.onSuccess(true);
-        } catch (IllegalArgumentException e) {
-            return ApiResponse.onFailure("PASSWORD4002", e.getMessage(), false);
-        } catch (Exception e) {
-            log.error("비밀번호 변경 실패: {}", e.getMessage());
-            return ApiResponse.onFailure("PASSWORD4003", "비밀번호 변경에 실패했습니다.", false);
-        }
+        userService.changePasswordWithToken(request.getToken(), request.getNewPassword());
+        return ApiResponse.onSuccess(true);
     }
 
     @Operation(summary = "유저 정보 조회", description = "유저의 상세 정보 조회")
@@ -83,13 +61,7 @@ public class UserController {
     @Operation(summary = "이메일 중복 확인", description = "이메일이 이미 사용 중인지 확인합니다")
     @GetMapping("/users/email/check-duplicate")
     public ApiResponse<EmailDuplicateResponseDTO> checkEmailDuplicate(@RequestParam String email) {
-        boolean isAvailable = userService.isEmailAvailable(email);
-        
-        EmailDuplicateResponseDTO response = EmailDuplicateResponseDTO.builder()
-                .available(isAvailable)
-                .message(isAvailable ? "사용 가능한 이메일입니다." : "이미 사용 중인 이메일입니다.")
-                .build();
-        
+        EmailDuplicateResponseDTO response = userService.checkEmailDuplicate(email);
         return ApiResponse.onSuccess(response);
     }
 
@@ -143,24 +115,24 @@ public class UserController {
     @Operation(summary = "내 초대코드 조회", description = "내 초대코드를 조회하거나 새로 생성합니다")
     @GetMapping("/users/me/invite-code")
     public ApiResponse<InviteCodeResponseDTO> getMyInviteCode(
-            @Parameter(hidden = true) @CurrentUser User currentUser) {
-        InviteCodeResponseDTO response = userService.getMyInviteCode(currentUser.getId());
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+        InviteCodeResponseDTO response = userService.getMyInviteCode(userId);
         return ApiResponse.onSuccess(response);
     }
 
     @Operation(summary = "초대코드 처리", description = "초대코드를 검증하고 친구 관계를 생성합니다")
     @PostMapping("/users/invite-code/process")
     public ApiResponse<InviteCodeProcessResponseDTO> processInviteCode(
-            @Valid @RequestBody InviteCodeProcessRequestDTO request,
-            @Parameter(hidden = true) @CurrentUser User currentUser) {
-        InviteCodeProcessResponseDTO response = userService.processInviteCode(request.getInviteCode(), currentUser.getId());
+            @Valid @RequestBody InviteCodeRequestDTO request,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+        InviteCodeProcessResponseDTO response = userService.processInviteCode(request.getInviteCode(), userId);
         return ApiResponse.onSuccess(response);
     }
 
     @Operation(summary = "초대코드 실시간 검증", description = "입력된 초대코드가 유효한지 실시간으로 검증합니다")
     @PostMapping("/users/invite-code/validate")
     public ApiResponse<ValidateInviteCodeResponseDTO> validateInviteCode(
-            @Valid @RequestBody ValidateInviteCodeRequestDTO request) {
+            @Valid @RequestBody InviteCodeRequestDTO request) {
         ValidateInviteCodeResponseDTO response = userService.validateInviteCode(request.getInviteCode());
         return ApiResponse.onSuccess(response);
     }
@@ -168,73 +140,29 @@ public class UserController {
     @Operation(summary = "이메일 인증 발송", description = "이메일 중복 확인 후 인증메일을 발송하고 토큰을 반환합니다")
     @PostMapping("/users/email/send")
     public ApiResponse<EmailSendResponseDTO> sendEmailVerification(@RequestBody @Valid EmailVerificationRequestDTO request) {
-        userService.checkEmail(request.getEmail());
-
-        String verificationToken = emailService.sendVerificationEmail(request.getEmail());
-
-        EmailSendResponseDTO response = userConverter.toEmailSendResponseDTO(request.getEmail(), verificationToken, "인증 메일이 발송되었습니다");
-
+        EmailSendResponseDTO response = userService.sendEmailVerification(request.getEmail());
         return ApiResponse.onSuccess(response);
     }
 
     @Operation(summary = "이메일 인증 재발송")
     @PostMapping("/users/email/resend")
-    public ApiResponse<EmailSendResponseDTO> resendVerificationEmail (@RequestBody @Valid EmailVerificationRequestDTO request) {
-
-        if (emailService.isEmailVerified(request.getEmail())) {
-            throw new UserException(ErrorStatus. EMAIL_ALREADY_VERIFIED);
-        }
-        // 인증메일 재발송
-        String verificationToken = emailService.resendVerificationEmail(request.getEmail());
-
-        EmailSendResponseDTO response = userConverter.toEmailSendResponseDTO(request.getEmail(), verificationToken, "인증 메일이 재발송되었습니다");
-
+    public ApiResponse<EmailSendResponseDTO> resendVerificationEmail(@RequestBody @Valid EmailVerificationRequestDTO request) {
+        EmailSendResponseDTO response = userService.resendEmailVerification(request.getEmail());
         return ApiResponse.onSuccess(response);
     }
 
     @Operation(summary = "이메일 인증 여부 확인", description = "토큰으로 이메일을 확인하고 인증 상태를 반환합니다")
     @GetMapping("/users/email/verification-status")
     public ApiResponse<EmailVerificationStatusResponseDTO> getEmailVerificationStatus(@RequestParam("token") String token) {
-        String email = emailService.validateToken(token);
-        boolean verified = emailService.isEmailVerified(email);
-
-        EmailVerificationStatusResponseDTO response = userConverter.toEmailVerificationStatusResponseDTO(email, verified);
-
+        EmailVerificationStatusResponseDTO response = userService.getEmailVerificationStatus(token);
         return ApiResponse.onSuccess(response);
     }
 
     @Operation(summary = "이메일 링크 클릭 처리", description = "이메일 링크 클릭 시 인증 처리 후 웹페이지 표시")
     @GetMapping("/users/email/verify-link")
     public ResponseEntity<String> handleEmailLink(@RequestParam String token) {
-        try {
-            String email = emailService.completeVerification(token);
-
-            String deepLinkUrl = "planup://profile/setup?email=" +
-                    URLEncoder.encode(email, StandardCharsets.UTF_8) +
-                    "&verified=true&token=" + token +
-                    "&from=email_verification";
-
-            String html = emailService.createSuccessHtml(email, deepLinkUrl);
-
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
-                    .body(html);
-
-        } catch (IllegalArgumentException e) {
-            log.error("이메일 인증 실패 - 토큰: {}, 오류: {}", token, e.getMessage());
-            String html = emailService.createFailureHtml();
-
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
-                    .body(html);
-        } catch (Exception e) {
-            log.error("이메일 인증 처리 중 예상치 못한 오류 - 토큰: {}, 오류: {}", token, e.getMessage());
-            String html = emailService.createFailureHtml();
-
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
-                    .body(html);
-        }
+        String html = userService.handleEmailVerificationLink(token);
+        return createHtmlResponse(html);
     }
 
     @Operation(summary = "비밀번호 변경 확인 이메일 발송", description = "비밀번호 변경을 위한 확인 메일을 발송하고 토큰을 반환합니다")
@@ -251,7 +179,7 @@ public class UserController {
     @Operation(summary = "비밀번호 변경 확인 이메일 재발송", description = "비밀번호 변경을 위한 확인 메일을 재발송합니다")
     @PostMapping("/users/password/change-email/resend")
     public ApiResponse<EmailSendResponseDTO> resendPasswordChangeEmail(
-            @RequestBody @Valid PasswordChangeEmailRequestDTO request) {  // ResendEmailRequestDTO → PasswordChangeEmailRequestDTO
+            @RequestBody @Valid PasswordChangeEmailRequestDTO request) {
         EmailSendResponseDTO response = userService.resendPasswordChangeEmail(
                 request.getEmail(), 
                 request.getIsLoggedIn()  // 로그인 상태 포함
@@ -262,101 +190,33 @@ public class UserController {
     @Operation(summary = "비밀번호 변경 요청 이메일 링크 클릭 처리", description = "비밀번호 변경 링크 클릭 시 확인 처리 후 웹페이지 표시")
     @GetMapping("/users/password/change-link")
     public ResponseEntity<String> handlePasswordChangeLink(@RequestParam String token) {
-        try {
-            String[] tokenInfo = emailService.validatePasswordChangeToken(token);
-            String email = tokenInfo[0]; 
-            Boolean isLoggedIn = Boolean.parseBoolean(tokenInfo[1]);
-            
-            // 비밀번호 변경 이메일 인증 완료 표시
-            emailService.markPasswordChangeEmailAsVerified(email);
-            
-             // 로그인 상태에 따른 딥링크 경로 분기
-            String deepLinkUrl;
-            if (isLoggedIn) {
-                // 로그인한 상태: 마이페이지로 이동
-                deepLinkUrl = "planup://mypage/password/change?email=" +
-                        java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) +
-                        "&verified=true&token=" + token +
-                        "&from=password_change&loggedIn=true";
-            } else {
-                // 로그인하지 않은 상태: 로그인 화면으로 이동
-                deepLinkUrl = "planup://login/password/change?email=" +
-                        java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) +
-                        "&verified=true&token=" + token +
-                        "&from=password_change&loggedIn=false";
-            }
-
-            String html = emailService.createSuccessHtml(email, deepLinkUrl);
-    
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
-                    .body(html);
-    
-        } catch (IllegalArgumentException e) {
-            String html = emailService.createFailureHtml();
-    
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
-                    .body(html);
-        }
+        String html = userService.handlePasswordChangeLink(token);
+        return createHtmlResponse(html);
     }
 
     @Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 처리하고 탈퇴 이유를 저장합니다")
     @PostMapping("/users/withdraw")
     public ApiResponse<WithdrawalResponseDTO> withdrawUser(
             @Valid @RequestBody WithdrawalRequestDTO request,
-            @Parameter(hidden = true) @CurrentUser User currentUser) {
-        WithdrawalResponseDTO response = userService.withdrawUser(currentUser.getId(), request);
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+        WithdrawalResponseDTO response = userService.withdrawUser(userId, request);
         return ApiResponse.onSuccess(response);
     }
-
 
     @Operation(summary = "이메일 변경 인증 메일 발송", description = "새 이메일로 인증 메일을 발송합니다")
     @PostMapping("/users/email/change/send")
     public ApiResponse<EmailSendResponseDTO> sendEmailChangeVerification(
-            @RequestBody @Valid EmailVerificationRequestDTO request,  // EmailChangeRequestDTO 대신
+            @RequestBody @Valid EmailVerificationRequestDTO request,
             @Parameter(hidden = true) @CurrentUser Long userId) {
-        
-        User currentUser = userService.getUserbyUserId(userId);
-        EmailSendResponseDTO response = userService.sendEmailChangeVerification(
-                currentUser.getEmail(), request.getEmail());  // .getNewEmail() 대신 .getEmail()
-        
+        EmailSendResponseDTO response = userService.sendEmailChangeVerification(userId, request.getEmail());
         return ApiResponse.onSuccess(response);
     }
 
     @Operation(summary = "이메일 변경 요청 이메일 링크 클릭 처리", description = "이메일 변경 링크 클릭 시 확인 처리 후 앱으로 리다이렉트")
     @GetMapping("/users/email/change-link")
     public ResponseEntity<String> handleEmailChangeLink(@RequestParam String token) {
-        try {
-            EmailVerifyLinkResponseDTO response = emailService.handleEmailChangeLink(token);
-            
-            if (response.isVerified()) {
-                // 실제 이메일 변경 실행
-                userService.completeEmailChange(token);
-                
-                // 성공 시 HTML 페이지 표시
-                String deepLinkUrl = "planup://email/change/complete?verified=true&token=" + token;
-                String html = emailService.createSuccessHtml(response.getEmail(), deepLinkUrl);
-                
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
-                        .body(html);
-            } else {
-                // 실패 시 에러 HTML 페이지 표시
-                String html = emailService.createFailureHtml();
-                
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
-                        .body(html);
-            }
-        } catch (Exception e) {
-            // 예외 발생 시 에러 HTML 페이지 표시
-            String html = emailService.createFailureHtml();
-            
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
-                    .body(html);
-        }
+        String html = userService.handleEmailChangeLink(token);
+        return createHtmlResponse(html);
     }
 
     @Operation(summary = "이메일 변경 인증 메일 재발송", description = "이메일 변경 인증 메일을 재발송합니다")
@@ -364,11 +224,7 @@ public class UserController {
     public ApiResponse<EmailSendResponseDTO> resendEmailChangeVerification(
             @RequestBody @Valid EmailVerificationRequestDTO request,
             @Parameter(hidden = true) @CurrentUser Long userId) {
-        
-        User currentUser = userService.getUserbyUserId(userId);
-        EmailSendResponseDTO response = userService.resendEmailChangeVerification(
-                currentUser.getEmail(), request.getEmail());
-        
+        EmailSendResponseDTO response = userService.resendEmailChangeVerification(userId, request.getEmail());
         return ApiResponse.onSuccess(response);
     }
 
@@ -413,9 +269,15 @@ public class UserController {
         return ApiResponse.onSuccess(result);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ApiResponse<EmailVerificationStatusResponseDTO> handleIllegalArgumentException(IllegalArgumentException e) {
-        EmailVerificationStatusResponseDTO response = userConverter.toEmailVerificationStatusResponseDTO(null, false);
-        return ApiResponse.onFailure(ErrorStatus.INVALID_EMAIL_TOKEN.getCode(), ErrorStatus.INVALID_EMAIL_TOKEN.getMessage(), response);
+    /**
+     * HTML 응답을 생성하는 공통 메서드
+     * 
+     * @param html HTML 문자열
+     * @return ResponseEntity with HTML content
+     */
+    private ResponseEntity<String> createHtmlResponse(String html) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")
+                .body(html);
     }
 }

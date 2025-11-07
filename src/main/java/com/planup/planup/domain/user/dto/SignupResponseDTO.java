@@ -20,6 +20,4 @@ public class SignupResponseDTO {
 
     @Schema(description = "JWT 액세스 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     private String accessToken;
-
-    private UserInfoResponseDTO userInfo;
 }

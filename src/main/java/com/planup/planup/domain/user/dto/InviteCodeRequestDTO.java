@@ -3,15 +3,19 @@ package com.planup.planup.domain.user.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmailVerifyTokenRequestDTO {
+@Schema(description = "초대코드 요청")
+public class InviteCodeRequestDTO {
 
-    @Schema(description = "인증 토큰", example = "a9ad8668-ca3f-459b-ae9b-e14f4f174e39")
-    @NotBlank(message = "토큰은 필수입니다")
-    private String token;
+    @Schema(description = "초대코드", example = "123456")
+    @NotBlank(message = "초대코드를 입력해주세요")
+    private String inviteCode;
 }
+

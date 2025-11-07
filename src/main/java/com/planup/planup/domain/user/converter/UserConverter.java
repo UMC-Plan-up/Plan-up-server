@@ -1,57 +1,36 @@
 package com.planup.planup.domain.user.converter;
 
-import com.planup.planup.domain.user.dto.EmailSendResponseDTO;
-import com.planup.planup.domain.user.dto.EmailVerificationStatusResponseDTO;
-import com.planup.planup.domain.user.dto.LoginResponseDTO;
-import com.planup.planup.domain.user.dto.SignupRequestDTO;
-import com.planup.planup.domain.user.dto.SignupResponseDTO;
-import com.planup.planup.domain.user.dto.TermsAgreementRequestDTO;
+import com.planup.planup.domain.friend.entity.Friend;
+import com.planup.planup.domain.friend.entity.FriendStatus;
+import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
+import com.planup.planup.domain.oauth.entity.OAuthAccount;
+import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.entity.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @Slf4j
 @Component
 public class UserConverter {
 
-    // SignupRequestDTO를 User 엔티티로 변환
-    public User toUserEntity(SignupRequestDTO request, String encodedPassword, Map<Long, Terms> termsMap) {
-        User user = User.builder()
-                    .email(request.getEmail())
-                    .password(encodedPassword)
-                    .nickname(request.getNickname())
-                    .role(Role.USER)
-                    .userActivate(UserActivate.ACTIVE)
-                    .userLevel(UserLevel.LEVEL_1)
-                    .alarmAllow(true)
-                    .profileImg(request.getProfileImg())
-                    .build();
-
-        // 약관 동의 정보도 함께 생성
-        for (TermsAgreementRequestDTO agreement : request.getAgreements()) {
-            Terms terms = termsMap.get(agreement.getTermsId());
-
-            UserTerms userTerms = UserTerms.builder()
-                    .user(user)
-                    .terms(terms)
-                    .isAgreed(agreement.isAgreed())
-                    .agreedAt(agreement.isAgreed() ? LocalDateTime.now() : null)
-                    .build();
-
-            user.getUserTermList().add(userTerms);
-        }
-
-        return user;
-    }
-
-    // User 엔티티를 SignupResponseDTO로 변환
-    public SignupResponseDTO toSignupResponseDTO(User user) {
+    // User 엔티티와 accessToken을 SignupResponseDTO로 변환
+    public SignupResponseDTO toSignupResponseDTO(User user, String accessToken) {
         return SignupResponseDTO.builder()
                 .id(user.getId())
                 .email(user.getEmail())
+                .accessToken(accessToken)
+                .build();
+    }
+
+    // User 엔티티를 UserInfoResponseDTO로 변환
+    public UserInfoResponseDTO toUserInfoResponseDTO(User user) {
+        return UserInfoResponseDTO.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .profileImg(user.getProfileImg())
                 .build();
     }
 
@@ -107,5 +86,142 @@ public class UserConverter {
                     .tokenStatus(TokenStatus.EXPIRED_OR_INVALID)
                     .build();
         }
+    }
+
+    // EmailDuplicateResponseDTO 생성
+    public EmailDuplicateResponseDTO toEmailDuplicateResponseDTO(boolean isAvailable, String message) {
+        return EmailDuplicateResponseDTO.builder()
+                .available(isAvailable)
+                .message(message)
+                .build();
+    }
+
+    // KakaoAccountResponseDTO 생성
+    public KakaoAccountResponseDTO toKakaoAccountResponseDTO(boolean isLinked, String kakaoEmail) {
+        return KakaoAccountResponseDTO.builder()
+                .isLinked(isLinked)
+                .kakaoEmail(kakaoEmail)
+                .build();
+    }
+
+    // ImageUploadResponseDTO 생성
+    public ImageUploadResponseDTO toImageUploadResponseDTO(String imageUrl) {
+        return ImageUploadResponseDTO.builder()
+                .imageUrl(imageUrl)
+                .build();
+    }
+
+    // InviteCodeProcessResponseDTO 생성
+    public InviteCodeProcessResponseDTO toInviteCodeProcessResponseDTO(boolean success, String friendNickname, String message) {
+        return InviteCodeProcessResponseDTO.builder()
+                .success(success)
+                .friendNickname(friendNickname)
+                .message(message)
+                .build();
+    }
+
+    // ValidateInviteCodeResponseDTO 생성
+    public ValidateInviteCodeResponseDTO toValidateInviteCodeResponseDTO(boolean valid, String message, String targetUserNickname) {
+        return ValidateInviteCodeResponseDTO.builder()
+                .valid(valid)
+                .message(message)
+                .targetUserNickname(targetUserNickname)
+                .build();
+    }
+
+    // WithdrawalResponseDTO 생성
+    public WithdrawalResponseDTO toWithdrawalResponseDTO(boolean success, String message, String withdrawalDate) {
+        return WithdrawalResponseDTO.builder()
+                .success(success)
+                .message(message)
+                .withdrawalDate(withdrawalDate)
+                .build();
+    }
+
+    // KakaoLinkResponseDTO 생성
+    public KakaoLinkResponseDTO toKakaoLinkResponseDTO(boolean success, String message, String kakaoEmail, UserInfoResponseDTO userInfo) {
+        return KakaoLinkResponseDTO.builder()
+                .success(success)
+                .message(message)
+                .kakaoEmail(kakaoEmail)
+                .userInfo(userInfo)
+                .build();
+    }
+
+    // KakaoAuthResponseDTO 생성 (기존 사용자)
+    public KakaoAuthResponseDTO toKakaoAuthResponseDTO(boolean isNewUser, String accessToken, UserInfoResponseDTO userInfo) {
+        return KakaoAuthResponseDTO.builder()
+                .isNewUser(isNewUser)
+                .accessToken(accessToken)
+                .userInfo(userInfo)
+                .build();
+    }
+
+    // KakaoAuthResponseDTO 생성 (신규 사용자)
+    public KakaoAuthResponseDTO toKakaoAuthResponseDTO(boolean isNewUser, String tempUserId) {
+        return KakaoAuthResponseDTO.builder()
+                .isNewUser(isNewUser)
+                .tempUserId(tempUserId)
+                .build();
+    }
+
+    // SignupRequestDTO를 User 엔티티로 변환 (프로필 이미지 URL 포함)
+    public User toUserEntity(SignupRequestDTO request, String encodedPassword, String profileImgUrl) {
+        return User.builder()
+                .email(request.getEmail())
+                .password(encodedPassword)
+                .nickname(request.getNickname())
+                .role(Role.USER)
+                .userActivate(UserActivate.ACTIVE)
+                .userLevel(UserLevel.LEVEL_1)
+                .alarmAllow(true)
+                .profileImg(profileImgUrl)
+                .emailVerified(true)
+                .emailVerifiedAt(LocalDateTime.now())
+                .build();
+    }
+
+    // KakaoSignupCompleteRequestDTO와 KakaoUserInfo를 User 엔티티로 변환
+    public User toUserEntityFromKakao(KakaoUserInfo kakaoUserInfo, KakaoSignupCompleteRequestDTO request, String profileImgUrl) {
+        return User.builder()
+                .email(kakaoUserInfo.getEmail())
+                .password(null) // 카카오는 비밀번호 없음
+                .nickname(request.getNickname())
+                .role(Role.USER)
+                .userActivate(UserActivate.ACTIVE)
+                .userLevel(UserLevel.LEVEL_1)
+                .alarmAllow(true)
+                .profileImg(profileImgUrl)
+                .emailVerified(true)
+                .emailVerifiedAt(LocalDateTime.now())
+                .build();
+    }
+
+    // OAuthAccount 엔티티 생성
+    public OAuthAccount toOAuthAccountEntity(User user, String email, AuthProvideerEnum provider) {
+        return OAuthAccount.builder()
+                .provider(provider)
+                .email(email)
+                .user(user)
+                .build();
+    }
+
+    // Friend 엔티티 생성
+    public Friend toFriendEntity(User user, User friend, FriendStatus status) {
+        return Friend.builder()
+                .user(user)
+                .friend(friend)
+                .status(status)
+                .build();
+    }
+
+    // UserWithdrawal 엔티티 생성
+    public UserWithdrawal toUserWithdrawalEntity(User user, String reason) {
+        return UserWithdrawal.builder()
+                .user(user)
+                .reason(reason)
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .build();
     }
 }

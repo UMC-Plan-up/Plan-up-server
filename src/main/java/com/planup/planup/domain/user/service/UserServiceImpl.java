@@ -7,6 +7,7 @@ import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.global.service.ImageUploadService;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
+import com.planup.planup.domain.user.converter.UserConverter;
 import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.entity.*;
 import com.planup.planup.domain.user.repository.InvitedUserRepository;
@@ -41,7 +42,6 @@ import java.util.UUID;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-
 @Transactional(readOnly = true)
 @Builder
 public class UserServiceImpl implements UserService {
@@ -59,30 +59,32 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final UserWithdrawalRepository userWithdrawalRepository;
     private final KakaoApiService kakaoApiService;
+    private final UserConverter userConverter;
 
     @Qualifier("objectRedisTemplate")
     private final RedisTemplate<String, Object> redisTemplate;
 
     // Redis 키 prefix
     private static final String TEMP_USER_PREFIX = "temp_kakao_user:";
+    private static final String TEMP_PROFILE_PREFIX = "temp_profile:";
     private static final int TEMP_USER_EXPIRE_MINUTES = 60; // 60분 후 만료
 
+    // 사용자 ID로 사용자 조회
     @Override
-    @Transactional(readOnly = true)
     public User getUserbyUserId(Long userId) {
         Optional<User> userOptional = userRepository.findById(userId);
         return userOptional.orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
     }
 
+    // 사용자 닉네임 조회
     @Override
-    @Transactional(readOnly = true)
     public String getNickname(Long userId) {
         User user = getUserbyUserId(userId);
         return user.getNickname();
     }
 
+    // 사용자 닉네임 변경
     @Override
-    @Transactional
     public String updateNickname(Long userId, String nickname) {
         User user = getUserbyUserId(userId);
 
@@ -99,21 +101,22 @@ public class UserServiceImpl implements UserService {
         return user.getNickname();
     }
 
+    // 혜택 및 마케팅 알림 동의 상태 변경
     @Override
-    @Transactional
     public boolean updateNotificationAgree(Long userId) {
         User user = getUserbyUserId(userId);
         user.switchAlarmAllow();
         return user.getAlarmAllow();
     }
 
+    // 비밀번호 변경 이메일 인증 완료 여부 확인
     @Override
     public Boolean isPasswordChangeEmailVerified(String email) {
         return emailService.isPasswordChangeEmailVerified(email);
     }
 
+    // 토큰 기반 비밀번호 변경
     @Override
-    @Transactional
     public void changePasswordWithToken(String token, String newPassword) {
         // 토큰으로 이메일 검증
         String[] tokenInfo = emailService.validatePasswordChangeToken(token);
@@ -134,21 +137,31 @@ public class UserServiceImpl implements UserService {
         emailService.clearPasswordChangeToken(email);
     }
 
+    // 사용자 정보 조회
     @Override
-    @Transactional(readOnly = true)
     public UserInfoResponseDTO getUserInfo(Long userId) {
         User user = getUserbyUserId(userId);
-        return UserInfoResponseDTO.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .profileImg(user.getProfileImg())
-                .build();
+        return userConverter.toUserInfoResponseDTO(user);
     }
 
+    // 회원가입
     @Override
-    @Transactional
     public SignupResponseDTO signup(SignupRequestDTO request) {
+        // 회원가입 요청 검증
+        validateSignupRequest(request);
+
+        // User 엔티티 생성 및 저장
+        User savedUser = createUserFromSignupRequest(request);
+
+        // 약관 동의 추가
+        addTermsAgreements(savedUser, request.getAgreements());
+
+        // 회원가입 완료 처리 (토큰 생성, 정리)
+        return completeSignup(savedUser, request.getEmail());
+    }
+
+    // 회원가입 요청 검증
+    private void validateSignupRequest(SignupRequestDTO request) {
         // 이메일 중복 체크
         checkEmail(request.getEmail());
 
@@ -164,62 +177,39 @@ public class UserServiceImpl implements UserService {
         if (!emailService.isEmailVerified(request.getEmail())) {
             throw new UserException(ErrorStatus.EMAIL_VERIFICATION_REQUIRED);
         }
+    }
 
+    // 회원가입 요청으로부터 User 엔티티 생성
+    private User createUserFromSignupRequest(SignupRequestDTO request) {
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         
-        // 임시 저장된 프로필 이미지 URL 가져오기
-        Object tempImageUrlObj = redisTemplate.opsForValue().get("temp_profile:" + request.getEmail());
-        String tempImageUrl = (tempImageUrlObj != null) ? (String) tempImageUrlObj : null;
-        
-        // 요청에서 받은 프로필 이미지 처리 (빈 문자열은 null로 변환)
-        String requestProfileImg = request.getProfileImg();
-        if (requestProfileImg != null && requestProfileImg.trim().isEmpty()) {
-            requestProfileImg = null;
-        }
-        
-        // 우선순위: Redis 임시 이미지 > 요청 이미지
-        String profileImgUrl = (tempImageUrl != null) ? tempImageUrl : requestProfileImg;
+        // 프로필 이미지 URL 결정 (Redis 임시 이미지 우선)
+        String profileImgUrl = resolveProfileImageUrl(request.getEmail(), request.getProfileImg());
 
-        // User 엔티티 생성
-        User user = User.builder()
-                .email(request.getEmail())
-                .password(encodedPassword)
-                .nickname(request.getNickname())
-                .role(Role.USER)
-                .userActivate(UserActivate.ACTIVE)
-                .userLevel(UserLevel.LEVEL_1)
-                .alarmAllow(true)
-                .profileImg(profileImgUrl)
-                .emailVerified(true)
-                .emailVerifiedAt(LocalDateTime.now())
-                .build();
+        // User 엔티티 생성 (converter 사용)
+        User user = userConverter.toUserEntity(request, encodedPassword, profileImgUrl);
 
-        User savedUser = userRepository.save(user);
-
-        // 약관 동의 추가
-        addTermsAgreements(savedUser, request.getAgreements());
-
-        // JWT 토큰 생성
-        String accessToken = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole().toString(), savedUser.getId());
-
-        // 인증 토큰 정리
-        emailService.clearVerificationToken(request.getEmail());
-        
-        // 임시 프로필 이미지 URL 삭제
-        if (tempImageUrl != null) {
-            redisTemplate.delete("temp_profile:" + request.getEmail());
-        }
-
-        return SignupResponseDTO.builder()
-                .id(savedUser.getId())
-                .email(savedUser.getEmail())
-                .accessToken(accessToken)
-                .build();
+        return userRepository.save(user);
     }
 
+    // 회원가입 완료 처리
+    private SignupResponseDTO completeSignup(User user, String email) {
+        // JWT 토큰 생성
+        String accessToken = generateAccessToken(user);
+
+        // 인증 토큰 정리
+        emailService.clearVerificationToken(email);
+        
+        // 임시 프로필 이미지 URL 삭제
+        clearTempProfileImage(email);
+
+        // 응답 DTO 생성 (converter 사용)
+        return userConverter.toSignupResponseDTO(user, accessToken);
+    }
+
+    // 이메일 변경
     @Override
-    @Transactional
     public String updateEmail(Long userId, String newEmail) {
         User user = getUserbyUserId(userId);
 
@@ -237,48 +227,26 @@ public class UserServiceImpl implements UserService {
         return user.getEmail();
     }
 
+    // 로그인
     @Override
-    @Transactional
     public LoginResponseDTO login(LoginRequestDTO request) {
-        try {
-            //  이메일로 사용자 조회
-            User user = userRepository.findByEmailAndUserActivate(request.getEmail(), UserActivate.ACTIVE)
-                    .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
+        // 이메일로 사용자 조회
+        User user = userRepository.findByEmailAndUserActivate(request.getEmail(), UserActivate.ACTIVE)
+                .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
 
-            // 비밀번호 검증
-            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-                throw new UserException(ErrorStatus.INVALID_CREDENTIALS);
-            }
-
-            // JWT 토큰 생성
-            String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
-
-            // 응답 DTO 생성
-            return LoginResponseDTO.builder()
-                    .accessToken(accessToken)
-                    .nickname(user.getNickname())
-                    .profileImgUrl(user.getProfileImg())
-                    .message("로그인에 성공했습니다")
-                    .build();
-        }  catch (UserException e) {
-
-            String errorMessage;
-            if (e.getErrorStatus() == ErrorStatus.NOT_FOUND_USER) {
-                errorMessage = "존재하지 않는 사용자입니다";
-            } else if (e.getErrorStatus() == ErrorStatus.INVALID_CREDENTIALS) {
-                errorMessage = "비밀번호가 일치하지 않습니다";
-            } else if (e.getErrorStatus() == ErrorStatus.USER_INACTIVE) {
-                errorMessage = "비활성화된 계정입니다";
-            } else {
-                errorMessage = "로그인에 실패했습니다";
-            }
-
-            return LoginResponseDTO.builder()
-                    .message(errorMessage)
-                    .build();
+        // 비밀번호 검증
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new UserException(ErrorStatus.INVALID_CREDENTIALS);
         }
+
+        // JWT 토큰 생성
+        String accessToken = generateAccessToken(user);
+
+        // 응답 DTO 생성 (converter 사용)
+        return userConverter.toLoginResponseDTO(user, accessToken);
     }
 
+    // 필수 약관 동의 검증
     private void validateRequiredTerms(List<TermsAgreementRequestDTO> agreements) {
 
         // 필수 약관 목록 조회
@@ -298,6 +266,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    // 약관 동의 추가
     private void addTermsAgreements(User user, List<TermsAgreementRequestDTO> agreements) {
 
         for (TermsAgreementRequestDTO agreement : agreements) {
@@ -305,19 +274,15 @@ public class UserServiceImpl implements UserService {
             Terms terms = termsRepository.findById(agreement.getTermsId())
                     .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_TERMS));
 
-            UserTerms userTerms = UserTerms.builder()
-                    .user(user)
-                    .terms(terms)
-                    .isAgreed(agreement.isAgreed())
-                    .agreedAt(agreement.isAgreed() ? LocalDateTime.now() : null)
-                    .build();
+            // UserTerms 엔티티 생성 (converter 사용)
+            UserTerms userTerms = userConverter.toUserTermsEntity(user, terms, agreement);
 
             userTermsRepository.save(userTerms);
         }
     }
       
+    // 카카오 계정 연동 상태 조회
     @Override
-    @Transactional(readOnly = true)
     public KakaoAccountResponseDTO getKakaoAccountStatus(Long userId) {
         User user = getUserbyUserId(userId);
         
@@ -327,162 +292,100 @@ public class UserServiceImpl implements UserService {
         boolean isLinked = oauthAccount.isPresent();
         String kakaoEmail = oauthAccount.map(account -> account.getEmail()).orElse(null);
         
-        return KakaoAccountResponseDTO.builder()
-                .isLinked(isLinked)
-                .kakaoEmail(kakaoEmail)
-                .build();
+        return userConverter.toKakaoAccountResponseDTO(isLinked, kakaoEmail);
     }
 
+    // 프로필 이미지 업로드
     @Override
-    @Transactional
     public ImageUploadResponseDTO uploadProfileImage(MultipartFile file, String email) {
         // 이미지 업로드
         String imageUrl = imageUploadService.uploadImage(file, "profile");
         
         // Redis에 임시 저장 (1시간 TTL)
-        String redisKey = "temp_profile:" + email;
+        String redisKey = TEMP_PROFILE_PREFIX + email;
         redisTemplate.opsForValue().set(redisKey, imageUrl, Duration.ofHours(1));
         
-        return ImageUploadResponseDTO.builder()
-                .imageUrl(imageUrl)
-                .build();
+        return userConverter.toImageUploadResponseDTO(imageUrl);
     }
 
-    // 내 초대코드 조회 메서드
+    // 내 초대코드 조회
     @Override
     public InviteCodeResponseDTO getMyInviteCode(Long userId) {
         return inviteCodeService.getMyInviteCode(userId);
     }
 
+    // 초대코드 처리 및 친구 관계 생성
     @Override
-    @Transactional
     public InviteCodeProcessResponseDTO processInviteCode(String inviteCode, Long userId) {
         // 빈 코드 체크
         if (inviteCode == null || inviteCode.trim().isEmpty()) {
-            return InviteCodeProcessResponseDTO.builder()
-                    .success(false)
-                    .message("초대코드를 입력해주세요.")
-                    .build();
+            throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
         }
 
-        try {
-            // InviteCodeService를 통해 초대자 찾기
-            Long inviterId = inviteCodeService.findInviterByCode(inviteCode);
+        // InviteCodeService를 통해 초대자 찾기
+        Long inviterId = inviteCodeService.findInviterByCode(inviteCode);
 
-            if (inviterId == null) {
-                return InviteCodeProcessResponseDTO.builder()
-                        .success(false)
-                        .message("유효하지 않은 초대코드입니다.")
-                        .build();
-            }
-
-            // 본인 코드인지 확인
-            if (inviterId.equals(userId)) {
-                return InviteCodeProcessResponseDTO.builder()
-                        .success(false)
-                        .message("자신의 초대코드는 사용할 수 없습니다.")
-                        .build();
-            }
-
-            // 이미 친구인지 확인
-            User currentUser = getUserbyUserId(userId);
-            User inviterUser = getUserbyUserId(inviterId);
-            
-            boolean alreadyFriend = friendRepository.findByUserAndFriend_NicknameAndStatus(
-                    currentUser, inviterUser.getNickname(), FriendStatus.ACCEPTED).isPresent() ||
-                    friendRepository.findByUserAndFriend_NicknameAndStatus(
-                            inviterUser, currentUser.getNickname(), FriendStatus.ACCEPTED).isPresent();
-
-            if (alreadyFriend) {
-                return InviteCodeProcessResponseDTO.builder()
-                        .success(false)
-                        .message("이미 친구인 사용자입니다.")
-                        .build();
-            }
-
-            // 친구 관계 생성 (양방향)
-            Friend friendship1 = Friend.builder()
-                    .user(currentUser)
-                    .friend(inviterUser)
-                    .status(FriendStatus.ACCEPTED)
-                    .build();
-
-            Friend friendship2 = Friend.builder()
-                    .user(inviterUser)
-                    .friend(currentUser)
-                    .status(FriendStatus.ACCEPTED)
-                    .build();
-
-            friendRepository.save(friendship1);
-            friendRepository.save(friendship2);
-
-            return InviteCodeProcessResponseDTO.builder()
-                    .success(true)
-                    .friendNickname(inviterUser.getNickname())
-                    .message("친구 관계가 성공적으로 생성되었습니다.")
-                    .build();
-
-        } catch (Exception e) {
-            return InviteCodeProcessResponseDTO.builder()
-                    .success(false)
-                    .message("초대코드 처리 중 오류가 발생했습니다.")
-                    .build();
+        if (inviterId == null) {
+            throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
         }
+
+        // 본인 코드인지 확인
+        if (inviterId.equals(userId)) {
+            throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
+        }
+
+        // 이미 친구인지 확인
+        User currentUser = getUserbyUserId(userId);
+        User inviterUser = getUserbyUserId(inviterId);
+        
+        boolean alreadyFriend = friendRepository.findByUserAndFriend_NicknameAndStatus(
+                currentUser, inviterUser.getNickname(), FriendStatus.ACCEPTED).isPresent() ||
+                friendRepository.findByUserAndFriend_NicknameAndStatus(
+                        inviterUser, currentUser.getNickname(), FriendStatus.ACCEPTED).isPresent();
+
+        if (alreadyFriend) {
+            throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
+        }
+
+        // 친구 관계 생성 (양방향) - converter 사용
+        Friend friendship1 = userConverter.toFriendEntity(currentUser, inviterUser, FriendStatus.ACCEPTED);
+        Friend friendship2 = userConverter.toFriendEntity(inviterUser, currentUser, FriendStatus.ACCEPTED);
+
+        friendRepository.save(friendship1);
+        friendRepository.save(friendship2);
+
+        return userConverter.toInviteCodeProcessResponseDTO(true, inviterUser.getNickname(), "친구 관계가 성공적으로 생성되었습니다.");
     }
 
+    // 초대코드 유효성 검증
     @Override
-    @Transactional(readOnly = true)
     public ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode) {
         // 빈 코드 체크
         if (inviteCode == null || inviteCode.trim().isEmpty()) {
-            return ValidateInviteCodeResponseDTO.builder()
-                    .valid(false)
-                    .message("초대코드를 입력해주세요.")
-                    .build();
+            throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
         }
 
-        try {
-            // InviteCodeService를 통해 초대자 찾기
-            Long inviterId = inviteCodeService.findInviterByCode(inviteCode);
+        // InviteCodeService를 통해 초대자 찾기
+        Long inviterId = inviteCodeService.findInviterByCode(inviteCode);
 
-            if (inviterId == null) {
-                return ValidateInviteCodeResponseDTO.builder()
-                        .valid(false)
-                        .message("유효하지 않은 초대코드입니다.")
-                        .build();
-            }
-
-            // 기본적인 유효성 검증 (초대코드 존재 여부, 초대자 정보)
-            User inviterUser = getUserbyUserId(inviterId);
-
-            return ValidateInviteCodeResponseDTO.builder()
-                    .valid(true)
-                    .message("유효한 초대코드입니다.")
-                    .targetUserNickname(inviterUser.getNickname())
-                    .build();
-
-        } catch (Exception e) {
-            return ValidateInviteCodeResponseDTO.builder()
-                    .valid(false)
-                    .message("초대코드 검증 중 오류가 발생했습니다.")
-                    .build();
+        if (inviterId == null) {
+            throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
         }
+
+        // 기본적인 유효성 검증 (초대코드 존재 여부, 초대자 정보)
+        User inviterUser = getUserbyUserId(inviterId);
+
+        return userConverter.toValidateInviteCodeResponseDTO(true, "유효한 초대코드입니다.", inviterUser.getNickname());
     }
 
+    // 회원 탈퇴
     @Override
-    @Transactional
     public WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request) {
         // 사용자 조회
         User user = getUserbyUserId(userId);
 
-        // 탈퇴 정보 저장
-        UserWithdrawal withdrawal = UserWithdrawal.builder()
-                .user(user)
-                .reason(request.getReason())
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .build();
-
+        // 탈퇴 정보 저장 (converter 사용)
+        UserWithdrawal withdrawal = userConverter.toUserWithdrawalEntity(user, request.getReason());
         userWithdrawalRepository.save(withdrawal);
 
         // 사용자 상태를 비활성화로 변경
@@ -494,16 +397,10 @@ public class UserServiceImpl implements UserService {
 
         log.info("사용자 {} 회원 탈퇴 완료. 이유: {}", user.getNickname(), request.getReason());
 
-        return WithdrawalResponseDTO.builder()
-                .success(true)
-                .message("회원 탈퇴가 완료되었습니다.")
-                .withdrawalDate(LocalDateTime.now().toString())
-                .build();
+        return userConverter.toWithdrawalResponseDTO(true, "회원 탈퇴가 완료되었습니다.", LocalDateTime.now().toString());
     }
 
-    /**
-     * 사용자 관련 데이터 정리
-     */
+    // 사용자 관련 데이터 정리
     private void cleanupUserData(User user) {
         try {
             // 친구 관계 삭제
@@ -523,24 +420,16 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    /**
-     * 회원가입 시 이메일 중복 체크
-     * - 이미 존재하는 활성 사용자면 예외 발생
-     */
+    // 회원가입 시 이메일 중복 체크
     @Override
-    @Transactional(readOnly = true)
-    public void checkEmail(String email){
+    public void checkEmail(String email) {
         if (userRepository.existsByEmailAndUserActivate(email, UserActivate.ACTIVE)) {
             throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
         }
     }
 
-    /**
-     * 비밀번호 변경 시 이메일 존재 여부 체크
-     * - 존재하지 않거나 비활성 사용자면 예외 발생
-     */
+    // 비밀번호 변경 시 이메일 존재 여부 체크
     @Override
-    @Transactional(readOnly = true)
     public void checkEmailExists(String email) {
         Optional<User> user = userRepository.findByEmailAndUserActivate(email, UserActivate.ACTIVE);
         if (user.isEmpty()) {
@@ -548,23 +437,14 @@ public class UserServiceImpl implements UserService {
         }
     }
     
+    // 이메일 사용 가능 여부 확인 - 이미 존재하는 활성 사용자가 있으면 false, 없으면 true
     @Override
-    @Transactional(readOnly = true)
     public boolean isEmailAvailable(String email) {
-        try {
-            checkEmail(email);
-            return true;
-        } catch (UserException e) {
-            return false;
-        }
+        return !userRepository.existsByEmailAndUserActivate(email, UserActivate.ACTIVE);
     }
 
-    /**
-     * 비밀번호 변경 이메일 발송
-     * - 이메일 존재 여부 확인 후 인증 메일 발송
-     */
+    // 비밀번호 변경 이메일 발송
     @Override
-    @Transactional
     public EmailSendResponseDTO sendPasswordChangeEmail(String email, Boolean isLoggedIn) {
         // 이메일이 등록된 사용자인지 확인
         checkEmailExists(email);
@@ -573,19 +453,11 @@ public class UserServiceImpl implements UserService {
         String changeToken = emailService.sendPasswordChangeEmail(email, isLoggedIn);
 
         // 응답 DTO 생성
-        return EmailSendResponseDTO.builder()
-                .email(email)
-                .message("비밀번호 변경 확인 메일이 발송되었습니다")
-                .verificationToken(changeToken)
-                .build();
+        return createEmailSendResponse(email, changeToken, "비밀번호 변경 확인 메일이 발송되었습니다");
     }
 
-    /**
-     * 비밀번호 변경 이메일 재발송
-     * - 이메일 존재 여부 확인 후 인증 메일 재발송
-     */
+    // 비밀번호 변경 이메일 재발송
     @Override
-    @Transactional
     public EmailSendResponseDTO resendPasswordChangeEmail(String email, Boolean isLoggedIn) {
         // 이메일이 등록된 사용자인지 확인
         checkEmailExists(email);
@@ -593,13 +465,10 @@ public class UserServiceImpl implements UserService {
         // 비밀번호 변경 이메일 재발송 (로그인 상태 포함)
         String changeToken = emailService.resendPasswordChangeEmail(email, isLoggedIn);
     
-        return EmailSendResponseDTO.builder()
-                .email(email)
-                .message("비밀번호 변경 확인 메일이 재발송되었습니다")
-                .verificationToken(changeToken)
-                .build();
+        return createEmailSendResponse(email, changeToken, "비밀번호 변경 확인 메일이 재발송되었습니다");
     }
 
+    // 카카오 소셜 인증
     @Override
     public KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request) {
         KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());
@@ -607,8 +476,8 @@ public class UserServiceImpl implements UserService {
         return handleKakaoAuth(kakaoUserInfo, email);
     }
 
+    // 카카오 계정 연동
     @Override
-    @Transactional
     public KakaoLinkResponseDTO linkKakaoAccount(Long userId, KakaoLinkRequestDTO request) {
         KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());
         String email = kakaoUserInfo.getEmail();
@@ -631,24 +500,15 @@ public class UserServiceImpl implements UserService {
             throw new UserException(ErrorStatus.KAKAO_ACCOUNT_ALREADY_USED);
         }
         
-        // OAuth 계정 생성 및 연결
-        OAuthAccount oAuthAccount = OAuthAccount.builder()
-                .provider(AuthProvideerEnum.KAKAO)
-                .email(email)
-                .user(user)
-                .build();
-        
+        // OAuth 계정 생성 및 연결 (converter 사용)
+        OAuthAccount oAuthAccount = userConverter.toOAuthAccountEntity(user, email, AuthProvideerEnum.KAKAO);
         oAuthAccountRepository.save(oAuthAccount);
         
-        // 연동 성공 응답
-        return KakaoLinkResponseDTO.builder()
-                .success(true)
-                .message("카카오 계정 연동이 완료되었습니다")
-                .kakaoEmail(email)
-                .userInfo(UserInfoResponseDTO.from(user))
-                .build();
+        // 연동 성공 응답 (converter 사용)
+        return userConverter.toKakaoLinkResponseDTO(true, "카카오 계정 연동이 완료되었습니다", email, userConverter.toUserInfoResponseDTO(user));
     }
-    // 기존 카카오 로그인/회원가입 처리
+
+    // 카카오 로그인/회원가입 처리
     private KakaoAuthResponseDTO handleKakaoAuth(KakaoUserInfo kakaoUserInfo, String email) {
         // 기존 사용자 확인
         Optional<OAuthAccount> existingOAuth = oAuthAccountRepository
@@ -662,14 +522,10 @@ public class UserServiceImpl implements UserService {
                 throw new UserException(ErrorStatus.USER_INACTIVE);
             }
 
-            String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+            String accessToken = generateAccessToken(user);
 
-            KakaoAuthResponseDTO response = KakaoAuthResponseDTO.builder()
-            .isNewUser(false)
-            .accessToken(accessToken)
-            .userInfo(UserInfoResponseDTO.from(user))
-            .build();
-        return response;
+            // 응답 DTO 생성 (converter 사용)
+            return userConverter.toKakaoAuthResponseDTO(false, accessToken, userConverter.toUserInfoResponseDTO(user));
         } else {
             // 신규 사용자 - Redis에 카카오 정보만 저장
             String tempUserId = UUID.randomUUID().toString();
@@ -677,40 +533,48 @@ public class UserServiceImpl implements UserService {
 
             redisTemplate.opsForValue().set(redisKey, kakaoUserInfo, Duration.ofMinutes(TEMP_USER_EXPIRE_MINUTES));
 
-            KakaoAuthResponseDTO response = KakaoAuthResponseDTO.builder()
-                    .isNewUser(true)
-                    .tempUserId(tempUserId)
-                    .build();
-            return response;
+            // 응답 DTO 생성 (converter 사용)
+            return userConverter.toKakaoAuthResponseDTO(true, tempUserId);
         }
     }
 
+    // 카카오 회원가입 완료
     @Override
-    @Transactional
     public SignupResponseDTO kakaoSignupComplete(KakaoSignupCompleteRequestDTO request) {
-        // Redis에서 카카오 정보 조회
-        String redisKey = TEMP_USER_PREFIX + request.getTempUserId();
+        // Redis에서 카카오 정보 조회 및 검증
+        KakaoUserInfo kakaoUserInfo = getKakaoUserInfoFromRedis(request.getTempUserId());
+
+        // 기본 사용자 생성
+        User user = createBasicKakaoUser(kakaoUserInfo, request);
+
+        // 프로필 이미지 및 닉네임 처리
+        processKakaoUserProfile(user, kakaoUserInfo.getEmail(), request);
+
+        // 약관 동의 처리
+        if (request.getAgreements() != null) {
+            addTermsAgreements(user, request.getAgreements());
+        }
+
+        // 회원가입 완료 처리 (Redis 정리, 토큰 생성)
+        return completeKakaoSignup(user, request.getTempUserId(), kakaoUserInfo.getEmail());
+    }
+
+    // Redis에서 카카오 사용자 정보 조회 및 검증
+    private KakaoUserInfo getKakaoUserInfoFromRedis(String tempUserId) {
+        String redisKey = TEMP_USER_PREFIX + tempUserId;
         KakaoUserInfo kakaoUserInfo = (KakaoUserInfo) redisTemplate.opsForValue().get(redisKey);
 
         if (kakaoUserInfo == null) {
             throw new UserException(ErrorStatus.NOT_FOUND_USER);
         }
 
-        // 기본 사용자 생성
-        User user = createBasicKakaoUser(kakaoUserInfo, request);
+        return kakaoUserInfo;
+    }
 
-        // 임시 저장된 프로필 이미지 URL 가져오기
-        Object tempImageUrlObj = redisTemplate.opsForValue().get("temp_profile:" + kakaoUserInfo.getEmail());
-        String tempImageUrl = (tempImageUrlObj != null) ? (String) tempImageUrlObj : null;
-        
-        // 요청에서 받은 프로필 이미지 처리 (빈 문자열은 null로 변환)
-        String requestProfileImg = request.getProfileImg();
-        if (requestProfileImg != null && requestProfileImg.trim().isEmpty()) {
-            requestProfileImg = null;
-        }
-        
-        // 프로필 이미지 처리 (임시 저장된 이미지 우선, 없으면 요청에서 받은 이미지 사용)
-        String profileImgUrl = (tempImageUrl != null) ? tempImageUrl : requestProfileImg;
+    // 카카오 사용자 프로필 이미지 및 닉네임 처리
+    private void processKakaoUserProfile(User user, String email, KakaoSignupCompleteRequestDTO request) {
+        // 프로필 이미지 URL 결정 및 적용 (Redis 임시 이미지 우선)
+        String profileImgUrl = resolveProfileImageUrl(email, request.getProfileImg());
         if (profileImgUrl != null) {
             processProfileImage(user, profileImgUrl);
         }
@@ -719,30 +583,22 @@ public class UserServiceImpl implements UserService {
         if (request.getNickname() != null) {
             processNickname(user, request.getNickname());
         }
+    }
 
-        // 초대코드 처리는 별도 API로 분리 (카카오 회원가입에서는 제거)
-
-        // 약관 동의 처리
-        if (request.getAgreements() != null) {
-            addTermsAgreements(user, request.getAgreements());
-        }
-
+    // 카카오 회원가입 완료 처리
+    private SignupResponseDTO completeKakaoSignup(User user, String tempUserId, String email) {
         // Redis 데이터 삭제
+        String redisKey = TEMP_USER_PREFIX + tempUserId;
         redisTemplate.delete(redisKey);
         
         // 임시 프로필 이미지 URL 삭제
-        if (tempImageUrl != null) {
-            redisTemplate.delete("temp_profile:" + kakaoUserInfo.getEmail());
-        }
+        clearTempProfileImage(email);
 
         // JWT 토큰 생성 및 응답
-        String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+        String accessToken = generateAccessToken(user);
 
-        return SignupResponseDTO.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .accessToken(accessToken)
-                .build();
+        // 응답 DTO 생성 (converter 사용)
+        return userConverter.toSignupResponseDTO(user, accessToken);
     }
 
     // 카카오 기본 사용자 생성
@@ -752,28 +608,15 @@ public class UserServiceImpl implements UserService {
             validateRequiredTerms(request.getAgreements());
         }
 
-        // User 생성
-        User user = User.builder()
-                .email(kakaoUserInfo.getEmail())
-                .password(null) // 카카오는 비밀번호 없음
-                .nickname(request.getNickname())
-                .role(Role.USER)
-                .userActivate(UserActivate.ACTIVE)
-                .userLevel(UserLevel.LEVEL_1)
-                .alarmAllow(true)
-                .profileImg(request.getProfileImg())
-                .emailVerified(true)
-                .emailVerifiedAt(LocalDateTime.now())
-                .build();
+        // 프로필 이미지 URL 결정 (Redis 임시 이미지 우선)
+        String profileImgUrl = resolveProfileImageUrl(kakaoUserInfo.getEmail(), request.getProfileImg());
 
+        // User 생성 (converter 사용)
+        User user = userConverter.toUserEntityFromKakao(kakaoUserInfo, request, profileImgUrl);
         User savedUser = userRepository.save(user);
 
-        // OAuth 계정 연결
-        OAuthAccount oAuthAccount = OAuthAccount.builder()
-                .provider(AuthProvideerEnum.KAKAO)
-                .email(kakaoUserInfo.getEmail())
-                .user(savedUser)
-                .build();
+        // OAuth 계정 연결 (converter 사용)
+        OAuthAccount oAuthAccount = userConverter.toOAuthAccountEntity(savedUser, kakaoUserInfo.getEmail(), AuthProvideerEnum.KAKAO);
         oAuthAccountRepository.save(oAuthAccount);
 
         return savedUser;
@@ -801,11 +644,8 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
-
-
-
+    // 이메일 변경 인증 메일 발송
     @Override
-    @Transactional
     public EmailSendResponseDTO sendEmailChangeVerification(String currentEmail, String newEmail) {
         // 새 이메일이 이미 사용 중인지 확인
         checkEmail(newEmail);
@@ -813,15 +653,11 @@ public class UserServiceImpl implements UserService {
         // 이메일 변경 인증 메일 발송
         String changeToken = emailService.sendEmailChangeVerificationEmail(currentEmail, newEmail);
         
-        return EmailSendResponseDTO.builder()
-                .email(newEmail)
-                .message("이메일 변경 확인 메일이 발송되었습니다")
-                .verificationToken(changeToken)
-                .build();
+        return createEmailSendResponse(newEmail, changeToken, "이메일 변경 확인 메일이 발송되었습니다");
     }
 
+    // 이메일 변경 완료
     @Override
-    @Transactional
     public void completeEmailChange(String token) {
         String emailPair = emailService.validateEmailChangeToken(token);
         String[] emails = emailPair.split(":");
@@ -846,8 +682,8 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    // 이메일 변경 인증 메일 재발송
     @Override
-    @Transactional
     public EmailSendResponseDTO resendEmailChangeVerification(String currentEmail, String newEmail) {
         // 새 이메일이 이미 사용 중인지 확인
         checkEmail(newEmail);
@@ -855,15 +691,11 @@ public class UserServiceImpl implements UserService {
         // 이메일 변경 인증 메일 재발송
         String changeToken = emailService.resendEmailChangeVerificationEmail(currentEmail, newEmail);
         
-        return EmailSendResponseDTO.builder()
-                .email(newEmail)
-                .message("이메일 변경 확인 메일이 재발송되었습니다")
-                .verificationToken(changeToken)
-                .build();
+        return createEmailSendResponse(newEmail, changeToken, "이메일 변경 확인 메일이 재발송되었습니다");
     }
 
+    // 닉네임 중복 확인
     @Override
-    @Transactional(readOnly = true)
     public EmailDuplicateResponseDTO checkNicknameDuplicate(String nickname) {
         boolean isAvailable = !userRepository.existsByNickname(nickname);
         
@@ -871,12 +703,10 @@ public class UserServiceImpl implements UserService {
             "사용 가능한 닉네임입니다." : 
             "이미 사용 중인 닉네임입니다.";
         
-        return EmailDuplicateResponseDTO.builder()
-                .available(isAvailable)
-                .message(message)
-                .build();
+        return userConverter.toEmailDuplicateResponseDTO(isAvailable, message);
     }
 
+    // 사용자 ID로 친구 목록 조회
     @Override
     public List<User> getFriendsByUserId(Long creatorId) {
         User user = getUserbyUserId(creatorId);
@@ -885,5 +715,157 @@ public class UserServiceImpl implements UserService {
         );        return friends.stream()
                 .map(Friend::getFriend)
                 .toList();
+    }
+
+    // 사용자 정보 기반 JWT 액세스 토큰 생성
+    private String generateAccessToken(User user) {
+        return jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+    }
+
+    // 프로필 이미지 URL 결정
+    // 우선순위: Redis 임시 저장 이미지 > 요청에서 받은 이미지
+    private String resolveProfileImageUrl(String email, String requestProfileImg) {
+        // Redis에서 임시 저장된 프로필 이미지 URL 가져오기
+        Object tempImageUrlObj = redisTemplate.opsForValue().get(TEMP_PROFILE_PREFIX + email);
+        String tempImageUrl = (tempImageUrlObj != null) ? (String) tempImageUrlObj : null;
+        
+        // 요청에서 받은 프로필 이미지 처리 (빈 문자열은 null로 변환)
+        String processedRequestImg = requestProfileImg;
+        if (processedRequestImg != null && processedRequestImg.trim().isEmpty()) {
+            processedRequestImg = null;
+        }
+        
+        // 우선순위: Redis 임시 이미지 > 요청 이미지
+        return (tempImageUrl != null) ? tempImageUrl : processedRequestImg;
+    }
+
+    // Redis에 저장된 임시 프로필 이미지 삭제
+    private void clearTempProfileImage(String email) {
+        String redisKey = TEMP_PROFILE_PREFIX + email;
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(redisKey))) {
+            redisTemplate.delete(redisKey);
+        }
+    }
+
+    // 이메일 발송 응답 DTO 생성
+    private EmailSendResponseDTO createEmailSendResponse(String email, String verificationToken, String message) {
+        return userConverter.toEmailSendResponseDTO(email, verificationToken, message);
+    }
+
+    // 이메일 인증 발송
+    @Override
+    public EmailSendResponseDTO sendEmailVerification(String email) {
+        // 이메일 중복 체크
+        checkEmail(email);
+
+        // 인증 메일 발송
+        String verificationToken = emailService.sendVerificationEmail(email);
+
+        return userConverter.toEmailSendResponseDTO(email, verificationToken, "인증 메일이 발송되었습니다");
+    }
+
+    // 이메일 인증 재발송
+    @Override
+    public EmailSendResponseDTO resendEmailVerification(String email) {
+        // 이미 인증된 이메일인지 확인
+        if (emailService.isEmailVerified(email)) {
+            throw new UserException(ErrorStatus.EMAIL_ALREADY_VERIFIED);
+        }
+
+        // 인증 메일 재발송
+        String verificationToken = emailService.resendVerificationEmail(email);
+
+        return userConverter.toEmailSendResponseDTO(email, verificationToken, "인증 메일이 재발송되었습니다");
+    }
+
+    // 이메일 인증 상태 확인
+    @Override
+    public EmailVerificationStatusResponseDTO getEmailVerificationStatus(String token) {
+        String email = emailService.validateToken(token);
+        boolean verified = emailService.isEmailVerified(email);
+
+        return userConverter.toEmailVerificationStatusResponseDTO(email, verified);
+    }
+
+    // 이메일 링크 클릭 처리
+    @Override
+    public String handleEmailVerificationLink(String token) {
+        String email = emailService.completeVerification(token);
+
+        String deepLinkUrl = "planup://profile/setup?email=" +
+                java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) +
+                "&verified=true&token=" + token +
+                "&from=email_verification";
+
+        return emailService.createSuccessHtml(email, deepLinkUrl);
+    }
+
+    // 비밀번호 변경 링크 클릭 처리
+    @Override
+    public String handlePasswordChangeLink(String token) {
+        String[] tokenInfo = emailService.validatePasswordChangeToken(token);
+        String email = tokenInfo[0]; 
+        Boolean isLoggedIn = Boolean.parseBoolean(tokenInfo[1]);
+        
+        // 비밀번호 변경 이메일 인증 완료 표시
+        emailService.markPasswordChangeEmailAsVerified(email);
+        
+        // 로그인 상태에 따른 딥링크 경로 분기
+        String deepLinkUrl;
+        if (isLoggedIn) {
+            // 로그인한 상태: 마이페이지로 이동
+            deepLinkUrl = "planup://mypage/password/change?email=" +
+                    java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) +
+                    "&verified=true&token=" + token +
+                    "&from=password_change&loggedIn=true";
+        } else {
+            // 로그인하지 않은 상태: 로그인 화면으로 이동
+            deepLinkUrl = "planup://login/password/change?email=" +
+                    java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8) +
+                    "&verified=true&token=" + token +
+                    "&from=password_change&loggedIn=false";
+        }
+
+        return emailService.createSuccessHtml(email, deepLinkUrl);
+    }
+
+    // 이메일 변경 링크 클릭 처리
+    @Override
+    public String handleEmailChangeLink(String token) {
+        EmailVerifyLinkResponseDTO response = emailService.handleEmailChangeLink(token);
+        
+        if (response.isVerified()) {
+            // 실제 이메일 변경 실행
+            completeEmailChange(token);
+            
+            // 성공 시 HTML 페이지 표시
+            String deepLinkUrl = "planup://email/change/complete?verified=true&token=" + token;
+            return emailService.createSuccessHtml(response.getEmail(), deepLinkUrl);
+        } else {
+            // 실패 시 에러 HTML 페이지 표시
+            return emailService.createFailureHtml();
+        }
+    }
+
+    // 이메일 중복 확인
+    @Override
+    public EmailDuplicateResponseDTO checkEmailDuplicate(String email) {
+        boolean isAvailable = isEmailAvailable(email);
+        
+        return userConverter.toEmailDuplicateResponseDTO(isAvailable, isAvailable ? "사용 가능한 이메일입니다." : "이미 사용 중인 이메일입니다.");
+    }
+
+    // 이메일 변경 인증 메일 발송 (userId 기반)
+    @Override
+    public EmailSendResponseDTO sendEmailChangeVerification(Long userId, String newEmail) {
+        User currentUser = getUserbyUserId(userId);
+        return sendEmailChangeVerification(currentUser.getEmail(), newEmail);
+    }
+
+    // 이메일 변경 인증 메일 재발송 (userId 기반)
+    @Override
+    public EmailSendResponseDTO resendEmailChangeVerification(Long userId, String newEmail) {
+        User currentUser = getUserbyUserId(userId);
+        return resendEmailChangeVerification(currentUser.getEmail(), newEmail);
     }
 }

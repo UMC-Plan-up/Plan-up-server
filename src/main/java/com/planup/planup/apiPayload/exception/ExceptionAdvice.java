@@ -65,6 +65,11 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, reason, null, request);
     }
 
+    @ExceptionHandler(value = IllegalArgumentException.class)
+    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException e, HttpServletRequest request) {
+        return handleExceptionInternalConstraint(e, ErrorStatus.INVALID_EMAIL_TOKEN, HttpHeaders.EMPTY, new ServletWebRequest(request));
+    }
+
     private ResponseEntity<Object> handleExceptionInternal(Exception e, ErrorReasonDTO reason,
                                                            HttpHeaders headers, HttpServletRequest request) {
 

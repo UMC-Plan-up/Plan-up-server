@@ -19,7 +19,4 @@ public class LoginResponseDTO {
 
     @Schema(description = "프로필 이미지")
     private String profileImgUrl;
-
-    @Schema(description = "에러 메시지")
-    private String message;
 }
