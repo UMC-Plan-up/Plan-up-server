@@ -6,6 +6,7 @@ import com.planup.planup.domain.friend.entity.UserBlock;
 import com.planup.planup.domain.friend.repository.UserBlockRepository;
 import com.planup.planup.domain.friend.service.policy.UserBlockValidator;
 import com.planup.planup.domain.user.entity.User;
+import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.domain.user.service.UserValidator.UserValidator;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +26,7 @@ public class UserBlockServiceImpl {
     private final UserBlockRepository userBlockRepository;
     private final FriendConverter friendConverter;
     private final UserBlockValidator userBlockValidator;
-    private final UserValidator userValidator;
+    private final UserService userService;
 
     public List<BlockedFriendResponseDTO> getBlockedFriends(Long userId) {
         List<UserBlock> friends = userBlockRepository.findBlockedByBlockerId(userId);
@@ -55,6 +56,20 @@ public class UserBlockServiceImpl {
     @Transactional
     public boolean blockFriend(User user, Long friendId) {
 
-        userValidator.existUserId(friendId);
+        //차단당하는 상대방 조회
+        User blocked = userService.getUserbyUserId(friendId);
+
+        //이미 존재하는 차단인지 확인
+        userBlockValidator.ensureExistUserBlock(user.getId(), friendId);
+
+        //생성 및 저장
+        UserBlock userBlock = UserBlock.builder()
+                .blocker(user)
+                .blocked(blocked)
+                .build();
+
+        userBlockRepository.save(userBlock);
+
+        return true;
     }
 }

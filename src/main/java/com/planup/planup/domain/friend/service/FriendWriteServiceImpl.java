@@ -51,20 +51,6 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         throw new UserException(ErrorStatus._BAD_REQUEST);
     }
 
-    @Override
-    public boolean blockFriend(User user, Long friendId) {
-
-        Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(
-                FriendStatus.ACCEPTED, user.getId(), friendId);
-
-        if (optionalFriend.isPresent()) {
-            optionalFriend.get().setStatus(FriendStatus.BLOCKED);
-            return true;
-        }
-
-        throw new UserException(ErrorStatus._BAD_REQUEST);
-    }
-
     //TODO: 지금 reason이 전혀 사용되지 않고 있는데 정상적으로 만들어진 메서드인지 확인 필요
     @Override
     public boolean reportFriend(FriendReportRequestDTO request) {
