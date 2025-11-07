@@ -24,6 +24,7 @@ public class UserBlockServiceImpl {
     private final UserBlockRepository userBlockRepository;
     private final FriendConverter friendConverter;
     private final UserBlockValidator userBlockValidator;
+    private final UserRead\\\
 
     public List<BlockedFriendResponseDTO> getBlockedFriends(Long userId) {
         List<UserBlock> friends = userBlockRepository.findBlockedByBlockerId(userId);
@@ -48,5 +49,11 @@ public class UserBlockServiceImpl {
         userBlockRepository.deleteById(optionalUserBlock.get().getId());
 
         return optionalUserBlock.get().getId();
+    }
+
+    @Transactional
+    public boolean blockFriend(User user, Long friendId) {
+
+        user
     }
 }
