@@ -2,10 +2,7 @@ package com.planup.planup.domain.friend.service;
 
 import com.planup.planup.domain.friend.converter.FriendConverter;
 import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
-import com.planup.planup.domain.friend.entity.Friend;
-import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.entity.UserBlock;
-import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.friend.repository.UserBlockRepository;
 import com.planup.planup.domain.friend.service.policy.UserBlockValidator;
 import com.planup.planup.domain.user.entity.User;
@@ -24,7 +21,6 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class UserBlockServiceImpl {
 
-    private final FriendRepository friendRepository;
     private final UserBlockRepository userBlockRepository;
     private final FriendConverter friendConverter;
     private final UserBlockValidator userBlockValidator;
