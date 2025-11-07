@@ -1,13 +1,13 @@
-package com.planup.planup.domain.friend.service;
+package com.planup.planup.domain.friend.service.userBlockService;
 
 import com.planup.planup.domain.friend.converter.FriendConverter;
 import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
+import com.planup.planup.domain.friend.dto.UnblockFriendRequestDTO;
 import com.planup.planup.domain.friend.entity.UserBlock;
 import com.planup.planup.domain.friend.repository.UserBlockRepository;
 import com.planup.planup.domain.friend.service.policy.UserBlockValidator;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
-import com.planup.planup.domain.user.service.UserValidator.UserValidator;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,29 +21,34 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Slf4j
 @Transactional(readOnly = true)
-public class UserBlockServiceImpl {
+public class UserBlockServiceImpl implements UserBlockService {
 
     private final UserBlockRepository userBlockRepository;
     private final FriendConverter friendConverter;
     private final UserBlockValidator userBlockValidator;
     private final UserService userService;
 
+    @Override
     public List<BlockedFriendResponseDTO> getBlockedFriends(Long userId) {
         List<UserBlock> friends = userBlockRepository.findBlockedByBlockerId(userId);
         List<User> blockedUsers = friends.stream().map(UserBlock::getBlocked).collect(Collectors.toList());
 
         return friendConverter.toBlockedFriendDTO(userId, blockedUsers);
     }
-
+    @Override
     public UserBlock getBlockedFriend(Long userId, Long friendId) {
-        Optional<UserBlock> optionalUserBlock = userBlockRepository.findByUserIdAndFriendId(userId, friendId);
+        Optional<UserBlock> optionalUserBlock = userBlockRepository.findByBlockerIdAndBlockedId(userId, friendId);
         userBlockValidator.ensureExistUserBlock(optionalUserBlock);
 
         return optionalUserBlock.get();
     }
 
+    @Override
     @Transactional
-    public Long unblockFriend(Long userId, Long friendId) {
+    public Long unblockFriend(UnblockFriendRequestDTO request) {
+        Long userId = request.getUserId();
+        Long friendId = request.getFriendId();
+
         Optional<UserBlock> optionalUserBlock = userBlockRepository.findByUserIdAndFriendIdWithBlocked(userId, friendId);
 
         userBlockValidator.ensureExistUserBlock(optionalUserBlock);
@@ -54,6 +59,7 @@ public class UserBlockServiceImpl {
     }
 
     @Transactional
+    @Override
     public boolean blockFriend(User user, Long friendId) {
 
         //차단당하는 상대방 조회

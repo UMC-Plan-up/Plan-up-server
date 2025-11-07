@@ -1,6 +1,8 @@
 package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.domain.goal.dto.UserGoalResponseDto;
+import com.planup.planup.domain.goal.dto.UserWithGoalCountDTO;
+import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.dto.CommunityResponseDto;
 import com.planup.planup.domain.goal.entity.Goal;
@@ -37,4 +39,7 @@ public interface UserGoalService {
 
     @Transactional(readOnly = true)
     Integer getUserGoalCount(Long userId);
+
+    @Transactional(readOnly = true)
+    List<UserWithGoalCountDTO> getUserByChallengesAndUserId(Long userId);
 }

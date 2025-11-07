@@ -5,7 +5,7 @@ import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
-import com.planup.planup.domain.friend.service.FriendService;
+import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
@@ -53,7 +53,7 @@ public class GoalServiceImpl implements GoalService{
     private final TimerVerificationRepository timerVerificationRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
     private final CommentRepository commentRepository;
-    private final FriendService friendService;
+    private final FriendReadService friendService;
     private final GoalMemoRepository goalMemoRepository;
     private final TimerVerificationReadService timerVerificationReadService;
     private final UserService userService;

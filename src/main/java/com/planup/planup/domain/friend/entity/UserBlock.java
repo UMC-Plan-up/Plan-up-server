@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -17,7 +18,7 @@ import java.time.LocalDateTime;
         @UniqueConstraint(columnNames = {"blocker_id", "blocked_id", "active"})
 })
 @Getter
-@Builder
+@SuperBuilder
 @SQLDelete(sql = "UPDATE user_block SET active = 0, deleted_at = NOW() WHERE id = ?")   //soft delete
 @Where(clause = "active = 1") // 조회 시 활성 행만 자동 필터링
 @AllArgsConstructor

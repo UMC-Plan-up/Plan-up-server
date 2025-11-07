@@ -76,9 +76,9 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
     @Query("""
         select f
         from Friend f
-        where ((f.user.id = :u1 and f.friend.id = :u2)
-                    or (f.user.id = :u2 and f.friend.id = :u1))
-                  and f.status = :status
+        where ((f.user.id = :userId and f.friend.id = :friendId)
+            or (f.user.id = :friendId and f.friend.id = :userId))
+            and f.status = :status
     """)
     boolean existsByUsersAndStatus(@Param("userId") Long userId,
                                    @Param("friendId") Long friendId,

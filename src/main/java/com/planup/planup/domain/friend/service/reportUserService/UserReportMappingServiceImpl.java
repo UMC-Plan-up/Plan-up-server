@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class UserReportMappingServiceImpl implements ReportUserService {
+public class UserReportMappingServiceImpl implements UserReportMappingService {
 
     private final UserService userService;
     private final UserReportMappingRepository userReportMappingRepository;

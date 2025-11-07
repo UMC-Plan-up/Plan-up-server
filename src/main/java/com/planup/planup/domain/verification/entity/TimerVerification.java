@@ -34,7 +34,7 @@ public class TimerVerification extends BaseTimeEntity {
         return Duration.ofSeconds(spentTimeSeconds);
     }
 
-    public void setSpenTime(Duration duration) {
+    public void setSpentTime(Duration duration) {
         this.spentTimeSeconds = duration.getSeconds();
     }
 }

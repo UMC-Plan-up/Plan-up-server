@@ -118,7 +118,10 @@ public class FriendReadServiceImpl implements FriendReadService {
     public List<FriendResponseDTO.FriendInfoInChallengeCreate> getFriendListInChallenge(Long userId) {
         List<Friend> friendList = friendRepository.findListByUserIdWithUsers(FriendStatus.ACCEPTED, userId);
         return friendList.stream()
-                .map(friend -> friendConverter.toFriendInfoChallenge(friend.getFriendNotMe(userId))) // 또는 getUser()
+                .map(friend -> {
+                    userService.count
+                    friendConverter.toFriendInfoChallenge(friend.getFriendNotMe(userId));
+                }) // 또는 getUser()
                 .distinct()
                 .collect(Collectors.toList());
     }

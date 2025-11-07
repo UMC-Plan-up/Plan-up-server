@@ -52,6 +52,6 @@ public class FriendResponseDTO {
             String nickname,
 
             @Schema(description = "목표 수행 수", example = "3")
-            int goalCnt
+            Long goalCnt
     ) {}
 }

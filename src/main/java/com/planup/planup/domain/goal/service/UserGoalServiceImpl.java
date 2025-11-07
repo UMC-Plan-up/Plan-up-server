@@ -2,8 +2,9 @@ package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserGoalException;
-import com.planup.planup.domain.friend.service.FriendService;
+import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.goal.dto.UserGoalResponseDto;
+import com.planup.planup.domain.goal.dto.UserWithGoalCountDTO;
 import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.dto.CommunityResponseDto;
@@ -40,7 +41,7 @@ public class UserGoalServiceImpl implements UserGoalService{
     private final UserGoalRepository userGoalRepository;
     private final GoalRepository goalRepository;
     private final UserRepository userRepository;
-    private final FriendService friendService;
+    private final FriendReadService friendService;
     private final PhotoVerificationReadService photoVerificationReadService;
     private final TimerVerificationReadService timerVerificationReadService;
     private final UserService userService;
@@ -245,5 +246,12 @@ public class UserGoalServiceImpl implements UserGoalService{
     @Transactional(readOnly = true)
     public Integer getUserGoalCount(Long userId) {
         return Math.toIntExact(userGoalRepository.countByUserId(userId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserWithGoalCountDTO> getUserByChallengesAndUserId(Long userId) {
+        return userGoalRepository.getUserByChallengesAndUserId(userId,
+                List.of(GoalType.CHALLENGE_TIME, GoalType.CHALLENGE_PHOTO));
     }
 }

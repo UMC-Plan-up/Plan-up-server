@@ -1,14 +1,13 @@
 package com.planup.planup.domain.friend.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
-import com.planup.planup.apiPayload.exception.custom.FriendException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
-import com.planup.planup.domain.friend.dto.FriendReportRequestDTO;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.friend.service.policy.FriendValidator;
 import com.planup.planup.domain.friend.service.policy.UserBlockValidator;
+import com.planup.planup.domain.friend.service.userBlockService.UserBlockServiceImpl;
 import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.entity.TargetType;
 import com.planup.planup.domain.notification.service.NotificationService;

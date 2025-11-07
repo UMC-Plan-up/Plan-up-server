@@ -1,6 +1,9 @@
 package com.planup.planup.domain.goal.repository;
 
+import com.planup.planup.domain.goal.dto.UserWithGoalCountDTO;
+import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
+import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
@@ -79,5 +82,19 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
             "from UserGoal ug " +
             "where ug.user.id = :userId")
     Integer countByUserId(@Param("userId") Long userId);
+
+    @Query("""
+    select new com.planup.planup.domain.goal.dto.UserWithGoalCountDTO(
+        ug.user, count(ug)
+    )
+    from UserGoal ug
+    join ug.goal g
+    where ug.user.id = :userId
+      and g.goalType in :challengeTypes
+    group by ug.user
+    """)
+    List<UserWithGoalCountDTO> getUserByChallengesAndUserId(@Param("userId") Long userId,
+                                                            @Param("challengeTypes") List<GoalType> challengeTypes);
+
 
 }
