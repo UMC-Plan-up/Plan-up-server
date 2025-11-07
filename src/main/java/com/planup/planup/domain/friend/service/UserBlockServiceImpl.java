@@ -45,6 +45,12 @@ public class UserBlockServiceImpl {
 
     @Transactional
     public Long unblockFriend(Long userId, Long friendId) {
+        Optional<UserBlock> optionalUserBlock = userBlockRepository.findByUserIdAndFriendIdWithBlocked(userId, friendId);
 
+        userBlockValidator.ensureExistUserBlock(optionalUserBlock);
+
+        userBlockRepository.deleteById(optionalUserBlock.get().getId());
+
+        return optionalUserBlock.get().getId();
     }
 }

@@ -40,6 +40,7 @@ public class FriendReadServiceImpl implements FriendReadService {
     private final NotificationService notificationService;
 
     //친구 리스트를 반환한다.
+    @Override
     public List<FriendResponseDTO.FriendSummaryList> getFriendSummeryList(Long userId) {
 
         User user = userService.getUserbyUserId(userId);
@@ -114,7 +115,7 @@ public class FriendReadServiceImpl implements FriendReadService {
     }
 
     @Override
-    public List<FriendResponseDTO.FriendInfoInChallengeCreate> getFrinedListInChallenge(Long userId) {
+    public List<FriendResponseDTO.FriendInfoInChallengeCreate> getFriendListInChallenge(Long userId) {
         List<Friend> friendList = friendRepository.findListByUserIdWithUsers(FriendStatus.ACCEPTED, userId);
         return friendList.stream()
                 .map(friend -> friendConverter.toFriendInfoChallenge(friend.getFriendNotMe(userId))) // 또는 getUser()

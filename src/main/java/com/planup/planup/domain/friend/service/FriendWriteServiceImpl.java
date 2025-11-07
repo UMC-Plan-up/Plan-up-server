@@ -189,11 +189,4 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         userBlockValidator.ensureExistUserBlock(userId, friendId);
     }
 
-
-    @Override
-    public Long unblockFriend(Long userId, Long friendId) {
-        User user = userService.getUserbyUserId(userId);
-
-        userBlockService.getBlockedFriends()
-    }
 }

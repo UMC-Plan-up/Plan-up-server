@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 })
 @Getter
 @Builder
-@SQLDelete(sql = "UPDATE user_block SET active = 0, deleted_at = NOW() WHERE id = ?")
+@SQLDelete(sql = "UPDATE user_block SET active = 0, deleted_at = NOW() WHERE id = ?")   //soft delete
 @Where(clause = "active = 1") // 조회 시 활성 행만 자동 필터링
 @AllArgsConstructor
 @NoArgsConstructor

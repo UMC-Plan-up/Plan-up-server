@@ -4,6 +4,7 @@ import com.planup.planup.domain.friend.entity.UserBlock;
 import com.planup.planup.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,4 +32,14 @@ public interface UserBlockRepository extends JpaRepository<UserBlock, Long> {
     List<UserBlock> findBlockedByBlockerId(Long blockerId);
 
     Optional<UserBlock> findByUserIdAndFriendId(Long userId, Long friendId);
+
+    @Query("""
+    select b
+    from UserBlock b
+    join fetch b.blocked blocked
+    where b.blocker.id = :userId
+      and b.blocked.id = :friendId
+""")
+    Optional<UserBlock> findByUserIdAndFriendIdWithBlocked(@Param("userId") Long userId,
+                                                           @Param("friendId") Long friendId);
 }
