@@ -22,8 +22,8 @@ public class UserReportMappingServiceImpl implements UserReportMappingService {
 
     @Override
     @Transactional
-    public boolean createReportUser(FriendReportRequestDTO request) {
-        Long userId = request.getUserId();
+    public boolean createReportUser(FriendReportRequestDTO request, Long userId) {
+
         Long friendId= request.getFriendId();
         String reason = request.getReason();
         boolean block = request.isBlock();

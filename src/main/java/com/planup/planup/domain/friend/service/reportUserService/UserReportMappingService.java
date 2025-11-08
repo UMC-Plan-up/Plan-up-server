@@ -5,5 +5,5 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface UserReportMappingService {
     @Transactional
-    boolean createReportUser(FriendReportRequestDTO request);
+    boolean createReportUser(FriendReportRequestDTO request, Long userId);
 }

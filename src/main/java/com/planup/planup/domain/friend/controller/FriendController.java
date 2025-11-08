@@ -65,8 +65,8 @@ public class FriendController {
 
     @Operation(summary = "친구 신고", description = "친구 또는 차단된 친구를 신고하고 필요시 차단합니다")
     @PostMapping("/report")
-    public ApiResponse<Boolean> reportFriend(@RequestBody FriendReportRequestDTO request) {
-        boolean result = userReportMappingService.createReportUser(request);
+    public ApiResponse<Boolean> reportFriend(@RequestBody FriendReportRequestDTO request, @CurrentUser Long userId) {
+        boolean result = userReportMappingService.createReportUser(request, userId);
         return ApiResponse.onSuccess(result);
     }
 
