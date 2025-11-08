@@ -37,8 +37,6 @@ public class FriendReadServiceImpl implements FriendReadService {
     private final FriendRepository friendRepository;
     private final UserService userService;
     private final FriendConverter friendConverter;
-    private final TimerVerificationReadService timerVerificationService;
-    private final PhotoVerificationRepository photoVerificationRepository;
     private final UserGoalRepository userGoalRepository;
     private final FriendSummaryAssembler friendSummaryAssembler;
 
