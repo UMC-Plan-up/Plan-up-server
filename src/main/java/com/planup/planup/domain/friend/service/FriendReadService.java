@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface FriendReadService {
     //친구 리스트를 반환한다.
-    List<FriendResponseDTO.FriendSummaryList> getFriendSummeryList(Long userId);
+    FriendResponseDTO.FriendSummaryList getFriendSummeryList(Long userId);
 
     List<FriendResponseDTO.FriendInfoSummary> getRequestedFriends(Long userId);
 

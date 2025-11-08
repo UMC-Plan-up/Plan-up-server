@@ -40,8 +40,8 @@ public class FriendController {
 
     @Operation(summary = "친구 화면 조회", description = "친구 화면에 진입했을 때 필요한 정보 조회")
     @GetMapping("/list")
-    public ApiResponse<List<FriendResponseDTO.FriendSummaryList>> getFriendList(@CurrentUser Long userId) {
-        List<FriendResponseDTO.FriendSummaryList> friendSummaryList = friendReadService.getFriendSummeryList(userId);
+    public ApiResponse<FriendResponseDTO.FriendSummaryList> getFriendList(@CurrentUser Long userId) {
+        FriendResponseDTO.FriendSummaryList friendSummaryList = friendReadService.getFriendSummeryList(userId);
         return ApiResponse.onSuccess(friendSummaryList);
     }
 

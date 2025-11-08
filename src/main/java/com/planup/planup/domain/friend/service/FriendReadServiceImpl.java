@@ -7,6 +7,8 @@ import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
+import com.planup.planup.domain.friend.service.policy.FriendSelector;
+import com.planup.planup.domain.friend.service.policy.FriendSummaryAssembler;
 import com.planup.planup.domain.goal.dto.UserWithGoalCountDTO;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.user.entity.User;
@@ -24,6 +26,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.planup.planup.domain.friend.entity.FriendStatus.ACCEPTED;
+
 @Transactional(readOnly = true)
 @Service
 @AllArgsConstructor
@@ -31,73 +35,27 @@ import java.util.stream.Collectors;
 public class FriendReadServiceImpl implements FriendReadService {
 
     private final FriendRepository friendRepository;
-
     private final UserService userService;
     private final FriendConverter friendConverter;
     private final TimerVerificationReadService timerVerificationService;
     private final PhotoVerificationRepository photoVerificationRepository;
     private final UserGoalRepository userGoalRepository;
+    private final FriendSummaryAssembler friendSummaryAssembler;
 
     //친구 리스트를 반환한다.
     @Override
-    public List<FriendResponseDTO.FriendSummaryList> getFriendSummeryList(Long userId) {
+    public FriendResponseDTO.FriendSummaryList getFriendSummeryList(Long userId) {
 
-        User user = userService.getUserbyUserId(userId);
+        User me = userService.getUserbyUserId(userId);
 
-        List<User> list = getFriendsFromFriendWithoutMe(user);
+        List<Friend> relations = friendRepository.findListByUserIdWithUsers(ACCEPTED, me.getId());
+        List<User> friends = relations.stream().map(Friend::getFriend).toList();
 
-        return List.of(friendConverter.toFriendSummaryList(list.stream()
-                .map(this::getFriendInfoSummary)
-                .toList()));
-    }
-
-    private List<User> getFriendsFromFriendWithoutMe(User user) {
-        List<Friend> friendList = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(FriendStatus.ACCEPTED, user.getId(), FriendStatus.ACCEPTED, user.getId());
-
-//      Friend 객체의 friend, user 중 내가 아닌 친구를 뽑는다.
-        List<User> list = friendList.stream()
-                .map(f -> f.getFriend().equals(user) ? f.getUser() : f.getFriend())
-                .distinct().toList();
-        return list;
-    }
-
-    private FriendResponseDTO.FriendInfoSummary getFriendInfoSummary(User friend) {
-
-        int goalCnt = Math.toIntExact(userGoalRepository.countByUserId(friend.getId()));
-        boolean isNewPhotoVerify = checkTodayPhotoVerification(friend); // 서비스 내 유틸/레포 호출
-        LocalTime todayTime = calculateTodayTotalTime(friend);          // 기존 메서드 유지
-
-        return friendConverter.toFriendSummary(friend, goalCnt, isNewPhotoVerify, todayTime, friend.getProfileImg());
-    }
-
-    private boolean checkTodayPhotoVerification(User user) {
-        try {
-            return photoVerificationRepository.existsTodayPhotoVerificationByUserId(user.getId());
-        } catch (Exception e) {
-            log.warn("사용자 {} 오늘 사진 인증 조회 실패: {}", user.getNickname(), e.getMessage());
-            return false;
-        }
-    }
-
-    private LocalTime calculateTodayTotalTime(User user) {
-        try {
-            // 사용자의 모든 목표에 대해 오늘 타이머 시간을 합계
-            long totalSeconds = user.getUserGoals().stream()
-                    .mapToLong(userGoal -> {
-                        try {
-                            return timerVerificationService.getTodayTotalSecTimeByUserGoal(userGoal);
-                        } catch (Exception e) {
-                            log.warn("사용자 {} 목표 {} 타이머 시간 조회 실패: {}", user.getNickname(), userGoal.getGoal().getId(), e.getMessage());
-                            return 0L;
-                        }
-                    })
-                    .sum();
-
-            return LocalTime.ofSecondOfDay(totalSeconds);
-        } catch (Exception e) {
-            log.warn("사용자 {} 오늘 타이머 시간 계산 실패: {}", user.getNickname(), e.getMessage());
-            return LocalTime.of(0, 0, 0);
-        }
+        return FriendConverter.toFriendSummaryList(
+                friends.stream()
+                        .map(friendSummaryAssembler::assemble)
+                        .collect(Collectors.toList())
+        );
     }
 
     @Override
@@ -109,14 +67,14 @@ public class FriendReadServiceImpl implements FriendReadService {
 
         return friendRequests.stream()
                 .map(Friend::getUser)
-                .map(this::getFriendInfoSummary)
+                .map(friendSummaryAssembler::assemble)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<FriendResponseDTO.FriendInfoInChallengeCreate> getFriendListInChallenge(Long userId) {
         //친구를 조회하여 친구 매핑을 리스트로 반환
-        List<Friend> friendList = friendRepository.findListByUserIdWithUsers(FriendStatus.ACCEPTED, userId);
+        List<Friend> friendList = friendRepository.findListByUserIdWithUsers(ACCEPTED, userId);
 
         //친구 매핑에서 친구 아이디를 추출
         List<Long> friendIds = friendList.stream().map(friend -> friend.getFriendNotMe(userId).getId()).toList();
@@ -127,7 +85,7 @@ public class FriendReadServiceImpl implements FriendReadService {
 
     @Override
     public void isFriend(Long userId, Long friendId) {
-        Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.ACCEPTED, userId, friendId);
+        Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(ACCEPTED, userId, friendId);
         if (optionalFriend.isEmpty()) {
             throw new FriendException(ErrorStatus.NOT_EXIST_USERBLOCK);
         }

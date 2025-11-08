@@ -50,7 +50,7 @@ public class FriendConverter {
         }).collect(Collectors.toList());
     }
 
-    public FriendResponseDTO.FriendSummaryList toFriendSummaryList(List<FriendResponseDTO.FriendInfoSummary> items) {
+    public static FriendResponseDTO.FriendSummaryList toFriendSummaryList(List<FriendResponseDTO.FriendInfoSummary> items) {
         return FriendResponseDTO.FriendSummaryList.builder()
                 .cnt(items.size())
                 .friendInfoSummaryList(items)
