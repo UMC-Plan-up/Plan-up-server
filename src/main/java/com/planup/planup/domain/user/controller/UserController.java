@@ -134,16 +134,7 @@ public class UserController {
             HttpServletRequest httpRequest) {
         
         try {
-            // 액세스 토큰 블랙리스트 추가
-            String authHeader = httpRequest.getHeader("Authorization");
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String accessToken = authHeader.substring(7);
-                tokenService.blacklistAccessToken(accessToken);
-            }
-            
-            // 리프레시 토큰 삭제
-            tokenService.logout(userId);
-            
+            userService.logout(userId, httpRequest);
             return ApiResponse.onSuccess("로그아웃되었습니다");
             
         } catch (Exception e) {

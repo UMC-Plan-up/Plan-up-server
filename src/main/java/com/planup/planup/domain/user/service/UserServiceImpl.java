@@ -300,6 +300,25 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    @Transactional
+    public void logout(Long userId, jakarta.servlet.http.HttpServletRequest request) {
+        // Authorization 헤더에서 액세스 토큰 추출
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String accessToken = jwtUtil.extractTokenFromHeader(authHeader);
+            if (accessToken != null) {
+                // 액세스 토큰 블랙리스트 추가
+                tokenService.blacklistAccessToken(accessToken);
+            }
+        }
+        
+        // 리프레시 토큰 삭제
+        tokenService.logout(userId);
+        
+        log.info("로그아웃 완료 - 사용자 ID: {}", userId);
+    }
+
     private void validateRequiredTerms(List<TermsAgreementRequestDTO> agreements) {
 
         // 필수 약관 목록 조회

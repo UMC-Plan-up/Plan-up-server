@@ -82,4 +82,7 @@ public interface UserService {
     EmailDuplicateResponseDTO checkNicknameDuplicate(String nickname);
 
     List<User> getFriendsByUserId(Long creatorId);
+
+    // 로그아웃
+    void logout(Long userId, jakarta.servlet.http.HttpServletRequest request);
 }
