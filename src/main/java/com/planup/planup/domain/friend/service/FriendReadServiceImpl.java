@@ -8,6 +8,7 @@ import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.goal.dto.UserWithGoalCountDTO;
+import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.user.entity.User;
@@ -16,6 +17,7 @@ import com.planup.planup.domain.verification.repository.PhotoVerificationReposit
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,10 +37,10 @@ public class FriendReadServiceImpl implements FriendReadService {
 
     private final UserService userService;
     private final FriendConverter friendConverter;
-    private final UserGoalService userGoalService;
     private final TimerVerificationReadService timerVerificationService;
     private final PhotoVerificationRepository photoVerificationRepository;
     private final NotificationService notificationService;
+    private final UserGoalRepository userGoalRepository;
 
     //친구 리스트를 반환한다.
     @Override
@@ -65,7 +67,7 @@ public class FriendReadServiceImpl implements FriendReadService {
 
     private FriendResponseDTO.FriendInfoSummary getFriendInfoSummary(User friend) {
 
-        int goalCnt = userGoalService.getUserGoalCount(friend.getId());
+        int goalCnt = Math.toIntExact(userGoalRepository.countByUserId(friend.getId()));
         boolean isNewPhotoVerify = checkTodayPhotoVerification(friend); // 서비스 내 유틸/레포 호출
         LocalTime todayTime = calculateTodayTotalTime(friend);          // 기존 메서드 유지
 
@@ -123,7 +125,7 @@ public class FriendReadServiceImpl implements FriendReadService {
         //친구 매핑에서 친구 아이디를 추출
         List<Long> friendIds = friendList.stream().map(friend -> friend.getFriendNotMe(userId).getId()).toList();
 
-        List<UserWithGoalCountDTO> userGoalCntByUserIds = userGoalService.getUserGoalCntByUserIds(friendIds);
+        List<UserWithGoalCountDTO> userGoalCntByUserIds = userGoalRepository.getUserGoalCntByUserIds(friendIds);
         return friendConverter.toFriendInfoChallenge(userGoalCntByUserIds);
     }
 

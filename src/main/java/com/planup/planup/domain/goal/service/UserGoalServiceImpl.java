@@ -97,7 +97,6 @@ public class UserGoalServiceImpl implements UserGoalService{
         Long creatorId = adminUserGoal.getUser().getId();
 
         friendService.isFriend(userId, creatorId);
-
     }
 
     //달성량 계산 파트
