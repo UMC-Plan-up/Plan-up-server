@@ -42,4 +42,7 @@ public interface UserGoalService {
 
     @Transactional(readOnly = true)
     List<UserWithGoalCountDTO> getUserByChallengesAndUserId(Long userId);
+
+    //리스트로 들어온 아이디들의 각 참여 중인 goalCnt 수를 반환
+    List<UserWithGoalCountDTO> getUserGoalCntByUserIds(List<Long> userIds);
 }

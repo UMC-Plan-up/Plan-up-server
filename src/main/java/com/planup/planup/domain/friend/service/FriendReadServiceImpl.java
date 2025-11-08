@@ -7,6 +7,7 @@ import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
+import com.planup.planup.domain.goal.dto.UserWithGoalCountDTO;
 import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.user.entity.User;
@@ -116,14 +117,14 @@ public class FriendReadServiceImpl implements FriendReadService {
 
     @Override
     public List<FriendResponseDTO.FriendInfoInChallengeCreate> getFriendListInChallenge(Long userId) {
+        //친구를 조회하여 친구 매핑을 리스트로 반환
         List<Friend> friendList = friendRepository.findListByUserIdWithUsers(FriendStatus.ACCEPTED, userId);
-        return friendList.stream()
-                .map(friend -> {
-                    userService.count
-                    friendConverter.toFriendInfoChallenge(friend.getFriendNotMe(userId));
-                }) // 또는 getUser()
-                .distinct()
-                .collect(Collectors.toList());
+
+        //친구 매핑에서 친구 아이디를 추출
+        List<Long> friendIds = friendList.stream().map(friend -> friend.getFriendNotMe(userId).getId()).toList();
+
+        List<UserWithGoalCountDTO> userGoalCntByUserIds = userGoalService.getUserGoalCntByUserIds(friendIds);
+        return friendConverter.toFriendInfoChallenge(userGoalCntByUserIds);
     }
 
     @Override

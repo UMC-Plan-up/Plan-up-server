@@ -35,7 +35,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class UserGoalServiceImpl implements UserGoalService{
 
     private final UserGoalRepository userGoalRepository;
@@ -206,52 +206,49 @@ public class UserGoalServiceImpl implements UserGoalService{
 
     //수용 형 파트
     @Override
-    @Transactional(readOnly = true)
     public UserGoal getUserGoalByUserAndGoal(User user, Goal goal) {
         return userGoalRepository.findAllByUserAndGoal(user, goal).get(0);
 //        return userGoalRepository.findByUserAndGoal(user, goal).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<UserGoal> getUserGoalListByGoal(Goal goal) {
         return userGoalRepository.findAllByGoal(goal);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public VerificationType checkVerificationType(UserGoal userGoal) {
         return userGoal.getGoal().getVerificationType();
     }
 
-    @Transactional(readOnly = true)
     @Override
     public List<UserGoal> getUserGoalInPeriod(LocalDateTime startDate, LocalDateTime endDate) {
         return userGoalRepository.findAllByUpdatedAtBetween(startDate, endDate);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public UserGoal getByGoalIdAndUserId(Long goalId, Long userId) {
         return userGoalRepository.findByGoalIdAndUserId(goalId, userId);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public boolean existUserGoal(Long goalId, Long userId) {
         return userGoalRepository.existsUserGoalByGoalIdAndUserId(goalId, userId);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Integer getUserGoalCount(Long userId) {
         return Math.toIntExact(userGoalRepository.countByUserId(userId));
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<UserWithGoalCountDTO> getUserByChallengesAndUserId(Long userId) {
         return userGoalRepository.getUserByChallengesAndUserId(userId,
                 List.of(GoalType.CHALLENGE_TIME, GoalType.CHALLENGE_PHOTO));
+    }
+
+    @Override
+    public List<UserWithGoalCountDTO> getUserGoalCntByUserIds(List<Long> userIds) {
+        return userGoalRepository.getUserGoalCntByUserIds(userIds);
     }
 }

@@ -84,6 +84,17 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     Integer countByUserId(@Param("userId") Long userId);
 
     @Query("""
+        select new com.planup.planup.domain.goal.dto.UserWithGoalCountDTO(
+            ug.user, count(ug)
+        )
+        from UserGoal ug
+        where ug.user.id in :userIds
+        and ug.goal.isActive = true
+        group by ug.user.id
+    """)
+    List<UserWithGoalCountDTO> getUserGoalCntByUserIds(@Param("userIds") List<Long> userIds);
+
+    @Query("""
     select new com.planup.planup.domain.goal.dto.UserWithGoalCountDTO(
         ug.user, count(ug)
     )
