@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface UserService {
     // 사용자 ID로 사용자 조회
-    User getUserbyUserId(Long userId);
+    User getUserByUserId(Long userId);
 
     // 사용자 닉네임 조회
     String getNickname(Long userId);

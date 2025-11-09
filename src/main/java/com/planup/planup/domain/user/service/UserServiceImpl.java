@@ -10,17 +10,14 @@ import com.planup.planup.domain.oauth.entity.OAuthAccount;
 import com.planup.planup.domain.user.converter.UserConverter;
 import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.entity.*;
-import com.planup.planup.domain.user.repository.InvitedUserRepository;
 import com.planup.planup.domain.user.repository.TermsRepository;
 import com.planup.planup.domain.user.repository.UserRepository;
 import com.planup.planup.validation.jwt.JwtUtil;
 import com.planup.planup.domain.user.repository.UserTermsRepository;
-import com.planup.planup.domain.user.dto.UserInfoResponseDTO;
 import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
 import com.planup.planup.domain.oauth.repository.OAuthAccountRepository;
 import com.planup.planup.domain.user.repository.UserWithdrawalRepository;
 
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import com.planup.planup.domain.user.dto.KakaoAccountResponseDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
@@ -43,7 +39,6 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-@Builder
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -54,7 +49,6 @@ public class UserServiceImpl implements UserService {
     private final OAuthAccountRepository oAuthAccountRepository;
     private final ImageUploadService imageUploadService;
     private final InviteCodeService inviteCodeService;
-    private final InvitedUserRepository invitedUserRepository;
     private final FriendRepository friendRepository;
     private final EmailService emailService;
     private final UserWithdrawalRepository userWithdrawalRepository;
@@ -71,7 +65,7 @@ public class UserServiceImpl implements UserService {
 
     // 사용자 ID로 사용자 조회
     @Override
-    public User getUserbyUserId(Long userId) {
+    public User getUserByUserId(Long userId) {
         Optional<User> userOptional = userRepository.findById(userId);
         return userOptional.orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
     }
@@ -79,14 +73,14 @@ public class UserServiceImpl implements UserService {
     // 사용자 닉네임 조회
     @Override
     public String getNickname(Long userId) {
-        User user = getUserbyUserId(userId);
+        User user = getUserByUserId(userId);
         return user.getNickname();
     }
 
     // 사용자 닉네임 변경
     @Override
     public String updateNickname(Long userId, String nickname) {
-        User user = getUserbyUserId(userId);
+        User user = getUserByUserId(userId);
 
         // 현재 사용자가 이미 같은 닉네임을 사용하고 있는지 확인
         if (user.getNickname().equals(nickname)) {
@@ -104,7 +98,7 @@ public class UserServiceImpl implements UserService {
     // 혜택 및 마케팅 알림 동의 상태 변경
     @Override
     public boolean updateNotificationAgree(Long userId) {
-        User user = getUserbyUserId(userId);
+        User user = getUserByUserId(userId);
         user.switchAlarmAllow();
         return user.getAlarmAllow();
     }
@@ -140,7 +134,7 @@ public class UserServiceImpl implements UserService {
     // 사용자 정보 조회
     @Override
     public UserInfoResponseDTO getUserInfo(Long userId) {
-        User user = getUserbyUserId(userId);
+        User user = getUserByUserId(userId);
         return userConverter.toUserInfoResponseDTO(user);
     }
 
@@ -211,7 +205,7 @@ public class UserServiceImpl implements UserService {
     // 이메일 변경
     @Override
     public String updateEmail(Long userId, String newEmail) {
-        User user = getUserbyUserId(userId);
+        User user = getUserByUserId(userId);
 
         // 현재 사용자가 이미 같은 이메일을 사용하고 있는지 확인
         if (user.getEmail().equals(newEmail)) {
@@ -284,7 +278,7 @@ public class UserServiceImpl implements UserService {
     // 카카오 계정 연동 상태 조회
     @Override
     public KakaoAccountResponseDTO getKakaoAccountStatus(Long userId) {
-        User user = getUserbyUserId(userId);
+        User user = getUserByUserId(userId);
         
         // 카카오톡 계정 정보 조회 (한 번에 조회)
         var oauthAccount = oAuthAccountRepository.findByUserAndProvider(user, AuthProvideerEnum.KAKAO);
@@ -335,8 +329,8 @@ public class UserServiceImpl implements UserService {
         }
 
         // 이미 친구인지 확인
-        User currentUser = getUserbyUserId(userId);
-        User inviterUser = getUserbyUserId(inviterId);
+        User currentUser = getUserByUserId(userId);
+        User inviterUser = getUserByUserId(inviterId);
         
         boolean alreadyFriend = friendRepository.findByUserAndFriend_NicknameAndStatus(
                 currentUser, inviterUser.getNickname(), FriendStatus.ACCEPTED).isPresent() ||
@@ -373,7 +367,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // 기본적인 유효성 검증 (초대코드 존재 여부, 초대자 정보)
-        User inviterUser = getUserbyUserId(inviterId);
+        User inviterUser = getUserByUserId(inviterId);
 
         return userConverter.toValidateInviteCodeResponseDTO(true, "유효한 초대코드입니다.", inviterUser.getNickname());
     }
@@ -382,7 +376,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request) {
         // 사용자 조회
-        User user = getUserbyUserId(userId);
+        User user = getUserByUserId(userId);
 
         // 탈퇴 정보 저장 (converter 사용)
         UserWithdrawal withdrawal = userConverter.toUserWithdrawalEntity(user, request.getReason());
@@ -482,7 +476,7 @@ public class UserServiceImpl implements UserService {
         KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());
         String email = kakaoUserInfo.getEmail();
         
-        User user = getUserbyUserId(userId);
+        User user = getUserByUserId(userId);
         
         // 이미 카카오 계정이 연동되어 있는지 확인
         Optional<OAuthAccount> existingOAuth = oAuthAccountRepository
@@ -709,7 +703,7 @@ public class UserServiceImpl implements UserService {
     // 사용자 ID로 친구 목록 조회
     @Override
     public List<User> getFriendsByUserId(Long creatorId) {
-        User user = getUserbyUserId(creatorId);
+        User user = getUserByUserId(creatorId);
         List<Friend> friends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
                 FriendStatus.ACCEPTED, user.getId(), FriendStatus.ACCEPTED, user.getId()
         );        return friends.stream()
@@ -858,14 +852,14 @@ public class UserServiceImpl implements UserService {
     // 이메일 변경 인증 메일 발송 (userId 기반)
     @Override
     public EmailSendResponseDTO sendEmailChangeVerification(Long userId, String newEmail) {
-        User currentUser = getUserbyUserId(userId);
+        User currentUser = getUserByUserId(userId);
         return sendEmailChangeVerification(currentUser.getEmail(), newEmail);
     }
 
     // 이메일 변경 인증 메일 재발송 (userId 기반)
     @Override
     public EmailSendResponseDTO resendEmailChangeVerification(Long userId, String newEmail) {
-        User currentUser = getUserbyUserId(userId);
+        User currentUser = getUserByUserId(userId);
         return resendEmailChangeVerification(currentUser.getEmail(), newEmail);
     }
 }

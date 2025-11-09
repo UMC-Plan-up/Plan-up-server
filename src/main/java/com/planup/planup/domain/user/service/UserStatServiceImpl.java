@@ -17,7 +17,7 @@ public class UserStatServiceImpl implements UserStatService {
     private final UserService userService;
     @Override
     public UserStat getUserStatByUserId(Long userId) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userService.getUserByUserId(userId);
 
         UserStat userStat = userStatRepository.findByUser(user);
 
