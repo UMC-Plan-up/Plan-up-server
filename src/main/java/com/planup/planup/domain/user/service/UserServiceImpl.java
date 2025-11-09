@@ -79,6 +79,7 @@ public class UserServiceImpl implements UserService {
 
     // 사용자 닉네임 변경
     @Override
+    @Transactional
     public String updateNickname(Long userId, String nickname) {
         User user = getUserByUserId(userId);
 
@@ -97,6 +98,7 @@ public class UserServiceImpl implements UserService {
 
     // 혜택 및 마케팅 알림 동의 상태 변경
     @Override
+    @Transactional
     public boolean updateNotificationAgree(Long userId) {
         User user = getUserByUserId(userId);
         user.switchAlarmAllow();
@@ -111,6 +113,7 @@ public class UserServiceImpl implements UserService {
 
     // 토큰 기반 비밀번호 변경
     @Override
+    @Transactional
     public void changePasswordWithToken(String token, String newPassword) {
         // 토큰으로 이메일 검증
         String[] tokenInfo = emailService.validatePasswordChangeToken(token);
@@ -140,6 +143,7 @@ public class UserServiceImpl implements UserService {
 
     // 회원가입
     @Override
+    @Transactional
     public SignupResponseDTO signup(SignupRequestDTO request) {
         // 회원가입 요청 검증
         validateSignupRequest(request);
@@ -204,6 +208,7 @@ public class UserServiceImpl implements UserService {
 
     // 이메일 변경
     @Override
+    @Transactional
     public String updateEmail(Long userId, String newEmail) {
         User user = getUserByUserId(userId);
 
@@ -310,6 +315,7 @@ public class UserServiceImpl implements UserService {
 
     // 초대코드 처리 및 친구 관계 생성
     @Override
+    @Transactional
     public InviteCodeProcessResponseDTO processInviteCode(String inviteCode, Long userId) {
         // 빈 코드 체크
         if (inviteCode == null || inviteCode.trim().isEmpty()) {
@@ -374,6 +380,7 @@ public class UserServiceImpl implements UserService {
 
     // 회원 탈퇴
     @Override
+    @Transactional
     public WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request) {
         // 사용자 조회
         User user = getUserByUserId(userId);
@@ -472,6 +479,7 @@ public class UserServiceImpl implements UserService {
 
     // 카카오 계정 연동
     @Override
+    @Transactional
     public KakaoLinkResponseDTO linkKakaoAccount(Long userId, KakaoLinkRequestDTO request) {
         KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());
         String email = kakaoUserInfo.getEmail();
@@ -534,6 +542,7 @@ public class UserServiceImpl implements UserService {
 
     // 카카오 회원가입 완료
     @Override
+    @Transactional
     public SignupResponseDTO kakaoSignupComplete(KakaoSignupCompleteRequestDTO request) {
         // Redis에서 카카오 정보 조회 및 검증
         KakaoUserInfo kakaoUserInfo = getKakaoUserInfoFromRedis(request.getTempUserId());
@@ -652,6 +661,7 @@ public class UserServiceImpl implements UserService {
 
     // 이메일 변경 완료
     @Override
+    @Transactional
     public void completeEmailChange(String token) {
         String emailPair = emailService.validateEmailChangeToken(token);
         String[] emails = emailPair.split(":");
