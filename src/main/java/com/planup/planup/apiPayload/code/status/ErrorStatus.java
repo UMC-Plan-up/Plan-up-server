@@ -19,6 +19,7 @@ public enum ErrorStatus implements BaseErrorCode {
     _UNAUTHORIZED(HttpStatus.UNAUTHORIZED,"COMMON401","인증이 필요합니다."),
     _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
     _NOT_ALLOWED(HttpStatus.FORBIDDEN, "COMMON404", "권한이 없는 요청입니다"),
+    _NON_TRANSACTION(BAD_REQUEST, "COMMON405", "트랜잭션이 적용되지 않는 요청입니다."),
 
     //Notification 관련 에러
     UNAUTHORIZED_NOTIFICATION_ACCESS(HttpStatus.FORBIDDEN, "NOTIFICATION4001", "알림을 읽을 권한이 없습니다."),

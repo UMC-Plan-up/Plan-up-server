@@ -54,8 +54,7 @@ public class UserController {
     @Operation(summary = "혜택 및 마케팅 동의 변경", description = "혜택 동의가 되어있다면 비활성화, 동의가 안되어있으면 동의로 변경")
     @PatchMapping("/mypage/notification/agree")
     public ApiResponse<Boolean> updateNotificationAgree(@Parameter(hidden = true) @CurrentUser Long userId) {
-        userService.updateNotificationAgree(userId);
-        return ApiResponse.onSuccess(true);
+        return ApiResponse.onSuccess(userService.updateNotificationAgree(userId));
     }
 
 
@@ -189,6 +188,17 @@ public class UserController {
         String verificationToken = emailService.resendVerificationEmail(request.getEmail());
 
         EmailSendResponseDTO response = userConverter.toEmailSendResponseDTO(request.getEmail(), verificationToken, "인증 메일이 재발송되었습니다");
+
+        return ApiResponse.onSuccess(response);
+    }
+
+    @Operation(summary = "이메일 인증 여부 확인", description = "토큰으로 이메일을 확인하고 인증 상태를 반환합니다")
+    @GetMapping("/users/email/verification-status")
+    public ApiResponse<EmailVerificationStatusResponseDTO> getEmailVerificationStatus(@RequestParam("token") String token) {
+        String email = emailService.validateToken(token);
+        boolean verified = emailService.isEmailVerified(email);
+
+        EmailVerificationStatusResponseDTO response = userConverter.toEmailVerificationStatusResponseDTO(email, verified);
 
         return ApiResponse.onSuccess(response);
     }
@@ -401,5 +411,11 @@ public class UserController {
     public ApiResponse<RandomNicknameResponseDTO> generateRandomNickname() {
         RandomNicknameResponseDTO result = randomNicknameService.generateRandomNickname();
         return ApiResponse.onSuccess(result);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ApiResponse<EmailVerificationStatusResponseDTO> handleIllegalArgumentException(IllegalArgumentException e) {
+        EmailVerificationStatusResponseDTO response = userConverter.toEmailVerificationStatusResponseDTO(null, false);
+        return ApiResponse.onFailure(ErrorStatus.INVALID_EMAIL_TOKEN.getCode(), ErrorStatus.INVALID_EMAIL_TOKEN.getMessage(), response);
     }
 }

@@ -104,13 +104,9 @@ public class UserServiceImpl implements UserService {
     public boolean updateNotificationAgree(Long userId) {
         User user = getUserbyUserId(userId);
         user.switchAlarmAllow();
-        return true;
+        return user.getAlarmAllow();
     }
 
-
-
-
-    
     @Override
     public Boolean isPasswordChangeEmailVerified(String email) {
         return emailService.isPasswordChangeEmailVerified(email);

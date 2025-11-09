@@ -20,6 +20,7 @@ import com.planup.planup.domain.friend.converter.FriendConverter;
 
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
@@ -288,6 +289,9 @@ public class FriendServiceImpl implements FriendService {
         friendRequest.setFriend(friendUser);
         friendRequest.setStatus(FriendStatus.REQUESTED);
 
+        //TODO: 실제 서비스에서 제거
+        if (userId.equals("dummy11@planup.com")) friendRequest.setStatus(FriendStatus.ACCEPTED);
+
         friendRepository.save(friendRequest);
         
         // 친구 신청 알림 생성
@@ -329,6 +333,7 @@ public class FriendServiceImpl implements FriendService {
                     return BlockedFriendResponseDTO.builder()
                             .friendId(blockedUser.getId())
                             .friendNickname(blockedUser.getNickname())
+                            .profileImg(blockedUser.getProfileImg())
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -336,16 +341,16 @@ public class FriendServiceImpl implements FriendService {
 
     @Override
     @Transactional
-    public boolean unblockFriend(Long userId, String friendNickname) {
+    public Long unblockFriend(Long userId, String friendNickname) {
         User user = userService.getUserbyUserId(userId);
 
         // 사용자가 해당 닉네임의 친구를 차단한 관계를 찾음
-        var blockedFriend = friendRepository.findByUserAndFriend_NicknameAndStatus(user, friendNickname, FriendStatus.BLOCKED);
+        Optional<Friend> blockedFriend = friendRepository.findByUserAndFriend_NicknameAndStatus(user, friendNickname, FriendStatus.BLOCKED);
 
         if (blockedFriend.isPresent()) {
             // 차단 관계를 삭제
             friendRepository.delete(blockedFriend.get());
-            return true;
+            return blockedFriend.get().getFriendId(userId);
         }
 
         // 차단 관계를 찾지 못했을 때

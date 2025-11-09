@@ -7,18 +7,13 @@ import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.goal.service.ChallengeService;
 import com.planup.planup.domain.goal.service.UserLevelService;
 import com.planup.planup.domain.verification.entity.PhotoVerification;
-import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -29,11 +24,12 @@ public class PhotoVerificationService implements VerificationService {
     private final ImageUploadService imageUploadService;
     private final ChallengeService challengeService;
     private final UserLevelService userLevelService;
+    private final UserGoalService userGoalService;
+
 
     public List<PhotoVerification> getAllVerificationByUserGoal(UserGoal userGoal) {
         return photoVerificationRepository.findAllByUserGoal(userGoal);
     }
-    private final UserGoalService userGoalService;
 
     @Transactional
     public void uploadPhotoVerification(

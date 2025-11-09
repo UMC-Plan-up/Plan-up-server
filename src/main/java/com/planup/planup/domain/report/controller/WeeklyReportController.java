@@ -5,7 +5,7 @@ import com.planup.planup.domain.goal.dto.CommentRequestDto;
 import com.planup.planup.domain.goal.dto.CommentResponseDto;
 import com.planup.planup.domain.goal.service.CommentService;
 import com.planup.planup.domain.report.dto.WeeklyReportResponseDTO;
-import com.planup.planup.domain.report.service.WeeklyReportService;
+import com.planup.planup.domain.report.service.WeeklyReportService.WeeklyReportReadService;
 import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,13 +20,13 @@ import java.util.List;
 @RequestMapping("/report")
 public class WeeklyReportController {
 
-    private final WeeklyReportService weeklyReportService;
+    private final WeeklyReportReadService weeklyReportReadService;
     private final CommentService commentService;
 
     @Operation(summary = "목표 달성 기록 조회 페이지 데이터 생성", description = "목표 달성 페이지의 알림, 메시지, 뱃지 내용을 조회")
     @GetMapping("/reports")
     public ApiResponse<WeeklyReportResponseDTO.achievementResponse> getAchievementPage(@Parameter(hidden = true) @CurrentUser Long userId) {
-        WeeklyReportResponseDTO.achievementResponse weeklyReport = weeklyReportService.getWeeklyGoalAchievements(userId);
+        WeeklyReportResponseDTO.achievementResponse weeklyReport = weeklyReportReadService.getWeeklyGoalAchievements(userId);
         return ApiResponse.onSuccess(weeklyReport);
     }
 
@@ -34,7 +34,7 @@ public class WeeklyReportController {
             description = "목표 달성 페이지 접근 시, 년/월을 기준으로 주간 리포트를 검색하고 화면에 표시")
     @GetMapping("/reports/{year}/{month}")
     public ApiResponse<List<Integer>> searchExistWeeklyReportList(Long userId, @PathVariable int year, @PathVariable int month) {
-        List<Integer> weeks = weeklyReportService.searchWeeklyReport(userId, year, month);
+        List<Integer> weeks = weeklyReportReadService.searchWeeklyReport(userId, year, month);
         return ApiResponse.onSuccess(weeks);
     }
 
@@ -44,7 +44,7 @@ public class WeeklyReportController {
                                                                                      @Parameter(description = "연도", example = "2025") @PathVariable int year,
                                                                                      @Parameter(description = "월(1-12)", example = "8") @PathVariable int month,
                                                                                      @Parameter(description = "주차(1-5)", example = "3") @PathVariable int week) {
-        WeeklyReportResponseDTO.WeeklyReportResponse weeklyReport = weeklyReportService.getWeeklyReport(userId, year, month, week);
+        WeeklyReportResponseDTO.WeeklyReportResponse weeklyReport = weeklyReportReadService.getWeeklyReport(userId, year, month, week);
         return ApiResponse.onSuccess(weeklyReport);
     }
 
