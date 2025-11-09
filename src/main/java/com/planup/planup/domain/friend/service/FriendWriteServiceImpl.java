@@ -4,6 +4,8 @@ import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
+import com.planup.planup.domain.friend.event.dto.FriendRejectSentEvent;
+import com.planup.planup.domain.friend.event.dto.FriendRequestSentEvent;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.friend.service.policy.FriendValidator;
 import com.planup.planup.domain.friend.service.policy.UserBlockValidator;
@@ -15,6 +17,7 @@ import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +35,7 @@ public class FriendWriteServiceImpl implements FriendWriteService {
     private final FriendValidator friendValidator;
     private final UserBlockServiceImpl userBlockService;
     private final UserBlockValidator userBlockValidator;
+    private final ApplicationEventPublisher publisher;
 
     @Override
     public boolean deleteFriend(User user, Long friendId) {
@@ -65,6 +69,11 @@ public class FriendWriteServiceImpl implements FriendWriteService {
                     NotificationType.FRIEND_REQUEST_REJECTED,
                     TargetType.USER,
                     userId              // targetId (친구 신청을 거절한 사람의 ID)
+            );
+
+            //알림 생성
+            publisher.publishEvent(
+                    FriendRejectSentEvent.of(friendId, userId)
             );
 
             return true;
