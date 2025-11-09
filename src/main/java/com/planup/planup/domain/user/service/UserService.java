@@ -16,8 +16,11 @@ public interface UserService {
     // 사용자 닉네임 변경
     String updateNickname(Long userId, String nickname);
 
-    // 혜택 및 마케팅 알림 동의 상태 변경
-    boolean updateNotificationAgree(Long userId);
+    boolean updateMarketingNotificationAllow(Long userId); // 혜택 및 마케팅 알림 변경
+
+    boolean updateServiceNotificationAllow(Long userId); // 서비스 알림 변경
+
+
     
     // 비밀번호 변경 이메일 인증 완료 여부 확인
     Boolean isPasswordChangeEmailVerified(String email);
@@ -55,7 +58,9 @@ public interface UserService {
     // 프로필 이미지 업로드
     ImageUploadResponseDTO uploadProfileImage(MultipartFile file, String email);
 
-    // 내 초대코드 조회
+    // 마이페이지 프로필 이미지 업데이트
+    ImageUploadResponseDTO updateProfileImage(Long userId, MultipartFile file);
+
     InviteCodeResponseDTO getMyInviteCode(Long userId);
 
     // 초대코드 처리 및 친구 관계 생성
@@ -93,6 +98,9 @@ public interface UserService {
 
     // 사용자 ID로 친구 목록 조회
     List<User> getFriendsByUserId(Long creatorId);
+
+    // 로그아웃
+    void logout(Long userId, jakarta.servlet.http.HttpServletRequest request);
 
     // 이메일 인증 발송
     EmailSendResponseDTO sendEmailVerification(String email);

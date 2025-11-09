@@ -15,6 +15,37 @@ import java.time.LocalDateTime;
 @Component
 public class UserConverter {
 
+    /*// SignupRequestDTO를 User 엔티티로 변환
+    public User toUserEntity(SignupRequestDTO request, String encodedPassword, Map<Long, Terms> termsMap) {
+        User user = User.builder()
+                    .email(request.getEmail())
+                    .password(encodedPassword)
+                    .nickname(request.getNickname())
+                    .role(Role.USER)
+                    .userActivate(UserActivate.ACTIVE)
+                    .userLevel(UserLevel.LEVEL_1)
+                    .serviceNotificationAllow(true) // 서비스 알림 기본값: true
+                    .marketingNotificationAllow(true) // 혜택 및 마케팅 알림 기본값: true
+                    .profileImg(request.getProfileImg())
+                    .build();
+
+        // 약관 동의 정보도 함께 생성
+        for (TermsAgreementRequestDTO agreement : request.getAgreements()) {
+            Terms terms = termsMap.get(agreement.getTermsId());
+
+            UserTerms userTerms = UserTerms.builder()
+                    .user(user)
+                    .terms(terms)
+                    .isAgreed(agreement.isAgreed())
+                    .agreedAt(agreement.isAgreed() ? LocalDateTime.now() : null)
+                    .build();
+
+            user.getUserTermList().add(userTerms);
+        }
+
+        return user;
+    }
+*/
     // User 엔티티와 accessToken을 SignupResponseDTO로 변환
     public SignupResponseDTO toSignupResponseDTO(User user, String accessToken) {
         return SignupResponseDTO.builder()
@@ -174,7 +205,8 @@ public class UserConverter {
                 .role(Role.USER)
                 .userActivate(UserActivate.ACTIVE)
                 .userLevel(UserLevel.LEVEL_1)
-                .alarmAllow(true)
+                .serviceNotificationAllow(true) // 서비스 알림 기본값: true
+                .marketingNotificationAllow(true) // 혜택 및 마케팅 알림 기본값: true
                 .profileImg(profileImgUrl)
                 .emailVerified(true)
                 .emailVerifiedAt(LocalDateTime.now())
@@ -190,7 +222,8 @@ public class UserConverter {
                 .role(Role.USER)
                 .userActivate(UserActivate.ACTIVE)
                 .userLevel(UserLevel.LEVEL_1)
-                .alarmAllow(true)
+                .serviceNotificationAllow(true) // 서비스 알림 기본값: true
+                .marketingNotificationAllow(true) // 혜택 및 마케팅 알림 기본값: true
                 .profileImg(profileImgUrl)
                 .emailVerified(true)
                 .emailVerifiedAt(LocalDateTime.now())

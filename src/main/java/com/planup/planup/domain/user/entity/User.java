@@ -47,7 +47,11 @@ public class User extends BaseTimeEntity {
 
     @Column(name = "alarm_allow", nullable = false)
     @Builder.Default
-    private Boolean alarmAllow = false;
+    private Boolean marketingNotificationAllow = false; // 혜택 및 마케팅 알림 동의
+    
+    @Column(name = "service_notification_allow", nullable = false)
+    @Builder.Default
+    private Boolean serviceNotificationAllow = true; // 서비스 알림 (기본값: true)
     
     private String inviteCode;
 
@@ -96,11 +100,19 @@ public class User extends BaseTimeEntity {
         this.nickname = nickname;
     }
 
-    public void switchAlarmAllow() {
-        if (this.alarmAllow == true) {
-            this.alarmAllow = false;
+    public void updateMarketingNotificationAllow() {
+        if (this.marketingNotificationAllow == true) {
+            this.marketingNotificationAllow = false;
         } else {
-            this.alarmAllow = true;
+            this.marketingNotificationAllow = true;
+        }
+    }
+
+    public void updateServiceNotificationAllow() {
+        if (this.serviceNotificationAllow == true) {
+            this.serviceNotificationAllow = false;
+        } else {
+            this.serviceNotificationAllow = true;
         }
     }
 
