@@ -5,6 +5,7 @@ import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.event.dto.FriendRejectSentEvent;
+import com.planup.planup.domain.friend.event.dto.FriendRequestAcceptedEvent;
 import com.planup.planup.domain.friend.event.dto.FriendRequestSentEvent;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.friend.service.policy.FriendValidator;
@@ -63,14 +64,6 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         if (optionalFriend.isPresent()) {
             optionalFriend.get().setStatus(FriendStatus.REJECTED);
 
-            notificationService.createNotification(
-                    friendId,           // receiverId (친구 신청을 보낸 사람)
-                    userId,             // senderId (친구 신청을 거절한 사람)
-                    NotificationType.FRIEND_REQUEST_REJECTED,
-                    TargetType.USER,
-                    userId              // targetId (친구 신청을 거절한 사람의 ID)
-            );
-
             //알림 생성
             publisher.publishEvent(
                     FriendRejectSentEvent.of(friendId, userId)
@@ -91,23 +84,9 @@ public class FriendWriteServiceImpl implements FriendWriteService {
             Friend friend = optionalFriend.get();
             friend.setStatus(FriendStatus.ACCEPTED);
 
-            // 친구 신청 수락 알림 생성 - 양쪽 모두에게
-            // 1. 친구 신청을 보낸 사람에게 알림
-            notificationService.createNotification(
-                    friendId,           // receiverId (친구 신청을 보낸 사람)
-                    userId,             // senderId (친구 신청을 수락한 사람)
-                    NotificationType.FRIEND_REQUEST_ACCEPTED,
-                    TargetType.USER,
-                    userId              // targetId (친구 신청을 수락한 사람의 ID)
-            );
-
-            // 2. 친구 신청을 수락한 사람에게도 알림
-            notificationService.createNotification(
-                    userId,             // receiverId (친구 신청을 수락한 사람)
-                    friendId,           // senderId (친구 신청을 보낸 사람)
-                    NotificationType.FRIEND_REQUEST_ACCEPTED,
-                    TargetType.USER,
-                    friendId            // targetId (친구 신청을 보낸 사람의 ID)
+            //커밋 이후 알림 생성
+            publisher.publishEvent(
+                    FriendRequestAcceptedEvent.of(userId, friendId)
             );
 
             return true;
@@ -137,13 +116,8 @@ public class FriendWriteServiceImpl implements FriendWriteService {
 
         friendRepository.save(friendRequest);
 
-        // 친구 신청 알림 생성
-        notificationService.createNotification(
-                friendId,           // receiverId (친구 신청 받는 사람)
-                userId,             // senderId (친구 신청 보내는 사람)
-                NotificationType.FRIEND_REQUEST_SENT,
-                TargetType.USER,
-                userId              // targetId (친구 신청 보낸 사람의 ID)
+        publisher.publishEvent(
+                FriendRequestSentEvent.of(friendId, userId)
         );
 
         return true;
