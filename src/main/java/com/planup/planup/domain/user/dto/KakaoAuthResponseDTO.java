@@ -16,5 +16,7 @@ public class KakaoAuthResponseDTO {
     private boolean isNewUser;
     private String tempUserId;   // 신규 사용자인 경우
     private String accessToken;  // 기존 사용자인 경우
+    private String refreshToken; // 기존 사용자인 경우
+    private Long expiresIn;      // 기존 사용자인 경우
     private UserInfoResponseDTO userInfo; // 기존 사용자인 경우
 }

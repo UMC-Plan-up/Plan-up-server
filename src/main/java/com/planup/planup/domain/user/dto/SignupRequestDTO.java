@@ -28,7 +28,8 @@ public class SignupRequestDTO {
     private String passwordCheck;
 
     @Schema(description = "닉네임", example = "라미")
-    @Size(max = 20)
+    @Size(max = 20, message = "닉네임은 공백 포함 20자 이하여야 합니다.")
+    @Pattern(regexp = "^[가-힣a-zA-Z0-9 ]+$", message = "닉네임은 한글, 영문, 숫자, 공백만 가능합니다.")
     private String nickname;
 
     @Schema(description = "프로필 이미지 경로", example = "https://example.com/image.jpg")
