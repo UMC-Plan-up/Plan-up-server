@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
 public interface TermsService {
 
     // 모든 약관 목록 조회 (체크박스 표시용)

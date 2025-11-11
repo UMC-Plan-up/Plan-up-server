@@ -51,11 +51,11 @@ public class UserServiceImpl implements UserService {
     private final UserTermsRepository userTermsRepository;
     private final OAuthAccountRepository oAuthAccountRepository;
     private final ImageUploadService imageUploadService;
-    private final InviteCodeService inviteCodeService;
+    private final InviteCodeServiceImpl inviteCodeService;
     private final FriendRepository friendRepository;
     private final EmailService emailService;
     private final UserWithdrawalRepository userWithdrawalRepository;
-    private final KakaoApiService kakaoApiService;
+    private final KakaoServiceImpl kakaoServiceImpl;
     private final UserConverter userConverter;
 
     @Qualifier("objectRedisTemplate")
@@ -544,7 +544,7 @@ public class UserServiceImpl implements UserService {
     // 카카오 소셜 인증
     @Override
     public KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request) {
-        KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());
+        KakaoUserInfo kakaoUserInfo = kakaoServiceImpl.getUserInfo(request.getCode());
         String email = kakaoUserInfo.getEmail();
         return handleKakaoAuth(kakaoUserInfo, email);
     }
@@ -553,7 +553,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public KakaoLinkResponseDTO linkKakaoAccount(Long userId, KakaoLinkRequestDTO request) {
-        KakaoUserInfo kakaoUserInfo = kakaoApiService.getUserInfo(request.getCode());
+        KakaoUserInfo kakaoUserInfo = kakaoServiceImpl.getUserInfo(request.getCode());
         String email = kakaoUserInfo.getEmail();
         
         User user = getUserByUserId(userId);

@@ -17,7 +17,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class KakaoApiService {
+public class KakaoServiceImpl implements KaKaoService{
 
     private final WebClient webClient = WebClient.builder().build();
 
@@ -28,6 +28,7 @@ public class KakaoApiService {
     private String redirectUri;
 
     // 인가코드로 카카오 사용자 정보 바로 가져오기
+    @Override
     public KakaoUserInfo getUserInfo(String code) {
         try {
             // 인가코드 → 액세스토큰
