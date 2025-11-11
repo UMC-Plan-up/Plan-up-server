@@ -36,7 +36,7 @@ public class CommentServiceImpl implements CommentService {
     public CommentResponseDto.CommentDto createCommentByGoal(Long goalId, Long userId, CommentRequestDto.CommentCreateRequestDto requestDto) {
         validateUserGoalParticipation(goalId, userId);
 
-        User writer = userService.getUserbyUserId(userId);
+        User writer = userService.getUserByUserId(userId);
         Goal goal = goalRepository.findById(goalId)
                 .orElseThrow(() -> new GoalException(ErrorStatus.NOT_FOUND_GOAL));
 
@@ -61,7 +61,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public CommentResponseDto.CommentDto createCommentByGoalReport(Long reportId, Long userId, CommentRequestDto.CommentCreateRequestDto requestDto) {
 
-        User writer = userService.getUserbyUserId(userId);
+        User writer = userService.getUserByUserId(userId);
         GoalReport goalReport = goalReportService.getGoalReportOrThrow(reportId);
 
         Comment parentComment = null;

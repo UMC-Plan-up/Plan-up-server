@@ -1,6 +1,6 @@
 package com.planup.planup.domain.user.service;
 
-import com.planup.planup.domain.user.dto.EmailVerifyLinkResponseDTO;
+import com.planup.planup.domain.user.dto.AuthResponseDTO;
 
 public interface EmailService {
 
@@ -52,7 +52,7 @@ public interface EmailService {
     String validateEmailChangeToken(String token);
 
     // 이메일 변경 링크 처리 및 응답 DTO 생성
-    EmailVerifyLinkResponseDTO handleEmailChangeLink(String token);
+    AuthResponseDTO.EmailVerifyLink handleEmailChangeLink(String token);
 
     // 이메일 변경 인증 메일 재발송
     String resendEmailChangeVerificationEmail(String currentEmail, String newEmail);

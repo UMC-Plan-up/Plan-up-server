@@ -1,6 +1,6 @@
 package com.planup.planup.domain.user.service;
 
-import com.planup.planup.domain.user.dto.EmailVerifyLinkResponseDTO;
+import com.planup.planup.domain.user.dto.AuthResponseDTO;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -556,7 +556,7 @@ public class EmailServiceImpl implements EmailService {
     }
     
     @Override
-    public EmailVerifyLinkResponseDTO handleEmailChangeLink(String token) {
+    public AuthResponseDTO.EmailVerifyLink handleEmailChangeLink(String token) {
         try {
             String emailPair = validateEmailChangeToken(token);
             String[] emails = emailPair.split(":");
@@ -569,7 +569,7 @@ public class EmailServiceImpl implements EmailService {
                     "&verified=true&token=" + token +
                     "&from=email_change";
 
-            return EmailVerifyLinkResponseDTO.builder()
+            return AuthResponseDTO.EmailVerifyLink.builder()
                     .verified(true)
                     .message("이메일 변경 요청이 확인되었습니다")
                     .deepLinkUrl(deepLinkUrl)
@@ -577,7 +577,7 @@ public class EmailServiceImpl implements EmailService {
                     .build();
                     
         } catch (IllegalArgumentException e) {
-            return EmailVerifyLinkResponseDTO.builder()
+            return AuthResponseDTO.EmailVerifyLink.builder()
                     .verified(false)
                     .message("이메일 변경 요청 확인에 실패했습니다")
                     .build();

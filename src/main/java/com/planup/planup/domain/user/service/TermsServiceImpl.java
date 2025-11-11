@@ -3,8 +3,7 @@ package com.planup.planup.domain.user.service;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.user.converter.TermsConverter;
-import com.planup.planup.domain.user.dto.TermsDetailResponseDTO;
-import com.planup.planup.domain.user.dto.TermsListResponseDTO;
+import com.planup.planup.domain.user.dto.AuthResponseDTO;
 import com.planup.planup.domain.user.entity.Terms;
 import com.planup.planup.domain.user.repository.TermsRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,7 @@ public class TermsServiceImpl implements TermsService {
 
     @Override
     @Transactional
-    public List<TermsListResponseDTO> getTermsList() {
+    public List<AuthResponseDTO.TermsList> getTermsList() {
         List<Terms> termsList = termsRepository.findAllByOrderByOrderAsc();
 
         return TermsConverter.toTermsListResponseList(termsList);
@@ -30,7 +29,7 @@ public class TermsServiceImpl implements TermsService {
 
     @Override
     @Transactional
-    public TermsDetailResponseDTO getTermsDetail(Long termsId) {
+    public AuthResponseDTO.TermsDetail getTermsDetail(Long termsId) {
         Terms terms = termsRepository.findById(termsId)
                 .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_TERMS));
 

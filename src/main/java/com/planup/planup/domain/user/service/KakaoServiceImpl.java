@@ -2,7 +2,7 @@ package com.planup.planup.domain.user.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
-import com.planup.planup.domain.user.dto.KakaoUserInfo;
+import com.planup.planup.domain.user.dto.external.KakaoUserInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;

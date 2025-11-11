@@ -26,7 +26,7 @@ public interface UserService {
     Boolean isPasswordChangeEmailVerified(String email);
 
     // 사용자 정보 조회
-    UserInfoResponseDTO getUserInfo(Long userId);
+    UserResponseDTO.UserInfo getUserInfo(Long userId);
 
     // 이메일 중복 확인 (회원가입용)
     void checkEmail(String email);
@@ -38,63 +38,63 @@ public interface UserService {
     boolean isEmailAvailable(String email);
 
     // 비밀번호 변경 이메일 발송
-    EmailSendResponseDTO sendPasswordChangeEmail(String email, Boolean isLoggedIn);
+    AuthResponseDTO.EmailSend sendPasswordChangeEmail(String email, Boolean isLoggedIn);
 
     // 비밀번호 변경 이메일 재발송
-    EmailSendResponseDTO resendPasswordChangeEmail(String email, Boolean isLoggedIn);
+    AuthResponseDTO.EmailSend resendPasswordChangeEmail(String email, Boolean isLoggedIn);
 
     // 토큰 기반 비밀번호 변경
     void changePasswordWithToken(String token, String newPassword);
 
     // 회원가입
-    SignupResponseDTO signup(SignupRequestDTO request);
+    UserResponseDTO.Signup signup(UserRequestDTO.Signup request);
 
     // 로그인
-    LoginResponseDTO login(LoginRequestDTO request);
+    UserResponseDTO.Login login(UserRequestDTO.Login request);
 
     // 카카오 계정 연동 상태 조회
-    KakaoAccountResponseDTO getKakaoAccountStatus(Long userId);
+    OAuthResponseDTO.KakaoAccount getKakaoAccountStatus(Long userId);
 
     // 프로필 이미지 업로드
-    ImageUploadResponseDTO uploadProfileImage(MultipartFile file, String email);
+    FileResponseDTO.ImageUpload uploadProfileImage(MultipartFile file, String email);
 
     // 마이페이지 프로필 이미지 업데이트
-    ImageUploadResponseDTO updateProfileImage(Long userId, MultipartFile file);
+    FileResponseDTO.ImageUpload updateProfileImage(Long userId, MultipartFile file);
 
-    InviteCodeResponseDTO getMyInviteCode(Long userId);
+    AuthResponseDTO.InviteCode getMyInviteCode(Long userId);
 
     // 초대코드 처리 및 친구 관계 생성
-    InviteCodeProcessResponseDTO processInviteCode(String inviteCode, Long userId);
+    AuthResponseDTO.InviteCodeProcess processInviteCode(String inviteCode, Long userId);
 
     // 초대코드 유효성 검증
-    ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode);
+    AuthResponseDTO.ValidateInviteCode validateInviteCode(String inviteCode);
 
     // 회원 탈퇴
-    WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request);
+    UserResponseDTO.Withdrawal withdrawUser(Long userId, UserRequestDTO.Withdrawal request);
 
     // 카카오 소셜 인증
-    KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request);
+    OAuthResponseDTO.KakaoAuth kakaoAuth(OAuthRequestDTO.KakaoAuth request);
 
     // 카카오 계정 연동
-    KakaoLinkResponseDTO linkKakaoAccount(Long userId, KakaoLinkRequestDTO request);
+    OAuthResponseDTO.KaKaoLink linkKakaoAccount(Long userId, OAuthRequestDTO.KaKaoLink request);
 
     // 카카오 회원가입 완료
-    SignupResponseDTO kakaoSignupComplete(KakaoSignupCompleteRequestDTO request);
+    UserResponseDTO.Signup kakaoSignupComplete(OAuthRequestDTO.KaKaoSignup request);
 
     // 이메일 변경
     String updateEmail(Long userId, String newEmail);
 
     // 이메일 변경 이메일 발송
-    EmailSendResponseDTO sendEmailChangeVerification(String currentEmail, String newEmail);
+    AuthResponseDTO.EmailSend sendEmailChangeVerification(String currentEmail, String newEmail);
 
     // 이메일 변경 완료
     void completeEmailChange(String token);
 
     // 이메일 변경 인증 메일 재발송
-    EmailSendResponseDTO resendEmailChangeVerification(String currentEmail, String newEmail);
+    AuthResponseDTO.EmailSend resendEmailChangeVerification(String currentEmail, String newEmail);
 
     // 닉네임 중복 확인
-    EmailDuplicateResponseDTO checkNicknameDuplicate(String nickname);
+    AuthResponseDTO.EmailDuplicate checkNicknameDuplicate(String nickname);
 
     // 사용자 ID로 친구 목록 조회
     List<User> getFriendsByUserId(Long creatorId);
@@ -103,13 +103,13 @@ public interface UserService {
     void logout(Long userId, jakarta.servlet.http.HttpServletRequest request);
 
     // 이메일 인증 발송
-    EmailSendResponseDTO sendEmailVerification(String email);
+    AuthResponseDTO.EmailSend sendEmailVerification(String email);
 
     // 이메일 인증 재발송
-    EmailSendResponseDTO resendEmailVerification(String email);
+    AuthResponseDTO.EmailSend resendEmailVerification(String email);
 
     // 이메일 인증 상태 확인
-    EmailVerificationStatusResponseDTO getEmailVerificationStatus(String token);
+    AuthResponseDTO.EmailVerificationStatus getEmailVerificationStatus(String token);
 
     // 이메일 링크 클릭 처리 (HTML 응답)
     String handleEmailVerificationLink(String token);
@@ -121,11 +121,11 @@ public interface UserService {
     String handleEmailChangeLink(String token);
 
     // 이메일 중복 확인 (DTO 반환)
-    EmailDuplicateResponseDTO checkEmailDuplicate(String email);
+    AuthResponseDTO.EmailDuplicate checkEmailDuplicate(String email);
 
     // 이메일 변경 인증 메일 발송 (userId 기반)
-    EmailSendResponseDTO sendEmailChangeVerification(Long userId, String newEmail);
+    AuthResponseDTO.EmailSend sendEmailChangeVerification(Long userId, String newEmail);
 
     // 이메일 변경 인증 메일 재발송 (userId 기반)
-    EmailSendResponseDTO resendEmailChangeVerification(Long userId, String newEmail);
+    AuthResponseDTO.EmailSend resendEmailChangeVerification(Long userId, String newEmail);
 }

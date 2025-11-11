@@ -5,7 +5,12 @@ import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
 import com.planup.planup.domain.user.dto.*;
+import com.planup.planup.domain.user.dto.external.KakaoUserInfo;
 import com.planup.planup.domain.user.entity.*;
+import com.planup.planup.domain.user.enums.Role;
+import com.planup.planup.domain.user.enums.TokenStatus;
+import com.planup.planup.domain.user.enums.UserActivate;
+import com.planup.planup.domain.user.enums.UserLevel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -47,8 +52,8 @@ public class UserConverter {
     }
 */
     // User 엔티티와 accessToken을 SignupResponseDTO로 변환
-    public SignupResponseDTO toSignupResponseDTO(User user, String accessToken) {
-        return SignupResponseDTO.builder()
+    public UserResponseDTO.Signup toSignupResponseDTO(User user, String accessToken) {
+        return UserResponseDTO.Signup.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .accessToken(accessToken)
@@ -56,8 +61,8 @@ public class UserConverter {
     }
 
     // User 엔티티를 UserInfoResponseDTO로 변환
-    public UserInfoResponseDTO toUserInfoResponseDTO(User user) {
-        return UserInfoResponseDTO.builder()
+    public UserResponseDTO.UserInfo toUserInfoResponseDTO(User user) {
+        return UserResponseDTO.UserInfo.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .nickname(user.getNickname())
@@ -66,8 +71,8 @@ public class UserConverter {
     }
 
     // User 엔티티를 LoginResponseDTO로 변환
-    public LoginResponseDTO toLoginResponseDTO(User user, String accessToken) {
-        return LoginResponseDTO.builder()
+    public UserResponseDTO.Login toLoginResponseDTO(User user, String accessToken) {
+        return UserResponseDTO.Login.builder()
                 .accessToken(accessToken)
                 .nickname(user.getNickname())
                 .profileImgUrl(user.getProfileImg())
@@ -75,7 +80,7 @@ public class UserConverter {
     }
 
     // TermsAgreementRequestDTO와 관련 엔티티들을 UserTerms로 변환
-    public UserTerms toUserTermsEntity(User user, Terms terms, TermsAgreementRequestDTO agreement) {
+    public UserTerms toUserTermsEntity(User user, Terms terms, AuthRequestDTO.TermsAgreement agreement) {
         return UserTerms.builder()
                 .user(user)
                 .terms(terms)
@@ -85,8 +90,8 @@ public class UserConverter {
     }
 
     // 비밀번호 변경 확인 메일 발송 응답 DTO로 변환
-    public EmailSendResponseDTO toEmailSendResponseDTO(String email, String verificationToken) {
-        return EmailSendResponseDTO.builder()
+    public AuthResponseDTO.EmailSend toEmailSendResponseDTO(String email, String verificationToken) {
+        return AuthResponseDTO.EmailSend.builder()
                 .email(email)
                 .message("비밀번호 변경 확인 메일이 발송되었습니다")
                 .verificationToken(verificationToken)
@@ -94,8 +99,8 @@ public class UserConverter {
     }
 
     // 이메일 발송 응답 DTO로 변환 (메시지 커스터마이징 가능)
-    public EmailSendResponseDTO toEmailSendResponseDTO(String email, String verificationToken, String message) {
-        return EmailSendResponseDTO.builder()
+    public AuthResponseDTO.EmailSend toEmailSendResponseDTO(String email, String verificationToken, String message) {
+        return AuthResponseDTO.EmailSend.builder()
                 .email(email)
                 .message(message)
                 .verificationToken(verificationToken)
@@ -103,15 +108,15 @@ public class UserConverter {
     }
 
     // 이메일 인증 상태 응답 DTO로 변환
-    public EmailVerificationStatusResponseDTO toEmailVerificationStatusResponseDTO(String email, boolean verified) {
+    public AuthResponseDTO.EmailVerificationStatus toEmailVerificationStatusResponseDTO(String email, boolean verified) {
         if (email != null) {
-            return EmailVerificationStatusResponseDTO.builder()
+            return AuthResponseDTO.EmailVerificationStatus.builder()
                     .verified(verified)
                     .email(email)
                     .tokenStatus(TokenStatus.VALID)
                     .build();
         } else {
-            return EmailVerificationStatusResponseDTO.builder()
+            return AuthResponseDTO.EmailVerificationStatus.builder()
                     .verified(verified)
                     .email(null)
                     .tokenStatus(TokenStatus.EXPIRED_OR_INVALID)
@@ -120,31 +125,31 @@ public class UserConverter {
     }
 
     // EmailDuplicateResponseDTO 생성
-    public EmailDuplicateResponseDTO toEmailDuplicateResponseDTO(boolean isAvailable, String message) {
-        return EmailDuplicateResponseDTO.builder()
+    public AuthResponseDTO.EmailDuplicate toEmailDuplicateResponseDTO(boolean isAvailable, String message) {
+        return AuthResponseDTO.EmailDuplicate.builder()
                 .available(isAvailable)
                 .message(message)
                 .build();
     }
 
     // KakaoAccountResponseDTO 생성
-    public KakaoAccountResponseDTO toKakaoAccountResponseDTO(boolean isLinked, String kakaoEmail) {
-        return KakaoAccountResponseDTO.builder()
+    public OAuthResponseDTO.KakaoAccount toKakaoAccountResponseDTO(boolean isLinked, String kakaoEmail) {
+        return OAuthResponseDTO.KakaoAccount.builder()
                 .isLinked(isLinked)
                 .kakaoEmail(kakaoEmail)
                 .build();
     }
 
     // ImageUploadResponseDTO 생성
-    public ImageUploadResponseDTO toImageUploadResponseDTO(String imageUrl) {
-        return ImageUploadResponseDTO.builder()
+    public FileResponseDTO.ImageUpload toImageUploadResponseDTO(String imageUrl) {
+        return FileResponseDTO.ImageUpload.builder()
                 .imageUrl(imageUrl)
                 .build();
     }
 
     // InviteCodeProcessResponseDTO 생성
-    public InviteCodeProcessResponseDTO toInviteCodeProcessResponseDTO(boolean success, String friendNickname, String message) {
-        return InviteCodeProcessResponseDTO.builder()
+    public AuthResponseDTO.InviteCodeProcess toInviteCodeProcessResponseDTO(boolean success, String friendNickname, String message) {
+        return AuthResponseDTO.InviteCodeProcess.builder()
                 .success(success)
                 .friendNickname(friendNickname)
                 .message(message)
@@ -152,8 +157,8 @@ public class UserConverter {
     }
 
     // ValidateInviteCodeResponseDTO 생성
-    public ValidateInviteCodeResponseDTO toValidateInviteCodeResponseDTO(boolean valid, String message, String targetUserNickname) {
-        return ValidateInviteCodeResponseDTO.builder()
+    public AuthResponseDTO.ValidateInviteCode toValidateInviteCodeResponseDTO(boolean valid, String message, String targetUserNickname) {
+        return AuthResponseDTO.ValidateInviteCode.builder()
                 .valid(valid)
                 .message(message)
                 .targetUserNickname(targetUserNickname)
@@ -161,8 +166,8 @@ public class UserConverter {
     }
 
     // WithdrawalResponseDTO 생성
-    public WithdrawalResponseDTO toWithdrawalResponseDTO(boolean success, String message, String withdrawalDate) {
-        return WithdrawalResponseDTO.builder()
+    public UserResponseDTO.Withdrawal toWithdrawalResponseDTO(boolean success, String message, String withdrawalDate) {
+        return UserResponseDTO.Withdrawal.builder()
                 .success(success)
                 .message(message)
                 .withdrawalDate(withdrawalDate)
@@ -170,8 +175,8 @@ public class UserConverter {
     }
 
     // KakaoLinkResponseDTO 생성
-    public KakaoLinkResponseDTO toKakaoLinkResponseDTO(boolean success, String message, String kakaoEmail, UserInfoResponseDTO userInfo) {
-        return KakaoLinkResponseDTO.builder()
+    public OAuthResponseDTO.KaKaoLink toKakaoLinkResponseDTO(boolean success, String message, String kakaoEmail, UserResponseDTO.UserInfo userInfo) {
+        return OAuthResponseDTO.KaKaoLink.builder()
                 .success(success)
                 .message(message)
                 .kakaoEmail(kakaoEmail)
@@ -180,8 +185,8 @@ public class UserConverter {
     }
 
     // KakaoAuthResponseDTO 생성 (기존 사용자)
-    public KakaoAuthResponseDTO toKakaoAuthResponseDTO(boolean isNewUser, String accessToken, UserInfoResponseDTO userInfo) {
-        return KakaoAuthResponseDTO.builder()
+    public OAuthResponseDTO.KakaoAuth toKakaoAuthResponseDTO(boolean isNewUser, String accessToken, UserResponseDTO.UserInfo userInfo) {
+        return OAuthResponseDTO.KakaoAuth.builder()
                 .isNewUser(isNewUser)
                 .accessToken(accessToken)
                 .userInfo(userInfo)
@@ -189,15 +194,15 @@ public class UserConverter {
     }
 
     // KakaoAuthResponseDTO 생성 (신규 사용자)
-    public KakaoAuthResponseDTO toKakaoAuthResponseDTO(boolean isNewUser, String tempUserId) {
-        return KakaoAuthResponseDTO.builder()
+    public OAuthResponseDTO.KakaoAuth toKakaoAuthResponseDTO(boolean isNewUser, String tempUserId) {
+        return OAuthResponseDTO.KakaoAuth.builder()
                 .isNewUser(isNewUser)
                 .tempUserId(tempUserId)
                 .build();
     }
 
     // SignupRequestDTO를 User 엔티티로 변환 (프로필 이미지 URL 포함)
-    public User toUserEntity(SignupRequestDTO request, String encodedPassword, String profileImgUrl) {
+    public User toUserEntity(UserRequestDTO.Signup request, String encodedPassword, String profileImgUrl) {
         return User.builder()
                 .email(request.getEmail())
                 .password(encodedPassword)
@@ -214,9 +219,9 @@ public class UserConverter {
     }
 
     // KakaoSignupCompleteRequestDTO와 KakaoUserInfo를 User 엔티티로 변환
-    public User toUserEntityFromKakao(KakaoUserInfo kakaoUserInfo, KakaoSignupCompleteRequestDTO request, String profileImgUrl) {
+    public User toUserEntityFromKakao(KakaoUserInfo kakaoUserInfo, OAuthRequestDTO.KaKaoSignup request, String profileImgUrl) {
         return User.builder()
-                .email(kakaoUserInfo.getEmail())
+                .email(kakaoUserInfo.getKakaoAccount().getEmail())
                 .password(null) // 카카오는 비밀번호 없음
                 .nickname(request.getNickname())
                 .role(Role.USER)

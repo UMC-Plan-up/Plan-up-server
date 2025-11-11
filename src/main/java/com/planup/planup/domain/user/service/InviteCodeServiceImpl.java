@@ -1,6 +1,6 @@
 package com.planup.planup.domain.user.service;
 
-import com.planup.planup.domain.user.dto.InviteCodeResponseDTO;
+import com.planup.planup.domain.user.dto.AuthResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -20,13 +20,13 @@ public class InviteCodeServiceImpl implements InviteCodeService {
 
     // 내 초대코드 조회/생성
     @Override
-    public InviteCodeResponseDTO getMyInviteCode(Long userId) {
+    public AuthResponseDTO.InviteCode getMyInviteCode(Long userId) {
         // 기존 코드 확인
         String key = "user:" + userId + ":invite_code";
         String existingCode = redisTemplate.opsForValue().get(key);
 
         if (existingCode != null) {
-            return InviteCodeResponseDTO.of(existingCode);
+            return AuthResponseDTO.InviteCode.of(existingCode);
         }
 
         // 새 코드 생성
@@ -36,7 +36,7 @@ public class InviteCodeServiceImpl implements InviteCodeService {
         redisTemplate.opsForValue().set(key, newCode, 3, TimeUnit.DAYS);
         redisTemplate.opsForValue().set("invite_code:" + newCode, userId.toString(), 3, TimeUnit.DAYS);
 
-        return InviteCodeResponseDTO.of(newCode);
+        return AuthResponseDTO.InviteCode.of(newCode);
     }
 
     // 초대코드로 초대한 사용자 ID 찾기

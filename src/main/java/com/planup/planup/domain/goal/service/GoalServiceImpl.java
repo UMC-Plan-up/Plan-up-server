@@ -17,7 +17,7 @@ import com.planup.planup.domain.goal.entity.GoalMemo;
 import com.planup.planup.domain.goal.repository.CommentRepository;
 import com.planup.planup.domain.goal.repository.GoalMemoRepository;
 import com.planup.planup.domain.notification.service.NotificationCreateService;
-import com.planup.planup.domain.user.entity.UserLevel;
+import com.planup.planup.domain.user.enums.UserLevel;
 import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.domain.user.service.UserStatService;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
@@ -66,7 +66,7 @@ public class GoalServiceImpl implements GoalService{
         //목표 제목 에러 처리
         validateGoalName(createGoalDto.getGoalName(), userId);
         //유저 검증
-        User user = userService.getUserbyUserId(userId);
+        User user = userService.getUserByUserId(userId);
         //레벨 별 목표 생성 제한
         validateGoalCreationLimit(user);
         //종료일 에러 처리
@@ -94,7 +94,7 @@ public class GoalServiceImpl implements GoalService{
     //목표 리스트 조회(목표 생성시 -> 세부 내용 조회X) 카테고리별 친구 목표
     @Transactional(readOnly = true)
     public List<GoalResponseDto.GoalCreateListDto> getFriendGoalsByCategory(Long userId, GoalCategory goalCategory) {
-        userService.getUserbyUserId(userId);
+        userService.getUserByUserId(userId);
 
         List<UserGoal> friendGoals = userGoalRepository.findFriendGoalsByCategory(userId, goalCategory);
 
@@ -128,7 +128,7 @@ public class GoalServiceImpl implements GoalService{
     //내 목표 조회(리스트)
     @Transactional(readOnly = true)
     public List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userService.getUserByUserId(userId);
 
         List<UserGoal> userGoals = userGoalRepository.findByUserId(userId);
 
@@ -140,8 +140,8 @@ public class GoalServiceImpl implements GoalService{
     //친구 목표 조회(리스트)
     @Transactional(readOnly = true)
     public List<GoalResponseDto.FriendGoalListDto> getFriendGoals(Long userId, Long friendsId) {
-        User user = userService.getUserbyUserId(userId);
-        userService.getUserbyUserId(friendsId);
+        User user = userService.getUserByUserId(userId);
+        userService.getUserByUserId(friendsId);
 
         friendService.isFriend(userId, friendsId);
 

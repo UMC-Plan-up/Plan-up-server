@@ -2,7 +2,7 @@ package com.planup.planup.domain.user.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
-import com.planup.planup.domain.user.dto.RandomNicknameResponseDTO;
+import com.planup.planup.domain.user.dto.UserResponseDTO;
 import com.planup.planup.domain.user.entity.Adjective;
 import com.planup.planup.domain.user.entity.Noun;
 import com.planup.planup.domain.user.entity.RandomNickname;
@@ -29,7 +29,7 @@ public class RandomNicknameServiceImpl implements RandomNicknameService {
     private final Random random = new Random();
 
     @Override
-    public RandomNicknameResponseDTO generateRandomNickname() {
+    public UserResponseDTO.RandomNickname generateRandomNickname() {
         List<Adjective> adjectives = adjectiveRepository.findAll();
         List<Noun> nouns = nounRepository.findAll();
 
@@ -40,7 +40,7 @@ public class RandomNicknameServiceImpl implements RandomNicknameService {
 
         RandomNickname randomNickname = generateNickname(adjectives, nouns);
         
-        return RandomNicknameResponseDTO.builder()
+        return UserResponseDTO.RandomNickname.builder()
                 .nickname(randomNickname.getFullNickname())
                 .build();
     }

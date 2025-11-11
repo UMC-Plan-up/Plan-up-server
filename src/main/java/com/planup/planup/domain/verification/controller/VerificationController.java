@@ -80,7 +80,7 @@ public class VerificationController {
             @Parameter(description = "목표 ID", example = "1")
             @RequestParam("goalId") Long goalId,
             @Parameter(hidden = true) @CurrentUser Long userId) {
-        userService.getUserbyUserId(userId);
+        userService.getUserByUserId(userId);
         friendService.isFriend(userId, friendId);
 
         UserGoal userGoal = userGoalService.getByGoalIdAndUserId(friendId, goalId);

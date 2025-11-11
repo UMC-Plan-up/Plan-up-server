@@ -9,7 +9,11 @@ import com.planup.planup.domain.global.service.ImageUploadService;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
 import com.planup.planup.domain.user.converter.UserConverter;
 import com.planup.planup.domain.user.dto.*;
+import com.planup.planup.domain.user.dto.external.KakaoUserInfo;
 import com.planup.planup.domain.user.entity.*;
+import com.planup.planup.domain.user.enums.Role;
+import com.planup.planup.domain.user.enums.UserActivate;
+import com.planup.planup.domain.user.enums.UserLevel;
 import com.planup.planup.domain.user.repository.TermsRepository;
 import com.planup.planup.domain.user.repository.UserRepository;
 import com.planup.planup.validation.jwt.JwtUtil;
@@ -147,9 +151,9 @@ public class UserServiceImpl implements UserService {
 
     // 사용자 정보 조회
     @Override
-    public UserInfoResponseDTO getUserInfo(Long userId) {
+    public UserResponseDTO.UserInfo getUserInfo(Long userId) {
         User user = getUserByUserId(userId);
-        return UserInfoResponseDTO.builder()
+        return UserResponseDTO.UserInfo.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .nickname(user.getNickname())
@@ -162,7 +166,7 @@ public class UserServiceImpl implements UserService {
     // 회원가입
     @Override
     @Transactional
-    public SignupResponseDTO signup(SignupRequestDTO request) {
+    public UserResponseDTO.Signup signup(UserRequestDTO.Signup request) {
         // 이메일 중복 체크
         checkEmail(request.getEmail());
 
@@ -226,7 +230,7 @@ public class UserServiceImpl implements UserService {
             redisTemplate.delete("temp_profile:" + request.getEmail());
         }
 
-        return SignupResponseDTO.builder()
+        return UserResponseDTO.Signup.builder()
                 .id(savedUser.getId())
                 .email(savedUser.getEmail())
                 .accessToken(tokenResponse.getAccessToken())
@@ -257,7 +261,7 @@ public class UserServiceImpl implements UserService {
 
     // 로그인
     @Override
-    public LoginResponseDTO login(LoginRequestDTO request) {
+    public UserResponseDTO.Login login(UserRequestDTO.Login request) {
         // 이메일로 사용자 조회
         User user = userRepository.findByEmailAndUserActivate(request.getEmail(), UserActivate.ACTIVE)
                 .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
@@ -294,15 +298,15 @@ public class UserServiceImpl implements UserService {
         log.info("로그아웃 완료 - 사용자 ID: {}", userId);
     }
 
-    private void validateRequiredTerms(List<TermsAgreementRequestDTO> agreements) {
+    private void validateRequiredTerms(List<AuthRequestDTO.TermsAgreement> agreements) {
 
         // 필수 약관 목록 조회
         List<Terms> requiredTerms = termsRepository.findByIsRequiredTrue();
 
         // 동의한 필수 약관 ID 목록
         List<Long> agreedRequiredTermsIds = agreements.stream()
-                .filter(TermsAgreementRequestDTO::isAgreed)
-                .map(TermsAgreementRequestDTO::getTermsId)
+                .filter(AuthRequestDTO.TermsAgreement::isAgreed)
+                .map(AuthRequestDTO.TermsAgreement::getTermsId)
                 .toList();
 
         // 필수 약관 중 동의하지 않은 것이 있는지 확인
@@ -314,9 +318,9 @@ public class UserServiceImpl implements UserService {
     }
 
     // 약관 동의 추가
-    private void addTermsAgreements(User user, List<TermsAgreementRequestDTO> agreements) {
+    private void addTermsAgreements(User user, List<AuthRequestDTO.TermsAgreement> agreements) {
 
-        for (TermsAgreementRequestDTO agreement : agreements) {
+        for (AuthRequestDTO.TermsAgreement agreement : agreements) {
 
             Terms terms = termsRepository.findById(agreement.getTermsId())
                     .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_TERMS));
@@ -330,7 +334,7 @@ public class UserServiceImpl implements UserService {
       
     // 카카오 계정 연동 상태 조회
     @Override
-    public KakaoAccountResponseDTO getKakaoAccountStatus(Long userId) {
+    public OAuthResponseDTO.KakaoAccount getKakaoAccountStatus(Long userId) {
         User user = getUserByUserId(userId);
         
         // 카카오톡 계정 정보 조회 (한 번에 조회)
@@ -344,7 +348,7 @@ public class UserServiceImpl implements UserService {
 
     // 프로필 이미지 업로드
     @Override
-    public ImageUploadResponseDTO uploadProfileImage(MultipartFile file, String email) {
+    public FileResponseDTO.ImageUpload uploadProfileImage(MultipartFile file, String email) {
         // 이미지 업로드
         String imageUrl = imageUploadService.uploadImage(file, "profile");
         
@@ -358,7 +362,7 @@ public class UserServiceImpl implements UserService {
     // 내 초대코드 조회
     @Override
     @Transactional
-    public ImageUploadResponseDTO updateProfileImage(Long userId, MultipartFile file) {
+    public FileResponseDTO.ImageUpload updateProfileImage(Long userId, MultipartFile file) {
         // 사용자 조회
         User user = getUserByUserId(userId);
 
@@ -374,21 +378,21 @@ public class UserServiceImpl implements UserService {
         user.updateProfileImage(newImageUrl);
         userRepository.save(user);
 
-        return ImageUploadResponseDTO.builder()
+        return FileResponseDTO.ImageUpload.builder()
                 .imageUrl(newImageUrl)
                 .build();
     }
 
     // 내 초대코드 조회 메서드
     @Override
-    public InviteCodeResponseDTO getMyInviteCode(Long userId) {
+    public AuthResponseDTO.InviteCode getMyInviteCode(Long userId) {
         return inviteCodeService.getMyInviteCode(userId);
     }
 
     // 초대코드 처리 및 친구 관계 생성
     @Override
     @Transactional
-    public InviteCodeProcessResponseDTO processInviteCode(String inviteCode, Long userId) {
+    public AuthResponseDTO.InviteCodeProcess processInviteCode(String inviteCode, Long userId) {
         // 빈 코드 체크
         if (inviteCode == null || inviteCode.trim().isEmpty()) {
             throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
@@ -431,7 +435,7 @@ public class UserServiceImpl implements UserService {
 
     // 초대코드 유효성 검증
     @Override
-    public ValidateInviteCodeResponseDTO validateInviteCode(String inviteCode) {
+    public AuthResponseDTO.ValidateInviteCode validateInviteCode(String inviteCode) {
         // 빈 코드 체크
         if (inviteCode == null || inviteCode.trim().isEmpty()) {
             throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
@@ -453,7 +457,7 @@ public class UserServiceImpl implements UserService {
     // 회원 탈퇴
     @Override
     @Transactional
-    public WithdrawalResponseDTO withdrawUser(Long userId, WithdrawalRequestDTO request) {
+    public UserResponseDTO.Withdrawal withdrawUser(Long userId, UserRequestDTO.Withdrawal request) {
         // 사용자 조회
         User user = getUserByUserId(userId);
 
@@ -518,7 +522,7 @@ public class UserServiceImpl implements UserService {
 
     // 비밀번호 변경 이메일 발송
     @Override
-    public EmailSendResponseDTO sendPasswordChangeEmail(String email, Boolean isLoggedIn) {
+    public AuthResponseDTO.EmailSend sendPasswordChangeEmail(String email, Boolean isLoggedIn) {
         // 이메일이 등록된 사용자인지 확인
         checkEmailExists(email);
 
@@ -531,7 +535,7 @@ public class UserServiceImpl implements UserService {
 
     // 비밀번호 변경 이메일 재발송
     @Override
-    public EmailSendResponseDTO resendPasswordChangeEmail(String email, Boolean isLoggedIn) {
+    public AuthResponseDTO.EmailSend resendPasswordChangeEmail(String email, Boolean isLoggedIn) {
         // 이메일이 등록된 사용자인지 확인
         checkEmailExists(email);
     
@@ -543,18 +547,18 @@ public class UserServiceImpl implements UserService {
 
     // 카카오 소셜 인증
     @Override
-    public KakaoAuthResponseDTO kakaoAuth(KakaoAuthRequestDTO request) {
+    public OAuthResponseDTO.KakaoAuth kakaoAuth(OAuthRequestDTO.KakaoAuth request) {
         KakaoUserInfo kakaoUserInfo = kakaoServiceImpl.getUserInfo(request.getCode());
-        String email = kakaoUserInfo.getEmail();
+        String email = kakaoUserInfo.getKakaoAccount().getEmail();
         return handleKakaoAuth(kakaoUserInfo, email);
     }
 
     // 카카오 계정 연동
     @Override
     @Transactional
-    public KakaoLinkResponseDTO linkKakaoAccount(Long userId, KakaoLinkRequestDTO request) {
+    public OAuthResponseDTO.KaKaoLink linkKakaoAccount(Long userId, OAuthRequestDTO.KaKaoLink request) {
         KakaoUserInfo kakaoUserInfo = kakaoServiceImpl.getUserInfo(request.getCode());
-        String email = kakaoUserInfo.getEmail();
+        String email = kakaoUserInfo.getKakaoAccount().getEmail();
         
         User user = getUserByUserId(userId);
         
@@ -583,7 +587,7 @@ public class UserServiceImpl implements UserService {
     }
 
     // 카카오 로그인/회원가입 처리
-    private KakaoAuthResponseDTO handleKakaoAuth(KakaoUserInfo kakaoUserInfo, String email) {
+    private OAuthResponseDTO.KakaoAuth handleKakaoAuth(KakaoUserInfo kakaoUserInfo, String email) {
         // 기존 사용자 확인
         Optional<OAuthAccount> existingOAuth = oAuthAccountRepository
                 .findByEmailAndProvider(email, AuthProvideerEnum.KAKAO);
@@ -599,12 +603,12 @@ public class UserServiceImpl implements UserService {
             // 토큰 생성 (TokenService 사용)
             TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
-            KakaoAuthResponseDTO response = KakaoAuthResponseDTO.builder()
+            OAuthResponseDTO.KakaoAuth response = OAuthResponseDTO.KakaoAuth.builder()
             .isNewUser(false)
             .accessToken(tokenResponse.getAccessToken())
             .refreshToken(tokenResponse.getRefreshToken())
             .expiresIn(tokenResponse.getExpiresIn())
-            .userInfo(UserInfoResponseDTO.from(user))
+            .userInfo(UserResponseDTO.UserInfo.from(user))
             .build();
         return response;
         } else {
@@ -622,7 +626,7 @@ public class UserServiceImpl implements UserService {
     // 카카오 회원가입 완료
     @Override
     @Transactional
-    public SignupResponseDTO kakaoSignupComplete(KakaoSignupCompleteRequestDTO request) {
+    public UserResponseDTO.Signup kakaoSignupComplete(OAuthRequestDTO.KaKaoSignup request) {
         // Redis에서 카카오 정보 조회
         String redisKey = TEMP_USER_PREFIX + request.getTempUserId();
         KakaoUserInfo kakaoUserInfo = (KakaoUserInfo) redisTemplate.opsForValue().get(redisKey);
@@ -635,7 +639,7 @@ public class UserServiceImpl implements UserService {
         User user = createBasicKakaoUser(kakaoUserInfo, request);
 
         // 임시 저장된 프로필 이미지 URL 가져오기
-        Object tempImageUrlObj = redisTemplate.opsForValue().get("temp_profile:" + kakaoUserInfo.getEmail());
+        Object tempImageUrlObj = redisTemplate.opsForValue().get("temp_profile:" + kakaoUserInfo.getKakaoAccount().getEmail());
         String tempImageUrl = (tempImageUrlObj != null) ? (String) tempImageUrlObj : null;
         
         // 요청에서 받은 프로필 이미지 처리 (빈 문자열은 null로 변환)
@@ -667,13 +671,13 @@ public class UserServiceImpl implements UserService {
         
         // 임시 프로필 이미지 URL 삭제
         if (tempImageUrl != null) {
-            redisTemplate.delete("temp_profile:" + kakaoUserInfo.getEmail());
+            redisTemplate.delete("temp_profile:" + kakaoUserInfo.getKakaoAccount().getEmail());
         }
 
         // 토큰 생성 (TokenService 사용)
         TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
-        return SignupResponseDTO.builder()
+        return UserResponseDTO.Signup.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .accessToken(tokenResponse.getAccessToken())
@@ -683,7 +687,7 @@ public class UserServiceImpl implements UserService {
     }
 
     // 카카오 기본 사용자 생성
-    private User createBasicKakaoUser(KakaoUserInfo kakaoUserInfo, KakaoSignupCompleteRequestDTO request) {
+    private User createBasicKakaoUser(KakaoUserInfo kakaoUserInfo, OAuthRequestDTO.KaKaoSignup request) {
         // 필수 약관 동의 검증
         if (request.getAgreements() != null) {
             validateRequiredTerms(request.getAgreements());
@@ -691,7 +695,7 @@ public class UserServiceImpl implements UserService {
 
         // User 생성
         User user = User.builder()
-                .email(kakaoUserInfo.getEmail())
+                .email(kakaoUserInfo.getKakaoAccount().getEmail())
                 .password(null) // 카카오는 비밀번호 없음
                 .nickname(request.getNickname())
                 .role(Role.USER)
@@ -707,7 +711,7 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
 
         // OAuth 계정 연결 (converter 사용)
-        OAuthAccount oAuthAccount = userConverter.toOAuthAccountEntity(savedUser, kakaoUserInfo.getEmail(), AuthProvideerEnum.KAKAO);
+        OAuthAccount oAuthAccount = userConverter.toOAuthAccountEntity(savedUser, kakaoUserInfo.getKakaoAccount().getEmail(), AuthProvideerEnum.KAKAO);
         oAuthAccountRepository.save(oAuthAccount);
 
         return savedUser;
@@ -737,7 +741,7 @@ public class UserServiceImpl implements UserService {
 
     // 이메일 변경 인증 메일 발송
     @Override
-    public EmailSendResponseDTO sendEmailChangeVerification(String currentEmail, String newEmail) {
+    public AuthResponseDTO.EmailSend sendEmailChangeVerification(String currentEmail, String newEmail) {
         // 새 이메일이 이미 사용 중인지 확인
         checkEmail(newEmail);
         
@@ -776,7 +780,7 @@ public class UserServiceImpl implements UserService {
 
     // 이메일 변경 인증 메일 재발송
     @Override
-    public EmailSendResponseDTO resendEmailChangeVerification(String currentEmail, String newEmail) {
+    public AuthResponseDTO.EmailSend resendEmailChangeVerification(String currentEmail, String newEmail) {
         // 새 이메일이 이미 사용 중인지 확인
         checkEmail(newEmail);
         
@@ -788,7 +792,7 @@ public class UserServiceImpl implements UserService {
 
     // 닉네임 중복 확인
     @Override
-    public EmailDuplicateResponseDTO checkNicknameDuplicate(String nickname) {
+    public AuthResponseDTO.EmailDuplicate checkNicknameDuplicate(String nickname) {
         boolean isAvailable = !userRepository.existsByNickname(nickname);
         
         String message = isAvailable ? 
@@ -840,13 +844,13 @@ public class UserServiceImpl implements UserService {
     }
 
     // 이메일 발송 응답 DTO 생성
-    private EmailSendResponseDTO createEmailSendResponse(String email, String verificationToken, String message) {
+    private AuthResponseDTO.EmailSend createEmailSendResponse(String email, String verificationToken, String message) {
         return userConverter.toEmailSendResponseDTO(email, verificationToken, message);
     }
 
     // 이메일 인증 발송
     @Override
-    public EmailSendResponseDTO sendEmailVerification(String email) {
+    public AuthResponseDTO.EmailSend sendEmailVerification(String email) {
         // 이메일 중복 체크
         checkEmail(email);
 
@@ -858,7 +862,7 @@ public class UserServiceImpl implements UserService {
 
     // 이메일 인증 재발송
     @Override
-    public EmailSendResponseDTO resendEmailVerification(String email) {
+    public AuthResponseDTO.EmailSend resendEmailVerification(String email) {
         // 이미 인증된 이메일인지 확인
         if (emailService.isEmailVerified(email)) {
             throw new UserException(ErrorStatus.EMAIL_ALREADY_VERIFIED);
@@ -872,7 +876,7 @@ public class UserServiceImpl implements UserService {
 
     // 이메일 인증 상태 확인
     @Override
-    public EmailVerificationStatusResponseDTO getEmailVerificationStatus(String token) {
+    public AuthResponseDTO.EmailVerificationStatus getEmailVerificationStatus(String token) {
         String email = emailService.validateToken(token);
         boolean verified = emailService.isEmailVerified(email);
 
@@ -924,7 +928,7 @@ public class UserServiceImpl implements UserService {
     // 이메일 변경 링크 클릭 처리
     @Override
     public String handleEmailChangeLink(String token) {
-        EmailVerifyLinkResponseDTO response = emailService.handleEmailChangeLink(token);
+        AuthResponseDTO.EmailVerifyLink response = emailService.handleEmailChangeLink(token);
 
         if (response.isVerified()) {
             // 실제 이메일 변경 실행
@@ -941,7 +945,7 @@ public class UserServiceImpl implements UserService {
 
     // 이메일 중복 확인
     @Override
-    public EmailDuplicateResponseDTO checkEmailDuplicate(String email) {
+    public AuthResponseDTO.EmailDuplicate checkEmailDuplicate(String email) {
         boolean isAvailable = isEmailAvailable(email);
 
         return userConverter.toEmailDuplicateResponseDTO(isAvailable, isAvailable ? "사용 가능한 이메일입니다." : "이미 사용 중인 이메일입니다.");
@@ -949,14 +953,14 @@ public class UserServiceImpl implements UserService {
 
     // 이메일 변경 인증 메일 발송 (userId 기반)
     @Override
-    public EmailSendResponseDTO sendEmailChangeVerification(Long userId, String newEmail) {
+    public AuthResponseDTO.EmailSend sendEmailChangeVerification(Long userId, String newEmail) {
         User currentUser = getUserByUserId(userId);
         return sendEmailChangeVerification(currentUser.getEmail(), newEmail);
     }
 
     // 이메일 변경 인증 메일 재발송 (userId 기반)
     @Override
-    public EmailSendResponseDTO resendEmailChangeVerification(Long userId, String newEmail) {
+    public AuthResponseDTO.EmailSend resendEmailChangeVerification(Long userId, String newEmail) {
         User currentUser = getUserByUserId(userId);
         return resendEmailChangeVerification(currentUser.getEmail(), newEmail);
     }

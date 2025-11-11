@@ -43,7 +43,7 @@ public class FriendServiceImpl implements FriendService {
     @Transactional(readOnly = true)
     public List<FriendResponseDTO.FriendSummaryList> getFriendSummeryList(Long userId) {
 
-        User user = userService.getUserbyUserId(userId);
+        User user = userService.getUserByUserId(userId);
 
         List<Friend> friendList = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(FriendStatus.ACCEPTED, user.getId(), FriendStatus.ACCEPTED, user.getId());
 
@@ -280,8 +280,8 @@ public class FriendServiceImpl implements FriendService {
         }
 
         // 유저 엔티티 조회
-        User user = userService.getUserbyUserId(userId);
-        User friendUser = userService.getUserbyUserId(friendId);
+        User user = userService.getUserByUserId(userId);
+        User friendUser = userService.getUserByUserId(friendId);
 
         // Friend 엔티티 생성
         Friend friendRequest = new Friend();
@@ -321,7 +321,7 @@ public class FriendServiceImpl implements FriendService {
     @Override
     @Transactional(readOnly = true)
     public List<BlockedFriendResponseDTO> getBlockedFriends(Long userId) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userService.getUserByUserId(userId);
 
         // 사용자가 차단한 친구 목록 조회 (user가 차단한 경우만)
         List<Friend> blockedFriends = friendRepository.findByUserAndStatusOrderByCreatedAtDesc(user, FriendStatus.BLOCKED);
@@ -342,7 +342,7 @@ public class FriendServiceImpl implements FriendService {
     @Override
     @Transactional
     public Long unblockFriend(Long userId, String friendNickname) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userService.getUserByUserId(userId);
 
         // 사용자가 해당 닉네임의 친구를 차단한 관계를 찾음
         Optional<Friend> blockedFriend = friendRepository.findByUserAndFriend_NicknameAndStatus(user, friendNickname, FriendStatus.BLOCKED);

@@ -29,7 +29,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional(readOnly = true)
     public List<NotificationResponseDTO.NotificationDTO> getUnreadNotifications(Long receiverId) {
-        User receiver = userService.getUserbyUserId(receiverId);
+        User receiver = userService.getUserByUserId(receiverId);
         List<Notification> notifications = notificationRepository.findByReceiverAndIsReadFalseOrderByCreatedAtDesc(receiver);
         return notifications.stream().map(NotificationConverter::toNotificationDTO).collect(Collectors.toList());
     }
@@ -37,7 +37,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional(readOnly = true)
     public List<NotificationResponseDTO.NotificationDTO> getUnreadNotificationsWithType(Long receiverId, String type) {
-        User receiver = userService.getUserbyUserId(receiverId);
+        User receiver = userService.getUserByUserId(receiverId);
         List<Notification> notifications = notificationRepository.findUnreadByReceiverAndType(receiver);
         List<Notification> filteredNotificationList = notifications.stream().filter(no -> no.getType().getGroup().toString().equals(type)).toList();
         return filteredNotificationList.stream().map(NotificationConverter::toNotificationDTO).collect(Collectors.toList());
@@ -47,7 +47,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional(readOnly = true)
     public List<NotificationResponseDTO.NotificationDTO> getAllNotifications(Long receiverId) {
-        User receiver = userService.getUserbyUserId(receiverId);
+        User receiver = userService.getUserByUserId(receiverId);
         return NotificationConverter.toNotificationDTOs(notificationRepository.findByReceiverIdOrderByCreatedAtDesc(receiver));
     }
 
@@ -65,7 +65,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     //해당 변경을 할 수 있는 권한이 있는지 확인
     private void validateReceiver(Notification notification, Long userId) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userService.getUserByUserId(userId);
         if (!notification.getReceiver().equals(user)) {
             throw new NotificationError(ErrorStatus.UNAUTHORIZED_NOTIFICATION_ACCESS);
         }
@@ -75,7 +75,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional(readOnly = true)
     public List<NotificationResponseDTO.NotificationDTO> getTop5RecentByUser(Long userId) {
-        User receiver = userService.getUserbyUserId(userId);
+        User receiver = userService.getUserByUserId(userId);
         List<Notification> notificationList = notificationRepository.findTop3ByReceiverOrderByCreatedAtDesc(receiver);
         return NotificationConverter.toNotificationDTOs(notificationList);
     }
@@ -85,8 +85,8 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId) {
 
-        User receiver = userService.getUserbyUserId(receiverId);
-        User sender = userService.getUserbyUserId(senderId);
+        User receiver = userService.getUserByUserId(receiverId);
+        User sender = userService.getUserByUserId(senderId);
 
         Notification notification = Notification.builder()
                 .receiver(receiver)
@@ -104,8 +104,8 @@ public class NotificationServiceImpl implements NotificationService {
     public Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId, List<String> updatedParts) {
         String updatedPartsStr = String.join(", ", updatedParts);
 
-        User receiver = userService.getUserbyUserId(receiverId);
-        User sender = userService.getUserbyUserId(senderId);
+        User receiver = userService.getUserByUserId(receiverId);
+        User sender = userService.getUserByUserId(senderId);
 
         Notification notification = Notification.builder()
                 .receiver(receiver)

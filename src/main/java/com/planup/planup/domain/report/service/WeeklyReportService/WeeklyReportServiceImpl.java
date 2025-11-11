@@ -59,7 +59,7 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
     @Override
     @Transactional(readOnly = true)
     public List<Integer> searchWeeklyReport(Long userId, int year, int month) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userService.getUserByUserId(userId);
 
         ArrayList<Integer> weeks = new ArrayList<>();
         List<WeeklyReport> reports = weeklyReportRepository.findByUserAndYearAndMonth(user, year, month);
@@ -73,7 +73,7 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
     @Override
     @Transactional(readOnly = true)
     public WeeklyReportResponseDTO.achievementResponse getWeeklyGoalAchievements(Long userId) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userService.getUserByUserId(userId);
 
         List<NotificationResponseDTO.NotificationDTO> notificationList = notificationService.getTop5RecentByUser(userId);
         List<UserBadge> userBadgeList = userBadgeService.getTop5Recent(user);
@@ -88,7 +88,7 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
     @Override
     @Transactional(readOnly = true)
     public WeeklyReportResponseDTO.WeeklyReportResponse getWeeklyReport(Long userId, int year, int month, int week) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userService.getUserByUserId(userId);
 
         WeeklyReport weeklyReport = weeklyReportRepository.findByUserAndYearAndMonthAndWeekNumber(user, year, month, week).orElseThrow(() -> new ReportException(ErrorStatus.NOT_FOUND_WEEKLY_REPORT));
         List<BadgeType> badges = userBadgeService.getBadgeInPeriod(weeklyReport.getUser(), weeklyReport.getStartDate(), weeklyReport.getEndDate());

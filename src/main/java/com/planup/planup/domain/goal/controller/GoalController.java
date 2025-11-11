@@ -177,7 +177,7 @@ public class GoalController {
             @PathVariable Long friendId,
             @PathVariable Long goalId,
             @CurrentUser Long userId) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userService.getUserByUserId(userId);
         friendService.isFriend(userId, friendId);
 
         List<PhotoVerificationResponseDto.uploadPhotoResponseDto> result =

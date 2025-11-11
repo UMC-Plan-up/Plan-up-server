@@ -115,7 +115,7 @@ public class EncouragementService {
         LocalDate today = LocalDate.now();
         
         // 사용자 정보
-        User user = userService.getUserbyUserId(userId);
+        User user = userService.getUserByUserId(userId);
         
         // 활성 목표 목록
         List<UserGoal> activeGoals = userGoalService.getActiveUserGoalsByUser(userId, today);
@@ -198,7 +198,7 @@ public class EncouragementService {
     }
 
     private String buildPrompt(UserData userData) {
-        User user = userService.getUserbyUserId(userData.userId());
+        User user = userService.getUserByUserId(userData.userId());
         
         // 목표 정보 포맷팅
         String goalInfo = userData.activeGoals().isEmpty() ? "활성 목표 없음" :
@@ -267,7 +267,7 @@ public class EncouragementService {
     }
 
     private String getDefaultMessage(UserData userData) {
-        User user = userService.getUserbyUserId(userData.userId());
+        User user = userService.getUserByUserId(userData.userId());
         
         String[] defaultMessages = {
             "%s님, 정말 열심히 하고 계시네요! 💪 꾸준히 노력하는 모습이 정말 대단해요! ✨",
