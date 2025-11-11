@@ -3,6 +3,7 @@ package com.planup.planup.domain.friend.service.userBlockService;
 import com.planup.planup.domain.friend.converter.FriendConverter;
 import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
 import com.planup.planup.domain.friend.dto.UnblockFriendRequestDTO;
+import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.entity.UserBlock;
 import com.planup.planup.domain.friend.repository.FriendRepository;
@@ -81,7 +82,11 @@ public class UserBlockServiceImpl implements UserBlockService {
         userBlockRepository.save(userBlock);
 
         //친구 관계라면 자동 취소
-        friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.ACCEPTED, friendId, user.getId());
+        Optional<Friend> friends = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.ACCEPTED, friendId, user.getId());
+        friends.ifPresent(friend -> friend.setStatus(FriendStatus.UNFRIENDED));
+
+        Optional<Friend> requestedFriend = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.REQUESTED, friendId, user.getId());
+        requestedFriend.ifPresent(friend -> friend.setStatus(FriendStatus.REJECTED));
 
         return true;
     }
