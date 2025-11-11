@@ -1,4 +1,4 @@
-package com.planup.planup.domain.user.entity;
+package com.planup.planup.domain.user.enums;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

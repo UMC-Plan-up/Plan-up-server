@@ -1,4 +1,4 @@
-package com.planup.planup.domain.user.entity;
+package com.planup.planup.domain.user.enums;
 
 import java.util.Arrays;
 
