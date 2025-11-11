@@ -3,8 +3,11 @@ package com.planup.planup.domain.friend.service.userBlockService;
 import com.planup.planup.domain.friend.converter.FriendConverter;
 import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
 import com.planup.planup.domain.friend.dto.UnblockFriendRequestDTO;
+import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.entity.UserBlock;
+import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.friend.repository.UserBlockRepository;
+import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.friend.service.policy.UserBlockValidator;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
@@ -27,6 +30,7 @@ public class UserBlockServiceImpl implements UserBlockService {
     private final FriendConverter friendConverter;
     private final UserBlockValidator userBlockValidator;
     private final UserService userService;
+    private final FriendRepository friendRepository;
 
     @Override
     public List<BlockedFriendResponseDTO> getBlockedFriends(Long userId) {
@@ -75,6 +79,9 @@ public class UserBlockServiceImpl implements UserBlockService {
                 .build();
 
         userBlockRepository.save(userBlock);
+
+        //친구 관계라면 자동 취소
+        friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.ACCEPTED, friendId, user.getId());
 
         return true;
     }
