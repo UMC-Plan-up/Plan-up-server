@@ -117,9 +117,6 @@ public class UserServiceImpl implements UserService {
         user.updateServiceNotificationAllow();
         return true;
     }
-
-
-
     
     @Override
     public Boolean isPasswordChangeEmailVerified(String email) {
