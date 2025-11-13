@@ -106,16 +106,14 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public boolean updateMarketingNotificationAllow(Long userId) {
         User user = getUserbyUserId(userId);
-        user.updateMarketingNotificationAllow();
-        return true;
+        return user.updateMarketingNotificationAllow();
     }
 
     @Override
     @Transactional
     public boolean updateServiceNotificationAllow(Long userId) {
         User user = getUserbyUserId(userId);
-        user.updateServiceNotificationAllow();
-        return true;
+        return user.updateServiceNotificationAllow();
     }
     
     @Override

@@ -100,12 +100,14 @@ public class User extends BaseTimeEntity {
         this.nickname = nickname;
     }
 
-    public void updateMarketingNotificationAllow() {
+    public boolean updateMarketingNotificationAllow() {
         this.marketingNotificationAllow = !this.marketingNotificationAllow;
+        return this.marketingNotificationAllow;
     }
 
-    public void updateServiceNotificationAllow() {
+    public boolean updateServiceNotificationAllow() {
         this.serviceNotificationAllow = !this.serviceNotificationAllow;
+        return this.serviceNotificationAllow;
     }
 
     public void setPassword(String password) {
