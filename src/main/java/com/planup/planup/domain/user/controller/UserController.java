@@ -57,8 +57,6 @@ public class UserController {
         return ApiResponse.onSuccess(userService.updateNotificationAgree(userId));
     }
 
-
-
     @Operation(summary = "비밀번호 변경", description = "이메일 인증 토큰으로 비밀번호를 변경한다.")
     @PostMapping("/users/password/change")
     public ApiResponse<Boolean> changePasswordWithToken(@RequestBody PasswordChangeWithTokenRequestDTO request) {

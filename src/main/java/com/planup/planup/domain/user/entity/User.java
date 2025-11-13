@@ -97,11 +97,7 @@ public class User extends BaseTimeEntity {
     }
 
     public void switchAlarmAllow() {
-        if (this.alarmAllow == true) {
-            this.alarmAllow = false;
-        } else {
-            this.alarmAllow = true;
-        }
+        this.alarmAllow = !this.alarmAllow;
     }
 
     public void setPassword(String password) {
