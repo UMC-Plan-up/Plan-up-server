@@ -11,8 +11,6 @@ import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.friend.service.policy.FriendValidator;
 import com.planup.planup.domain.friend.service.policy.UserBlockValidator;
 import com.planup.planup.domain.friend.service.userBlockService.UserBlockServiceImpl;
-import com.planup.planup.domain.notification.entity.NotificationType;
-import com.planup.planup.domain.notification.entity.TargetType;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
@@ -31,10 +29,8 @@ import java.util.Optional;
 public class FriendWriteServiceImpl implements FriendWriteService {
 
     private final FriendRepository friendRepository;
-    private final NotificationService notificationService;
     private final UserService userService;
     private final FriendValidator friendValidator;
-    private final UserBlockServiceImpl userBlockService;
     private final UserBlockValidator userBlockValidator;
     private final ApplicationEventPublisher publisher;
 
