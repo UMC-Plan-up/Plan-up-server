@@ -10,6 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UnblockFriendRequestDTO {
-    private Long userId; // 차단 해제를 요청하는 사용자 ID
     private Long friendId; // 차단 해제할 친구의 닉네임
 } 
