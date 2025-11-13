@@ -21,5 +21,11 @@ public class SignupResponseDTO {
     @Schema(description = "JWT 액세스 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     private String accessToken;
 
+    @Schema(description = "JWT 리프레시 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+    private String refreshToken;
+
+    @Schema(description = "액세스 토큰 만료 시간 (초)", example = "3600")
+    private Long expiresIn;
+
     private UserInfoResponseDTO userInfo;
 }

@@ -14,6 +14,12 @@ public class LoginResponseDTO {
     @Schema(description = "JWT 액세스 토큰", example = "eyJhbGciOiJIUz...")
     private String accessToken;
 
+    @Schema(description = "JWT 리프레시 토큰", example = "eyJhbGciOiJIUz...")
+    private String refreshToken;
+
+    @Schema(description = "액세스 토큰 만료 시간 (초)", example = "3600")
+    private Long expiresIn;
+
     @Schema(description = "회원 닉네임", example = "라미")
     private String nickname;
 

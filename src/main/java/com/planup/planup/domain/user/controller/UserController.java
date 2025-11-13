@@ -10,6 +10,10 @@ import com.planup.planup.domain.user.service.EmailService;
 import com.planup.planup.domain.user.service.RandomNicknameService;
 import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.validation.annotation.CurrentUser;
+import com.planup.planup.validation.jwt.dto.TokenRefreshRequestDTO;
+import com.planup.planup.validation.jwt.dto.TokenRefreshResponseDTO;
+import com.planup.planup.validation.jwt.service.TokenService;
+import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
@@ -33,6 +37,7 @@ public class UserController {
     private final EmailService emailService;
     private final UserConverter userConverter;
     private final RandomNicknameService randomNicknameService;
+    private final TokenService tokenService;
 
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
@@ -46,15 +51,23 @@ public class UserController {
 
     @Operation(summary = "새로운 nickname으로 수정", description = "입력된 닉네임을 중복 닉네임이 있는지 확인하고 수정")
     @PostMapping("/mypage/profile/nickname")
-    public ApiResponse<String> updateNickname(@Parameter(hidden = true) @CurrentUser Long userId, @RequestBody String nickname) {
-        String newNickname = userService.updateNickname(userId, nickname);
+    public ApiResponse<String> updateNickname(@Parameter(hidden = true) @CurrentUser Long userId, @Valid @RequestBody UpdateNicknameRequestDTO request) {
+        String newNickname = userService.updateNickname(userId, request.getNickname());
         return ApiResponse.onSuccess(newNickname);
     }
 
-    @Operation(summary = "혜택 및 마케팅 동의 변경", description = "혜택 동의가 되어있다면 비활성화, 동의가 안되어있으면 동의로 변경")
-    @PatchMapping("/mypage/notification/agree")
-    public ApiResponse<Boolean> updateNotificationAgree(@Parameter(hidden = true) @CurrentUser Long userId) {
-        return ApiResponse.onSuccess(userService.updateNotificationAgree(userId));
+    @Operation(summary = "서비스 알림 동의 변경", description = "서비스 알림 동의가 되어있다면 비활성화, 동의가 안되어있으면 동의로 변경")
+    @PatchMapping("/mypage/notification/service")
+    public ApiResponse<Boolean> updateServiceNotificationAllow(@Parameter(hidden = true) @CurrentUser Long userId) {
+        userService.updateServiceNotificationAllow(userId);
+        return ApiResponse.onSuccess(true);
+    }
+
+    @Operation(summary = "혜택 및 마케팅 동의 변경", description = "혜택 및 마케팅 알림 동의가 되어있다면 비활성화, 동의가 안되어있으면 동의로 변경")
+    @PatchMapping("/mypage/notification/marketing")
+    public ApiResponse<Boolean> updateMarketingNotificationAllow(@Parameter(hidden = true) @CurrentUser Long userId) {
+        userService.updateMarketingNotificationAllow(userId);
+        return ApiResponse.onSuccess(true);
     }
 
     @Operation(summary = "비밀번호 변경", description = "이메일 인증 토큰으로 비밀번호를 변경한다.")
@@ -112,11 +125,52 @@ public class UserController {
         return ApiResponse.onSuccess(result);
     }
 
-    @Operation(summary = "로그아웃", description = "현재 세션을 종료합니다")
+    @Operation(summary = "로그아웃", description = "현재 사용자를 로그아웃합니다")
     @PostMapping("/users/logout")
-    public ApiResponse<String> logout() {
-        // 간단한 로그아웃 구현 (JWT는 클라이언트에서 삭제)
-        return ApiResponse.onSuccess("로그아웃이 완료되었습니다");
+    public ApiResponse<String> logout(
+            @Parameter(hidden = true) @CurrentUser Long userId,
+            HttpServletRequest httpRequest) {
+        
+        try {
+            userService.logout(userId, httpRequest);
+            return ApiResponse.onSuccess("로그아웃되었습니다");
+            
+        } catch (Exception e) {
+            log.error("로그아웃 실패: {}", e.getMessage());
+            return ApiResponse.onFailure("LOGOUT_FAILED", e.getMessage(), null);
+        }
+    }
+
+    @Operation(summary = "토큰 갱신", description = "리프레쉬 토큰을 사용하여 새로운 액세스 토큰을 발급받습니다")
+    @PostMapping("/users/refresh")
+    public ApiResponse<TokenRefreshResponseDTO> refreshToken(
+            @Valid @RequestBody TokenRefreshRequestDTO request) {
+        
+        try {
+            TokenRefreshResponseDTO response = tokenService.refreshAccessToken(
+                request.getRefreshToken()
+            );
+            
+            return ApiResponse.onSuccess(response);
+            
+        } catch (Exception e) {
+            log.error("토큰 갱신 실패: {}", e.getMessage());
+            return ApiResponse.onFailure("TOKEN_REFRESH_FAILED", e.getMessage(), null);
+        }
+    }
+
+    @Operation(summary = "토큰 유효성 확인", description = "현재 액세스 토큰의 유효성을 확인합니다")
+    @GetMapping("/users/validate")
+    public ApiResponse<String> validateToken(
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+        
+        try {
+            return ApiResponse.onSuccess("토큰이 유효합니다");
+            
+        } catch (Exception e) {
+            log.error("토큰 유효성 확인 실패: {}", e.getMessage());
+            return ApiResponse.onFailure("TOKEN_VALIDATION_FAILED", e.getMessage(), null);
+        }
     }
 
     @Operation(summary = "카카오톡 계정 연동 상태 확인", description = "사용자의 카카오톡 계정 연동 여부와 연동된 이메일을 확인합니다")
@@ -135,6 +189,17 @@ public class UserController {
             @RequestParam String email) {
 
         ImageUploadResponseDTO response = userService.uploadProfileImage(file, email);
+        return ApiResponse.onSuccess(response);
+    }
+
+    @Operation(summary = "마이페이지 프로필 사진 변경", description = "로그인한 사용자의 프로필 사진을 업로드하거나 변경합니다.")
+    @PostMapping(value = "/mypage/profile/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<ImageUploadResponseDTO> updateProfileImage(
+            @Parameter(description = "업로드할 이미지 파일", required = true)
+            @RequestPart("file") MultipartFile file,
+            @Parameter(hidden = true) @CurrentUser Long userId) {
+
+        ImageUploadResponseDTO response = userService.updateProfileImage(userId, file);
         return ApiResponse.onSuccess(response);
     }
 

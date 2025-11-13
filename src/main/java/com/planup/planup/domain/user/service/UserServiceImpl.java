@@ -13,6 +13,8 @@ import com.planup.planup.domain.user.repository.InvitedUserRepository;
 import com.planup.planup.domain.user.repository.TermsRepository;
 import com.planup.planup.domain.user.repository.UserRepository;
 import com.planup.planup.validation.jwt.JwtUtil;
+import com.planup.planup.validation.jwt.dto.TokenResponseDTO;
+import com.planup.planup.validation.jwt.service.TokenService;
 import com.planup.planup.domain.user.repository.UserTermsRepository;
 import com.planup.planup.domain.user.dto.UserInfoResponseDTO;
 import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
@@ -49,6 +51,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final TokenService tokenService;
     private final TermsRepository termsRepository;
     private final UserTermsRepository userTermsRepository;
     private final OAuthAccountRepository oAuthAccountRepository;
@@ -101,12 +104,23 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public boolean updateNotificationAgree(Long userId) {
+    public boolean updateMarketingNotificationAllow(Long userId) {
         User user = getUserbyUserId(userId);
-        user.switchAlarmAllow();
-        return user.getAlarmAllow();
+        user.updateMarketingNotificationAllow();
+        return true;
     }
 
+    @Override
+    @Transactional
+    public boolean updateServiceNotificationAllow(Long userId) {
+        User user = getUserbyUserId(userId);
+        user.updateServiceNotificationAllow();
+        return true;
+    }
+
+
+
+    
     @Override
     public Boolean isPasswordChangeEmailVerified(String email) {
         return emailService.isPasswordChangeEmailVerified(email);
@@ -143,6 +157,8 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .profileImg(user.getProfileImg())
+                .serviceNotificationAllow(user.getServiceNotificationAllow())
+                .marketingNotificationAllow(user.getMarketingNotificationAllow())
                 .build();
     }
 
@@ -189,7 +205,8 @@ public class UserServiceImpl implements UserService {
                 .role(Role.USER)
                 .userActivate(UserActivate.ACTIVE)
                 .userLevel(UserLevel.LEVEL_1)
-                .alarmAllow(true)
+                .serviceNotificationAllow(true) // 서비스 알림 기본값: true
+                .marketingNotificationAllow(true) // 혜택 및 마케팅 알림 기본값: true
                 .profileImg(profileImgUrl)
                 .emailVerified(true)
                 .emailVerifiedAt(LocalDateTime.now())
@@ -200,8 +217,8 @@ public class UserServiceImpl implements UserService {
         // 약관 동의 추가
         addTermsAgreements(savedUser, request.getAgreements());
 
-        // JWT 토큰 생성
-        String accessToken = jwtUtil.generateToken(savedUser.getEmail(), savedUser.getRole().toString(), savedUser.getId());
+        // 토큰 생성 (TokenService 사용)
+        TokenResponseDTO tokenResponse = tokenService.generateTokens(savedUser);
 
         // 인증 토큰 정리
         emailService.clearVerificationToken(request.getEmail());
@@ -214,7 +231,9 @@ public class UserServiceImpl implements UserService {
         return SignupResponseDTO.builder()
                 .id(savedUser.getId())
                 .email(savedUser.getEmail())
-                .accessToken(accessToken)
+                .accessToken(tokenResponse.getAccessToken())
+                .refreshToken(tokenResponse.getRefreshToken())
+                .expiresIn(tokenResponse.getExpiresIn())
                 .build();
     }
 
@@ -250,12 +269,14 @@ public class UserServiceImpl implements UserService {
                 throw new UserException(ErrorStatus.INVALID_CREDENTIALS);
             }
 
-            // JWT 토큰 생성
-            String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+            // 토큰 생성 (TokenService 사용)
+            TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
             // 응답 DTO 생성
             return LoginResponseDTO.builder()
-                    .accessToken(accessToken)
+                    .accessToken(tokenResponse.getAccessToken())
+                    .refreshToken(tokenResponse.getRefreshToken())
+                    .expiresIn(tokenResponse.getExpiresIn())
                     .nickname(user.getNickname())
                     .profileImgUrl(user.getProfileImg())
                     .message("로그인에 성공했습니다")
@@ -277,6 +298,25 @@ public class UserServiceImpl implements UserService {
                     .message(errorMessage)
                     .build();
         }
+    }
+
+    @Override
+    @Transactional
+    public void logout(Long userId, jakarta.servlet.http.HttpServletRequest request) {
+        // Authorization 헤더에서 액세스 토큰 추출
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String accessToken = jwtUtil.extractTokenFromHeader(authHeader);
+            if (accessToken != null) {
+                // 액세스 토큰 블랙리스트 추가
+                tokenService.blacklistAccessToken(accessToken);
+            }
+        }
+        
+        // 리프레시 토큰 삭제
+        tokenService.logout(userId);
+        
+        log.info("로그아웃 완료 - 사용자 ID: {}", userId);
     }
 
     private void validateRequiredTerms(List<TermsAgreementRequestDTO> agreements) {
@@ -345,6 +385,29 @@ public class UserServiceImpl implements UserService {
         
         return ImageUploadResponseDTO.builder()
                 .imageUrl(imageUrl)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public ImageUploadResponseDTO updateProfileImage(Long userId, MultipartFile file) {
+        // 사용자 조회
+        User user = getUserbyUserId(userId);
+        
+        // 기존 프로필 이미지가 있다면 S3에서 삭제
+        if (user.getProfileImg() != null && !user.getProfileImg().trim().isEmpty()) {
+            imageUploadService.deleteImage(user.getProfileImg());
+        }
+        
+        // 새 이미지 업로드
+        String newImageUrl = imageUploadService.uploadImage(file, "profile");
+        
+        // 사용자 프로필 이미지 업데이트
+        user.updateProfileImage(newImageUrl);
+        userRepository.save(user);
+        
+        return ImageUploadResponseDTO.builder()
+                .imageUrl(newImageUrl)
                 .build();
     }
 
@@ -662,11 +725,14 @@ public class UserServiceImpl implements UserService {
                 throw new UserException(ErrorStatus.USER_INACTIVE);
             }
 
-            String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+            // 토큰 생성 (TokenService 사용)
+            TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
             KakaoAuthResponseDTO response = KakaoAuthResponseDTO.builder()
             .isNewUser(false)
-            .accessToken(accessToken)
+            .accessToken(tokenResponse.getAccessToken())
+            .refreshToken(tokenResponse.getRefreshToken())
+            .expiresIn(tokenResponse.getExpiresIn())
             .userInfo(UserInfoResponseDTO.from(user))
             .build();
         return response;
@@ -735,13 +801,15 @@ public class UserServiceImpl implements UserService {
             redisTemplate.delete("temp_profile:" + kakaoUserInfo.getEmail());
         }
 
-        // JWT 토큰 생성 및 응답
-        String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+        // 토큰 생성 (TokenService 사용)
+        TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
         return SignupResponseDTO.builder()
                 .id(user.getId())
                 .email(user.getEmail())
-                .accessToken(accessToken)
+                .accessToken(tokenResponse.getAccessToken())
+                .refreshToken(tokenResponse.getRefreshToken())
+                .expiresIn(tokenResponse.getExpiresIn())
                 .build();
     }
 
@@ -760,7 +828,8 @@ public class UserServiceImpl implements UserService {
                 .role(Role.USER)
                 .userActivate(UserActivate.ACTIVE)
                 .userLevel(UserLevel.LEVEL_1)
-                .alarmAllow(true)
+                .serviceNotificationAllow(true) // 서비스 알림 기본값: true
+                .marketingNotificationAllow(true) // 혜택 및 마케팅 알림 기본값: true
                 .profileImg(request.getProfileImg())
                 .emailVerified(true)
                 .emailVerifiedAt(LocalDateTime.now())

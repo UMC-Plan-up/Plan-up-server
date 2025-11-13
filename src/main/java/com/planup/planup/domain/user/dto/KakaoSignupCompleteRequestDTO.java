@@ -2,6 +2,8 @@ package com.planup.planup.domain.user.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +18,8 @@ public class KakaoSignupCompleteRequestDTO {
     private String tempUserId;
 
     @NotBlank(message = "닉네임은 필수입니다")
+    @Size(max = 20, message = "닉네임은 공백 포함 20자 이하여야 합니다.")
+    @Pattern(regexp = "^[가-힣a-zA-Z0-9 ]+$", message = "닉네임은 한글, 영문, 숫자, 공백만 가능합니다(특수문자 불가)")
     @Schema(description = "사용자 닉네임", example = "테스트유저")
     private String nickname;
 

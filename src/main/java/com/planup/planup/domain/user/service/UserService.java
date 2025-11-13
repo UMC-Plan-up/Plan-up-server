@@ -13,7 +13,9 @@ public interface UserService {
 
     String updateNickname(Long userId, String nickname);
 
-    boolean updateNotificationAgree(Long userId);
+    boolean updateMarketingNotificationAllow(Long userId); // 혜택 및 마케팅 알림 변경
+    
+    boolean updateServiceNotificationAllow(Long userId); // 서비스 알림 변경
 
 
     
@@ -47,6 +49,9 @@ public interface UserService {
 
     ImageUploadResponseDTO uploadProfileImage(MultipartFile file, String email);
 
+    // 마이페이지 프로필 이미지 업데이트
+    ImageUploadResponseDTO updateProfileImage(Long userId, MultipartFile file);
+
     InviteCodeResponseDTO getMyInviteCode(Long userId);
 
     InviteCodeProcessResponseDTO processInviteCode(String inviteCode, Long userId);
@@ -77,4 +82,7 @@ public interface UserService {
     EmailDuplicateResponseDTO checkNicknameDuplicate(String nickname);
 
     List<User> getFriendsByUserId(Long creatorId);
+
+    // 로그아웃
+    void logout(Long userId, jakarta.servlet.http.HttpServletRequest request);
 }

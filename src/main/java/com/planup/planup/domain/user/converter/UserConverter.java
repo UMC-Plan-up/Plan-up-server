@@ -26,7 +26,8 @@ public class UserConverter {
                     .role(Role.USER)
                     .userActivate(UserActivate.ACTIVE)
                     .userLevel(UserLevel.LEVEL_1)
-                    .alarmAllow(true)
+                    .serviceNotificationAllow(true) // 서비스 알림 기본값: true
+                    .marketingNotificationAllow(true) // 혜택 및 마케팅 알림 기본값: true
                     .profileImg(request.getProfileImg())
                     .build();
 
