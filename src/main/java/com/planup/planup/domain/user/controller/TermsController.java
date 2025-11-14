@@ -2,7 +2,7 @@ package com.planup.planup.domain.user.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.user.dto.AuthResponseDTO;
-import com.planup.planup.domain.user.service.TermsService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,12 +15,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TermsController {
 
-    private final TermsService termsService;
+    private final UserQueryService userQueryService;
 
     @GetMapping
     @Operation(summary = "약관 목록 조회", description = "회원가입 시 체크박스 표시용 약관 목록을 조회합니다.")
     public ResponseEntity<ApiResponse<List<AuthResponseDTO.TermsList>>> getTermsList() {
-        List<AuthResponseDTO.TermsList> termsList = termsService.getTermsList();
+        List<AuthResponseDTO.TermsList> termsList = userQueryService.getTermsList();
         return ResponseEntity.ok(ApiResponse.onSuccess(termsList));
     }
 
@@ -29,7 +29,7 @@ public class TermsController {
     public ResponseEntity<ApiResponse<AuthResponseDTO.TermsDetail>> getTermsDetail(
             @PathVariable Long termsId) {
 
-        AuthResponseDTO.TermsDetail termsDetail = termsService.getTermsDetail(termsId);
+        AuthResponseDTO.TermsDetail termsDetail = userQueryService.getTermsDetail(termsId);
         return ResponseEntity.ok(ApiResponse.onSuccess(termsDetail));
     }
 }

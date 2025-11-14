@@ -1,4 +1,4 @@
-package com.planup.planup.domain.user.service;
+package com.planup.planup.domain.user.service.external;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
@@ -17,7 +17,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class KakaoServiceImpl implements KaKaoService{
+public class KakaoServiceImpl implements KaKaoService {
 
     private final WebClient webClient = WebClient.builder().build();
 

@@ -2,8 +2,9 @@ package com.planup.planup.domain.user.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.user.dto.*;
-import com.planup.planup.domain.user.service.RandomNicknameService;
-import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.user.service.command.UserAuthCommandService;
+import com.planup.planup.domain.user.service.command.UserProfileCommandService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import com.planup.planup.validation.annotation.CurrentUser;
 import com.planup.planup.validation.jwt.dto.TokenRefreshRequestDTO;
 import com.planup.planup.validation.jwt.dto.TokenRefreshResponseDTO;
@@ -28,77 +29,78 @@ import com.planup.planup.domain.user.dto.OAuthResponseDTO;
 @Slf4j
 public class UserController {
 
-    private final UserService userService;
-    private final RandomNicknameService randomNicknameService;
+    private final UserAuthCommandService userAuthCommandService;
     private final TokenService tokenService;
+    private final UserProfileCommandService userProfileCommandService;
+    private final UserQueryService userQueryService;
 
     @Operation(summary = "nickname 변경 요청", description = "닉네임을 변경하기 위해 기존 닉네임 호출")
     @GetMapping("/mypage/profile/nickname")
     public ApiResponse<String> updateNicknameReq(@Parameter(hidden = true) @CurrentUser Long userId) {
-        String nickname = userService.getNickname(userId);
+        String nickname = userQueryService.getNickname(userId);
         return ApiResponse.onSuccess(nickname);
     }
 
     @Operation(summary = "새로운 nickname으로 수정", description = "입력된 닉네임을 중복 닉네임이 있는지 확인하고 수정")
     @PostMapping("/mypage/profile/nickname")
     public ApiResponse<String> updateNickname(@Parameter(hidden = true) @CurrentUser Long userId, @Valid @RequestBody UserRequestDTO.UpdateNickname request) {
-        String newNickname = userService.updateNickname(userId, request.getNickname());
+        String newNickname = userProfileCommandService.updateNickname(userId, request.getNickname());
         return ApiResponse.onSuccess(newNickname);
     }
 
     @Operation(summary = "서비스 알림 동의 변경", description = "서비스 알림 동의가 되어있다면 비활성화, 동의가 안되어있으면 동의로 변경")
     @PatchMapping("/mypage/notification/service")
     public ApiResponse<Boolean> updateServiceNotificationAllow(@Parameter(hidden = true) @CurrentUser Long userId) {
-        userService.updateServiceNotificationAllow(userId);
+        userProfileCommandService.updateServiceNotificationAllow(userId);
         return ApiResponse.onSuccess(true);
     }
 
     @Operation(summary = "혜택 및 마케팅 동의 변경", description = "혜택 및 마케팅 알림 동의가 되어있다면 비활성화, 동의가 안되어있으면 동의로 변경")
     @PatchMapping("/mypage/notification/marketing")
     public ApiResponse<Boolean> updateMarketingNotificationAllow(@Parameter(hidden = true) @CurrentUser Long userId) {
-        userService.updateMarketingNotificationAllow(userId);
+        userProfileCommandService.updateMarketingNotificationAllow(userId);
         return ApiResponse.onSuccess(true);
     }
 
     @Operation(summary = "비밀번호 변경", description = "이메일 인증 토큰으로 비밀번호를 변경한다.")
     @PostMapping("/users/password/change")
     public ApiResponse<Boolean> changePasswordWithToken(@RequestBody UserRequestDTO.PasswordChangeWithToken request) {
-        userService.changePasswordWithToken(request.getToken(), request.getNewPassword());
+        userAuthCommandService.changePasswordWithToken(request.getToken(), request.getNewPassword());
         return ApiResponse.onSuccess(true);
     }
 
     @Operation(summary = "유저 정보 조회", description = "유저의 상세 정보 조회")
     @GetMapping("/users/info")
     public ApiResponse<UserResponseDTO.UserInfo> getUserInfo(@Parameter(hidden = true) @CurrentUser Long userId) {
-        UserResponseDTO.UserInfo userInfo = userService.getUserInfo(userId);
+        UserResponseDTO.UserInfo userInfo = userQueryService.getUserInfo(userId);
         return ApiResponse.onSuccess(userInfo);
     }
 
     @Operation(summary = "이메일 중복 확인", description = "이메일이 이미 사용 중인지 확인합니다")
     @GetMapping("/users/email/check-duplicate")
     public ApiResponse<AuthResponseDTO.EmailDuplicate> checkEmailDuplicate(@RequestParam String email) {
-        AuthResponseDTO.EmailDuplicate response = userService.checkEmailDuplicate(email);
+        AuthResponseDTO.EmailDuplicate response = userQueryService.checkEmailDuplicate(email);
         return ApiResponse.onSuccess(response);
     }
 
     @Operation(summary = "닉네임 중복 확인", description = "닉네임이 이미 사용 중인지 확인합니다")
     @GetMapping("/users/nickname/check-duplicate")
     public ApiResponse<AuthResponseDTO.EmailDuplicate> checkNicknameDuplicate(@RequestParam String nickname) {
-        AuthResponseDTO.EmailDuplicate response = userService.checkNicknameDuplicate(nickname);
+        AuthResponseDTO.EmailDuplicate response = userQueryService.checkNicknameDuplicate(nickname);
         return ApiResponse.onSuccess(response);
     }
 
     @Operation(summary = "회원가입", description = "이메일/비밀번호로 새 계정을 생성합니다")
     @PostMapping("/users/signup")
     public ApiResponse<UserResponseDTO.Signup> signup(@Valid @RequestBody UserRequestDTO.Signup request) {
-        UserResponseDTO.Signup result = userService.signup(request);
+        UserResponseDTO.Signup result = userAuthCommandService.signup(request);
         return ApiResponse.onSuccess(result);
     }
 
     @Operation(summary = "로그인", description = "이메일/비밀번호로 로그인하여 JWT 토큰을 발급받습니다")
     @PostMapping("/users/login")
     public ApiResponse<UserResponseDTO.Login> login(@Valid @RequestBody UserRequestDTO.Login request) {
-        UserResponseDTO.Login result = userService.login(request);
+        UserResponseDTO.Login result = userAuthCommandService.login(request);
         return ApiResponse.onSuccess(result);
     }
 
@@ -109,7 +111,7 @@ public class UserController {
             HttpServletRequest httpRequest) {
         
         try {
-            userService.logout(userId, httpRequest);
+            userAuthCommandService.logout(userId, httpRequest);
             return ApiResponse.onSuccess("로그아웃되었습니다");
             
         } catch (Exception e) {
@@ -153,7 +155,7 @@ public class UserController {
     @Operation(summary = "카카오톡 계정 연동 상태 확인", description = "사용자의 카카오톡 계정 연동 여부와 연동된 이메일을 확인합니다")
     @GetMapping("/mypage/kakao-account")
     public ApiResponse<OAuthResponseDTO.KakaoAccount> getKakaoAccountStatus(@Parameter(hidden = true) @CurrentUser Long userId) {
-        OAuthResponseDTO.KakaoAccount kakaoAccountStatus = userService.getKakaoAccountStatus(userId);
+        OAuthResponseDTO.KakaoAccount kakaoAccountStatus = userQueryService.getKakaoAccountStatus(userId);
         return ApiResponse.onSuccess(kakaoAccountStatus);
     }
 
@@ -165,7 +167,7 @@ public class UserController {
             @Parameter(description = "회원가입할 이메일 주소", required = true)
             @RequestParam String email) {
 
-        FileResponseDTO.ImageUpload response = userService.uploadProfileImage(file, email);
+        FileResponseDTO.ImageUpload response = userProfileCommandService.uploadProfileImage(file, email);
         return ApiResponse.onSuccess(response);
     }
 
@@ -176,7 +178,7 @@ public class UserController {
             @RequestPart("file") MultipartFile file,
             @Parameter(hidden = true) @CurrentUser Long userId) {
 
-        FileResponseDTO.ImageUpload response = userService.updateProfileImage(userId, file);
+        FileResponseDTO.ImageUpload response = userProfileCommandService.updateProfileImage(userId, file);
         return ApiResponse.onSuccess(response);
     }
 
@@ -184,7 +186,7 @@ public class UserController {
     @GetMapping("/users/me/invite-code")
     public ApiResponse<AuthResponseDTO.InviteCode> getMyInviteCode(
             @Parameter(hidden = true) @CurrentUser Long userId) {
-        AuthResponseDTO.InviteCode response = userService.getMyInviteCode(userId);
+        AuthResponseDTO.InviteCode response = userQueryService.getMyInviteCode(userId);
         return ApiResponse.onSuccess(response);
     }
 
@@ -193,7 +195,7 @@ public class UserController {
     public ApiResponse<AuthResponseDTO.InviteCodeProcess> processInviteCode(
             @Valid @RequestBody AuthRequestDTO.InviteCode request,
             @Parameter(hidden = true) @CurrentUser Long userId) {
-        AuthResponseDTO.InviteCodeProcess response = userService.processInviteCode(request.getInviteCode(), userId);
+        AuthResponseDTO.InviteCodeProcess response = userAuthCommandService.processInviteCode(request.getInviteCode(), userId);
         return ApiResponse.onSuccess(response);
     }
 
@@ -201,35 +203,35 @@ public class UserController {
     @PostMapping("/users/invite-code/validate")
     public ApiResponse<AuthResponseDTO.ValidateInviteCode> validateInviteCode(
             @Valid @RequestBody AuthRequestDTO.InviteCode request) {
-        AuthResponseDTO.ValidateInviteCode response = userService.validateInviteCode(request.getInviteCode());
+        AuthResponseDTO.ValidateInviteCode response = userQueryService.validateInviteCode(request.getInviteCode());
         return ApiResponse.onSuccess(response);
     }
 
     @Operation(summary = "이메일 인증 발송", description = "이메일 중복 확인 후 인증메일을 발송하고 토큰을 반환합니다")
     @PostMapping("/users/email/send")
     public ApiResponse<AuthResponseDTO.EmailSend> sendEmailVerification(@RequestBody @Valid AuthRequestDTO.EmailVerification request) {
-        AuthResponseDTO.EmailSend response = userService.sendEmailVerification(request.getEmail());
+        AuthResponseDTO.EmailSend response = userAuthCommandService.sendEmailVerification(request.getEmail());
         return ApiResponse.onSuccess(response);
     }
 
     @Operation(summary = "이메일 인증 재발송")
     @PostMapping("/users/email/resend")
     public ApiResponse<AuthResponseDTO.EmailSend> resendVerificationEmail(@RequestBody @Valid AuthRequestDTO.EmailVerification request) {
-        AuthResponseDTO.EmailSend response = userService.resendEmailVerification(request.getEmail());
+        AuthResponseDTO.EmailSend response = userAuthCommandService.resendEmailVerification(request.getEmail());
         return ApiResponse.onSuccess(response);
     }
 
     @Operation(summary = "이메일 인증 여부 확인", description = "토큰으로 이메일을 확인하고 인증 상태를 반환합니다")
     @GetMapping("/users/email/verification-status")
     public ApiResponse<AuthResponseDTO.EmailVerificationStatus> getEmailVerificationStatus(@RequestParam("token") String token) {
-        AuthResponseDTO.EmailVerificationStatus response = userService.getEmailVerificationStatus(token);
+        AuthResponseDTO.EmailVerificationStatus response = userQueryService.getEmailVerificationStatus(token);
         return ApiResponse.onSuccess(response);
     }
 
     @Operation(summary = "이메일 링크 클릭 처리", description = "이메일 링크 클릭 시 인증 처리 후 웹페이지 표시")
     @GetMapping("/users/email/verify-link")
     public ResponseEntity<String> handleEmailLink(@RequestParam String token) {
-        String html = userService.handleEmailVerificationLink(token);
+        String html = userAuthCommandService.handleEmailVerificationLink(token);
         return createHtmlResponse(html);
     }
 
@@ -237,7 +239,7 @@ public class UserController {
     @PostMapping("/users/password/change-email/send")
     public ApiResponse<AuthResponseDTO.EmailSend> sendPasswordChangeEmail(
             @RequestBody @Valid UserRequestDTO.PasswordChangeEmail request) {
-        AuthResponseDTO.EmailSend response = userService.sendPasswordChangeEmail(
+        AuthResponseDTO.EmailSend response = userAuthCommandService.sendPasswordChangeEmail(
                 request.getEmail(), 
                 request.getIsLoggedIn() // 로그인 상태 추가
         );
@@ -248,7 +250,7 @@ public class UserController {
     @PostMapping("/users/password/change-email/resend")
     public ApiResponse<AuthResponseDTO.EmailSend> resendPasswordChangeEmail(
             @RequestBody @Valid UserRequestDTO.PasswordChangeEmail request) {
-        AuthResponseDTO.EmailSend response = userService.resendPasswordChangeEmail(
+        AuthResponseDTO.EmailSend response = userAuthCommandService.resendPasswordChangeEmail(
                 request.getEmail(), 
                 request.getIsLoggedIn()  // 로그인 상태 포함
         );
@@ -258,7 +260,7 @@ public class UserController {
     @Operation(summary = "비밀번호 변경 요청 이메일 링크 클릭 처리", description = "비밀번호 변경 링크 클릭 시 확인 처리 후 웹페이지 표시")
     @GetMapping("/users/password/change-link")
     public ResponseEntity<String> handlePasswordChangeLink(@RequestParam String token) {
-        String html = userService.handlePasswordChangeLink(token);
+        String html = userAuthCommandService.handlePasswordChangeLink(token);
         return createHtmlResponse(html);
     }
 
@@ -267,7 +269,7 @@ public class UserController {
     public ApiResponse<UserResponseDTO.Withdrawal> withdrawUser(
             @Valid @RequestBody UserRequestDTO.Withdrawal request,
             @Parameter(hidden = true) @CurrentUser Long userId) {
-        UserResponseDTO.Withdrawal response = userService.withdrawUser(userId, request);
+        UserResponseDTO.Withdrawal response = userAuthCommandService.withdrawUser(userId, request);
         return ApiResponse.onSuccess(response);
     }
 
@@ -276,14 +278,14 @@ public class UserController {
     public ApiResponse<AuthResponseDTO.EmailSend> sendEmailChangeVerification(
             @RequestBody @Valid AuthRequestDTO.EmailVerification request,
             @Parameter(hidden = true) @CurrentUser Long userId) {
-        AuthResponseDTO.EmailSend response = userService.sendEmailChangeVerification(userId, request.getEmail());
+        AuthResponseDTO.EmailSend response = userProfileCommandService.sendEmailChangeVerification(userId, request.getEmail());
         return ApiResponse.onSuccess(response);
     }
 
     @Operation(summary = "이메일 변경 요청 이메일 링크 클릭 처리", description = "이메일 변경 링크 클릭 시 확인 처리 후 앱으로 리다이렉트")
     @GetMapping("/users/email/change-link")
     public ResponseEntity<String> handleEmailChangeLink(@RequestParam String token) {
-        String html = userService.handleEmailChangeLink(token);
+        String html = userProfileCommandService.handleEmailChangeLink(token);
         return createHtmlResponse(html);
     }
 
@@ -292,7 +294,7 @@ public class UserController {
     public ApiResponse<AuthResponseDTO.EmailSend> resendEmailChangeVerification(
             @RequestBody @Valid AuthRequestDTO.EmailVerification request,
             @Parameter(hidden = true) @CurrentUser Long userId) {
-        AuthResponseDTO.EmailSend response = userService.resendEmailChangeVerification(userId, request.getEmail());
+        AuthResponseDTO.EmailSend response = userProfileCommandService .resendEmailChangeVerification(userId, request.getEmail());
         return ApiResponse.onSuccess(response);
     }
 
@@ -300,7 +302,7 @@ public class UserController {
         description = "카카오 인가코드로 로그인/회원가입 여부를 판단합니다")
     @PostMapping("/users/auth/kakao")
     public ApiResponse<OAuthResponseDTO.KakaoAuth> kakaoAuth(@Valid @RequestBody OAuthRequestDTO.KakaoAuth request) {
-        OAuthResponseDTO.KakaoAuth result = userService.kakaoAuth(request);
+        OAuthResponseDTO.KakaoAuth result = userAuthCommandService.kakaoAuth(request);
         return ApiResponse.onSuccess(result);
     }
 
@@ -308,7 +310,7 @@ public class UserController {
             description = "카카오 온보딩 완료 후 모든 정보를 받아서 회원가입을 완료합니다")
     @PostMapping("/users/auth/kakao/complete")
     public ApiResponse<UserResponseDTO.Signup> kakaoSignupComplete(@Valid @RequestBody OAuthRequestDTO.KaKaoSignup request) {
-        UserResponseDTO.Signup result = userService.kakaoSignupComplete(request);
+        UserResponseDTO.Signup result = userAuthCommandService.kakaoSignupComplete(request);
         return ApiResponse.onSuccess(result);
     }
 
@@ -318,7 +320,7 @@ public class UserController {
     public ApiResponse<OAuthResponseDTO.KaKaoLink> linkKakaoAccount(
             @Valid @RequestBody OAuthRequestDTO.KaKaoLink request,
             @Parameter(hidden = true) @CurrentUser Long userId) {
-        OAuthResponseDTO.KaKaoLink result = userService.linkKakaoAccount(userId, request);
+        OAuthResponseDTO.KaKaoLink result = userAuthCommandService.linkKakaoAccount(userId, request);
         return ApiResponse.onSuccess(result);
     }
 
@@ -326,14 +328,14 @@ public class UserController {
             description = "이메일 인증 실패 시 카카오 소셜 로그인으로 전환합니다")
     @PostMapping("/users/auth/email/alternative")
     public ApiResponse<OAuthResponseDTO.KakaoAuth> emailAuthAlternative(@Valid @RequestBody OAuthRequestDTO.KakaoAuth request) {
-        OAuthResponseDTO.KakaoAuth result = userService.kakaoAuth(request);
+        OAuthResponseDTO.KakaoAuth result = userAuthCommandService.kakaoAuth(request);
         return ApiResponse.onSuccess(result);
     }
 
     @Operation(summary = "랜덤 닉네임 생성", description = "형용사+명사 조합으로 랜덤 닉네임을 생성합니다")
     @GetMapping("/profile/nickname/random")
     public ApiResponse<UserResponseDTO.RandomNickname> generateRandomNickname() {
-        UserResponseDTO.RandomNickname result = randomNicknameService.generateRandomNickname();
+        UserResponseDTO.RandomNickname result = userQueryService.generateRandomNickname();
         return ApiResponse.onSuccess(result);
     }
 

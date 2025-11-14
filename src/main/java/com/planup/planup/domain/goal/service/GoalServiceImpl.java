@@ -18,8 +18,8 @@ import com.planup.planup.domain.goal.repository.CommentRepository;
 import com.planup.planup.domain.goal.repository.GoalMemoRepository;
 import com.planup.planup.domain.notification.service.NotificationCreateService;
 import com.planup.planup.domain.user.enums.UserLevel;
-import com.planup.planup.domain.user.service.UserService;
-import com.planup.planup.domain.user.service.UserStatService;
+import com.planup.planup.domain.user.service.query.UserBadgeQueryService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
@@ -49,6 +49,7 @@ public class GoalServiceImpl implements GoalService{
     private final GoalRepository goalRepository;
     private final UserGoalRepository userGoalRepository;
     private final UserGoalService userGoalService;
+    private final UserQueryService userQueryService;
     private final UserRepository userRepository;
     private final TimerVerificationRepository timerVerificationRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
@@ -56,17 +57,16 @@ public class GoalServiceImpl implements GoalService{
     private final FriendService friendService;
     private final GoalMemoRepository goalMemoRepository;
     private final TimerVerificationReadService timerVerificationReadService;
-    private final UserService userService;
     private final NotificationCreateService notificationCreateService;
     private final RedisTemplate<String, String> redisTemplate;
-    private final UserStatService userStatService;
+    private final UserBadgeQueryService userBadgeQueryService;
     //목표 생성
     @Transactional
     public GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto createGoalDto){
         //목표 제목 에러 처리
         validateGoalName(createGoalDto.getGoalName(), userId);
         //유저 검증
-        User user = userService.getUserByUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
         //레벨 별 목표 생성 제한
         validateGoalCreationLimit(user);
         //종료일 에러 처리
@@ -94,7 +94,7 @@ public class GoalServiceImpl implements GoalService{
     //목표 리스트 조회(목표 생성시 -> 세부 내용 조회X) 카테고리별 친구 목표
     @Transactional(readOnly = true)
     public List<GoalResponseDto.GoalCreateListDto> getFriendGoalsByCategory(Long userId, GoalCategory goalCategory) {
-        userService.getUserByUserId(userId);
+        userQueryService.getUserByUserId(userId);
 
         List<UserGoal> friendGoals = userGoalRepository.findFriendGoalsByCategory(userId, goalCategory);
 
@@ -128,7 +128,7 @@ public class GoalServiceImpl implements GoalService{
     //내 목표 조회(리스트)
     @Transactional(readOnly = true)
     public List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId) {
-        User user = userService.getUserByUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
 
         List<UserGoal> userGoals = userGoalRepository.findByUserId(userId);
 
@@ -140,8 +140,8 @@ public class GoalServiceImpl implements GoalService{
     //친구 목표 조회(리스트)
     @Transactional(readOnly = true)
     public List<GoalResponseDto.FriendGoalListDto> getFriendGoals(Long userId, Long friendsId) {
-        User user = userService.getUserByUserId(userId);
-        userService.getUserByUserId(friendsId);
+        User user = userQueryService.getUserByUserId(userId);
+        userQueryService.getUserByUserId(friendsId);
 
         friendService.isFriend(userId, friendsId);
 
@@ -608,7 +608,7 @@ public class GoalServiceImpl implements GoalService{
 
     private void updateUserStat(Long userId, String reactionType) {
         try {
-            UserStat userStat = userStatService.getUserStatByUserId(userId);
+            UserStat userStat = userBadgeQueryService.getUserStatByUserId(userId);
 
             if ("cheer".equals(reactionType)) {
                 userStat.addLikeCnt();

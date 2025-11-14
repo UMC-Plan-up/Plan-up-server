@@ -2,7 +2,8 @@ package com.planup.planup.domain.bedge.service;
 
 import com.planup.planup.domain.bedge.entity.BadgeType;
 import com.planup.planup.domain.bedge.entity.UserStat;
-import com.planup.planup.domain.user.service.UserBadgeService;
+import com.planup.planup.domain.user.service.command.UserBadgeCommandService;
+import com.planup.planup.domain.user.service.query.UserBadgeQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +14,8 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class BadgeServiceImpl implements BadgeService {
 
-    private final UserBadgeService userBadgeService;
+    private final UserBadgeCommandService userBadgecommandService;
+    private final UserBadgeQueryService userBadgeQueryService;
 
     //가입 후 3일 이내 초대 코드 공유
     @Override
@@ -21,7 +23,7 @@ public class BadgeServiceImpl implements BadgeService {
     public boolean checkInfluentialStarterBadge(UserStat userStat) {
         LocalDateTime createdAt = userStat.getUser().getCreatedAt();
         if (createdAt.plusDays(3).isBefore(LocalDateTime.now()) && userStat.getTotalInviteShareCnt() < 2) {
-            userBadgeService.createUserBadge(userStat.getUser(), BadgeType.INFLUENTIAL_STARTER);
+            userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.INFLUENTIAL_STARTER);
             return true;
         }
         return false;
@@ -32,7 +34,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkWordOfMouthMasterBadge(UserStat userStat) {
         if (userStat.getTotalInviteShareCnt() >= 3) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.WORD_OF_MOUTH_MASTER);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.WORD_OF_MOUTH_MASTER);
         }
         return false;
     }
@@ -42,7 +44,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkMagnetUserBadge(UserStat userStat) {
         if (userStat.getTotalInviteAcceptedCnt() >= 3) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.MAGNET_USER);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.MAGNET_USER);
         }
         return false;
     }
@@ -52,7 +54,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkFriendlyMaxBadge(UserStat userStat) {
         if (userStat.getRequestFriendOneDay() >= 3) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.FRIENDLY_MAX);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.FRIENDLY_MAX);
         }
         return false;
     }
@@ -62,7 +64,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkFirstCommentBadge(UserStat userStat) {
         if (userStat.getTotalCommentCnt() == 1) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.FIRST_COMMENT);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.FIRST_COMMENT);
         }
         return false;
     }
@@ -72,7 +74,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkFriendRequestKingBadge(UserStat userStat) {
         if (userStat.getRequestFriendOneDay() >= 3) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.FRIEND_REQUEST_KING);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.FRIEND_REQUEST_KING);
         }
         return false;
     }
@@ -82,7 +84,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkProfileClickerBadge(UserStat userStat) {
         if (userStat.getTotalProfileClickCnt() >= 5) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.PROFILE_CLICKER);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.PROFILE_CLICKER);
         }
         return false;
     }
@@ -92,7 +94,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkFeedbackChampionBadge(UserStat userStat) {
         if (userStat.getReactionCntWeek() >= 15) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.FEEDBACK_CHAMPION);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.FEEDBACK_CHAMPION);
         }
         return false;
     }
@@ -102,7 +104,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkCommentFairyBadge(UserStat userStat) {
         if (userStat.getCommentCntInFriendDay() >= 3) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.COMMENT_FAIRY);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.COMMENT_FAIRY);
         }
         return false;
     }
@@ -112,7 +114,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkCheerMasterBadge(UserStat userStat) {
         if (userStat.getLikeCnt() >= 3) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.CHEER_MASTER);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.CHEER_MASTER);
         }
         return false;
     }
@@ -122,7 +124,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkReactionExpertBadge(UserStat userStat) {
         if (userStat.getEncourageCnt() >= 3) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.REACTION_EXPERT);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.REACTION_EXPERT);
         }
         return false;
     }
@@ -132,7 +134,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkStartOfChallengeBadge(UserStat userStat) {
         if (userStat.getRecordSpecificGoalDays() >= 7) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.START_OF_CHALLENGE);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.START_OF_CHALLENGE);
         }
         return false;
     }
@@ -142,7 +144,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkDiligentTrackerBadge(UserStat userStat) {
         if (userStat.getTotalRecordCnt() >= 3) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.DILIGENT_TRACKER);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.DILIGENT_TRACKER);
         }
         return false;
     }
@@ -152,7 +154,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkRoutinerBadge(UserStat userStat) {
         if (userStat.getSendVerityCntDay() >= 3) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.ROUTINER);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.ROUTINER);
         }
         return false;
     }
@@ -162,7 +164,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkImmersionDayBadge(UserStat userStat) {
         if (!userStat.isCompleteGoalCntFlag() && userStat.getCompleteGoalCnt() >= 3) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.IMMERSION_DAY);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.IMMERSION_DAY);
         }
         return false;
     }
@@ -172,7 +174,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkGoalCollectorBadge(UserStat userStat) {
         if (userStat.getTotalGoalCreatedCnt() >= 5) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.GOAL_COLLECTOR);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.GOAL_COLLECTOR);
         }
         return false;
     }
@@ -182,7 +184,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkNotificationStarterBadge(UserStat userStat) {
         if (userStat.getPushOpenCnt() >= 3) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.NOTIFICATION_STARTER);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.NOTIFICATION_STARTER);
         }
         return false;
     }
@@ -192,7 +194,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkAnalystBadge(UserStat userStat) {
         if (userStat.getWeeklyStatViewCnt() >= 4) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.ANALYST);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.ANALYST);
         }
         return false;
     }
@@ -202,7 +204,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Transactional
     public boolean checkConsistentRecorderBadge(UserStat userStat) {
         if (userStat.getRecordAllGoal7Days() >= 7) {
-            return userBadgeService.createUserBadge(userStat.getUser(), BadgeType.CONSISTENT_RECORDER);
+            return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.CONSISTENT_RECORDER);
         }
         return false;
     }

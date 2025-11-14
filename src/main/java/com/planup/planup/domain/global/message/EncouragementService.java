@@ -6,7 +6,7 @@ import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -28,8 +28,8 @@ public class EncouragementService {
     private final UserGoalAggregationService userGoalAggregationService;
     private final UserGoalService userGoalService;
     private final NotificationService notificationService;
-    private final UserService userService;
     private final DailyLimitService dailyLimitService;
+    private final UserQueryService userQueryService;
 
     public EncouragementService(
             WebClient.Builder builder,
@@ -39,8 +39,8 @@ public class EncouragementService {
             UserGoalAggregationService userGoalAggregationService,
             UserGoalService userGoalService,
             NotificationService notificationService,
-            UserService userService,
-            DailyLimitService dailyLimitService
+            DailyLimitService dailyLimitService,
+            UserQueryService userQueryService
     ) {
         this.webClient = builder
                 .baseUrl(endpoint)
@@ -51,7 +51,7 @@ public class EncouragementService {
         this.userGoalAggregationService = userGoalAggregationService;
         this.userGoalService = userGoalService;
         this.notificationService = notificationService;
-        this.userService = userService;
+        this.userQueryService = userQueryService;
         this.dailyLimitService = dailyLimitService;
     }
 
@@ -115,7 +115,7 @@ public class EncouragementService {
         LocalDate today = LocalDate.now();
         
         // 사용자 정보
-        User user = userService.getUserByUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
         
         // 활성 목표 목록
         List<UserGoal> activeGoals = userGoalService.getActiveUserGoalsByUser(userId, today);
@@ -198,7 +198,7 @@ public class EncouragementService {
     }
 
     private String buildPrompt(UserData userData) {
-        User user = userService.getUserByUserId(userData.userId());
+        User user = userQueryService.getUserByUserId(userData.userId());
         
         // 목표 정보 포맷팅
         String goalInfo = userData.activeGoals().isEmpty() ? "활성 목표 없음" :
@@ -267,7 +267,7 @@ public class EncouragementService {
     }
 
     private String getDefaultMessage(UserData userData) {
-        User user = userService.getUserByUserId(userData.userId());
+        User user = userQueryService.getUserByUserId(userData.userId());
         
         String[] defaultMessages = {
             "%s님, 정말 열심히 하고 계시네요! 💪 꾸준히 노력하는 모습이 정말 대단해요! ✨",

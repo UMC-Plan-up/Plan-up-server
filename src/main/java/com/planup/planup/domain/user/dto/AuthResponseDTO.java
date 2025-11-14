@@ -9,7 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 public class AuthResponseDTO {
-    // 이메일, 초대코드, 약관
     @Getter
     @Builder
     @NoArgsConstructor
@@ -139,5 +138,4 @@ public class AuthResponseDTO {
         @Schema(description = "초대한 사용자 닉네임 (유효한 경우만)", example = "라미")
         private String targetUserNickname;
     }
-
 }

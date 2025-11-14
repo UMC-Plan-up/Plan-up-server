@@ -6,7 +6,7 @@ import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import com.planup.planup.domain.notification.service.NotificationService;
@@ -33,17 +33,17 @@ import java.util.Collections;
 public class FriendServiceImpl implements FriendService {
 
     private final FriendRepository friendRepository;
-    private final UserService userService;
     private final FriendConverter friendConverter;
     private final TimerVerificationReadService timerVerificationService;
     private final PhotoVerificationRepository photoVerificationRepository;
-    private final NotificationService notificationService;  
+    private final NotificationService notificationService;
+    private final UserQueryService userQueryService;
 
     @Override
     @Transactional(readOnly = true)
     public List<FriendResponseDTO.FriendSummaryList> getFriendSummeryList(Long userId) {
 
-        User user = userService.getUserByUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
 
         List<Friend> friendList = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(FriendStatus.ACCEPTED, user.getId(), FriendStatus.ACCEPTED, user.getId());
 
@@ -280,8 +280,8 @@ public class FriendServiceImpl implements FriendService {
         }
 
         // 유저 엔티티 조회
-        User user = userService.getUserByUserId(userId);
-        User friendUser = userService.getUserByUserId(friendId);
+        User user = userQueryService.getUserByUserId(userId);
+        User friendUser = userQueryService.getUserByUserId(friendId);
 
         // Friend 엔티티 생성
         Friend friendRequest = new Friend();
@@ -321,7 +321,7 @@ public class FriendServiceImpl implements FriendService {
     @Override
     @Transactional(readOnly = true)
     public List<BlockedFriendResponseDTO> getBlockedFriends(Long userId) {
-        User user = userService.getUserByUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
 
         // 사용자가 차단한 친구 목록 조회 (user가 차단한 경우만)
         List<Friend> blockedFriends = friendRepository.findByUserAndStatusOrderByCreatedAtDesc(user, FriendStatus.BLOCKED);
@@ -342,7 +342,7 @@ public class FriendServiceImpl implements FriendService {
     @Override
     @Transactional
     public Long unblockFriend(Long userId, String friendNickname) {
-        User user = userService.getUserByUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
 
         // 사용자가 해당 닉네임의 친구를 차단한 관계를 찾음
         Optional<Friend> blockedFriend = friendRepository.findByUserAndFriend_NicknameAndStatus(user, friendNickname, FriendStatus.BLOCKED);
