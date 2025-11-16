@@ -1,6 +1,7 @@
 package com.planup.planup.domain.user.service.command;
 
 import com.planup.planup.domain.bedge.entity.BadgeType;
+import com.planup.planup.domain.user.converter.UserBadgeConverter;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserBadge;
 import com.planup.planup.domain.user.repository.UserBadgeRepository;
@@ -16,6 +17,7 @@ import java.util.List;
 public class UserBadgeCommandServiceImpl implements UserBadgeCommandService {
 
     private final UserBadgeRepository userBadgeRepository;
+    private final UserBadgeConverter userBadgeConverter;
 
     @Override
     public boolean createUserBadge(User user, BadgeType badge) {
@@ -25,10 +27,8 @@ public class UserBadgeCommandServiceImpl implements UserBadgeCommandService {
             return false;
         }
 
-        userBadgeRepository.save(UserBadge.builder()
-                .user(user)
-                .badgeType(badge)
-                .build());
+        UserBadge userBadge = userBadgeConverter.toUserBadgeEntity(user, badge);
+        userBadgeRepository.save(userBadge);
 
         return true;
     }

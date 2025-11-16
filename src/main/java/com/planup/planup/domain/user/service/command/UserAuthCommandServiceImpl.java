@@ -8,7 +8,7 @@ import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
 import com.planup.planup.domain.oauth.repository.OAuthAccountRepository;
-import com.planup.planup.domain.user.converter.UserConverter;
+import com.planup.planup.domain.user.converter.UserAuthConverter;
 import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.dto.external.KakaoUserInfo;
 import com.planup.planup.domain.user.entity.Terms;
@@ -66,7 +66,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     private final FriendRepository friendRepository;
     private final UserWithdrawalRepository userWithdrawalRepository;
     private final KaKaoService kakaoService;
-    private final UserConverter userConverter;
+    private final UserAuthConverter userAuthConverter;
     private final UserQueryService userQueryService;
 
     @Qualifier("objectRedisTemplate")
@@ -107,19 +107,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
         String profileImgUrl = (tempImageUrl != null) ? tempImageUrl : requestProfileImg;
 
-        User user = User.builder()
-                .email(request.getEmail())
-                .password(encodedPassword)
-                .nickname(request.getNickname())
-                .role(Role.USER)
-                .userActivate(UserActivate.ACTIVE)
-                .userLevel(UserLevel.LEVEL_1)
-                .serviceNotificationAllow(true)
-                .marketingNotificationAllow(true)
-                .profileImg(profileImgUrl)
-                .emailVerified(true)
-                .emailVerifiedAt(LocalDateTime.now())
-                .build();
+        User user = userAuthConverter.toUserEntity(request, encodedPassword, profileImgUrl);
 
         User savedUser = userRepository.save(user);
 
@@ -133,13 +121,11 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             objectRedisTemplate.delete(TEMP_PROFILE_PREFIX + request.getEmail());
         }
 
-        return UserResponseDTO.Signup.builder()
-                .id(savedUser.getId())
-                .email(savedUser.getEmail())
-                .accessToken(tokenResponse.getAccessToken())
-                .refreshToken(tokenResponse.getRefreshToken())
-                .expiresIn(tokenResponse.getExpiresIn())
-                .build();
+        return userAuthConverter.toSignupResponseDTO(savedUser,
+                tokenResponse.getAccessToken(),
+                tokenResponse.getRefreshToken(),
+                tokenResponse.getExpiresIn()
+        );
     }
 
     @Override
@@ -153,7 +139,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
         String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
 
-        return userConverter.toLoginResponseDTO(user, accessToken);
+        return userAuthConverter.toLoginResponseDTO(user, accessToken);
     }
 
     @Override
@@ -175,7 +161,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     public UserResponseDTO.Withdrawal withdrawUser(Long userId, UserRequestDTO.Withdrawal request) {
         User user = userQueryService.getUserByUserId(userId);
 
-        UserWithdrawal withdrawal = userConverter.toUserWithdrawalEntity(user, request.getReason());
+        UserWithdrawal withdrawal = userAuthConverter.toUserWithdrawalEntity(user, request.getReason());
         userWithdrawalRepository.save(withdrawal);
 
         user.setUserActivate(UserActivate.INACTIVE);
@@ -185,7 +171,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
         log.info("사용자 {} 회원 탈퇴 완료. 이유: {}", user.getNickname(), request.getReason());
 
-        return userConverter.toWithdrawalResponseDTO(true, "회원 탈퇴가 완료되었습니다.", LocalDateTime.now().toString());
+        return userAuthConverter.toWithdrawalResponseDTO(true, "회원 탈퇴가 완료되었습니다.", LocalDateTime.now().toString());
     }
 
     private void cleanupUserData(User user) {
@@ -198,9 +184,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                     FriendStatus.REQUESTED, user.getId());
             friendRepository.deleteAll(friendRequests);
 
-            log.debug("사용자 {} 관련 데이터 정리 완료", user.getNickname());
         } catch (Exception e) {
-            log.warn("사용자 데이터 정리 중 오류 발생: {}", e.getMessage());
         }
     }
 
@@ -254,13 +238,11 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
         TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
-        return UserResponseDTO.Signup.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .accessToken(tokenResponse.getAccessToken())
-                .refreshToken(tokenResponse.getRefreshToken())
-                .expiresIn(tokenResponse.getExpiresIn())
-                .build();
+        return userAuthConverter.toSignupResponseDTO(user,
+                tokenResponse.getAccessToken(),
+                tokenResponse.getRefreshToken(),
+                tokenResponse.getExpiresIn()
+        );
     }
 
     @Override
@@ -284,10 +266,10 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             throw new UserException(ErrorStatus.KAKAO_ACCOUNT_ALREADY_USED);
         }
 
-        OAuthAccount oAuthAccount = userConverter.toOAuthAccountEntity(user, email, AuthProvideerEnum.KAKAO);
+        OAuthAccount oAuthAccount = userAuthConverter.toOAuthAccountEntity(user, email, AuthProvideerEnum.KAKAO);
         oAuthAccountRepository.save(oAuthAccount);
 
-        return userConverter.toKakaoLinkResponseDTO(true, "카카오 계정 연동이 완료되었습니다", email, userConverter.toUserInfoResponseDTO(user));
+        return userAuthConverter.toKakaoLinkResponseDTO(true, "카카오 계정 연동이 완료되었습니다", email, userAuthConverter.toUserInfoResponseDTO(user));
     }
 
     private OAuthResponseDTO.KakaoAuth handleKakaoAuth(KakaoUserInfo kakaoUserInfo, String email) {
@@ -303,20 +285,21 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
             TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
-            return OAuthResponseDTO.KakaoAuth.builder()
-                    .isNewUser(false)
-                    .accessToken(tokenResponse.getAccessToken())
-                    .refreshToken(tokenResponse.getRefreshToken())
-                    .expiresIn(tokenResponse.getExpiresIn())
-                    .userInfo(UserResponseDTO.UserInfo.from(user))
-                    .build();
+            return userAuthConverter.toKakaoAuthResponseDTO(
+                    false,
+                    tokenResponse.getAccessToken(),
+                    tokenResponse.getRefreshToken(),
+                    tokenResponse.getExpiresIn(),
+                    UserResponseDTO.UserInfo.from(user)
+            );
+
         } else {
             String tempUserId = UUID.randomUUID().toString();
             String redisKey = TEMP_USER_PREFIX + tempUserId;
 
             objectRedisTemplate.opsForValue().set(redisKey, kakaoUserInfo, Duration.ofMinutes(TEMP_USER_EXPIRE_MINUTES));
 
-            return userConverter.toKakaoAuthResponseDTO(true, tempUserId);
+            return userAuthConverter.toKakaoAuthResponseDTO(true, tempUserId);
         }
     }
 
@@ -325,23 +308,10 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             validateRequiredTerms(request.getAgreements());
         }
 
-        User user = User.builder()
-                .email(kakaoUserInfo.getKakaoAccount().getEmail())
-                .password(null)
-                .nickname(request.getNickname())
-                .role(Role.USER)
-                .userActivate(UserActivate.ACTIVE)
-                .userLevel(UserLevel.LEVEL_1)
-                .serviceNotificationAllow(true)
-                .marketingNotificationAllow(true)
-                .profileImg(request.getProfileImg())
-                .emailVerified(true)
-                .emailVerifiedAt(LocalDateTime.now())
-                .build();
-
+        User user =  userAuthConverter.toKakaoUserEntity(kakaoUserInfo, request);
         User savedUser = userRepository.save(user);
 
-        OAuthAccount oAuthAccount = userConverter.toOAuthAccountEntity(savedUser, kakaoUserInfo.getKakaoAccount().getEmail(), AuthProvideerEnum.KAKAO);
+        OAuthAccount oAuthAccount = userAuthConverter.toOAuthAccountEntity(savedUser, kakaoUserInfo.getKakaoAccount().getEmail(), AuthProvideerEnum.KAKAO);
         oAuthAccountRepository.save(oAuthAccount);
 
         return savedUser;
@@ -386,13 +356,13 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             throw new UserException(ErrorStatus.INVALID_INVITE_CODE);
         }
 
-        Friend friendship1 = userConverter.toFriendEntity(currentUser, inviterUser, FriendStatus.ACCEPTED);
-        Friend friendship2 = userConverter.toFriendEntity(inviterUser, currentUser, FriendStatus.ACCEPTED);
+        Friend friendship1 = userAuthConverter.toFriendEntity(currentUser, inviterUser, FriendStatus.ACCEPTED);
+        Friend friendship2 = userAuthConverter.toFriendEntity(inviterUser, currentUser, FriendStatus.ACCEPTED);
 
         friendRepository.save(friendship1);
         friendRepository.save(friendship2);
 
-        return userConverter.toInviteCodeProcessResponseDTO(true, inviterUser.getNickname(), "친구 관계가 성공적으로 생성되었습니다.");
+        return userAuthConverter.toInviteCodeProcessResponseDTO(true, inviterUser.getNickname(), "친구 관계가 성공적으로 생성되었습니다.");
     }
 
     private Long findInviterByCode(String inviteCode) {
@@ -423,7 +393,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         String verificationUrl = appDomain + "/users/email/verify-link?token=" + verificationToken;
         sendEmail(email, verificationUrl);
 
-        return userConverter.toEmailSendResponseDTO(email, verificationToken, "인증 메일이 발송되었습니다");
+        return userAuthConverter.toEmailSendResponseDTO(email, verificationToken, "인증 메일이 발송되었습니다");
     }
 
     @Override
@@ -544,7 +514,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         String changeUrl = appDomain + "/users/password/change-link?token=" + token;
         sendPasswordChangeEmailContent(email, changeUrl);
 
-        return userConverter.toEmailSendResponseDTO(email, token, "비밀번호 변경 메일이 발송되었습니다.");
+        return userAuthConverter.toEmailSendResponseDTO(email, token, "비밀번호 변경 메일이 발송되었습니다.");
     }
 
     @Override
@@ -648,7 +618,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             Terms terms = termsRepository.findById(agreement.getTermsId())
                     .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_TERMS));
 
-            UserTerms userTerms = userConverter.toUserTermsEntity(user, terms, agreement);
+            UserTerms userTerms = userAuthConverter.toUserTermsEntity(user, terms, agreement);
             userTermsRepository.save(userTerms);
         }
     }

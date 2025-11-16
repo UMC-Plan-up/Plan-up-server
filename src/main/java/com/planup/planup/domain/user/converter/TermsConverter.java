@@ -12,7 +12,9 @@ import java.util.stream.Collectors;
 @Component
 public class TermsConverter {
 
-    // Terms → TermsListResponseDTO 변환
+    /**
+     * Terms 엔티티를 약관 목록 응답 DTO로 변환
+     */
     public static AuthResponseDTO.TermsList toTermsListResponse(Terms terms) {
         return AuthResponseDTO.TermsList.builder()
                 .id(terms.getId())
@@ -22,7 +24,9 @@ public class TermsConverter {
                 .build();
     }
 
-    // Terms → TermsDetailResponseDTO 변환
+    /**
+     * Terms 엔티티를 약관 상세 응답 DTO로 변환
+     */
     public static AuthResponseDTO.TermsDetail toTermsDetailResponse(Terms terms) {
         return AuthResponseDTO.TermsDetail.builder()
                 .id(terms.getId())
@@ -30,7 +34,9 @@ public class TermsConverter {
                 .build();
     }
 
-    // List<Terms> → List<TermsListResponseDTO> 변환
+    /**
+     * Terms 엔티티 리스트를 약관 목록 응답 DTO 리스트로 변환
+     */
     public static List<AuthResponseDTO.TermsList> toTermsListResponseList(List<Terms> termsList) {
         return termsList.stream()
                 .map(TermsConverter::toTermsListResponse)

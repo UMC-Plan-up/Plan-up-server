@@ -3,6 +3,8 @@ package com.planup.planup.domain.user.service.query;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.user.converter.TermsConverter;
+import com.planup.planup.domain.user.converter.UserAuthConverter;
+import com.planup.planup.domain.user.converter.UserProfileConverter;
 import com.planup.planup.domain.user.dto.AuthResponseDTO;
 import com.planup.planup.domain.user.dto.OAuthResponseDTO;
 import com.planup.planup.domain.user.dto.UserResponseDTO;
@@ -10,7 +12,6 @@ import com.planup.planup.domain.user.entity.*;
 import com.planup.planup.domain.user.enums.UserActivate;
 import com.planup.planup.domain.user.repository.*;
 import com.planup.planup.domain.oauth.repository.OAuthAccountRepository;
-import com.planup.planup.domain.user.converter.UserConverter;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
@@ -39,8 +40,9 @@ public class UserQueryServiceImpl implements UserQueryService {
     private final OAuthAccountRepository oAuthAccountRepository;
     private final FriendRepository friendRepository;
     private final TermsRepository termsRepository;
-    private final UserConverter userConverter;
     private final Random random = new Random();
+    private final UserAuthConverter userAuthConverter;
+    private final UserProfileConverter userProfileConverter;
 
     // ========== 기본 정보 조회 ==========
 
@@ -59,14 +61,7 @@ public class UserQueryServiceImpl implements UserQueryService {
     @Override
     public UserResponseDTO.UserInfo getUserInfo(Long userId) {
         User user = getUserByUserId(userId);
-        return UserResponseDTO.UserInfo.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .profileImg(user.getProfileImg())
-                .serviceNotificationAllow(user.getServiceNotificationAllow())
-                .marketingNotificationAllow(user.getMarketingNotificationAllow())
-                .build();
+        return userAuthConverter.toUserInfoResponseDTO(user);
     }
 
     // ========== 이메일 검증 ==========
@@ -94,7 +89,7 @@ public class UserQueryServiceImpl implements UserQueryService {
     @Override
     public AuthResponseDTO.EmailDuplicate checkEmailDuplicate(String email) {
         boolean isAvailable = isEmailAvailable(email);
-        return userConverter.toEmailDuplicateResponseDTO(
+        return userAuthConverter.toEmailDuplicateResponseDTO(
                 isAvailable,
                 isAvailable ? "사용 가능한 이메일입니다." : "이미 사용 중인 이메일입니다."
         );
@@ -108,7 +103,7 @@ public class UserQueryServiceImpl implements UserQueryService {
         String message = isAvailable ?
                 "사용 가능한 닉네임입니다." :
                 "이미 사용 중인 닉네임입니다.";
-        return userConverter.toEmailDuplicateResponseDTO(isAvailable, message);
+        return userAuthConverter.toEmailDuplicateResponseDTO(isAvailable, message);
     }
 
     @Override
@@ -161,7 +156,7 @@ public class UserQueryServiceImpl implements UserQueryService {
         boolean isLinked = oauthAccount.isPresent();
         String kakaoEmail = oauthAccount.map(account -> account.getEmail()).orElse(null);
 
-        return userConverter.toKakaoAccountResponseDTO(isLinked, kakaoEmail);
+        return userAuthConverter.toKakaoAccountResponseDTO(isLinked, kakaoEmail);
     }
 
     @Override
@@ -180,7 +175,7 @@ public class UserQueryServiceImpl implements UserQueryService {
     public AuthResponseDTO.EmailVerificationStatus getEmailVerificationStatus(String token) {
         String email = getEmailByToken(token);
         boolean verified = isEmailVerified(email);
-        return userConverter.toEmailVerificationStatusResponseDTO(email, verified);
+        return userAuthConverter.toEmailVerificationStatusResponseDTO(email, verified);
     }
 
     private String getEmailByToken(String token) {
@@ -240,7 +235,7 @@ public class UserQueryServiceImpl implements UserQueryService {
 
         User inviterUser = getUserByUserId(inviterId);
 
-        return userConverter.toValidateInviteCodeResponseDTO(true, "유효한 초대코드입니다.", inviterUser.getNickname());
+        return userAuthConverter.toValidateInviteCodeResponseDTO(true, inviterUser.getNickname());
     }
 
     private Long findInviterByCode(String inviteCode) {

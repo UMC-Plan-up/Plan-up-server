@@ -339,12 +339,7 @@ public class UserController {
         return ApiResponse.onSuccess(result);
     }
 
-    /**
-     * HTML 응답을 생성하는 공통 메서드
-     * 
-     * @param html HTML 문자열
-     * @return ResponseEntity with HTML content
-     */
+    // HTML 응답을 생성하는 공통 메서드
     private ResponseEntity<String> createHtmlResponse(String html) {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_HTML_VALUE + ";charset=UTF-8")

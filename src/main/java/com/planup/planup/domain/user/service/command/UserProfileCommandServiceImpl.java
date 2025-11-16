@@ -3,7 +3,7 @@ package com.planup.planup.domain.user.service.command;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.global.service.ImageUploadService;
-import com.planup.planup.domain.user.converter.UserConverter;
+import com.planup.planup.domain.user.converter.UserProfileConverter;
 import com.planup.planup.domain.user.dto.AuthResponseDTO;
 import com.planup.planup.domain.user.dto.FileResponseDTO;
 import com.planup.planup.domain.user.entity.User;
@@ -39,8 +39,8 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
     private final JavaMailSender mailSender;
     private final RedisTemplate<String, String> redisTemplate;
     private final ImageUploadService imageUploadService;
-    private final UserConverter userConverter;
     private final UserQueryService userQueryService;
+    private final UserProfileConverter userProfileConverter;
 
     @Qualifier("objectRedisTemplate")
     private final RedisTemplate<String, Object> objectRedisTemplate;
@@ -107,7 +107,7 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
         String redisKey = TEMP_PROFILE_PREFIX + email;
         objectRedisTemplate.opsForValue().set(redisKey, imageUrl, Duration.ofHours(1));
 
-        return userConverter.toImageUploadResponseDTO(imageUrl);
+        return userProfileConverter.toImageUploadResponseDTO(imageUrl);
     }
 
     @Override
@@ -152,7 +152,7 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
         String changeUrl = appDomain + "/users/email/change-link?token=" + changeToken;
         sendEmailChangeVerificationEmailContent(currentEmail, newEmail, changeUrl);
 
-        return userConverter.toEmailSendResponseDTO(newEmail, changeToken, "이메일 변경 인증 메일이 발송되었습니다.");
+        return userProfileConverter.toEmailSendResponseDTO(newEmail, changeToken, "이메일 변경 인증 메일이 발송되었습니다.");
     }
 
     @Override
