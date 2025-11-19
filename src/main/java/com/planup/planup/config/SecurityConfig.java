@@ -1,6 +1,7 @@
 package com.planup.planup.config;
 
 import com.planup.planup.validation.jwt.JwtAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,27 +27,67 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                // AuthenticationEntryPoint 설정
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(401);
+                            response.setContentType("application/json;charset=UTF-8");
+                            // 응답 본문 작성
+                            response.getWriter().write(
+                                    "{" +
+                                            "\"isSuccess\":false," +
+                                            "\"code\":\"UNAUTHORIZED\"," +
+                                            "\"message\":\"인증이 필요합니다\"," +
+                                            "\"result\":null" +
+                                            "}"
+                            );
+                        })
+                )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/users/signup", "/users/login").permitAll()
-                        .requestMatchers("/profile/image").permitAll()
-                        // Swagger 관련 경로
+                        //Swagger 및 정적 리소스
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
+                                "/swagger-config",
                                 "/swagger-resources/**",
+                                "/api-docs/**",
                                 "/webjars/**"
                         ).permitAll()
-                        //리소스
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
-                        .requestMatchers("/goals/**").authenticated()
-                        .requestMatchers("/verification/**").authenticated()
-                        .requestMatchers("/mypage/**").authenticated()
-                        .requestMatchers("/friends/**").authenticated()
-                        .requestMatchers("/report/**").authenticated()
-                        .requestMatchers("/notification/**").authenticated()
-                        // 기타 경로는 임시 허용 (점진적으로 authenticated()로 변경)
-                        .anyRequest().permitAll()
+                        // 인증 불필요 - 회원가입/로그인 관련
+                        .requestMatchers("/users/signup", "/users/login").permitAll()
+                        // 이메일 인증 (회원가입 시)
+                        .requestMatchers("/users/email/send").permitAll()
+                        .requestMatchers("/users/email/resend").permitAll()
+                        .requestMatchers("/users/email/verify-link").permitAll()
+                        .requestMatchers("/users/email/verification-status").permitAll()
+                        .requestMatchers("/users/email/check-duplicate").permitAll()
+                        .requestMatchers("/users/email/change-link").permitAll()  // 토큰 인증
+
+                        .requestMatchers("/users/password/**").permitAll() // 비밀번호 재설정
+                        .requestMatchers("/users/auth/**").permitAll()
+                        .requestMatchers("/users/invite-code/validate").permitAll()  // 초대 코드 검증
+                        .requestMatchers("/users/nickname/check-duplicate").permitAll()  // 닉네임 중복
+                        // 인증 불필요 - 프로필 관련 (회원가입 시)
+                        .requestMatchers(HttpMethod.POST, "/profile/image").permitAll()  // 회원가입 시 프로필 업로드
+                        .requestMatchers(HttpMethod.GET, "/profile/nickname/random").permitAll()  // 랜덤 닉네임 생성
+                        // 인증 불필요 - 약관 조회
+                        .requestMatchers(HttpMethod.GET, "/terms/**").permitAll()
+                        // 인증 필요 - 모든 기능
+                        .requestMatchers("/users/**").authenticated()           // 유저 관련
+                        .requestMatchers("/mypage/**").authenticated()          // 마이페이지
+                        .requestMatchers("/profile/**").authenticated()         // 프로필
+                        .requestMatchers("/goals/**").authenticated()           // 목표 관리
+                        .requestMatchers("/community/**").authenticated()       // 커뮤니티 (UserGoalController)
+                        .requestMatchers("/challenges/**").authenticated()      // 챌린지
+                        .requestMatchers("/friends/**").authenticated()         // 친구
+                        .requestMatchers("/verification/**").authenticated()    // 인증
+                        .requestMatchers("/report/**").authenticated()          // 리포트
+                        .requestMatchers("/notifications/**").authenticated()   // 알림
+                        .requestMatchers("/api/encourage/**").authenticated()   // 격려 메시지
+                        // 그 외 모든 요청은 인증 필요
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(form -> form.disable())
