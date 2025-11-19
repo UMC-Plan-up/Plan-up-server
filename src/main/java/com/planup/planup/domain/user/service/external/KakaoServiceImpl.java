@@ -39,8 +39,11 @@ public class KakaoServiceImpl implements KaKaoService {
 
         } catch (WebClientResponseException e) {
             log.error("카카오 API 호출 실패 - Status: {}, Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
-            throw new UserException(e.getStatusCode().is4xxClientError() ? 
-                ErrorStatus.KAKAO_TOKEN_INVALID : ErrorStatus.KAKAO_AUTH_FAILED);
+            if (e.getStatusCode().is4xxClientError()) {
+                throw new UserException(ErrorStatus.KAKAO_TOKEN_INVALID);
+            } else {
+                throw new UserException(ErrorStatus.KAKAO_AUTH_FAILED);
+            }
         } catch (Exception e) {
             log.error("카카오 사용자 정보 조회 실패", e);
             throw new UserException(ErrorStatus.KAKAO_USER_INFO_FAILED);
@@ -79,29 +82,25 @@ public class KakaoServiceImpl implements KaKaoService {
 
     // JSON 응답에서 access_token 추출 (간단 파싱)
     private String extractAccessToken(String response) {
-        try {
-            String tokenPrefix = "\"access_token\":\"";
-            int startIndex = response.indexOf(tokenPrefix);
-            
-            if (startIndex == -1) {
-                log.error("카카오 응답에서 access_token을 찾을 수 없습니다. 응답: {}", response);
-                throw new UserException(ErrorStatus.KAKAO_TOKEN_INVALID);
-            }
-            
-            startIndex += tokenPrefix.length();
-            int endIndex = response.indexOf("\"", startIndex);
-            
-            if (endIndex == -1) {
-                log.error("카카오 응답에서 access_token 파싱 실패. 응답: {}", response);
-                throw new UserException(ErrorStatus.KAKAO_TOKEN_INVALID);
-            }
-            
-            return response.substring(startIndex, endIndex);
-        } catch (UserException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("카카오 access_token 파싱 중 예외 발생. 응답: {}", response, e);
+        String tokenPrefix = "\"access_token\":\"";
+        int startIndex = response.indexOf(tokenPrefix);
+
+        // 토큰 시작점 찾기
+        if (startIndex == -1) {
+            log.error("카카오 응답에서 access_token을 찾을 수 없습니다. 응답: {}", response);
             throw new UserException(ErrorStatus.KAKAO_TOKEN_INVALID);
         }
+
+        startIndex += tokenPrefix.length();
+        int endIndex = response.indexOf("\"", startIndex);
+
+        // 토큰 끝점 찾기
+        if (endIndex == -1) {
+            log.error("카카오 응답에서 access_token 파싱 실패. 응답: {}", response);
+            throw new UserException(ErrorStatus.KAKAO_TOKEN_INVALID);
+        }
+
+        // 파싱 중 혹시 모를 StringIndexOutOfBoundsException을 전역 핸들러에서 처리
+        return response.substring(startIndex, endIndex);
     }
 }

@@ -1,4 +1,4 @@
-package com.planup.planup.global.constants;
+package com.planup.planup.domain.global.redis;
 
 public class RedisKeyConstants {
     

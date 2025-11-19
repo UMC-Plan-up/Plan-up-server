@@ -1,11 +1,14 @@
 package com.planup.planup.validation.jwt;
 
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.TokenException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +22,7 @@ import java.util.function.Function;
 
 @Getter
 @Component
+@Slf4j
 public class JwtUtil {
 
     @Value("${jwt.secret}")
@@ -47,7 +51,7 @@ public class JwtUtil {
             } else if (userIdObj instanceof Long) {
                 return (Long) userIdObj;
             }
-            throw new RuntimeException("Invalid userId format in token");
+            throw new TokenException(ErrorStatus.TOKEN_INVALID);
         });
     }
 
@@ -72,7 +76,7 @@ public class JwtUtil {
                     .parseSignedClaims(token)
                     .getPayload();
         } catch (JwtException e) {
-            throw new RuntimeException("토큰 파싱 실패: " + e.getMessage());
+            throw new TokenException(ErrorStatus.TOKEN_INVALID);
         }
     }
 
@@ -83,6 +87,10 @@ public class JwtUtil {
 
     //Access Token 생성
     public String generateToken(String username, String role, Long userId) {
+        // 입력값 검증
+        if (username == null || role == null || userId == null) {
+            throw new TokenException(ErrorStatus.TOKEN_INVALID_INPUT_VALUE);
+        }
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
         claims.put("userId", userId);
@@ -99,13 +107,18 @@ public class JwtUtil {
 
     //토큰 생성
     private String createToken(Map<String, Object> claims, String subject, Long expiration) {
-        return Jwts.builder()
-                .claims(claims) //기타 정보들 설정
-                .subject(subject)  //이메일
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSigningKey())//위조 방지를 위한 비밀키로 서명 생성
-                .compact();
+        try {
+            return Jwts.builder()
+                    .claims(claims) //기타 정보들 설정
+                    .subject(subject)  //이메일
+                    .issuedAt(new Date(System.currentTimeMillis()))
+                    .expiration(new Date(System.currentTimeMillis() + expiration))
+                    .signWith(getSigningKey())//위조 방지를 위한 비밀키로 서명 생성
+                    .compact();
+        } catch (Exception e) {
+            log.error("토큰 생성 실패: ", e);
+            throw new TokenException(ErrorStatus.TOKEN_CREATION_FAILED);
+        }
     }
 
     //토큰 유효성 검증
@@ -116,18 +129,14 @@ public class JwtUtil {
 
     //토큰 유효성 검증 -만료되었는지 검증
     public Boolean validateToken(String token) {
-        try {
-            return !isTokenExpired(token);
-        } catch (Exception e) {
-            return false;
-        }
+        return !isTokenExpired(token);
     }
 
     public String extractTokenFromHeader(String authorizationHeader) {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             return authorizationHeader.substring(7);
         }
-        return null;
+        throw new TokenException(ErrorStatus.TOKEN_INVALID_FORMAT);
     }
 
     public Authentication extractAuthentication(HttpServletRequest request) {

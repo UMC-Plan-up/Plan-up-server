@@ -1,5 +1,7 @@
 package com.planup.planup.domain.user.service.command;
 
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.BadgeException;
 import com.planup.planup.domain.bedge.entity.BadgeType;
 import com.planup.planup.domain.user.converter.UserBadgeConverter;
 import com.planup.planup.domain.user.entity.User;
@@ -21,10 +23,15 @@ public class UserBadgeCommandServiceImpl implements UserBadgeCommandService {
 
     @Override
     public boolean createUserBadge(User user, BadgeType badge) {
-        List<UserBadge> isExist = userBadgeRepository.findByUserAndBadgeType(user, badge);
 
-        if (!isExist.isEmpty()) {
-            return false;
+        if (user == null || badge == null) {
+            throw new BadgeException(ErrorStatus.INVALID_BADGE_TYPE);
+        }
+
+        boolean alreadyHasBadge = userBadgeRepository.existsByUserAndBadgeType(user, badge);
+
+        if (alreadyHasBadge) {
+            return false; // 이미 보유 중이면 false 반환
         }
 
         UserBadge userBadge = userBadgeConverter.toUserBadgeEntity(user, badge);

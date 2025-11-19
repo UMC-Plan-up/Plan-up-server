@@ -40,7 +40,7 @@ public class UserBadgeQueryServiceImpl implements UserBadgeQueryService {
 
     @Override
     public List<BadgeType> getBadgeInPeriod(User user, LocalDateTime from, LocalDateTime to) {
-        return userBadgeRepository.findByUserAndCreatedAtBetween(user, from, to)
+        return getUserBadgeInPeriod(user, from, to)
                 .stream()
                 .map(UserBadge::getBadgeType)
                 .collect(Collectors.toList());
@@ -53,10 +53,10 @@ public class UserBadgeQueryServiceImpl implements UserBadgeQueryService {
 
     @Override
     public List<BadgeType> getBadgeByUser(User user) {
-        List<UserBadge> userbadges = userBadgeRepository.findByUserOrderByCreatedAtDesc(user);
-        return userbadges.stream()
+        return userBadgeRepository.findByUserOrderByCreatedAtDesc(user)
+                .stream()
                 .map(UserBadge::getBadgeType)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // ========== 통계 조회 ==========
@@ -64,6 +64,7 @@ public class UserBadgeQueryServiceImpl implements UserBadgeQueryService {
     @Override
     public UserStat getUserStatByUserId(Long userId) {
         User user = userQueryService.getUserByUserId(userId);
-        return userStatRepository.findByUser(user);
+        return userStatRepository.findByUser(user)
+                .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_STAT));
     }
 }

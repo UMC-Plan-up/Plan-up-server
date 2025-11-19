@@ -1,6 +1,7 @@
 package com.planup.planup.domain.user.service.query;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.AuthException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.user.converter.TermsConverter;
 import com.planup.planup.domain.user.converter.UserAuthConverter;
@@ -179,16 +180,11 @@ public class UserQueryServiceImpl implements UserQueryService {
     }
 
     private String getEmailByToken(String token) {
-        try {
-            String email = redisTemplate.opsForValue().get("email-verification:" + token);
-            if (email == null) {
-                throw new IllegalArgumentException("만료되거나 유효하지 않은 토큰입니다.");
-            }
-            return email;
-        } catch (Exception e) {
-            log.error("Redis 조회 중 오류 발생: {}", e.getMessage());
-            throw new IllegalArgumentException("토큰 검증 중 오류가 발생했습니다.");
+        String email = redisTemplate.opsForValue().get("email-verification:" + token);
+        if (email == null) {
+            throw new AuthException(ErrorStatus.INVALID_EMAIL_TOKEN);
         }
+        return email;
     }
 
     // ========== 관계 조회 ==========
@@ -215,8 +211,13 @@ public class UserQueryServiceImpl implements UserQueryService {
 
         String newCode = generateInviteCode();
 
-        redisTemplate.opsForValue().set(key, newCode, 3, TimeUnit.DAYS);
-        redisTemplate.opsForValue().set("invite_code:" + newCode, userId.toString(), 3, TimeUnit.DAYS);
+        try {
+            redisTemplate.opsForValue().set(key, newCode, 3, TimeUnit.DAYS);
+            redisTemplate.opsForValue().set("invite_code:" + newCode, userId.toString(), 3, TimeUnit.DAYS);
+        } catch (Exception e) {
+            log.error("초대 코드 Redis 저장 실패: {}", e.getMessage(), e);
+            throw new AuthException(ErrorStatus.REDIS_SAVE_FAILED);
+        }
 
         return AuthResponseDTO.InviteCode.of(newCode);
     }

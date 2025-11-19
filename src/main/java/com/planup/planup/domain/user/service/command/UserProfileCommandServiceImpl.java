@@ -1,6 +1,7 @@
 package com.planup.planup.domain.user.service.command;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.AuthException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.global.service.ImageUploadService;
 import com.planup.planup.domain.user.converter.UserProfileConverter;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.UnsupportedEncodingException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -54,6 +56,11 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
 
     @Override
     public String updateNickname(Long userId, String nickname) {
+
+        // 입력값 검증
+        if (nickname == null || nickname.trim().isEmpty()) {
+            throw new UserException(ErrorStatus.INVALID_NICKNAME);
+        }
         User user = userQueryService.getUserByUserId(userId);
 
         if (user.getNickname().equals(nickname)) {
@@ -84,6 +91,11 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
 
     @Override
     public String updateEmail(Long userId, String newEmail) {
+
+        if (newEmail == null || newEmail.trim().isEmpty()) {
+            throw new UserException(ErrorStatus.INVALID_EMAIL_FORMAT);
+        }
+
         User user = userQueryService.getUserByUserId(userId);
 
         if (user.getEmail().equals(newEmail)) {
@@ -93,6 +105,7 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
         if (userRepository.existsByEmailAndUserActivate(newEmail, UserActivate.ACTIVE)) {
             throw new UserException(ErrorStatus.USER_EMAIL_ALREADY_EXISTS);
         }
+        // user.setEmailVerified(false); // 이메일 변경되었으므로 인증 상태 초기화
 
         user.setEmail(newEmail);
         return user.getEmail();
@@ -105,8 +118,14 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
         String imageUrl = imageUploadService.uploadImage(file, "profile");
 
         String redisKey = TEMP_PROFILE_PREFIX + email;
-        objectRedisTemplate.opsForValue().set(redisKey, imageUrl, Duration.ofHours(1));
-
+        try {
+            // Redis 저장 실패 시 AuthException 발생
+            objectRedisTemplate.opsForValue().set(redisKey, imageUrl, Duration.ofHours(1));
+        } catch (Exception e) {
+            log.error("Redis 임시 이미지 URL 저장 실패: {}", e.getMessage(), e);
+            // 이미지는 저장되었지만, 후속 작업에 문제가 생길 수 있으므로 예외 처리
+            throw new AuthException(ErrorStatus.REDIS_SAVE_FAILED);
+        }
         return userProfileConverter.toImageUploadResponseDTO(imageUrl);
     }
 
@@ -115,13 +134,16 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
         User user = userQueryService.getUserByUserId(userId);
 
         if (user.getProfileImg() != null && !user.getProfileImg().trim().isEmpty()) {
-            imageUploadService.deleteImage(user.getProfileImg());
+            try {
+                imageUploadService.deleteImage(user.getProfileImg());
+            } catch (Exception e) {
+                // 이미지 삭제는 실패해도 DB 업데이트는 진행해야 하므로 경고 로그만 남김
+                log.warn("기존 프로필 이미지 삭제 실패 (무시): URL={}, Error={}", user.getProfileImg(), e.getMessage());
+            }
         }
-
         String newImageUrl = imageUploadService.uploadImage(file, "profile");
 
         user.updateProfileImage(newImageUrl);
-        userRepository.save(user);
 
         return FileResponseDTO.ImageUpload.builder()
                 .imageUrl(newImageUrl)
@@ -142,15 +164,26 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
 
         String changeToken = UUID.randomUUID().toString();
 
-        redisTemplate.opsForValue().set(
-                "email-change:" + changeToken,
-                currentEmail + ":" + newEmail,
-                30,
-                TimeUnit.MINUTES
-        );
+        try {
+            redisTemplate.opsForValue().set(
+                    "email-change:" + changeToken,
+                    currentEmail + ":" + newEmail,
+                    30,
+                    TimeUnit.MINUTES
+            );
+        } catch (Exception e) {
+            log.error("Redis 이메일 변경 토큰 저장 실패: {}", e.getMessage(), e);
+            throw new AuthException(ErrorStatus.REDIS_SAVE_FAILED);
+        }
 
         String changeUrl = appDomain + "/users/email/change-link?token=" + changeToken;
-        sendEmailChangeVerificationEmailContent(currentEmail, newEmail, changeUrl);
+        try {
+            sendEmailChangeVerificationEmailContent(currentEmail, newEmail, changeUrl);
+        } catch (Exception e) {
+            log.error("이메일 변경 인증 메일 발송 실패: {}", e.getMessage(), e);
+            redisTemplate.delete("email-change:" + changeToken); // 토큰 정리
+            throw new AuthException(ErrorStatus.EMAIL_SEND_FAILED);
+        }
 
         return userProfileConverter.toEmailSendResponseDTO(newEmail, changeToken, "이메일 변경 인증 메일이 발송되었습니다.");
     }
@@ -164,8 +197,6 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
     @Override
     public AuthResponseDTO.EmailSend resendEmailChangeVerification(String currentEmail, String newEmail) {
         userQueryService.checkEmail(newEmail);
-
-        clearExistingEmailChangeTokens(currentEmail, newEmail);
         return sendEmailChangeVerification(currentEmail, newEmail);
     }
 
@@ -183,15 +214,14 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
         user.setEmailVerified(true);
         user.setEmailVerifiedAt(LocalDateTime.now());
 
-        clearVerificationToken(currentEmail);
-        clearEmailChangeToken(token);
-
-        userRepository.save(user);
+        redisTemplate.delete("email-change:" + token); // 사용된 이메일 변경 토큰 삭제
+        redisTemplate.delete("email-verified:" + currentEmail); // 기존 이메일의 '인증 완료 마킹' 상태 삭제
     }
 
     @Override
     public String handleEmailChangeLink(String token) {
         try {
+            // 토큰 검증 및 이메일 추출
             String emailPair = validateEmailChangeToken(token);
             String[] emails = emailPair.split(":");
             String currentEmail = emails[0];
@@ -199,9 +229,14 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
 
             completeEmailChange(token);
 
-            String deepLinkUrl = "planup://email/change/complete?verified=true&token=" + token;
+
+            String encodedEmails = java.net.URLEncoder.encode(currentEmail + ":" + newEmail, java.nio.charset.StandardCharsets.UTF_8.toString());
+            String deepLinkUrl = "planup://email/change/complete?verified=true&token=" + token + "&emails=" + encodedEmails;
+
             return EmailTemplateUtil.createSuccessHtml(currentEmail + ":" + newEmail, deepLinkUrl);
-        } catch (IllegalArgumentException e) {
+
+        } catch (IllegalArgumentException | UnsupportedEncodingException e) {
+            log.error("이메일 변경 링크 처리 실패: {}", e.getMessage(), e);
             return EmailTemplateUtil.createFailureHtml();
         }
     }
@@ -218,11 +253,14 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
         String value = redisTemplate.opsForValue().get("password-change:" + token);
 
         if (value == null) {
-            throw new IllegalArgumentException("만료되거나 유효하지 않은 비밀번호 변경 토큰입니다.");
+            throw new AuthException(ErrorStatus.PASSWORD_TOKEN_INVALID);
         }
 
         String[] parts = value.split(":");
-        return new String[]{parts[0], parts[1]};
+        if (parts.length < 2) { // 데이터 무결성 체크 추가
+            throw new AuthException(ErrorStatus.PASSWORD_TOKEN_INVALID);
+        }
+        return parts;
     }
 
     @Override
@@ -230,7 +268,11 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
         String emailPair = redisTemplate.opsForValue().get("email-change:" + token);
 
         if (emailPair == null) {
-            throw new IllegalArgumentException("만료되거나 유효하지 않은 이메일 변경 토큰입니다.");
+            throw new AuthException(ErrorStatus.PASSWORD_TOKEN_INVALID);
+        }
+
+        if (!emailPair.contains(":")) {
+            throw new AuthException(ErrorStatus.PASSWORD_TOKEN_INVALID);
         }
 
         return emailPair;
@@ -240,18 +282,12 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
 
     @Override
     public String completeVerification(String verificationToken) {
-        String email;
-        try {
-            email = getEmailByToken(verificationToken);
-        } catch (IllegalArgumentException e) {
-            log.error("토큰 검증 실패: {}", e.getMessage());
-            throw new IllegalArgumentException("토큰이 만료되었거나 이미 사용되었습니다.");
-        }
+        String email = getEmailByToken(verificationToken);
 
         if (userQueryService.isEmailVerified(email)) {
             return email;
         }
-
+        // Redis에 인증 마킹 저장
         try {
             redisTemplate.opsForValue().set(
                     "email-verified:" + email,
@@ -260,9 +296,12 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
                     TimeUnit.MINUTES
             );
         } catch (Exception e) {
-            log.error("Redis 저장 실패: {}", e.getMessage());
-            throw new RuntimeException("이메일 인증 처리 중 오류가 발생했습니다.");
+            log.error("Redis 저장 실패: {}", e.getMessage(), e);
+            throw new AuthException(ErrorStatus.REDIS_SAVE_FAILED);
         }
+
+        // 사용 완료된 토큰 삭제
+        redisTemplate.delete("email-verification:" + verificationToken);
 
         return email;
     }
@@ -272,7 +311,6 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
     @Override
     public void clearVerificationToken(String email) {
         redisTemplate.delete("email-verified:" + email);
-        clearExistingTokens(email);
     }
 
     @Override
@@ -298,16 +336,12 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
     // ========== Private 헬퍼 메서드 ==========
 
     private String getEmailByToken(String token) {
-        try {
-            String email = redisTemplate.opsForValue().get("email-verification:" + token);
-            if (email == null) {
-                throw new IllegalArgumentException("만료되거나 유효하지 않은 토큰입니다.");
-            }
-            return email;
-        } catch (Exception e) {
-            log.error("Redis 조회 중 오류 발생: {}", e.getMessage());
-            throw new IllegalArgumentException("토큰 검증 중 오류가 발생했습니다.");
+        String email = redisTemplate.opsForValue().get("email-verification:" + token);
+
+        if (email == null) {
+            throw new AuthException(ErrorStatus.INVALID_EMAIL_TOKEN);
         }
+        return email;
     }
 
     private void clearExistingTokens(String email) {
@@ -338,7 +372,7 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
 
             mailSender.send(message);
         } catch (Exception e) {
-            throw new RuntimeException("이메일 변경 인증 메일 발송 실패", e);
+            throw new AuthException(ErrorStatus.EMAIL_SEND_FAILED);
         }
     }
 

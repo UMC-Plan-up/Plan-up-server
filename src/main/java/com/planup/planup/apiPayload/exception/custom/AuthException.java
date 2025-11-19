@@ -3,8 +3,8 @@ package com.planup.planup.apiPayload.exception.custom;
 import com.planup.planup.apiPayload.code.BaseErrorCode;
 import com.planup.planup.apiPayload.exception.GeneralException;
 
-public class UserException extends GeneralException {
-    public UserException(BaseErrorCode code) {
+public class AuthException extends GeneralException {
+    public AuthException(BaseErrorCode code) {
         super(code);
     }
 }
