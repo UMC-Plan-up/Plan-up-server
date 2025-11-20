@@ -1,6 +1,9 @@
 package com.planup.planup.domain.friend.converter;
 
+import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
+import com.planup.planup.domain.friend.entity.Friend;
+import com.planup.planup.domain.goal.dto.UserWithGoalCountDTO;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.verification.service.TimerVerificationService;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
@@ -35,16 +38,19 @@ public class FriendConverter {
                 .build();
     }
 
-    public FriendResponseDTO.FriendInfoInChallengeCreate toFriendInfoChallenge(User friend) {
-        return FriendResponseDTO.FriendInfoInChallengeCreate
-                .builder()
-                .id(friend.getId())
-                .nickname(friend.getNickname())
-                .goalCnt(friend.getUserGoals().size())
-                .build();
+    public List<FriendResponseDTO.FriendInfoInChallengeCreate> toFriendInfoChallenge(List<UserWithGoalCountDTO> dtos) {
+        return dtos.stream().map(dto -> {
+            FriendResponseDTO.FriendInfoInChallengeCreate create = FriendResponseDTO.FriendInfoInChallengeCreate
+                    .builder()
+                    .id(dto.getUser().getId())
+                    .nickname(dto.getUser().getNickname())
+                    .goalCnt(dto.getGoalCnt())
+                    .build();
+            return create;
+        }).collect(Collectors.toList());
     }
 
-    public FriendResponseDTO.FriendSummaryList toFriendSummaryList(List<FriendResponseDTO.FriendInfoSummary> items) {
+    public static FriendResponseDTO.FriendSummaryList toFriendSummaryList(List<FriendResponseDTO.FriendInfoSummary> items) {
         return FriendResponseDTO.FriendSummaryList.builder()
                 .cnt(items.size())
                 .friendInfoSummaryList(items)
@@ -56,5 +62,15 @@ public class FriendConverter {
      */
 
 
-
+    public List<BlockedFriendResponseDTO> toBlockedFriendDTO(Long userId, List<User> friends) {
+        return friends.stream()
+                .map(friend -> {
+                    return BlockedFriendResponseDTO.builder()
+                            .friendId(friend.getId())
+                            .friendNickname(friend.getNickname())
+                            .profileImg(friend.getProfileImg())
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
 }

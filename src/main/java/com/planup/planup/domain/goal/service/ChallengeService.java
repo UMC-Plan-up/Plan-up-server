@@ -1,11 +1,11 @@
 package com.planup.planup.domain.goal.service;
 
+import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
 import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
-import com.planup.planup.domain.user.entity.User;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -32,4 +32,6 @@ public interface ChallengeService {
 
     @Transactional(readOnly = true)
     void remindPenalty(Long userId, Long challengeId);
+
+    List<FriendResponseDTO.FriendInfoInChallengeCreate> getFrinedlistinchallenge(Long userId);
 }

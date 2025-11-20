@@ -1,7 +1,7 @@
 package com.planup.planup.domain.verification.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
-import com.planup.planup.domain.friend.service.FriendService;
+import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.user.service.UserService;
@@ -29,7 +29,7 @@ public class VerificationController {
     private final TimerVerificationService timerVerificationService;
     private final PhotoVerificationService photoVerificationService;
     private final UserGoalService userGoalService;
-    private final FriendService friendService;
+    private final FriendReadService friendService;
     private final UserService userService;
 
     @PostMapping("/timer/start")
@@ -64,7 +64,7 @@ public class VerificationController {
 
 
         UserGoal userGoal = userGoalService.getByGoalIdAndUserId(userId, goalId);
-        LocalTime totalTime = timerVerificationReadService.getTodayTotalTime(userGoal);
+        LocalTime totalTime = timerVerificationReadService.getTodayTotalTimeByUserGoal(userGoal);
 
         TimerVerificationResponseDto.TodayTotalTimeResponseDto result =
                 TimerVerificationConverter.toTodayTotalTimeResponse(totalTime);
@@ -84,7 +84,7 @@ public class VerificationController {
         friendService.isFriend(userId, friendId);
 
         UserGoal userGoal = userGoalService.getByGoalIdAndUserId(friendId, goalId);
-        LocalTime totalTime = timerVerificationReadService.getTodayTotalTime(userGoal);
+        LocalTime totalTime = timerVerificationReadService.getTodayTotalTimeByUserGoal(userGoal);
 
         TimerVerificationResponseDto.TodayTotalTimeResponseDto result =
                 TimerVerificationConverter.toTodayTotalTimeResponse(totalTime);

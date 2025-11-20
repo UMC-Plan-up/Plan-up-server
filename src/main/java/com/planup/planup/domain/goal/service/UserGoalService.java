@@ -1,6 +1,8 @@
 package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.domain.goal.dto.UserGoalResponseDto;
+import com.planup.planup.domain.goal.dto.UserWithGoalCountDTO;
+import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.dto.CommunityResponseDto;
 import com.planup.planup.domain.goal.entity.Goal;
@@ -25,13 +27,18 @@ public interface UserGoalService {
 
     List<UserGoal> getUserGoalInPeriod(LocalDateTime startDate, LocalDateTime endDate);
 
-    @Transactional(readOnly = true)
     UserGoal getByGoalIdAndUserId(Long goalId, Long userId);
 
-    @Transactional(readOnly = true)
     boolean existUserGoal(Long goalId, Long userId);
 
     int calculateDailyAchievement(Long userId, LocalDate targetDate);
     UserGoalResponseDto.GoalTotalAchievementDto calculateGoalTotalAchievement(Long goalId, Long userId);
     List<UserGoal> getActiveUserGoalsByUser(Long userId, LocalDate targetDate);
-    }
+
+    Integer getUserGoalCount(Long userId);
+
+    List<UserWithGoalCountDTO> getUserByChallengesAndUserId(Long userId);
+
+    //리스트로 들어온 아이디들의 각 참여 중인 goalCnt 수를 반환
+    List<UserWithGoalCountDTO> getUserGoalCntByUserIds(List<Long> userIds);
+}
