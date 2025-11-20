@@ -13,9 +13,7 @@ public interface UserBlockService {
 
     UserBlock getBlockedFriend(Long userId, Long friendId);
 
-    @Transactional
-    Long unblockFriend(UnblockFriendRequestDTO request);
+    Long unblockFriend(Long userId, UnblockFriendRequestDTO request);
 
-    @Transactional
     boolean blockFriend(User user, Long friendId);
 }

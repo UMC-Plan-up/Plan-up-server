@@ -4,14 +4,8 @@ import com.planup.planup.apiPayload.code.BaseErrorCode;
 import com.planup.planup.apiPayload.exception.GeneralException;
 
 public class FriendException extends GeneralException {
-    private final BaseErrorCode errorCode;
 
     public FriendException(BaseErrorCode code) {
         super(code);
-        this.errorCode = code;
-    }
-
-    public BaseErrorCode getErrorStatus() {
-        return this.errorCode;
     }
 }

@@ -100,7 +100,6 @@ public class UserGoalServiceImpl implements UserGoalService{
     }
 
     //달성량 계산 파트
-    @Transactional(readOnly = true)
     public int calculateDailyAchievement(Long userId, LocalDate targetDate) {
         List<UserGoal> activeUserGoals = getActiveUserGoalsByUser(userId, targetDate);
 
@@ -147,7 +146,6 @@ public class UserGoalServiceImpl implements UserGoalService{
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<UserGoal> getActiveUserGoalsByUser(Long userId, LocalDate targetDate) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
@@ -155,7 +153,6 @@ public class UserGoalServiceImpl implements UserGoalService{
         return userGoalRepository.findActiveUserGoalsByUser(user, targetDate);
     }
 
-    @Transactional(readOnly = true)
     public UserGoalResponseDto.GoalTotalAchievementDto calculateGoalTotalAchievement(Long goalId, Long userId) {
         UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
 

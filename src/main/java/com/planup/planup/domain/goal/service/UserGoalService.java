@@ -27,20 +27,16 @@ public interface UserGoalService {
 
     List<UserGoal> getUserGoalInPeriod(LocalDateTime startDate, LocalDateTime endDate);
 
-    @Transactional(readOnly = true)
     UserGoal getByGoalIdAndUserId(Long goalId, Long userId);
 
-    @Transactional(readOnly = true)
     boolean existUserGoal(Long goalId, Long userId);
 
     int calculateDailyAchievement(Long userId, LocalDate targetDate);
     UserGoalResponseDto.GoalTotalAchievementDto calculateGoalTotalAchievement(Long goalId, Long userId);
     List<UserGoal> getActiveUserGoalsByUser(Long userId, LocalDate targetDate);
 
-    @Transactional(readOnly = true)
     Integer getUserGoalCount(Long userId);
 
-    @Transactional(readOnly = true)
     List<UserWithGoalCountDTO> getUserByChallengesAndUserId(Long userId);
 
     //리스트로 들어온 아이디들의 각 참여 중인 goalCnt 수를 반환

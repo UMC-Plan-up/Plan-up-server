@@ -50,8 +50,7 @@ public class UserBlockServiceImpl implements UserBlockService {
 
     @Override
     @Transactional
-    public Long unblockFriend(UnblockFriendRequestDTO request) {
-        Long userId = request.getUserId();
+    public Long unblockFriend(Long userId, UnblockFriendRequestDTO request) {
         Long friendId = request.getFriendId();
 
         Optional<UserBlock> optionalUserBlock = userBlockRepository.findByUserIdAndFriendIdWithBlocked(userId, friendId);

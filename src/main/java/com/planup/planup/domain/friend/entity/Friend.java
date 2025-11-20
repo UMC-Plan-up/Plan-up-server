@@ -13,7 +13,6 @@ import java.util.Objects;
 @NoArgsConstructor
 @SuperBuilder
 @AllArgsConstructor
-@Builder
 public class Friend extends BaseTimeEntity {
 
     @Id
