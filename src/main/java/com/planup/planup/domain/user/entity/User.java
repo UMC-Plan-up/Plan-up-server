@@ -48,7 +48,7 @@ public class User extends BaseTimeEntity {
     @Column(name = "alarm_allow", nullable = false)
     @Builder.Default
     private Boolean marketingNotificationAllow = false; // 혜택 및 마케팅 알림 동의
-
+    
     @Column(name = "service_notification_allow", nullable = false)
     @Builder.Default
     private Boolean serviceNotificationAllow = true; // 서비스 알림 (기본값: true)
@@ -100,14 +100,20 @@ public class User extends BaseTimeEntity {
         this.nickname = nickname;
     }
 
-    public boolean updateMarketingNotificationAllow() {
-        this.marketingNotificationAllow = !this.marketingNotificationAllow;
-        return this.marketingNotificationAllow;
+    public void updateMarketingNotificationAllow() {
+        if (this.marketingNotificationAllow == true) {
+            this.marketingNotificationAllow = false;
+        } else {
+            this.marketingNotificationAllow = true;
+        }
     }
 
-    public boolean updateServiceNotificationAllow() {
-        this.serviceNotificationAllow = !this.serviceNotificationAllow;
-        return this.serviceNotificationAllow;
+    public void updateServiceNotificationAllow() {
+        if (this.serviceNotificationAllow == true) {
+            this.serviceNotificationAllow = false;
+        } else {
+            this.serviceNotificationAllow = true;
+        }
     }
 
     public void setPassword(String password) {
@@ -117,10 +123,6 @@ public class User extends BaseTimeEntity {
     public void addUserGoal(UserGoal userGoal) {
         userGoals.add(userGoal);
         userGoal.setUser(this);
-    }
-
-    public Integer getUserGoalCnt() {
-        return this.userGoals.size();
     }
 
     public void updateProfileImage(String profileImg) {

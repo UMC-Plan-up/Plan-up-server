@@ -3,13 +3,17 @@ package com.planup.planup.domain.friend.entity;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.util.Objects;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @SuperBuilder
 @AllArgsConstructor
@@ -32,20 +36,12 @@ public class Friend extends BaseTimeEntity {
 
 
     public Long getFriendId(Long myId) {
-        return getFriendNotMe(myId).getId();
-    }
-
-    public User getFriendNotMe(Long myId) {
         if (Objects.equals(user.getId(), myId)) {
-            return friend;
+            return friend.getId();
         } else if (Objects.equals(friend.getId(), myId)){
-            return user;
+            return user.getId();
         } else {
             return null;
         }
-    }
-
-    public void setStatus(FriendStatus status) {
-        this.status = status;
     }
 }
