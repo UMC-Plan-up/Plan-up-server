@@ -22,8 +22,16 @@ public class UserBlockValidator {
     }
 
     public void ensureExistUserBlock(Long userId, Long friendId) {
+        //신청자와 차단 대상자가 동일한 사람인지 확인
+        ensureNotSamepeople(userId, friendId);
+
         if (userBlockRepository.existsByBlockerIdAndBlockedId(userId, friendId)) {
             throw new FriendException(ErrorStatus.NOT_EXIST_USERBLOCK);
-        };
+        }
+    }
+
+    public void ensureNotSamepeople(Long userId, Long friendId) {
+        if (userId.equals(friendId))
+            throw new FriendException(ErrorStatus._BAD_REQUEST);
     }
 }
