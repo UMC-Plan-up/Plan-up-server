@@ -28,7 +28,7 @@ public enum ErrorStatus implements BaseErrorCode {
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "USER4001", "존재하지 않는 유저입니다"),
     EXIST_NICKNAME(HttpStatus.CONFLICT, "USER4002", "이미 존재하는 닉네임입니다"),
     USER_WITHDRAWAL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "USER5001", "회원 탈퇴 처리 중 오류가 발생했습니다."),
-    NOT_FOUND_STAT(HttpStatus.NOT_FOUND, "DATA4001", "사용자 통계 정보를 찾을 수 없습니다."),
+    NOT_FOUND_STAT(HttpStatus.NOT_FOUND, "USER4003", "사용자 통계 정보를 찾을 수 없습니다."),
 
     // 로그인, 회원가입 관련 에러
     USER_EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER4003", "이미 존재하는 이메일입니다"),
@@ -59,9 +59,9 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_BADGE_TYPE(HttpStatus.BAD_REQUEST, "BADGE4001", "유효하지 않은 뱃지 타입입니다."),
 
     // 약관 관련 에러
-    NOT_FOUND_TERMS(HttpStatus.NOT_FOUND, "4004", "존재하지 않는 약관입니다."),
-    REQUIRED_TERMS_NOT_AGREED(HttpStatus.BAD_REQUEST, "4005", "필수 약관에 동의해야 합니다."),
-    TERMS_AGREEMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "5001", "약관 동의 처리 중 오류가 발생했습니다."),
+    NOT_FOUND_TERMS(HttpStatus.NOT_FOUND, "TERMS4001", "존재하지 않는 약관입니다."),
+    REQUIRED_TERMS_NOT_AGREED(HttpStatus.BAD_REQUEST, "TERMS4002", "필수 약관에 동의해야 합니다."),
+    TERMS_AGREEMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "TERMS5001", "약관 동의 처리 중 오류가 발생했습니다."),
 
     // 초대코드 관련 에러
     INVALID_INVITE_CODE(BAD_REQUEST, "INVITE001", "유효하지 않은 초대코드입니다."),
@@ -73,7 +73,7 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_EMAIL_TOKEN(BAD_REQUEST, "EMAIL4001", "유효하지 않거나 만료된 인증 토큰입니다."),
     EMAIL_ALREADY_VERIFIED(BAD_REQUEST, "EMAIL4002", "이미 인증된 이메일입니다."),
     EMAIL_VERIFICATION_FAILED(INTERNAL_SERVER_ERROR, "EMAIL5001", "이메일 인증 처리 중 오류가 발생했습니다."),
-    EMAIL_VERIFICATION_REQUIRED(HttpStatus.BAD_REQUEST, "VERIFICATION_001", "이메일 인증이 필요합니다"),
+    EMAIL_VERIFICATION_REQUIRED(HttpStatus.BAD_REQUEST, "VERIFICATION4001", "이메일 인증이 필요합니다"),
     EMAIL_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "EMAIL5002", "이메일 발송 중 오류가 발생했습니다."),
     EMAIL_TOKEN_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "EMAIL5003", "인증 토큰 저장 중 서버 오류가 발생했습니다."),
     URL_ENCODING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "EMAIL5004", "URL 인코딩 처리 중 오류가 발생했습니다."),
@@ -115,7 +115,7 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_REFRESH_TOKEN(BAD_REQUEST, "TOKEN4005", "유효하지 않은 리프레시 토큰입니다."),
     // 로그아웃
     LOGOUT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN5002", "로그아웃 처리 중 오류가 발생했습니다."),
-    TOKEN_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "TOKEN4002", "잘못된 토큰 형식이거나 토큰 헤더가 누락되었습니다."),
+    TOKEN_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "TOKEN4006", "잘못된 토큰 형식이거나 토큰 헤더가 누락되었습니다."),
 
     ;
 
