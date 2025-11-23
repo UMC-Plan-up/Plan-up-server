@@ -1,6 +1,6 @@
 package com.planup.planup.domain.goal.service;
 
-import com.planup.planup.domain.friend.service.FriendReadService;
+import com.planup.planup.domain.friend.service.FriendService;
 import com.planup.planup.domain.global.redis.CacheAggregation;
 import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.convertor.UserGoalConvertor;
@@ -16,7 +16,7 @@ import java.time.LocalDate;
 public class UserGoalAggregationServiceImpl implements UserGoalAggregationService {
 
     private final UserGoalService userGoalService;
-    private final FriendReadService friendService;
+    private final FriendService friendService;
     private final CacheAggregation cacheAggregation;
 
     @Override

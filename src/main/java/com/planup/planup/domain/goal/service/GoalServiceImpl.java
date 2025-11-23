@@ -5,7 +5,7 @@ import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
-import com.planup.planup.domain.friend.service.FriendReadService;
+import com.planup.planup.domain.friend.service.FriendService;
 import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
@@ -53,7 +53,7 @@ public class GoalServiceImpl implements GoalService{
     private final TimerVerificationRepository timerVerificationRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
     private final CommentRepository commentRepository;
-    private final FriendReadService friendService;
+    private final FriendService friendService;
     private final GoalMemoRepository goalMemoRepository;
     private final TimerVerificationReadService timerVerificationReadService;
     private final UserService userService;
@@ -143,7 +143,7 @@ public class GoalServiceImpl implements GoalService{
         User user = userService.getUserbyUserId(userId);
         userService.getUserbyUserId(friendsId);
 
-//        friendService.isFriend(userId, friendsId);
+        friendService.isFriend(userId, friendsId);
 
         List<UserGoal> userGoals = userGoalRepository.findByUserIdAndIsPublicTrue(friendsId);
 
@@ -275,7 +275,7 @@ public class GoalServiceImpl implements GoalService{
 
                     if (goal.getVerificationType() == VerificationType.TIMER) {
                         // 타이머인 경우 실제 시간 계산
-                        LocalTime totalTime = timerVerificationReadService.getTodayTotalTimeByUserGoal(myuserGoal);
+                        LocalTime totalTime = timerVerificationReadService.getTodayTotalTime(myuserGoal);
                         todayTime = String.format("%02d:%02d:%02d",
                                 totalTime.getHour(),
                                 totalTime.getMinute(),

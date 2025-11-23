@@ -2,9 +2,8 @@ package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserGoalException;
-import com.planup.planup.domain.friend.service.FriendReadService;
+import com.planup.planup.domain.friend.service.FriendService;
 import com.planup.planup.domain.goal.dto.UserGoalResponseDto;
-import com.planup.planup.domain.goal.dto.UserWithGoalCountDTO;
 import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.dto.CommunityResponseDto;
@@ -17,7 +16,6 @@ import com.planup.planup.domain.goal.repository.GoalRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.repository.UserRepository;
-import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.domain.verification.service.PhotoVerificationReadService;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import lombok.RequiredArgsConstructor;
@@ -35,16 +33,15 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class UserGoalServiceImpl implements UserGoalService{
 
     private final UserGoalRepository userGoalRepository;
     private final GoalRepository goalRepository;
     private final UserRepository userRepository;
-    private final FriendReadService friendService;
+    private final FriendService friendService;
     private final PhotoVerificationReadService photoVerificationReadService;
     private final TimerVerificationReadService timerVerificationReadService;
-    private final UserService userService;
 
     @Transactional
     public CommunityResponseDto.JoinGoalResponseDto joinGoal(Long userId, Long goalId) {
@@ -97,9 +94,11 @@ public class UserGoalServiceImpl implements UserGoalService{
         Long creatorId = adminUserGoal.getUser().getId();
 
         friendService.isFriend(userId, creatorId);
+
     }
 
     //달성량 계산 파트
+    @Transactional(readOnly = true)
     public int calculateDailyAchievement(Long userId, LocalDate targetDate) {
         List<UserGoal> activeUserGoals = getActiveUserGoalsByUser(userId, targetDate);
 
@@ -146,6 +145,7 @@ public class UserGoalServiceImpl implements UserGoalService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserGoal> getActiveUserGoalsByUser(Long userId, LocalDate targetDate) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
@@ -153,6 +153,7 @@ public class UserGoalServiceImpl implements UserGoalService{
         return userGoalRepository.findActiveUserGoalsByUser(user, targetDate);
     }
 
+    @Transactional(readOnly = true)
     public UserGoalResponseDto.GoalTotalAchievementDto calculateGoalTotalAchievement(Long goalId, Long userId) {
         UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
 
@@ -202,49 +203,39 @@ public class UserGoalServiceImpl implements UserGoalService{
 
     //수용 형 파트
     @Override
+    @Transactional(readOnly = true)
     public UserGoal getUserGoalByUserAndGoal(User user, Goal goal) {
         return userGoalRepository.findAllByUserAndGoal(user, goal).get(0);
 //        return userGoalRepository.findByUserAndGoal(user, goal).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserGoal> getUserGoalListByGoal(Goal goal) {
         return userGoalRepository.findAllByGoal(goal);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public VerificationType checkVerificationType(UserGoal userGoal) {
         return userGoal.getGoal().getVerificationType();
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserGoal> getUserGoalInPeriod(LocalDateTime startDate, LocalDateTime endDate) {
         return userGoalRepository.findAllByUpdatedAtBetween(startDate, endDate);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserGoal getByGoalIdAndUserId(Long goalId, Long userId) {
         return userGoalRepository.findByGoalIdAndUserId(goalId, userId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean existUserGoal(Long goalId, Long userId) {
         return userGoalRepository.existsUserGoalByGoalIdAndUserId(goalId, userId);
-    }
-
-    @Override
-    public Integer getUserGoalCount(Long userId) {
-        return Math.toIntExact(userGoalRepository.countByUserId(userId));
-    }
-
-    @Override
-    public List<UserWithGoalCountDTO> getUserByChallengesAndUserId(Long userId) {
-        return userGoalRepository.getUserByChallengesAndUserId(userId,
-                List.of(GoalType.CHALLENGE_TIME, GoalType.CHALLENGE_PHOTO));
-    }
-
-    @Override
-    public List<UserWithGoalCountDTO> getUserGoalCntByUserIds(List<Long> userIds) {
-        return userGoalRepository.getUserGoalCntByUserIds(userIds);
     }
 }

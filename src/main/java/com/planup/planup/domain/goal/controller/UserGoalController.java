@@ -1,7 +1,7 @@
 package com.planup.planup.domain.goal.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
-import com.planup.planup.domain.friend.service.FriendReadService;
+import com.planup.planup.domain.friend.service.FriendService;
 import com.planup.planup.domain.goal.dto.CommunityResponseDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.dto.UserGoalResponseDto;
@@ -22,7 +22,7 @@ import java.time.LocalDate;
 public class UserGoalController {
 
     private final UserGoalService userGoalService;
-    private final FriendReadService friendReadService;
+    private final FriendService friendService;
     private final UserGoalAggregationService userGoalAggregationService;
 
     @PostMapping("/{goalId}/join")

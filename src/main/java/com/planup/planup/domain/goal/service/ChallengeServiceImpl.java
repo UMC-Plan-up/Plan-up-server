@@ -2,12 +2,10 @@ package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
-import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.global.service.AchievementCalculationService;
 import com.planup.planup.domain.goal.convertor.ChallengeConverter;
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
 import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
-import com.planup.planup.domain.goal.dto.UserWithGoalCountDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Enum.ChallengeStatus;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
@@ -345,14 +343,5 @@ public class ChallengeServiceImpl implements ChallengeService {
         User otherMember = getOtherMember(user, challenge);
 
         notificationService.createNotification(otherMember.getId(), userId, NotificationType.PENALTY_REMINDER_SENT, TargetType.CHALLENGE, challengeId);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<FriendResponseDTO.FriendInfoInChallengeCreate> getFrinedlistinchallenge(Long userId) {
-
-        List<UserWithGoalCountDTO> userWithGoalCountDTOS = userGoalService.getUserByChallengesAndUserId(userId);
-
-        return null;
     }
 }

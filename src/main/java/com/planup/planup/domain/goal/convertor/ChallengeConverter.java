@@ -1,22 +1,18 @@
 package com.planup.planup.domain.goal.convertor;
 
-import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
 import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
-import com.planup.planup.domain.goal.dto.UserWithGoalCountDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.TimeChallenge;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
-import com.planup.planup.domain.user.entity.User;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ChallengeConverter {
 
@@ -107,14 +103,5 @@ public class ChallengeConverter {
         return Date.from(
                 localDateTime.atZone(ZoneId.systemDefault()).toInstant()
         );
-    }
-
-    public static List<FriendResponseDTO.FriendInfoInChallengeCreate> toFriendInfoInChallengeCreate(List<UserWithGoalCountDTO> dtos) {
-        return dtos.stream().map(dto -> {
-            return FriendResponseDTO.FriendInfoInChallengeCreate.builder()
-                    .nickname(dto.getUser().getNickname())
-                    .goalCnt(dto.getGoalCnt())
-                    .build();
-        }).collect(Collectors.toList());
     }
 }

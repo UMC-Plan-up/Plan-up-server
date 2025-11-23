@@ -33,7 +33,7 @@ public class VerificationEntityFactory {
 
     private TimerVerification createTimerVerification(UserGoal userGoal, GoalRequestDto.CreateGoalDto goalDto) {
         TimerVerification verification = TimerVerification.builder()
-                .spentTimeSeconds(0L)
+                .spentTime(Duration.ZERO)
                 .userGoal(userGoal)
                 .endTime(null)
                 .build();
