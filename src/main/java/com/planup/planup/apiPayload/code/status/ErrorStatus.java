@@ -24,6 +24,13 @@ public enum ErrorStatus implements BaseErrorCode {
     //Notification 관련 에러
     UNAUTHORIZED_NOTIFICATION_ACCESS(HttpStatus.FORBIDDEN, "NOTIFICATION4001", "알림을 읽을 권한이 없습니다."),
 
+    //Friend
+    ALREADY_FRIEND(BAD_REQUEST, "FRIEND4001", "이미 친구 관계입니다."),
+    ALREADY_REQUESTED(BAD_REQUEST, "FRIEND4002", "이미 친구 신청을 하였습니다."),
+    SAME_USER(BAD_REQUEST, "FRIEND4003", "친구 신청자와 대상자가 동일 인물입니다."),
+    FRIEND_BLOCKED(BAD_REQUEST, "FRIEND4004", "차단된 친구입니다."),
+    NOT_EXIST_USERBLOCK(BAD_REQUEST, "FRIEND4005", "이미 친구 차단 상태가 아닙니다."),
+    NOT_FRIEND(BAD_REQUEST, "FRIEND4006", "친구 관계가 아닙니다."),
 
     // User 에러
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "USER4001", "존재하지 않는 유저입니다"),
