@@ -2,7 +2,7 @@ package com.planup.planup.domain.goal.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
-import com.planup.planup.domain.friend.service.FriendService;
+import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
 import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
 import com.planup.planup.domain.goal.service.ChallengeService;
@@ -20,7 +20,7 @@ import java.util.List;
 public class ChallengeController {
 
     private final ChallengeService challengeService;
-    private final FriendService friendService;
+    private final FriendReadService friendService;
 
 
     @PostMapping("/create")
