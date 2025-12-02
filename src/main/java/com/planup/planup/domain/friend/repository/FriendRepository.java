@@ -24,4 +24,6 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
 
     // 특정 사용자가 특정 친구를 차단한 관계 조회 (닉네임으로)
     Optional<Friend> findByUserAndFriend_NicknameAndStatus(User user, String friendNickname, FriendStatus status);
+
+    Boolean existsByUserAndFriendAndStatus(User user, User friend, FriendStatus status);
 }

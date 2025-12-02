@@ -4,7 +4,7 @@ import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.friend.service.FriendService;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.service.UserGoalService;
-import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import com.planup.planup.domain.verification.convertor.TimerVerificationConverter;
 import com.planup.planup.domain.verification.dto.TimerVerificationResponseDto;
 import com.planup.planup.domain.verification.service.PhotoVerificationService;
@@ -30,7 +30,7 @@ public class VerificationController {
     private final PhotoVerificationService photoVerificationService;
     private final UserGoalService userGoalService;
     private final FriendService friendService;
-    private final UserService userService;
+    private final UserQueryService userQueryService;
 
     @PostMapping("/timer/start")
     @Operation(summary = "타이머 시작 API", description = "선택한 목표의 타이머 인증을 시작합니다.")
@@ -80,7 +80,7 @@ public class VerificationController {
             @Parameter(description = "목표 ID", example = "1")
             @RequestParam("goalId") Long goalId,
             @Parameter(hidden = true) @CurrentUser Long userId) {
-        userService.getUserbyUserId(userId);
+        userQueryService.getUserByUserId(userId);
         friendService.isFriend(userId, friendId);
 
         UserGoal userGoal = userGoalService.getByGoalIdAndUserId(friendId, goalId);
