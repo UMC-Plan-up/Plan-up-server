@@ -7,20 +7,18 @@ import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
-import com.planup.planup.domain.friend.service.policy.FriendSelector;
 import com.planup.planup.domain.friend.service.policy.FriendSummaryAssembler;
 import com.planup.planup.domain.goal.dto.UserWithGoalCountDTO;
+import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
-import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +37,7 @@ public class FriendReadServiceImpl implements FriendReadService {
     private final FriendConverter friendConverter;
     private final UserGoalRepository userGoalRepository;
     private final FriendSummaryAssembler friendSummaryAssembler;
+    private final TimerVerificationReadService timerVerificationReadService;
 
     //친구 리스트를 반환한다.
     @Override
@@ -88,4 +87,22 @@ public class FriendReadServiceImpl implements FriendReadService {
             throw new FriendException(ErrorStatus.NOT_EXIST_USERBLOCK);
         }
     }
+
+    @Override
+    public Integer getTodayTotalSecTimeByUserGoal(UserGoal userGoal) {
+        if (userGoal == null) {
+            return 0;
+        }
+
+        //리포지토리에서 조건에 맞는 값들을 찾아서 다 더해 반환한다.
+        Integer spendTimeInSeconds = timerVerificationReadService.sumTodayVerificationsByUserGoalId(userGoal.getId());
+
+        //예외처리
+        if (spendTimeInSeconds == null) {
+            spendTimeInSeconds = 0;
+        }
+
+        return spendTimeInSeconds;
+    }
+
 }

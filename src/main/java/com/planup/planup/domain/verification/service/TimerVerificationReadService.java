@@ -6,6 +6,7 @@ import com.planup.planup.domain.verification.entity.TimerVerification;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
