@@ -84,4 +84,6 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
                                    @Param("friendId") Long friendId,
                                    @Param("status") FriendStatus status);
 
+
+    Boolean existsByUserAndFriendAndStatus(User user, User friend, FriendStatus status);
 }

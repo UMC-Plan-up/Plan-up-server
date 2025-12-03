@@ -8,7 +8,7 @@ import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.report.entity.DailyAchievementRate;
 import com.planup.planup.domain.report.service.GoalReportService.GoalReportWriteServiceImpl;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.entity.UserLevel;
+import com.planup.planup.domain.user.enums.UserLevel;
 import com.planup.planup.domain.user.repository.UserRepository;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;

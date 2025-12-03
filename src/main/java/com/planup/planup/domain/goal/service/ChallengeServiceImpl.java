@@ -20,7 +20,7 @@ import com.planup.planup.domain.notification.entity.TargetType;
 import com.planup.planup.domain.notification.service.NotificationCreateService;
 import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import com.planup.planup.domain.verification.service.PhotoVerificationReadService;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import lombok.RequiredArgsConstructor;
@@ -42,14 +42,13 @@ public class ChallengeServiceImpl implements ChallengeService {
     private final ChallengeRepository challengeRepository;
     @Lazy
     private final GoalService goalService;
-    private final UserService userService;
     private final UserGoalService userGoalService;
     private final NotificationCreateService notificationCreateService;
     private final NotificationService notificationService;
     private final AchievementCalculationService achievementCalculationService;
     private final PhotoVerificationReadService photoVerificationReadService;
     private final TimerVerificationReadService timerVerificationReadService;
-
+    private final UserQueryService userQueryService;
     @Override
     @Transactional
     public User getOtherMember(User user, Challenge challenge) {
@@ -64,8 +63,8 @@ public class ChallengeServiceImpl implements ChallengeService {
     @Transactional
     public Challenge createChallenge(Long users, ChallengeRequestDTO.create dto) {
 
-        User friend = userService.getUserbyUserId(dto.friendId());
-        User user = userService.getUserbyUserId(users);
+        User friend = userQueryService.getUserByUserId(dto.friendId());
+        User user = userQueryService.getUserByUserId(users);
 
         //challenge type이 아닌 경우 예외 처리
         if (dto.goalType() == GoalType.FRIEND || dto.goalType() == GoalType.COMMUNITY) {
@@ -154,7 +153,7 @@ public class ChallengeServiceImpl implements ChallengeService {
     @Override
     @Transactional
     public void rejectChallengeRequest(Long userId, Long challengeId) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
         Challenge challenge = getChallengeById(challengeId);
 
         if (!challenge.getStatus().equals(ChallengeStatus.REQUESTED)) {
@@ -178,7 +177,7 @@ public class ChallengeServiceImpl implements ChallengeService {
     @Override
     @Transactional
     public void acceptChallengeRequest(Long userId, Long challengeId) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
         Goal goal = goalService.getGoalById(challengeId);
         UserGoal userGoal = userGoalService.getUserGoalByUserAndGoal(user, goal);
         Challenge challenge = getChallengeById(challengeId);
@@ -196,7 +195,7 @@ public class ChallengeServiceImpl implements ChallengeService {
     @Override
     @Transactional
     public void reRequestPenalty(Long userId, ChallengeRequestDTO.ReRequestPenalty dto) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
 
         Challenge challenge = getChallengeById(dto.id());
 
@@ -262,7 +261,7 @@ public class ChallengeServiceImpl implements ChallengeService {
     @Override
     @Transactional
     public ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
         Challenge challenge = getChallengeById(challengeId);
 
         UserGoal myUserGoal = getUserGoalByUserAndChallenge(user, challenge);
@@ -338,7 +337,7 @@ public class ChallengeServiceImpl implements ChallengeService {
     @Override
     @Transactional
     public void remindPenalty(Long userId, Long challengeId) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
         Challenge challenge = getChallengeById(challengeId);
         User otherMember = getOtherMember(user, challenge);
 

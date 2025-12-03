@@ -1,8 +1,10 @@
 package com.planup.planup.validation.jwt.service;
 
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.TokenException;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.repository.UserRepository;
-import com.planup.planup.global.constants.RedisKeyConstants;
+import com.planup.planup.domain.global.redis.RedisKeyConstants;
 import com.planup.planup.validation.jwt.JwtUtil;
 import com.planup.planup.validation.jwt.dto.TokenResponseDTO;
 import com.planup.planup.validation.jwt.dto.TokenRefreshResponseDTO;
@@ -43,14 +45,16 @@ public class TokenService {
         
         // Redis에 리프레시 토큰 저장 (기존 토큰 덮어쓰기)
         String refreshTokenKey = RedisKeyConstants.getRefreshTokenKey(user.getId());
-        stringRedisTemplate.opsForValue().set(
-            refreshTokenKey, 
-            refreshToken, 
-            RedisKeyConstants.REFRESH_TOKEN_TTL, 
-            TimeUnit.SECONDS
-        );
-        
-        log.info("토큰 생성 완료 - 사용자: {}", user.getEmail());
+        try {
+            stringRedisTemplate.opsForValue().set(
+                    refreshTokenKey,
+                    refreshToken,
+                    RedisKeyConstants.REFRESH_TOKEN_TTL,
+                    TimeUnit.SECONDS
+            );
+        } catch (Exception e) {
+            throw new TokenException(ErrorStatus.REDIS_SAVE_FAILED);
+        }
         
         return TokenResponseDTO.builder()
             .accessToken(accessToken)
@@ -64,47 +68,49 @@ public class TokenService {
      */
     @Transactional
     public TokenRefreshResponseDTO refreshAccessToken(String refreshToken) {
+        // JWT 검증 및 예외 전환
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new TokenException(ErrorStatus.INVALID_REFRESH_TOKEN);
+        }
+
+        // 사용자 정보 추출
+        String email = jwtUtil.extractUsername(refreshToken);
+        Long userId = jwtUtil.extractUserId(refreshToken);
+
+        // Redis에서 리프레시 토큰 조회
+        String refreshTokenKey = RedisKeyConstants.getRefreshTokenKey(userId);
+        String storedToken;
+
         try {
-            // JWT 검증
-            if (!jwtUtil.validateToken(refreshToken)) {
-                throw new RuntimeException("유효하지 않은 리프레시 토큰입니다");
-            }
-            
-            // 사용자 정보 추출
-            String email = jwtUtil.extractUsername(refreshToken);
-            Long userId = jwtUtil.extractUserId(refreshToken);
-            
-            // Redis에서 리프레시 토큰 조회
-            String refreshTokenKey = RedisKeyConstants.getRefreshTokenKey(userId);
-            String storedToken = stringRedisTemplate.opsForValue().get(refreshTokenKey);
-            
-            if (storedToken == null || !refreshToken.equals(storedToken)) {
-                throw new RuntimeException("토큰이 존재하지 않거나 일치하지 않습니다");
-            }
-            
-            // User 정보 조회 (role 필요)
-            User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다"));
-            
-            // 새 액세스 토큰 생성
-            String newAccessToken = jwtUtil.generateToken(
-                email, 
-                user.getRole().toString(), 
+            storedToken = stringRedisTemplate.opsForValue().get(refreshTokenKey);
+        } catch (Exception e) {
+            log.error("Redis 조회 실패: {}", e.getMessage(), e);
+            throw new TokenException(ErrorStatus.REDIS_ACCESS_FAILED);
+        }
+
+        // 토큰 일치 여부 확인 및 예외 전환
+        if (storedToken == null || !refreshToken.equals(storedToken)) {
+            throw new TokenException(ErrorStatus.INVALID_REFRESH_TOKEN);
+        }
+
+        // User 정보 조회 및 예외 전환
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new TokenException(ErrorStatus.NOT_FOUND_USER));
+
+        // 새 액세스 토큰 생성
+        String newAccessToken = jwtUtil.generateToken(
+                email,
+                user.getRole().toString(),
                 userId
-            );
-            
-            log.info("토큰 갱신 완료 - 사용자: {}", email);
-            
-            return TokenRefreshResponseDTO.builder()
+        );
+
+        log.info("토큰 갱신 완료 - 사용자: {}", email);
+
+        return TokenRefreshResponseDTO.builder()
                 .accessToken(newAccessToken)
-                .refreshToken(refreshToken) // 리프레시 토큰은 그대로 유지
+                .refreshToken(refreshToken)
                 .expiresIn(RedisKeyConstants.ACCESS_TOKEN_TTL)
                 .build();
-                
-        } catch (Exception e) {
-            log.error("토큰 갱신 실패: {}", e.getMessage());
-            throw new RuntimeException("토큰 갱신에 실패했습니다: " + e.getMessage());
-        }
     }
 
     /**
@@ -112,16 +118,15 @@ public class TokenService {
      */
     @Transactional
     public void logout(Long userId) {
+        String refreshTokenKey = RedisKeyConstants.getRefreshTokenKey(userId);
         try {
             // Redis에서 리프레시 토큰 삭제
-            String refreshTokenKey = RedisKeyConstants.getRefreshTokenKey(userId);
             stringRedisTemplate.delete(refreshTokenKey);
-            
             log.info("로그아웃 완료 - 사용자 ID: {}", userId);
             
         } catch (Exception e) {
             log.error("로그아웃 실패: {}", e.getMessage());
-            throw new RuntimeException("로그아웃에 실패했습니다: " + e.getMessage());
+            throw new TokenException(ErrorStatus.LOGOUT_FAILED);
         }
     }
 
@@ -137,11 +142,8 @@ public class TokenService {
                 RedisKeyConstants.BLACKLIST_TOKEN_TTL, 
                 TimeUnit.SECONDS
             );
-            
-            log.info("액세스 토큰 블랙리스트 추가 완료");
-            
         } catch (Exception e) {
-            log.error("액세스 토큰 블랙리스트 추가 실패: {}", e.getMessage());
+            throw new TokenException(ErrorStatus.LOGOUT_FAILED);
         }
     }
 

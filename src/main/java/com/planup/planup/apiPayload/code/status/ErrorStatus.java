@@ -35,12 +35,20 @@ public enum ErrorStatus implements BaseErrorCode {
     // User 에러
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "USER4001", "존재하지 않는 유저입니다"),
     EXIST_NICKNAME(HttpStatus.CONFLICT, "USER4002", "이미 존재하는 닉네임입니다"),
+    USER_WITHDRAWAL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "USER5001", "회원 탈퇴 처리 중 오류가 발생했습니다."),
+    NOT_FOUND_STAT(HttpStatus.NOT_FOUND, "USER4003", "사용자 통계 정보를 찾을 수 없습니다."),
 
     // 로그인, 회원가입 관련 에러
     USER_EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER4003", "이미 존재하는 이메일입니다"),
     PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "USER4004", "비밀번호가 일치하지 않습니다"),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "USER4005", "이메일 또는 비밀번호가 잘못되었습니다"),
     USER_INACTIVE(HttpStatus.FORBIDDEN, "USER4006", "비활성화된 계정입니다"),
+    PASSWORD_CHANGE_TOKEN_INVALID(HttpStatus.BAD_REQUEST, "AUTH4001", "만료되거나 유효하지 않은 비밀번호 변경 토큰입니다."),
+    PASSWORD_CHANGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH5002", "비밀번호 변경 처리 중 오류가 발생했습니다."),
+    SIGNUP_TIME_OUT(HttpStatus.BAD_REQUEST, "USER4007", "회원가입 시간이 만료되었습니다. 처음부터 다시 시도해주세요."),
+    INVALID_NICKNAME(HttpStatus.BAD_REQUEST, "USER4008", "닉네임은 필수 입력값입니다."),
+    INVALID_EMAIL_FORMAT(HttpStatus.BAD_REQUEST, "USER4009", "이메일 형식이 올바르지 않거나 비어있습니다."),
+    PASSWORD_TOKEN_INVALID(BAD_REQUEST, "AUTH4002", "만료되거나 유효하지 않은 비밀번호 변경 토큰입니다."),
 
     //Challenge 에러
     MISSING_TIME_CHALLENGE_INFO(HttpStatus.BAD_REQUEST, "CHALLENGE4001", "시간 챌린지 정보가 필요합니다."),
@@ -49,12 +57,14 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_CHALLENGE_TYPE(HttpStatus.BAD_REQUEST, "CHALLENGE4003", "올바르지 않는 챌리지 타입입니다"),
     INVALID_CHALLENGE_STATUS(BAD_REQUEST, "CHALLENGE4004", "요청을 처리할 수 없는 챌린지 상태입니다."),
 
-
     //Report 관련 에러
     NOT_FOUND_WEEKLY_REPORT(HttpStatus.NOT_FOUND, "WEEKLY_REPORT4001", "존재하지 않는 주간 리포트입니다"),
     NOT_FOUND_GOAL_REPORT(HttpStatus.NOT_FOUND, "GOAL_REPORT4001", "존재하지 않는 목표 리포트입니다"),
     NOT_FOUND_CHALLENGE(HttpStatus.NOT_FOUND, "CHALLENGE4004", "존재하지 않는 챌린지 입니다."),
     INVALID_CHALLENGE_DATA(INTERNAL_SERVER_ERROR, "CHALLENGE5001", "손상된 챌린지 데이터입니다."),
+
+    // Badge 관련 에러
+    INVALID_BADGE_TYPE(HttpStatus.BAD_REQUEST, "BADGE4001", "유효하지 않은 뱃지 타입입니다."),
 
     // 약관 관련 에러
     NOT_FOUND_TERMS(HttpStatus.NOT_FOUND, "4004", "존재하지 않는 약관입니다."),
@@ -71,7 +81,10 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_EMAIL_TOKEN(BAD_REQUEST, "EMAIL4001", "유효하지 않거나 만료된 인증 토큰입니다."),
     EMAIL_ALREADY_VERIFIED(BAD_REQUEST, "EMAIL4002", "이미 인증된 이메일입니다."),
     EMAIL_VERIFICATION_FAILED(INTERNAL_SERVER_ERROR, "EMAIL5001", "이메일 인증 처리 중 오류가 발생했습니다."),
-    EMAIL_VERIFICATION_REQUIRED(HttpStatus.BAD_REQUEST, "VERIFICATION_001", "이메일 인증이 필요합니다"),
+    EMAIL_VERIFICATION_REQUIRED(HttpStatus.BAD_REQUEST, "VERIFICATION4001", "이메일 인증이 필요합니다"),
+    EMAIL_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "EMAIL5002", "이메일 발송 중 오류가 발생했습니다."),
+    EMAIL_TOKEN_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "EMAIL5003", "인증 토큰 저장 중 서버 오류가 발생했습니다."),
+    URL_ENCODING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "EMAIL5004", "URL 인코딩 처리 중 오류가 발생했습니다."),
 
     // 카카오 소셜 로그인 관련 에러
     KAKAO_AUTH_FAILED(BAD_REQUEST, "KAKAO4001", "카카오 인증에 실패했습니다."),
@@ -79,6 +92,9 @@ public enum ErrorStatus implements BaseErrorCode {
     KAKAO_USER_INFO_FAILED(INTERNAL_SERVER_ERROR, "KAKAO5001", "카카오 사용자 정보 조회에 실패했습니다."),
     KAKAO_ACCOUNT_ALREADY_LINKED(BAD_REQUEST, "KAKAO4003", "이미 카카오 계정이 연동되어 있습니다."),
     KAKAO_ACCOUNT_ALREADY_USED(BAD_REQUEST, "KAKAO4004", "이미 다른 사용자에게 연동된 카카오 계정입니다."),
+    KAKAO_EMAIL_NOT_FOUND(HttpStatus.BAD_REQUEST, "KAKAO4005", "카카오 계정에서 이메일 정보를 찾을 수 없습니다. 이메일 동의가 필요합니다."),
+    REDIS_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH5001", "서버 일시적 오류로 회원가입을 진행할 수 없습니다."),
+    REDIS_ACCESS_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH5002", "데이터베이스(Redis) 접근에 실패했습니다"),
 
     // Comment 관련 에러
     NOT_FOUND_COMMENT(HttpStatus.NOT_FOUND, "COMMENT4001", "존재하지 않는 댓글입니다."),
@@ -97,7 +113,19 @@ public enum ErrorStatus implements BaseErrorCode {
     REACTION_ADD_FAILED(HttpStatus.FORBIDDEN,"GOAL4007", "응원 등록 중 오류가 발생했습니다."),
 
     // 랜덤 닉네임 관련 에러
-    NICKNAME_DATA_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "NICKNAME5001", "닉네임 생성에 필요한 데이터가 없습니다.");
+    NICKNAME_DATA_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "NICKNAME5001", "닉네임 생성에 필요한 데이터가 없습니다."),
+
+    // 토큰 관련 에러
+    TOKEN_CREATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN4001", "토큰 생성에 실패했습니다."),
+    TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "TOKEN4002", "유효하지 않은 토큰입니다."),
+    TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "TOKEN4003", "만료된 토큰입니다."),
+    TOKEN_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "TOKEN4004", "토큰 생성에 필요한 입력값이 누락되었습니다."),
+    INVALID_REFRESH_TOKEN(BAD_REQUEST, "TOKEN4005", "유효하지 않은 리프레시 토큰입니다."),
+    // 로그아웃
+    LOGOUT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN5002", "로그아웃 처리 중 오류가 발생했습니다."),
+    TOKEN_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "TOKEN4006", "잘못된 토큰 형식이거나 토큰 헤더가 누락되었습니다."),
+
+    ;
 
 
 

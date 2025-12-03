@@ -12,7 +12,7 @@ import com.planup.planup.domain.goal.dto.UserWithGoalCountDTO;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import lombok.AllArgsConstructor;
@@ -34,7 +34,7 @@ import static com.planup.planup.domain.friend.entity.FriendStatus.ACCEPTED;
 public class FriendReadServiceImpl implements FriendReadService {
 
     private final FriendRepository friendRepository;
-    private final UserService userService;
+    private final UserQueryService userService;
     private final FriendConverter friendConverter;
     private final UserGoalRepository userGoalRepository;
     private final FriendSummaryAssembler friendSummaryAssembler;
@@ -45,7 +45,7 @@ public class FriendReadServiceImpl implements FriendReadService {
     @Override
     public FriendResponseDTO.FriendSummaryList getFriendSummeryList(Long userId) {
 
-        User me = userService.getUserbyUserId(userId);
+        User me = userService.getUserByUserId(userId);
 
         List<Friend> relations = friendRepository.findListByUserIdWithUsers(ACCEPTED, me.getId());
         List<User> friends = relations.stream().map(Friend::getFriend).toList();

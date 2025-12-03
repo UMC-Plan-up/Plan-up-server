@@ -2,7 +2,6 @@ package com.planup.planup.domain.bedge.event;
 
 import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.domain.bedge.service.BadgeService;
-import com.planup.planup.domain.user.service.UserStatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;

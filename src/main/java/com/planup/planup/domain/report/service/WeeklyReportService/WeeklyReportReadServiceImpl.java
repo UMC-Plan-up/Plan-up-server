@@ -13,8 +13,8 @@ import com.planup.planup.domain.report.entity.WeeklyReport;
 import com.planup.planup.domain.report.repository.WeeklyReportRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserBadge;
-import com.planup.planup.domain.user.service.UserBadgeService;
-import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.user.service.query.UserBadgeQueryService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,17 +28,16 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class WeeklyReportReadServiceImpl implements WeeklyReportReadService {
 
-    private final UserService userService;
-    private final UserBadgeService userBadgeService;
+    private final UserBadgeQueryService userBadgeQueryService;
     private final NotificationService notificationService;
     private final EncouragementService encouragementService;
-
+    private final UserQueryService userQueryService;
     private final WeeklyReportRepository weeklyReportRepository;
 
 
     @Override
     public List<Integer> searchWeeklyReport(Long userId, int year, int month) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
 
         ArrayList<Integer> weeks = new ArrayList<>();
         List<WeeklyReport> reports = weeklyReportRepository.findByUserAndYearAndMonth(user, year, month);
@@ -51,10 +50,10 @@ public class WeeklyReportReadServiceImpl implements WeeklyReportReadService {
 
     @Override
     public WeeklyReportResponseDTO.achievementResponse getWeeklyGoalAchievements(Long userId) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
 
         List<NotificationResponseDTO.NotificationDTO> notificationList = notificationService.getTop5RecentByUser(userId);
-        List<UserBadge> userBadgeList = userBadgeService.getTop5Recent(user);
+        List<UserBadge> userBadgeList = userBadgeQueryService.getTop5Recent(user);
 
         List<BadgeType> badges = userBadgeList.stream().map(UserBadge::getBadgeType).toList();
 
@@ -65,10 +64,10 @@ public class WeeklyReportReadServiceImpl implements WeeklyReportReadService {
 
     @Override
     public WeeklyReportResponseDTO.WeeklyReportResponse getWeeklyReport(Long userId, int year, int month, int week) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
 
         WeeklyReport weeklyReport = weeklyReportRepository.findByUserAndYearAndMonthAndWeekNumber(user, year, month, week).orElseThrow(() -> new ReportException(ErrorStatus.NOT_FOUND_WEEKLY_REPORT));
-        List<BadgeType> badges = userBadgeService.getBadgeInPeriod(weeklyReport.getUser(), weeklyReport.getStartDate(), weeklyReport.getEndDate());
+        List<BadgeType> badges = userBadgeQueryService.getBadgeInPeriod(weeklyReport.getUser(), weeklyReport.getStartDate(), weeklyReport.getEndDate());
 
         return WeeklyReportResponseConverter.toWeeklyReportResponse(weeklyReport, badges);
     }
