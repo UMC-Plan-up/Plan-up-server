@@ -10,10 +10,8 @@ import com.planup.planup.domain.friend.event.dto.FriendRequestSentEvent;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.friend.service.policy.FriendValidator;
 import com.planup.planup.domain.friend.service.policy.UserBlockValidator;
-import com.planup.planup.domain.friend.service.userBlockService.UserBlockServiceImpl;
-import com.planup.planup.domain.notification.service.NotificationService;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,7 +27,7 @@ import java.util.Optional;
 public class FriendWriteServiceImpl implements FriendWriteService {
 
     private final FriendRepository friendRepository;
-    private final UserService userService;
+    private final UserQueryService userService;
     private final FriendValidator friendValidator;
     private final UserBlockValidator userBlockValidator;
     private final ApplicationEventPublisher publisher;
@@ -97,8 +95,8 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         checkRequestSendFriend(userId, friendId);
 
         // 유저 엔티티 조회
-        User user = userService.getUserbyUserId(userId);
-        User friendUser = userService.getUserbyUserId(friendId);
+        User user = userService.getUserByUserId(userId);
+        User friendUser = userService.getUserByUserId(friendId);
 
         // Friend 엔티티 생성
         Friend friendRequest = Friend.builder()

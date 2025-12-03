@@ -8,10 +8,9 @@ import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.entity.UserBlock;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.friend.repository.UserBlockRepository;
-import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.friend.service.policy.UserBlockValidator;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,7 +29,7 @@ public class UserBlockServiceImpl implements UserBlockService {
     private final UserBlockRepository userBlockRepository;
     private final FriendConverter friendConverter;
     private final UserBlockValidator userBlockValidator;
-    private final UserService userService;
+    private final UserQueryService userService;
     private final FriendRepository friendRepository;
 
     @Override
@@ -67,7 +66,7 @@ public class UserBlockServiceImpl implements UserBlockService {
     public boolean blockFriend(User user, Long friendId) {
 
         //차단당하는 상대방 조회
-        User blocked = userService.getUserbyUserId(friendId);
+        User blocked = userService.getUserByUserId(friendId);
 
         //이미 존재하는 차단인지 확인
         userBlockValidator.ensureExistUserBlock(user.getId(), friendId);

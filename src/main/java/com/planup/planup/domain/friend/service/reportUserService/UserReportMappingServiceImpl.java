@@ -5,7 +5,7 @@ import com.planup.planup.domain.friend.entity.reportEntity.ReportStatus;
 import com.planup.planup.domain.friend.entity.reportEntity.UserReportMapping;
 import com.planup.planup.domain.friend.repository.UserReportMappingRepository;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class UserReportMappingServiceImpl implements UserReportMappingService {
 
-    private final UserService userService;
+    private final UserQueryService userService;
     private final UserReportMappingRepository userReportMappingRepository;
 
     @Override
@@ -28,8 +28,8 @@ public class UserReportMappingServiceImpl implements UserReportMappingService {
         String reason = request.getReason();
         boolean block = request.isBlock();
 
-        User reporter = userService.getUserbyUserId(userId);
-        User reported = userService.getUserbyUserId(friendId);
+        User reporter = userService.getUserByUserId(userId);
+        User reported = userService.getUserByUserId(friendId);
 
         UserReportMapping userReport = UserReportMapping.builder()
                 .reporter(reporter)
