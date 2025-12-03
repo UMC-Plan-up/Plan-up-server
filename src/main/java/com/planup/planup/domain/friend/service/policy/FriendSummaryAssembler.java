@@ -5,6 +5,7 @@ import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
+import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ public class FriendSummaryAssembler {
     private final PhotoVerificationRepository photoVerificationRepository;
     private final TimerVerificationReadService timerVerificationService;
     private final FriendConverter friendConverter;
+    private final TimerVerificationRepository timerVerificationRepository;
 
     public FriendResponseDTO.FriendInfoSummary assemble(User friend) {
         int goalCnt = Math.toIntExact(userGoalRepository.countByUserId(friend.getId()));
@@ -41,7 +43,7 @@ public class FriendSummaryAssembler {
     private LocalTime calcTodayTotalTime(User user) {
         long totalSeconds = user.getUserGoals().stream()
                 .mapToLong(ug -> {
-                    try { return timerVerificationService.getTodayTotalSecTimeByUserGoal(ug); }
+                    try { return timerVerificationRepository.sumTodayVerificationsByUserGoalId(ug.getId()); }
                     catch (Exception e) { log.warn("타이머 합계 실패 userGoal={}", ug.getId(), e); return 0L; }
                 }).sum();
         return LocalTime.ofSecondOfDay(totalSeconds);

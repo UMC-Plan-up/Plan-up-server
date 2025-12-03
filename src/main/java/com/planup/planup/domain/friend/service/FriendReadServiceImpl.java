@@ -13,6 +13,7 @@ import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
 import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ public class FriendReadServiceImpl implements FriendReadService {
     private final UserGoalRepository userGoalRepository;
     private final FriendSummaryAssembler friendSummaryAssembler;
     private final TimerVerificationReadService timerVerificationReadService;
+    private final TimerVerificationRepository timerVerificationRepository;
 
     //친구 리스트를 반환한다.
     @Override
@@ -95,7 +97,7 @@ public class FriendReadServiceImpl implements FriendReadService {
         }
 
         //리포지토리에서 조건에 맞는 값들을 찾아서 다 더해 반환한다.
-        Integer spendTimeInSeconds = timerVerificationReadService.sumTodayVerificationsByUserGoalId(userGoal.getId());
+        Integer spendTimeInSeconds = timerVerificationRepository.sumTodayVerificationsByUserGoalId(userGoal.getId());
 
         //예외처리
         if (spendTimeInSeconds == null) {

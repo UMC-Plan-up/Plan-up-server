@@ -33,9 +33,9 @@ public class ChallengeController {
 
     @GetMapping("/friends")
     @Operation(summary = "챌린지에서 친구 조회", description = "친구에게 신청하기 위해 친구 정보 찾기")
-    public ApiResponse<List<FriendResponseDTO.FriendInfoInChallengeCreate>> getFriendList(@CurrentUser Long userId) {
-        List<FriendResponseDTO.FriendInfoInChallengeCreate> frinedListInChallenge = friendService.getFrinedListInChallenge(userId);
-        return ApiResponse.onSuccess(frinedListInChallenge);
+    public ApiResponse<List<FriendResponseDTO.FriendInfoSummary>> getFriendList(@CurrentUser Long userId) {
+        List<FriendResponseDTO.FriendInfoSummary> requestedFriends = friendService.getRequestedFriends(userId);
+        return ApiResponse.onSuccess(requestedFriends);
     }
 
 
