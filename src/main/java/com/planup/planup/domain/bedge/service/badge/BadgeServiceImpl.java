@@ -1,4 +1,4 @@
-package com.planup.planup.domain.bedge.service;
+package com.planup.planup.domain.bedge.service.badge;
 
 import com.planup.planup.domain.bedge.entity.BadgeType;
 import com.planup.planup.domain.bedge.entity.UserStat;

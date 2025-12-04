@@ -36,9 +36,9 @@ public class UserStat extends BaseTimeEntity {
     /* ========= 일주일 기준 ========= */
     private int reactionCntWeek = 0;                        // 전체 반응 버튼
     private int recordAllGoal7Days = 0;                     // 7일 연속 전체 목표 기록
-    private int recordSpecificGoalDays = 0;                 // 7일 연속 특정 목표 기록
-    private LocalDate recordAllGoal7DaysFlag;          // 7일 연속 전체 목표 기록: 오늘 기록하였는가
-    private LocalDate recordSpecificGoalDaysFlag;      // 7일 연속 특정 목표 기록: 오늘 기록하였는
+//    private int recordSpecificGoalDays = 0;                 // 7일 연속 특정 목표 기록
+//    private LocalDate recordAllGoal7DaysFlag;          // 7일 연속 전체 목표 기록: 오늘 기록하였는가
+//    private LocalDate recordSpecificGoalDaysFlag;      // 7일 연속 특정 목표 기록: 오늘 기록하였는
 
     @OneToMany(mappedBy = "userStat")
     private List<SpecificGoalDays> recordAllGoal7DaysFlag = new ArrayList<>();
