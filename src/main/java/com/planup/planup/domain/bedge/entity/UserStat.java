@@ -1,13 +1,19 @@
 package com.planup.planup.domain.bedge.entity;
 
 import com.planup.planup.domain.global.annotation.StatChanging;
+import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 @Entity
 @Getter
-public class UserStat {
+public class UserStat extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,9 +27,9 @@ public class UserStat {
     private int commentCntInFriendDay = 0;      // 하루에 친구 글에서 댓글 수
     private int likeCnt = 0;                    // ‘응원해요’
     private int encourageCnt = 0;               // ‘분발해요’
-    private int goalRecordCnt = 0;              // 목표 기록 수
+    private int goalRecordCnt = 0;              // 목표 기록 수(루티너)
     private int pushOpenCnt = 0;                // 푸시 열람 수
-    private int completeGoalCnt= 0;             // 하루에 3개 이상의 목표 완료
+    private int completeGoalCnt= 0;             // 하루에 3개 이상의 목표 완료(몰입의 날)
     private int requestFriendOneDay = 0;        // 하루에 3번 이상 친구 신청
     private int sendVerityCntDay = 0;           // 하루에 인증을 보낸 갯수
 
@@ -31,8 +37,11 @@ public class UserStat {
     private int reactionCntWeek = 0;                        // 전체 반응 버튼
     private int recordAllGoal7Days = 0;                     // 7일 연속 전체 목표 기록
     private int recordSpecificGoalDays = 0;                 // 7일 연속 특정 목표 기록
-    private boolean recordAllGoal7DaysFlag = true;          // 7일 연속 전체 목표 기록: 오늘 기록하였는가
-    private boolean recordSpecificGoalDaysFlag = true;      // 7일 연속 특정 목표 기록: 오늘 기록하였는
+    private LocalDate recordAllGoal7DaysFlag;          // 7일 연속 전체 목표 기록: 오늘 기록하였는가
+    private LocalDate recordSpecificGoalDaysFlag;      // 7일 연속 특정 목표 기록: 오늘 기록하였는
+
+    @OneToMany(mappedBy = "userStat")
+    private List<SpecificGoalDays> recordAllGoal7DaysFlag = new ArrayList<>();
 
     /* ========= 누적 카운터 ========= */
     private int totalProfileClickCnt = 0;            // 친구 프로필 클릭
@@ -55,16 +64,6 @@ public class UserStat {
         this.completeGoalCnt = 0;
         this.markedChange = false;
         this.sendVerityCntDay = 0;
-
-        if (recordAllGoal7DaysFlag) {
-            this.recordAllGoal7Days = 0;
-            this.recordAllGoal7DaysFlag = false;
-        }
-
-        if (recordSpecificGoalDaysFlag) {
-            this.recordSpecificGoalDays = 0;
-            this.recordSpecificGoalDaysFlag = false;
-        }
     }
 
     public void resetWeeklyStats() {
@@ -131,10 +130,10 @@ public class UserStat {
     //인증을 추가한 경우
     @StatChanging
     private void addRecordAllGoal7DaysIfNeeded() {
-        if (recordAllGoal7DaysFlag) {
+        if (recordAllGoal7DaysFlag.equals(LocalDate.now())) {
             return;
         } else {
-            recordAllGoal7DaysFlag = true;
+            recordAllGoal7DaysFlag = LocalDate.now();
             recordAllGoal7Days++;
         }
     }
@@ -142,11 +141,11 @@ public class UserStat {
     @StatChanging
     public void setRecordSpecificGoalDaysIfNeeded() {
         //오늘 아직 업데이트 하지 않았다면 1을 더한다.
-        if (recordSpecificGoalDaysFlag) {
+        if (recordSpecificGoalDaysFlag.equals(LocalDate.now())) {
             return;
         } else {
             recordSpecificGoalDays++;
-            recordSpecificGoalDaysFlag = true;
+            recordSpecificGoalDaysFlag = LocalDate.now();
         }
     }
 
