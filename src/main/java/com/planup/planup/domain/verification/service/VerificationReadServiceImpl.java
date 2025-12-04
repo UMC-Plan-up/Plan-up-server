@@ -1,5 +1,6 @@
 package com.planup.planup.domain.verification.service;
 
+import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.report.converter.DailyRecordConverter;
 import com.planup.planup.domain.report.entity.DailyRecord;
 import com.planup.planup.domain.user.entity.User;
@@ -39,4 +40,22 @@ public class VerificationReadServiceImpl implements VerificationReadService {
 
         return top5DailyRecords;
     }
+
+    public Integer getTodayTotalSecTimeByUserGoal(UserGoal userGoal) {
+        if (userGoal == null) {
+            return 0;
+        }
+
+        //리포지토리에서 조건에 맞는 값들을 찾아서 다 더해 반환한다.
+        Integer spendTimeInSeconds = timerVerificationRepository.sumTodayVerificationsByUserGoalId(userGoal.getId());
+
+        //예외처리
+        if (spendTimeInSeconds == null) {
+            spendTimeInSeconds = 0;
+        }
+
+        return spendTimeInSeconds;
+    }
+
+
 }

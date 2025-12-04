@@ -1,7 +1,7 @@
 package com.planup.planup.domain.verification.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
-import com.planup.planup.domain.friend.service.FriendService;
+import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.user.service.query.UserQueryService;
@@ -29,7 +29,7 @@ public class VerificationController {
     private final TimerVerificationService timerVerificationService;
     private final PhotoVerificationService photoVerificationService;
     private final UserGoalService userGoalService;
-    private final FriendService friendService;
+    private final FriendReadService friendService;
     private final UserQueryService userQueryService;
 
     @PostMapping("/timer/start")

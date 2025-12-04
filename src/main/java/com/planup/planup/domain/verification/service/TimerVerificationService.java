@@ -59,7 +59,7 @@ public class TimerVerificationService implements VerificationService {
 
         TimerVerification timer = TimerVerification.builder()
                 .userGoal(userGoal)
-                .spentTime(Duration.ZERO)
+                .spentTimeSeconds(0L)
                 .endTime(null)
                 .build();
 

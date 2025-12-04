@@ -24,6 +24,14 @@ public enum ErrorStatus implements BaseErrorCode {
     //Notification 관련 에러
     UNAUTHORIZED_NOTIFICATION_ACCESS(HttpStatus.FORBIDDEN, "NOTIFICATION4001", "알림을 읽을 권한이 없습니다."),
 
+    //Friend
+    ALREADY_FRIEND(BAD_REQUEST, "FRIEND4001", "이미 친구 관계입니다."),
+    ALREADY_REQUESTED(BAD_REQUEST, "FRIEND4002", "이미 친구 신청을 하였습니다."),
+    SAME_USER(BAD_REQUEST, "FRIEND4003", "친구 신청자와 대상자가 동일 인물입니다."),
+    FRIEND_BLOCKED(BAD_REQUEST, "FRIEND4004", "차단된 친구입니다."),
+    NOT_EXIST_USERBLOCK(BAD_REQUEST, "FRIEND4005", "이미 친구 차단 상태가 아닙니다."),
+    NOT_FRIEND(BAD_REQUEST, "FRIEND4006", "친구 관계가 아닙니다."),
+
     // User 에러
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "USER4001", "존재하지 않는 유저입니다"),
     EXIST_NICKNAME(HttpStatus.CONFLICT, "USER4002", "이미 존재하는 닉네임입니다"),
@@ -59,15 +67,15 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_BADGE_TYPE(HttpStatus.BAD_REQUEST, "BADGE4001", "유효하지 않은 뱃지 타입입니다."),
 
     // 약관 관련 에러
-    NOT_FOUND_TERMS(HttpStatus.NOT_FOUND, "TERMS4001", "존재하지 않는 약관입니다."),
-    REQUIRED_TERMS_NOT_AGREED(HttpStatus.BAD_REQUEST, "TERMS4002", "필수 약관에 동의해야 합니다."),
-    TERMS_AGREEMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "TERMS5001", "약관 동의 처리 중 오류가 발생했습니다."),
+    NOT_FOUND_TERMS(HttpStatus.NOT_FOUND, "4004", "존재하지 않는 약관입니다."),
+    REQUIRED_TERMS_NOT_AGREED(HttpStatus.BAD_REQUEST, "4005", "필수 약관에 동의해야 합니다."),
+    TERMS_AGREEMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "5001", "약관 동의 처리 중 오류가 발생했습니다."),
+    NOT_FOUND_USERGOAL(HttpStatus.NOT_FOUND, "CHALLENGE4009", "찾지 못함"),
 
     // 초대코드 관련 에러
     INVALID_INVITE_CODE(BAD_REQUEST, "INVITE001", "유효하지 않은 초대코드입니다."),
     EXPIRED_INVITE_CODE(BAD_REQUEST, "INVITE002", "만료된 초대코드입니다."),
     INVITE_CODE_ALREADY_USED(BAD_REQUEST, "INVITE003", "이미 사용된 초대코드입니다."),
-    ALREADY_FRIEND(HttpStatus.BAD_REQUEST, "FRIEND4002", "이미 친구 관계가 맺어져 있는 사용자입니다."),
 
     // 이메일 인증 관련 에러
     INVALID_EMAIL_TOKEN(BAD_REQUEST, "EMAIL4001", "유효하지 않거나 만료된 인증 토큰입니다."),
