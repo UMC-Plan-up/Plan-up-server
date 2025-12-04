@@ -3,6 +3,7 @@ package com.planup.planup.domain.user.service.command;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.AuthException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
+import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
@@ -98,6 +99,11 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         String profileImgUrl = determineProfileImageUrl(request.getEmail(), request.getProfileImg());
         User user = userAuthConverter.toUserEntity(request, encodedPassword, profileImgUrl);
+
+        //유저 스텟 클래스 추가
+        UserStat userStat = new UserStat();
+        user.setUserStat(userStat);
+
         User savedUser = userRepository.save(user);
 
         // 약관 저장

@@ -4,7 +4,9 @@ import com.planup.planup.domain.global.annotation.StatChanging;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -18,7 +20,9 @@ public class UserStat extends BaseTimeEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @Setter
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
     private boolean markedChange = false;
@@ -41,6 +45,7 @@ public class UserStat extends BaseTimeEntity {
 //    private LocalDate recordSpecificGoalDaysFlag;      // 7일 연속 특정 목표 기록: 오늘 기록하였는
 
     @OneToMany(mappedBy = "userStat")
+    @Builder.Default
     private List<SpecificGoalDays> recordAllGoal7DaysFlag = new ArrayList<>();
 
     /* ========= 누적 카운터 ========= */

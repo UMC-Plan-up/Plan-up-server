@@ -88,7 +88,7 @@ public class User extends BaseTimeEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserGoal> userGoals = new ArrayList<>();
 
-    @OneToOne(mappedBy = "user")
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private UserStat userStat;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
@@ -130,5 +130,11 @@ public class User extends BaseTimeEntity {
 
     public void updateProfileImage(String profileImg) {
         this.profileImg = profileImg;
+    }
+
+    public UserStat setUserStat(UserStat userStat) {
+        this.userStat = userStat;
+        userStat.setUser(this);
+        return userStat;
     }
 }
