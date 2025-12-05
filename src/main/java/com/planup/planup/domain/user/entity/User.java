@@ -29,19 +29,24 @@ public class User extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String email;
+
+    @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
     private String nickname;
 
     @Enumerated(EnumType.STRING)
-    private UserActivate userActivate;
+    private UserActivate userActivate = UserActivate.ACTIVE;
 
     @Enumerated(EnumType.STRING)
-    private UserLevel userLevel;
+    private UserLevel userLevel = UserLevel.LEVEL_1;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role;
+    private Role role = Role.USER;
 
     @Lob
     private String profileImg;
@@ -67,31 +72,41 @@ public class User extends BaseTimeEntity {
 
     // 연관 관계
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<UserTerms> userTermList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
-    private List<InvitedUser> invitedUserList;
+    @Builder.Default
+    private List<InvitedUser> invitedUserList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
-    private List<OAuthAccount> oAuthAccountList;
+    @Builder.Default
+    private List<OAuthAccount> oAuthAccountList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
-    private List<Friend> friendList;
+    @Builder.Default
+    private List<Friend> friendList = new ArrayList<>();
 
 
     @OneToMany(mappedBy = "user")
-    private List<WeeklyReport> weeklyReportList;
+    @Builder.Default
+    private List<WeeklyReport> weeklyReportList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<UserBadge> userBadges = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<UserGoal> userGoals = new ArrayList<>();
 
     @OneToOne(mappedBy = "user")
-    private UserStat userStat;
+    @Column(nullable = false)
+    @Builder.Default
+    private UserStat userStat = new UserStat();
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
     private UserWithdrawal userWithdrawal;
 
     public void verifyEmail() {
