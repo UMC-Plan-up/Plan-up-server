@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "user_terms")
 @Getter
-@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
@@ -32,4 +31,10 @@ public class UserTerms extends BaseTimeEntity {
 
     private Boolean isAgreed;
     private LocalDateTime agreedAt;
+
+    private Boolean setIsAgreed(Boolean b) {
+        this.isAgreed = b;
+        if (b) this.agreedAt = LocalDateTime.now();
+        return this.isAgreed;
+    }
 }
