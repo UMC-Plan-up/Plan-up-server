@@ -12,7 +12,7 @@ public class UserStat {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "user")
     private User user;
 
     private boolean markedChange = false;

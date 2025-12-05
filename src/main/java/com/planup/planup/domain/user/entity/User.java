@@ -100,7 +100,7 @@ public class User extends BaseTimeEntity {
     @Builder.Default
     private List<UserGoal> userGoals = new ArrayList<>();
 
-    @OneToOne(mappedBy = "user", optional = false)
+    @OneToOne(optional = false)
     @JoinColumn(nullable = false)
     @Builder.Default
     private UserStat userStat = new UserStat();
