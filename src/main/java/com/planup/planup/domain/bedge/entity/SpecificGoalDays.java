@@ -1,17 +1,23 @@
 package com.planup.planup.domain.bedge.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.planup.planup.domain.goal.entity.Goal;
+import com.planup.planup.domain.user.entity.User;
+import jakarta.annotation.Nullable;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDate;
 
 @Entity
+@Table(
+        name = "specific_goal_days",
+        indexes = {
+                @Index(name = "idx_user_goal", columnList = "user_id, goal_id")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_user_goal", columnNames = {"user_id", "goal_id"})
+        }
+)
 @Getter
 @Builder @AllArgsConstructor @NoArgsConstructor
 public class SpecificGoalDays {
@@ -20,9 +26,16 @@ public class SpecificGoalDays {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long goalId;
-    private Long userId;
-    private LocalDate lastUpdate;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "goal_id", nullable = false)
+    private Goal goal;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @NonNull
+    private LocalDate lastUpdate;               //가장 최근에 업데이트한 날짜.
     @Builder.Default
     private int consecutiveSuccessDays = 0;
 
