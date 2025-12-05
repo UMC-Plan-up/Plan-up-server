@@ -9,12 +9,19 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 @Entity
 @Getter
+@Table(
+        name = "user_stat",
+        indexes = {
+                @Index(name = "user_stat_index", columnList = "user_id")
+        }
+)
 public class UserStat extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,15 +41,14 @@ public class UserStat extends BaseTimeEntity {
     private int goalRecordCnt = 0;              // 목표 기록 수(루티너)
     private int pushOpenCnt = 0;                // 푸시 열람 수
     private int completeGoalCnt= 0;             // 하루에 3개 이상의 목표 완료(몰입의 날)
+    private LocalDate lastCompleteGoalDate = null;
     private int requestFriendOneDay = 0;        // 하루에 3번 이상 친구 신청
     private int sendVerityCntDay = 0;           // 하루에 인증을 보낸 갯수
 
     /* ========= 일주일 기준 ========= */
     private int reactionCntWeek = 0;                        // 전체 반응 버튼
-    private int recordAllGoal7Days = 0;                     // 7일 연속 전체 목표 기록
-//    private int recordSpecificGoalDays = 0;                 // 7일 연속 특정 목표 기록
-//    private LocalDate recordAllGoal7DaysFlag;          // 7일 연속 전체 목표 기록: 오늘 기록하였는가
-//    private LocalDate recordSpecificGoalDaysFlag;      // 7일 연속 특정 목표 기록: 오늘 기록하였는
+
+
 
     @OneToMany(mappedBy = "userStat")
     @Builder.Default
@@ -58,7 +64,9 @@ public class UserStat extends BaseTimeEntity {
     private long totalCommentCnt = 0;                // 총 댓글 수
     private boolean completeGoalCntFlag = false;     // 이전에 하루에 100% 3개 이상한 날이 있는가
 
-
+    /**
+     * 각 스텟은 주기적으로 초기화 된다.
+     */
     public void resetDailyStats() {
         this.commentCntInFriendDay = 0;
         this.likeCnt = 0;
@@ -75,127 +83,76 @@ public class UserStat extends BaseTimeEntity {
         this.reactionCntWeek = 0;
     }
 
-    //변경 사항이 발생했다면 변경했다고 표시
-    public void markChanged() {
-        this.markedChange = true;
+    /**
+     * 사용자의 활동에 따른 스텍의 변화 처리 메서드
+     */
+    public void recordVerification() {      //기록 추가
+        //누적 30회
+        totalRecordCnt++;
+        //하루에 3회 이상
+        goalRecordCnt++;
+        //설정한 전체 목표 7일 연속
+
     }
 
-    @StatChanging
-    public void addReactionButton() {
-        this.reactionCntWeek +=1;
+    public void recordComment(boolean isFreindPost) {       //댓글 작성
+        // 첫 댓글 만들기
+        totalCommentCnt++;
+        // 하루에 친구 페이지에서 댓글 3개 이상 남기기
+        commentCntInFriendDay++;
     }
 
-    //댓글을 추가한 경우
-    @StatChanging
-    public void addComment() {
-        this.totalCommentCnt += 1;
-    }
+    /**
+     * 조금 더 고민해 보기: 완전히 별도의 클래스로 분리할 지
+     */
+    public void achieveGoal() {         //목표 달성
+        //3개 이상의 목표를 처음으로 100% 완수한 날
+        LocalDate localDate = LocalDateTime.now().toLocalDate();
 
-    //goal을 추가하는 경우
-    @StatChanging
-    public void addGoal() {
-        this.totalGoalCreatedCnt += 1;
-    }
-
-    //초대코드 코드 공유
-    @StatChanging
-    public void addSharingInviteCode() {
-        this.totalInviteShareCnt += 1;
-    }
-
-    //초대코드 받고 가입하는 경우
-    @StatChanging
-    public void addAcceptInviteCode() {
-        this.totalInviteAcceptedCnt += 1;
-    }
-
-    //인증을 추가한 경우
-    @StatChanging
-    public void addVerify() {
-        //하루에 인증 보낸 수
-        this.sendVerityCntDay += 1;
-        //전체 인증 수
-        this.totalRecordCnt += 1;
-        //7일 연속 증가하는지 확인
-        addRecordAllGoal7DaysIfNeeded();
-    }
-
-    //친구 프로필을 선택한 경우
-    @StatChanging
-    public void addClickFriendProfile() {
-        this.totalProfileClickCnt += 1;
-    }
-
-    //주간 통계 조회 수
-    @StatChanging
-    public void addWeeklyStatViewCnt() {
-        this.weeklyStatViewCnt += 1;
-    }
-
-    //인증을 추가한 경우
-    @StatChanging
-    private void addRecordAllGoal7DaysIfNeeded() {
-        if (recordAllGoal7DaysFlag.equals(LocalDate.now())) {
-            return;
+        if (lastCompleteGoalDate == null || !lastCompleteGoalDate.equals(localDate)) {
+            completeGoalCnt = 1;
+            lastCompleteGoalDate = localDate;
         } else {
-            recordAllGoal7DaysFlag = LocalDate.now();
-            recordAllGoal7Days++;
+            completeGoalCnt++;
         }
     }
 
-    @StatChanging
-    public void setRecordSpecificGoalDaysIfNeeded() {
-        //오늘 아직 업데이트 하지 않았다면 1을 더한다.
-        if (recordSpecificGoalDaysFlag.equals(LocalDate.now())) {
-            return;
-        } else {
-            recordSpecificGoalDays++;
-            recordSpecificGoalDaysFlag = LocalDate.now();
-        }
+    //목표 생성을 한 경우
+    public void createGoal() {
+        totalGoalCreatedCnt++;
+    }
+
+    //반응 버튼(노말, 분발, 응원)
+
+    //알림 푸시를 통해 들어온 날
+    public void getInByPush() {
+        pushOpenCnt++;
+    }
+
+    //초대 코드 공유
+    public void shareInviteCode() {
+        totalInviteShareCnt++;
+    }
+
+    //초대한 친구 가입
+    public void acceptInviteCode() {
+        totalInviteAcceptedCnt++;
+    }
+
+    //신구 신청 3회 이상
+    public void requestFriend() {
+        requestFriendOneDay++;
+    }
+
+    //친구 프로필 5회 이상
+    public void clickFriendProfile() {
+        totalProfileClickCnt++;
+    }
+
+    //통계 조회
+    public void readReport() {
+        weeklyStatViewCnt++;
     }
 
 
-    //친구 글에서 댓글을 단 경우
-    @StatChanging
-    public void addCommentCntInFriendDay() {
-        this.commentCntInFriendDay += 1;
-        addComment();
-    }
-
-    //응원해요 누른 경우
-    @StatChanging
-    public void addLikeCnt() {
-        this.likeCnt += 1;
-    }
-
-    //분발해요 누른 경우
-    @StatChanging
-    public void addEncourageCnt() {
-        this.encourageCnt += 1;
-    }
-
-    //새로운 목표를 추가한 경우
-    @StatChanging
-    public void addGoalRecordCnt() {
-        this.goalRecordCnt += 1;
-    }
-
-    //푸시 열람 수 추가
-    @StatChanging
-    public void addPushOpenCnt() {
-        this.pushOpenCnt += 1;
-    }
-
-    //하루에 3개 이상의 목표를 완료한 경우: 7일 연속 목표 달성 로직도 체크
-    @StatChanging
-    public void addComplete3Goal() {
-        this.completeGoalCnt += 1;
-        setRecordSpecificGoalDaysIfNeeded();
-    }
-
-    //하루에 3번 이상 친구 신청을 날린 경우
-    @StatChanging
-    public void addRequestFriendOneDay() {
-        this.requestFriendOneDay += 1;
-    }
 }
