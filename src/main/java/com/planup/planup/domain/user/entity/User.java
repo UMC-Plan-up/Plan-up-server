@@ -100,13 +100,12 @@ public class User extends BaseTimeEntity {
     @Builder.Default
     private List<UserGoal> userGoals = new ArrayList<>();
 
-    @OneToOne(mappedBy = "user")
-    @Column(nullable = false)
+    @OneToOne(mappedBy = "user", optional = false)
+    @JoinColumn(nullable = false)
     @Builder.Default
     private UserStat userStat = new UserStat();
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    @Builder.Default
     private UserWithdrawal userWithdrawal;
 
     public void verifyEmail() {
