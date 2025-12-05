@@ -37,9 +37,14 @@ public class UserReportMapping extends BaseTimeEntity {
     private boolean blocked;
 
     @Enumerated(EnumType.STRING)
-    private ReportStatus status;
+    @Builder.Default
+    @Column(nullable = false)
+    private ReportStatus status = ReportStatus.PENDING;
 
     private LocalDateTime handledAt;
 
-
+    public void handleReport(ReportStatus status) {
+        this.status = status;
+        handledAt = LocalDateTime.now();
+    }
 }
