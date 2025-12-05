@@ -118,19 +118,11 @@ public class User extends BaseTimeEntity {
     }
 
     public void updateMarketingNotificationAllow() {
-        if (this.marketingNotificationAllow == true) {
-            this.marketingNotificationAllow = false;
-        } else {
-            this.marketingNotificationAllow = true;
-        }
+        this.marketingNotificationAllow = !this.marketingNotificationAllow;
     }
 
     public void updateServiceNotificationAllow() {
-        if (this.serviceNotificationAllow == true) {
-            this.serviceNotificationAllow = false;
-        } else {
-            this.serviceNotificationAllow = true;
-        }
+        this.serviceNotificationAllow = !this.serviceNotificationAllow;
     }
 
     public void setPassword(String password) {
