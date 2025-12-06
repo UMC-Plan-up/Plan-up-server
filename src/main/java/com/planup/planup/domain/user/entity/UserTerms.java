@@ -32,7 +32,7 @@ public class UserTerms extends BaseTimeEntity {
     private Boolean isAgreed;
     private LocalDateTime agreedAt;
 
-    private Boolean setIsAgreed(Boolean b) {
+    public Boolean setIsAgreed(Boolean b) {
         this.isAgreed = b;
         if (b) this.agreedAt = LocalDateTime.now();
         return this.isAgreed;

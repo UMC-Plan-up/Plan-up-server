@@ -39,13 +39,18 @@ public class User extends BaseTimeEntity {
     private String nickname;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
     private UserActivate userActivate = UserActivate.ACTIVE;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
     private UserLevel userLevel = UserLevel.LEVEL_1;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private Role role = Role.USER;
 
     @Lob
@@ -100,10 +105,8 @@ public class User extends BaseTimeEntity {
     @Builder.Default
     private List<UserGoal> userGoals = new ArrayList<>();
 
-    @OneToOne(optional = false)
-    @JoinColumn(nullable = false)
-    @Builder.Default
-    private UserStat userStat = new UserStat();
+    @OneToOne(optional = false, cascade = CascadeType.ALL, orphanRemoval = true)
+    private UserStat userStat;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private UserWithdrawal userWithdrawal;
