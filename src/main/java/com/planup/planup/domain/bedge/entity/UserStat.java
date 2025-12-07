@@ -13,6 +13,7 @@ public class UserStat {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
     private boolean markedChange = false;
