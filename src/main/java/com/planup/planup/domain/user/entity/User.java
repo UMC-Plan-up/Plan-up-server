@@ -120,12 +120,12 @@ public class User extends BaseTimeEntity {
         this.nickname = nickname;
     }
 
-    public Boolean updateMarketingNotificationAllow() {
+    public Boolean toggleMarketingNotificationAllow() {
         this.marketingNotificationAllow = !this.marketingNotificationAllow;
         return this.marketingNotificationAllow;
     }
 
-    public Boolean updateServiceNotificationAllow() {
+    public Boolean toggleServiceNotificationAllow() {
         this.serviceNotificationAllow = !this.serviceNotificationAllow;
         return this.serviceNotificationAllow;
     }

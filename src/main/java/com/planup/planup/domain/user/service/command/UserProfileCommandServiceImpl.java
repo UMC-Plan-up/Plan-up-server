@@ -78,13 +78,13 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
     @Override
     public boolean updateMarketingNotificationAllow(Long userId) {
         User user = userQueryService.getUserByUserId(userId);
-        return user.updateMarketingNotificationAllow();
+        return user.toggleMarketingNotificationAllow();
     }
 
     @Override
     public boolean updateServiceNotificationAllow(Long userId) {
         User user = userQueryService.getUserByUserId(userId);
-        return user.updateServiceNotificationAllow();
+        return user.toggleServiceNotificationAllow();
     }
 
     @Override
