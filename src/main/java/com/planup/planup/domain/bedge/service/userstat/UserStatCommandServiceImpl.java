@@ -21,7 +21,7 @@ public class UserStatCommandServiceImpl {
         UserStat userStat = userStatQueryService.findByUserId(userId);
 
         //일단 기존에 기록 중인 목표인지 확인한다.
-        List<SpecificGoalDays> list = userStat.get
+//        List<SpecificGoalDays> list = userStat.get
 
         //기록 중이 아닌 목표라면 새롭게 저장할 객체를 만든다
 

@@ -22,15 +22,15 @@ public interface UserStatRepository extends JpaRepository<UserStat, Long> {
     Optional<UserStat> findByUser_Id(Long userId);
 
     @Query("""
-        select distinct us
-        from UserStat us
-        left join fetch us.recordAllGoal7DaysFlag sg
-        where us.user.id = :userId
-          and (
-            sg is null
-            or sg.lastUpdate between :startDate and :endDate
-          )
-        """)
+    select distinct us
+    from UserStat us
+    left join fetch us.recordAllGoal7DaysFlag sg
+    where us.user.id = :userId
+      and (
+        sg is null
+        or sg.lastUpdate between :startDate and :endDate
+      )
+    """)
     Optional<UserStat> findWithSpecificGoalDaysByUserIdAndLastUpdateBetween(
             @Param("userId") Long userId,
             @Param("startDate") LocalDate startDate,
