@@ -24,7 +24,7 @@ public interface UserStatRepository extends JpaRepository<UserStat, Long> {
     @Query("""
     select distinct us
     from UserStat us
-    left join fetch us.recordAllGoal7DaysFlag sg
+    left join fetch us.recordAllGoal7Days sg
     where us.user.id = :userId
       and (
         sg is null

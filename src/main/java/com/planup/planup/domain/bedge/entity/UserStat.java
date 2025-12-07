@@ -1,6 +1,5 @@
 package com.planup.planup.domain.bedge.entity;
 
-import com.planup.planup.domain.global.annotation.StatChanging;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -12,7 +11,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Entity
 @Getter
@@ -52,7 +50,7 @@ public class UserStat extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "userStat")
     @Builder.Default
-    private List<SpecificGoalDays> recordAllGoal7DaysFlag = new ArrayList<>();
+    private List<SpecificGoalDays> recordAllGoal7Days = new ArrayList<>();
 
     /* ========= 누적 카운터 ========= */
     private int totalProfileClickCnt = 0;            // 친구 프로필 클릭

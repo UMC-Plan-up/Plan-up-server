@@ -7,6 +7,7 @@ import com.planup.planup.domain.user.repository.UserStatRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
@@ -16,6 +17,12 @@ public class UserStatQueryServiceImpl {
     private final UserStatRepository userStatRepository;
     public UserStat findByUserId(Long userId) {
         Optional<UserStat> optionalUserStat = userStatRepository.findByUser_Id(userId);
+
+        return optionalUserStat.orElseThrow(() -> new UserException(ErrorStatus._BAD_REQUEST));
+    }
+
+    public UserStat findByUserIdWithSpecificDays(Long userId) {
+        Optional<UserStat> optionalUserStat = userStatRepository.findWithSpecificGoalDaysByUserIdAndLastUpdateBetween(userId, LocalDate.now().minusDays(1), LocalDate.now());
 
         return optionalUserStat.orElseThrow(() -> new UserException(ErrorStatus._BAD_REQUEST));
     }
