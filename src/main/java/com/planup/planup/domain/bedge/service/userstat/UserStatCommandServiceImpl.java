@@ -19,6 +19,7 @@ public class UserStatCommandServiceImpl {
     //특정 목표 기록
     public void recordSpecificGoal(Long userId) {
         UserStat userStat = userStatQueryService.findByUserId(userId);
+
         //일단 기존에 기록 중인 목표인지 확인한다.
         List<SpecificGoalDays> list = userStat.get
 
