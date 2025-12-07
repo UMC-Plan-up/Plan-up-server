@@ -14,4 +14,6 @@ public interface UserStatRepository extends JpaRepository<UserStat, Long> {
     List<UserStat> findAllByMarkedChange(boolean markedChange);
 
     Optional<UserStat> findByUser(User user);
+
+    Optional<UserStat> findByUser_Id(Long userId);
 }
