@@ -36,7 +36,12 @@ public class SpecificGoalDays {
 
     @NonNull
     private LocalDate lastUpdate;               //가장 최근에 업데이트한 날짜.
-    @Builder.Default
-    private int consecutiveSuccessDays = 0;
 
+    @Builder.Default
+    private int consecutiveSuccessDays = 1;
+
+    public void updateNewRecord() {
+        this.consecutiveSuccessDays++;
+        this.lastUpdate = LocalDate.now();
+    }
 }
