@@ -17,9 +17,11 @@ import com.planup.planup.domain.goal.entity.GoalMemo;
 import com.planup.planup.domain.goal.repository.CommentRepository;
 import com.planup.planup.domain.goal.repository.GoalMemoRepository;
 import com.planup.planup.domain.notification.service.NotificationCreateService;
+import com.planup.planup.domain.reaction.domain.Reaction;
 import com.planup.planup.domain.reaction.domain.ReactionTargetType;
 import com.planup.planup.domain.reaction.domain.ReactionType;
 import com.planup.planup.domain.reaction.repository.ReactionRepository;
+import com.planup.planup.domain.reaction.repository.projection.ReactionCountProjection;
 import com.planup.planup.domain.reaction.service.ReactionCommandService;
 import com.planup.planup.domain.reaction.service.ReactionQueryService;
 import com.planup.planup.domain.user.enums.UserLevel;
@@ -423,8 +425,16 @@ public class GoalServiceImpl implements GoalService{
     @Transactional(readOnly = true)
     public GoalResponseDto.GoalReactionDto getGoalReactions(Long goalId, Long userId) {
 
-        long cheerCount = reactionRepository.countByTargetTypeAndTargetIdAndType(ReactionTargetType.GOAL, goalId, ReactionType.CHEER);
-        long encourageCount = reactionRepository.countByTargetTypeAndTargetIdAndType(ReactionTargetType.GOAL, goalId, ReactionType.ENCOURAGE);
+        //각 타입 수를 저장할 곳
+        long cheerCount = 0l;
+        long encourageCount = 0l;
+
+        List<ReactionCountProjection> reactionCountProjections = reactionRepository.countByTargetGroupedByType(ReactionTargetType.GOAL, goalId);
+        for (ReactionCountProjection rp : reactionCountProjections) {
+            if (rp.getType() == ReactionType.CHEER) cheerCount = rp.getCount();
+            else if (rp.getType() == ReactionType.ENCOURAGE) encourageCount = rp.getCount();
+        }
+
 
         boolean hasCheer = reactionRepository.existsByUserIdAndTargetTypeAndTargetIdAndType(userId, ReactionTargetType.GOAL, goalId, ReactionType.CHEER);
         boolean hasEncourage = reactionRepository.existsByUserIdAndTargetTypeAndTargetIdAndType(userId, ReactionTargetType.GOAL, goalId, ReactionType.ENCOURAGE);
