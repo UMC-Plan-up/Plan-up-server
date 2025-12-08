@@ -423,8 +423,8 @@ public class GoalServiceImpl implements GoalService{
     @Transactional(readOnly = true)
     public GoalResponseDto.GoalReactionDto getGoalReactions(Long goalId, Long userId) {
 
-        long cheerCount = reactionRepository.countByTargetTypeAndTargetIdAAndType(ReactionTargetType.GOAL, goalId, ReactionType.CHEER);
-        long encourageCount = reactionRepository.countByTargetTypeAndTargetIdAAndType(ReactionTargetType.GOAL, goalId, ReactionType.ENCOURAGE);
+        long cheerCount = reactionRepository.countByTargetTypeAndTargetIdAndType(ReactionTargetType.GOAL, goalId, ReactionType.CHEER);
+        long encourageCount = reactionRepository.countByTargetTypeAndTargetIdAndType(ReactionTargetType.GOAL, goalId, ReactionType.ENCOURAGE);
 
         boolean hasCheer = reactionRepository.existsByUserIdAndTargetTypeAndTargetIdAndType(userId, ReactionTargetType.GOAL, goalId, ReactionType.CHEER);
         boolean hasEncourage = reactionRepository.existsByUserIdAndTargetTypeAndTargetIdAndType(userId, ReactionTargetType.GOAL, goalId, ReactionType.ENCOURAGE);
