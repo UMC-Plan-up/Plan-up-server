@@ -24,9 +24,9 @@ public class ReactionQueryService {
         return reactionList.stream().map(toDTO::fromReactionToDTO).toList();
     }
 
-    public long getReactionCountByTarget(ReactionTargetType targetType, Long targetId, ReactionType type) {
-        return reactionRepository.countByTargetTypeAndTargetIdAndType(targetType, targetId, type);
-    }
+//    public long getReactionCountByTarget(ReactionTargetType targetType, Long targetId) {
+//        return reactionRepository.countByTargetTypeAndTargetId(targetType, targetId);
+//    }
 
     public long getReactionCountByUser(Long userId) {
         return reactionRepository.countByUserId(userId);
