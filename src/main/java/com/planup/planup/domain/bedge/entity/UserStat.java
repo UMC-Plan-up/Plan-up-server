@@ -31,7 +31,6 @@ public class UserStat extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    private boolean markedChange = false;
 
     /* ========= 하루 기준 ========= */
     private int commentCntInFriendDay = 0;      // 하루에 친구 글에서 댓글 수
@@ -74,7 +73,6 @@ public class UserStat extends BaseTimeEntity {
         this.pushOpenCnt = 0;
         this.requestFriendOneDay = 0;
         this.completeGoalCnt = 0;
-        this.markedChange = false;
         this.sendVerityCntDay = 0;
     }
 
@@ -94,11 +92,11 @@ public class UserStat extends BaseTimeEntity {
 
     }
 
-    public void recordComment(boolean isFreindPost) {       //댓글 작성
+    public void recordComment(boolean isFriendPost) {       //댓글 작성
         // 첫 댓글 만들기
         totalCommentCnt++;
         // 하루에 친구 페이지에서 댓글 3개 이상 남기기
-        commentCntInFriendDay++;
+        if (isFriendPost) commentCntInFriendDay++;
     }
 
     /**
