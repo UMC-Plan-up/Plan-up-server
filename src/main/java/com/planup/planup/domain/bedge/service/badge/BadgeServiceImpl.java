@@ -119,7 +119,7 @@ public class BadgeServiceImpl implements BadgeService {
     //하루에 응원해요 3번 이상
     @Override
     public boolean checkCheerMasterBadge(UserStat userStat) {
-        if (userStat.getLikeCnt() >= 3 && isNotAlreadyExistBadge(userStat.getUser(), BadgeType.CHEER_MASTER)) {
+        if (userStat.getCheerCnt() >= 3 && isNotAlreadyExistBadge(userStat.getUser(), BadgeType.CHEER_MASTER)) {
             return userBadgecommandService.createUserBadge(userStat.getUser(), BadgeType.CHEER_MASTER);
         }
         return false;
