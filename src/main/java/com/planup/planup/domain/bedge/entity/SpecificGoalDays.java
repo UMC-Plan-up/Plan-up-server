@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Table(
         name = "specific_goal_days",
         indexes = {
-                @Index(name = "idx_user_goal", columnList = "user_id, goal_id")
+                @Index(name = "idx_user_goal", columnList = "user_id, goal_id, updatedAt")
         },
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_user_goal", columnNames = {"user_id", "goal_id"})
