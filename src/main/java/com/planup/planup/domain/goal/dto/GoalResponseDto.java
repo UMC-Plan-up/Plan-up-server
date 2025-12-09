@@ -190,10 +190,10 @@ public class GoalResponseDto {
         private Long goalId;
 
         @Schema(description = "응원해요 카운트", example = "15")
-        private int cheerCount;
+        private long cheerCount;
 
         @Schema(description = "분발해요 카운트", example = "8")
-        private int encourageCount;
+        private long encourageCount;
 
         @Schema(description = "사용자 반응 여부")
         private UserReactionStatus userReactions;

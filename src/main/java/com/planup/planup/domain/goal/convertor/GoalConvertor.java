@@ -265,8 +265,8 @@ public class GoalConvertor {
     // 목표 반응 DTO 변환
     public static GoalResponseDto.GoalReactionDto toGoalReactionDto(
             Long goalId,
-            int cheerCount,
-            int encourageCount,
+            long cheerCount,
+            long encourageCount,
             boolean hasCheer,
             boolean hasEncourage) {
 

@@ -5,6 +5,7 @@ import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
+import com.planup.planup.domain.reaction.domain.Reaction;
 import com.planup.planup.domain.report.entity.WeeklyReport;
 import com.planup.planup.domain.user.enums.Role;
 import com.planup.planup.domain.user.enums.UserActivate;
