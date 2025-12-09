@@ -44,5 +44,16 @@ public interface ReactionRepository extends JpaRepository<Reaction, Long> {
             @Param("targetId") Long targetId
     );
 
-
+    @Query("""
+    select r.type
+    from Reaction r
+    where r.user.id = :userId
+      and r.targetType = :targetType
+      and r.targetId = :targetId
+    """)
+    List<ReactionType> findTypesByUserAndTarget(
+            @Param("userId") Long userId,
+            @Param("targetType") ReactionTargetType targetType,
+            @Param("targetId") Long targetId
+    );
 }

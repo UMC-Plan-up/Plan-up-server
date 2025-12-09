@@ -436,8 +436,10 @@ public class GoalServiceImpl implements GoalService{
         }
 
 
-        boolean hasCheer = reactionRepository.existsByUserIdAndTargetTypeAndTargetIdAndType(userId, ReactionTargetType.GOAL, goalId, ReactionType.CHEER);
-        boolean hasEncourage = reactionRepository.existsByUserIdAndTargetTypeAndTargetIdAndType(userId, ReactionTargetType.GOAL, goalId, ReactionType.ENCOURAGE);
+        List<ReactionType> myTypes = reactionRepository.findTypesByUserAndTarget(userId, ReactionTargetType.GOAL, goalId);
+
+        boolean hasCheer = myTypes.contains(ReactionType.CHEER);
+        boolean hasEncourage = myTypes.contains(ReactionType.ENCOURAGE);
 
         return GoalConvertor.toGoalReactionDto(goalId, cheerCount, encourageCount, hasCheer, hasEncourage);
     }
