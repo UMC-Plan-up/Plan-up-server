@@ -1,6 +1,7 @@
 package com.planup.planup.domain.bedge.entity;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
+import com.planup.planup.domain.reaction.domain.ReactionType;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -34,7 +35,7 @@ public class UserStat extends BaseTimeEntity {
 
     /* ========= 하루 기준 ========= */
     private int commentCntInFriendDay = 0;      // 하루에 친구 글에서 댓글 수
-    private int likeCnt = 0;                    // ‘응원해요’
+    private int cheerCnt = 0;                    // ‘응원해요’
     private int encourageCnt = 0;               // ‘분발해요’
     private int goalRecordCnt = 0;              // 목표 기록 수(루티너)
     private int pushOpenCnt = 0;                // 푸시 열람 수
@@ -67,7 +68,7 @@ public class UserStat extends BaseTimeEntity {
      */
     public void resetDailyStats() {
         this.commentCntInFriendDay = 0;
-        this.likeCnt = 0;
+        this.cheerCnt = 0;
         this.encourageCnt = 0;
         this.goalRecordCnt = 0;
         this.pushOpenCnt = 0;
@@ -121,6 +122,17 @@ public class UserStat extends BaseTimeEntity {
     }
 
     //반응 버튼(노말, 분발, 응원)
+    public void addReaction(ReactionType type) {
+        if (type == ReactionType.CHEER) {
+            this.cheerCnt++;
+        } else if (type == ReactionType.ENCOURAGE) {
+            this.encourageCnt++;
+        }
+    }
+
+    public int getReactionCount() {
+        return this.cheerCnt + this.encourageCnt;
+    }
 
     //알림 푸시를 통해 들어온 날
     public void getInByPush() {
