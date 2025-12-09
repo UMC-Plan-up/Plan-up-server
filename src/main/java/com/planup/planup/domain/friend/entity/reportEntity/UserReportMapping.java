@@ -24,12 +24,12 @@ public class UserReportMapping extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reporter_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "reporter_id", nullable = false)
     private User reporter;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reported_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "reported_id", nullable = false)
     private User reported;
 
     private String reason;
@@ -37,9 +37,14 @@ public class UserReportMapping extends BaseTimeEntity {
     private boolean blocked;
 
     @Enumerated(EnumType.STRING)
-    private ReportStatus status;
+    @Builder.Default
+    @Column(nullable = false)
+    private ReportStatus status = ReportStatus.PENDING;
 
     private LocalDateTime handledAt;
 
-
+    public void handleReport(ReportStatus status) {
+        this.status = status;
+        handledAt = LocalDateTime.now();
+    }
 }

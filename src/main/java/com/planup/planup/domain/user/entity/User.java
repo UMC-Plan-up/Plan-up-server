@@ -29,19 +29,29 @@ public class User extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String email;
+
+    @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
     private String nickname;
 
     @Enumerated(EnumType.STRING)
-    private UserActivate userActivate;
-
-    @Enumerated(EnumType.STRING)
-    private UserLevel userLevel;
+    @Column(nullable = false)
+    @Builder.Default
+    private UserActivate userActivate = UserActivate.ACTIVE;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role;
+    @Builder.Default
+    private UserLevel userLevel = UserLevel.LEVEL_1;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private Role role = Role.USER;
 
     @Lob
     private String profileImg;
@@ -67,28 +77,35 @@ public class User extends BaseTimeEntity {
 
     // 연관 관계
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<UserTerms> userTermList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
-    private List<InvitedUser> invitedUserList;
+    @Builder.Default
+    private List<InvitedUser> invitedUserList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
-    private List<OAuthAccount> oAuthAccountList;
+    @Builder.Default
+    private List<OAuthAccount> oAuthAccountList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
-    private List<Friend> friendList;
+    @Builder.Default
+    private List<Friend> friendList = new ArrayList<>();
 
 
     @OneToMany(mappedBy = "user")
-    private List<WeeklyReport> weeklyReportList;
+    @Builder.Default
+    private List<WeeklyReport> weeklyReportList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<UserBadge> userBadges = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<UserGoal> userGoals = new ArrayList<>();
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(optional = false, cascade = CascadeType.ALL, orphanRemoval = true)
     private UserStat userStat;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
@@ -103,20 +120,14 @@ public class User extends BaseTimeEntity {
         this.nickname = nickname;
     }
 
-    public void updateMarketingNotificationAllow() {
-        if (this.marketingNotificationAllow == true) {
-            this.marketingNotificationAllow = false;
-        } else {
-            this.marketingNotificationAllow = true;
-        }
+    public Boolean toggleMarketingNotificationAllow() {
+        this.marketingNotificationAllow = !this.marketingNotificationAllow;
+        return this.marketingNotificationAllow;
     }
 
-    public void updateServiceNotificationAllow() {
-        if (this.serviceNotificationAllow == true) {
-            this.serviceNotificationAllow = false;
-        } else {
-            this.serviceNotificationAllow = true;
-        }
+    public Boolean toggleServiceNotificationAllow() {
+        this.serviceNotificationAllow = !this.serviceNotificationAllow;
+        return this.serviceNotificationAllow;
     }
 
     public void setPassword(String password) {
