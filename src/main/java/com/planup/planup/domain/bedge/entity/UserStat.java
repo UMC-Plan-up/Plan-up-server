@@ -84,7 +84,6 @@ public class UserStat extends BaseTimeEntity {
     /**
      * 사용자의 활동에 따른 스텍의 변화 처리 메서드
      */
-    //TODO: 반드시 확인: Service에서 처리를 하던 여기서 처리를 하던
     public void recordVerification(Goal goal, User user) {      //기록 추가
 
         Long goalId = goal.getId();

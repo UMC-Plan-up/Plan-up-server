@@ -31,6 +31,35 @@ public class BadgeServiceImpl implements BadgeService {
         return !userBadgeRepository.existsByUserIdAndAndBadgeType(user.getId(), type);
     }
 
+    /**
+     * 하나의 행동에 대한 뱃지 묶기
+     */
+    public void checkBadgeOnComment(UserStat userStat, boolean isFriendPost) {
+        checkFirstCommentBadge(userStat);        // 첫 댓글
+        if (isFriendPost) {
+            checkCommentFairyBadge(userStat);    // 친구 게시글 댓글 3개 이상
+        }
+    }
+
+    public void checkBadgeOnRecord(UserStat userStat) {
+        checkDiligentTrackerBadge(userStat);      // 누적 30회
+        checkRoutinerBadge(userStat);            // 하루에 3개 이상 목표 기록
+        checkImmersionDayBadge(userStat);        // 3개 목표 100% 완수
+        checkStartOfChallengeBadge(userStat);    // 특정 목표 7일 연속
+        checkConsistentRecorderBadge(userStat);  // 전체 목표 7일 연속
+    }
+
+    public void checkBadgeOnReaction(UserStat userStat) {
+        checkFeedbackChampionBadge(userStat);
+        checkReactionExpertBadge(userStat);
+        checkFeedbackChampionBadge(userStat);
+    }
+
+    public void checkBadgeOnInviteCode(UserStat userStat) {
+        checkInfluentialStarterBadge(userStat);     //3일 이내 공유
+        checkWordOfMouthMasterBadge(userStat);      //초대 코드 3회 이상 공유
+    }
+
     //가입 후 3일 이내 초대 코드 공유
     @Override
     public boolean checkInfluentialStarterBadge(UserStat userStat) {
