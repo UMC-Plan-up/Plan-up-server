@@ -44,4 +44,22 @@ public class SpecificGoalDays {
         this.consecutiveSuccessDays++;
         this.lastUpdate = LocalDate.now();
     }
+
+    public boolean isUpdatableThanUpdate() {
+        if (this.getLastUpdate().equals(LocalDate.now().minusDays(1))){
+            updateNewRecord();
+            return true;
+        } else if (this.getLastUpdate().equals(LocalDate.now())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public SpecificGoalDays(Goal newGoal, User newUser) {
+        this.goal = newGoal;
+        this.user = newUser;
+        this.lastUpdate = LocalDate.now();
+        this.consecutiveSuccessDays = 1;
+    }
 }

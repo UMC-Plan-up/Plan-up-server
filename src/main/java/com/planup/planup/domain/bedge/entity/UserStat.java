@@ -1,6 +1,7 @@
 package com.planup.planup.domain.bedge.entity;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
+import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.reaction.domain.ReactionType;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -83,13 +84,24 @@ public class UserStat extends BaseTimeEntity {
     /**
      * 사용자의 활동에 따른 스텍의 변화 처리 메서드
      */
-    public void recordVerification() {      //기록 추가
+    //TODO: 반드시 확인: Service에서 처리를 하던 여기서 처리를 하던
+    public void recordVerification(Goal goal, User user) {      //기록 추가
+
+        Long goalId = goal.getId();
+
         //누적 30회
         totalRecordCnt++;
+
         //하루에 3회 이상
         goalRecordCnt++;
-        //설정한 전체 목표 7일 연속
 
+        //설정한 전체 목표 7일 연속
+        SpecificGoalDays sg = recordAllGoal7Days.stream().filter(sg1 -> sg1.getGoal().getId().equals(goalId)).findFirst().orElseThrow();
+        boolean update = sg.isUpdatableThanUpdate();
+        if (!update) {
+            SpecificGoalDays specificGoalDays = new SpecificGoalDays(goal, user);
+            this.recordAllGoal7Days.add(specificGoalDays);
+        }
     }
 
     public void recordComment(boolean isFriendPost) {       //댓글 작성
