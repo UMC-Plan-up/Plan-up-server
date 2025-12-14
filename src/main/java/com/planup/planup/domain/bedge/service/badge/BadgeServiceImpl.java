@@ -113,7 +113,6 @@ public class BadgeServiceImpl implements BadgeService {
     }
 
     //하루에 친구 신청 3회 이상
-    //TODO: 삭제 예정
     @Override
     public boolean checkFriendRequestKingBadge(UserStat userStat) {
         if (userStat.getRequestFriendOneDay() >= 3 && isNotAlreadyExistBadge(userStat.getUser(), BadgeType.FRIEND_REQUEST_KING)) {
@@ -178,7 +177,7 @@ public class BadgeServiceImpl implements BadgeService {
 
     private boolean isSpecificGoalIn7days(UserStat userStat) {
         List<SpecificGoalDays> spList =
-                specificGoalDaysRepository.findAllByUserIdAAndLastUpdate(userStat.getUser().getId(), LocalDate.now());
+                specificGoalDaysRepository.findAllByUserStat_IdAndLastUpdate(userStat.getId(), LocalDate.now());
 
         for (SpecificGoalDays sp : spList) {
             if (sp.getConsecutiveSuccessDays() >= 7) {
@@ -253,7 +252,7 @@ public class BadgeServiceImpl implements BadgeService {
 
     private boolean isALLGoalIn7days(UserStat userStat) {
         List<SpecificGoalDays> spList =
-                specificGoalDaysRepository.findAllByUserIdAAndLastUpdate(userStat.getUser().getId(), LocalDate.now());
+                specificGoalDaysRepository.findAllByUserStat_IdAndLastUpdate(userStat.getId(), LocalDate.now());
 
         for (SpecificGoalDays sp : spList) {
             if (sp.getConsecutiveSuccessDays() < 7) {

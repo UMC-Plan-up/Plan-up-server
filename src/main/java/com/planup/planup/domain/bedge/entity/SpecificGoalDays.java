@@ -31,8 +31,8 @@ public class SpecificGoalDays {
     private Goal goal;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "userstat_id", nullable = false)
+    private UserStat userStat;
 
     @NonNull
     private LocalDate lastUpdate;               //가장 최근에 업데이트한 날짜.
@@ -56,9 +56,9 @@ public class SpecificGoalDays {
         }
     }
 
-    public SpecificGoalDays(Goal newGoal, User newUser) {
+    public SpecificGoalDays(Goal newGoal, UserStat userStat) {
         this.goal = newGoal;
-        this.user = newUser;
+        this.userStat = userStat;
         this.lastUpdate = LocalDate.now();
         this.consecutiveSuccessDays = 1;
     }

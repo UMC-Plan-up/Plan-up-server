@@ -47,8 +47,6 @@ public class UserStat extends BaseTimeEntity {
     /* ========= 일주일 기준 ========= */
     private int reactionCntWeek = 0;                        // 전체 반응 버튼
 
-
-
     @OneToMany(mappedBy = "userStat")
     @Builder.Default
     private List<SpecificGoalDays> recordAllGoal7Days = new ArrayList<>();
@@ -61,7 +59,6 @@ public class UserStat extends BaseTimeEntity {
     private long totalInviteAcceptedCnt = 0;         // 초대한 친구 중 가입 수
     private long totalGoalCreatedCnt = 0;            // 목표 생성 수
     private long totalCommentCnt = 0;                // 총 댓글 수
-    private boolean completeGoalCntFlag = false;     // 이전에 하루에 100% 3개 이상한 날이 있는가
 
     /**
      * 각 스텟은 주기적으로 초기화 된다.
@@ -98,7 +95,7 @@ public class UserStat extends BaseTimeEntity {
         SpecificGoalDays sg = recordAllGoal7Days.stream().filter(sg1 -> sg1.getGoal().getId().equals(goalId)).findFirst().orElseThrow();
         boolean update = sg.isUpdatableThanUpdate();
         if (!update) {
-            SpecificGoalDays specificGoalDays = new SpecificGoalDays(goal, user);
+            SpecificGoalDays specificGoalDays = new SpecificGoalDays(goal, user.getUserStat());
             this.recordAllGoal7Days.add(specificGoalDays);
         }
     }

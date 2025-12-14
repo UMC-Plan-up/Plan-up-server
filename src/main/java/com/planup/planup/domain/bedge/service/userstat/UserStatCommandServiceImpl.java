@@ -53,7 +53,7 @@ public class UserStatCommandServiceImpl {
     private void createNewSpecificGoal(Long userId, Long goalId, UserStat userStat) {
         SpecificGoalDays specificGoalDays = SpecificGoalDays.builder()
                 .goal(goalService.getGoalById(goalId))
-                .user(userQueryService.getUserByUserId(userId))
+                .userStat(userStat)
                 .lastUpdate(LocalDate.now())
                 .consecutiveSuccessDays(1)
                 .build();
