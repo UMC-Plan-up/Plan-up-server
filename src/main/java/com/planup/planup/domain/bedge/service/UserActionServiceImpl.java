@@ -19,6 +19,7 @@ public class UserActionServiceImpl {
     private final UserStatQueryServiceImpl userStatService;
     private final BadgeServiceImpl badgeService;
 
+    //인증을 추가
     public void recordVerification(Goal goal, User user) {
         UserStat userStat = userStatService.findByUserId(user.getId());
 
@@ -26,6 +27,7 @@ public class UserActionServiceImpl {
         badgeService.checkBadgeOnRecord(userStat);
     }
 
+    //댓글 추가
     public void recordComment(User user, boolean isFriend) {
         UserStat userStat = userStatService.findByUserId(user.getId());
 
@@ -33,6 +35,7 @@ public class UserActionServiceImpl {
         badgeService.checkBadgeOnComment(userStat, isFriend);
     }
 
+    //특정 목표를 100% 달성함
     public void recordAchieveGoal(User user) {
         UserStat userStat = userStatService.findByUserId(user.getId());
 
@@ -40,6 +43,7 @@ public class UserActionServiceImpl {
         badgeService.checkImmersionDayBadge(userStat);
     }
 
+    //목표를 생성
     public void recordCreateGoal(User user) {
         UserStat userStat = userStatService.findByUserId(user.getId());
 
@@ -47,6 +51,7 @@ public class UserActionServiceImpl {
         badgeService.checkGoalCollectorBadge(userStat);
     }
 
+    //리액션 버튼 누름
     public void recordReaction(User user, ReactionType type) {
         UserStat userStat = userStatService.findByUserId(user.getId());
 
@@ -54,6 +59,7 @@ public class UserActionServiceImpl {
         badgeService.checkBadgeOnReaction(userStat);
     }
 
+    //푸시 알림을 통해 앱에 들어옴
     public void recordInPush(User user) {
         UserStat userStat = userStatService.findByUserId(user.getId());
 
@@ -61,6 +67,8 @@ public class UserActionServiceImpl {
         badgeService.checkNotificationStarterBadge(userStat);
     }
 
+
+    //초대 코드 공유
     public void recordShareInviteCode(User user) {
         UserStat userStat = userStatService.findByUserId(user.getId());
 
@@ -68,6 +76,7 @@ public class UserActionServiceImpl {
         badgeService.checkBadgeOnInviteCode(userStat);
     }
 
+    //내 초대 코드를 통해 들어옴
     public void recordAcceptInviteCode(User user) {
         UserStat userStat = userStatService.findByUserId(user.getId());
 
@@ -75,6 +84,7 @@ public class UserActionServiceImpl {
         badgeService.checkMagnetUserBadge(userStat);
     }
 
+    //친구 요청
     public void recordRequestFriend(User user) {
         UserStat userStat = userStatService.findByUserId(user.getId());
 
@@ -82,6 +92,7 @@ public class UserActionServiceImpl {
         badgeService.checkFriendlyMaxBadge(userStat);
     }
 
+    //친구 프로필 선택
     public void recordClickFriendProfile(User user) {
         UserStat userStat = userStatService.findByUserId(user.getId());
 
@@ -89,6 +100,7 @@ public class UserActionServiceImpl {
         badgeService.checkProfileClickerBadge(userStat);
     }
 
+    //리포트 읽기
     public void recordReadReport(User user) {
         UserStat userStat = userStatService.findByUserId(user.getId());
 

@@ -3,6 +3,14 @@ package com.planup.planup.domain.bedge.service.badge;
 import com.planup.planup.domain.bedge.entity.UserStat;
 
 public interface BadgeService {
+    void checkBadgeOnComment(UserStat userStat, boolean isFriendPost);
+
+    void checkBadgeOnRecord(UserStat userStat);
+
+    void checkBadgeOnReaction(UserStat userStat);
+
+    void checkBadgeOnInviteCode(UserStat userStat);
+
     //가입 후 3일 이내 초대 코드 공유
     boolean checkInfluentialStarterBadge(UserStat userStat);
 

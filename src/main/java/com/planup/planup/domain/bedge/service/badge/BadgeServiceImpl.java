@@ -34,6 +34,7 @@ public class BadgeServiceImpl implements BadgeService {
     /**
      * 하나의 행동에 대한 뱃지 묶기
      */
+    @Override
     public void checkBadgeOnComment(UserStat userStat, boolean isFriendPost) {
         checkFirstCommentBadge(userStat);        // 첫 댓글
         if (isFriendPost) {
@@ -41,6 +42,7 @@ public class BadgeServiceImpl implements BadgeService {
         }
     }
 
+    @Override
     public void checkBadgeOnRecord(UserStat userStat) {
         checkDiligentTrackerBadge(userStat);      // 누적 30회
         checkRoutinerBadge(userStat);            // 하루에 3개 이상 목표 기록
@@ -49,12 +51,14 @@ public class BadgeServiceImpl implements BadgeService {
         checkConsistentRecorderBadge(userStat);  // 전체 목표 7일 연속
     }
 
+    @Override
     public void checkBadgeOnReaction(UserStat userStat) {
         checkFeedbackChampionBadge(userStat);
         checkReactionExpertBadge(userStat);
         checkFeedbackChampionBadge(userStat);
     }
 
+    @Override
     public void checkBadgeOnInviteCode(UserStat userStat) {
         checkInfluentialStarterBadge(userStat);     //3일 이내 공유
         checkWordOfMouthMasterBadge(userStat);      //초대 코드 3회 이상 공유
