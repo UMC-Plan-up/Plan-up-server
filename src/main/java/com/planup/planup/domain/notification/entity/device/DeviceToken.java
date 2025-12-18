@@ -15,7 +15,7 @@ public class DeviceToken {
     private String token;
     private Platform platform;     // ANDROID/IOS/WEB 등
     private String appVersion;
-    private String locale;
+    private String locale;          //사용자 (언어 - 국가) 정보
     private boolean active = true;
     private Instant createdAt = Instant.now();
     private Instant updatedAt = Instant.now();

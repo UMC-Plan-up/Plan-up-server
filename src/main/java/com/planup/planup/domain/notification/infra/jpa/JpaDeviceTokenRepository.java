@@ -2,7 +2,7 @@ package com.planup.planup.domain.notification.infra.jpa;
 
 import com.planup.planup.domain.notification.entity.device.DeviceToken;
 import com.planup.planup.domain.notification.entity.device.DeviceTokenJpa;
-import com.planup.planup.domain.notification.entity.device.DeviceTokenRepository;
+import com.planup.planup.domain.notification.repository.DeviceTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;

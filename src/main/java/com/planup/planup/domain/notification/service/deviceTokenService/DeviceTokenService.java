@@ -1,7 +1,7 @@
 package com.planup.planup.domain.notification.service.deviceTokenService;
 
 import com.planup.planup.domain.notification.entity.device.DeviceToken;
-import com.planup.planup.domain.notification.entity.device.DeviceTokenRepository;
+import com.planup.planup.domain.notification.repository.DeviceTokenRepository;
 import com.planup.planup.domain.notification.entity.device.Platform;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

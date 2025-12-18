@@ -1,11 +1,12 @@
-package com.planup.planup.domain.notification.entity.device;
+package com.planup.planup.domain.notification.repository;
 
+import com.planup.planup.domain.notification.entity.device.DeviceToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Collection;
 import java.util.List;
 
-public interface DeviceTokenRepository {
+public interface DeviceTokenRepository  {
 
     DeviceToken findByToken(String token);
     List<DeviceToken> findActiveByUserId(Long userId);

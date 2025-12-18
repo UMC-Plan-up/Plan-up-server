@@ -1,6 +1,6 @@
 package com.planup.planup.domain.notification.message.listener;
 
-import com.planup.planup.domain.notification.entity.device.DeviceTokenRepository;
+import com.planup.planup.domain.notification.repository.DeviceTokenRepository;
 import com.planup.planup.domain.notification.entity.device.NotificationCreatedEvent;
 import com.planup.planup.domain.notification.entity.device.PushSender;
 import com.planup.planup.domain.notification.message.MessageContext;
