@@ -5,11 +5,9 @@ import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.entity.TargetType;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +17,8 @@ import java.util.List;
 public class NotificationCreateService {
 
     private final NotificationService notificationService;
-    private final UserService userService;
+    private final UserQueryService userQueryService;
+
     public void createChallengeNotification(Challenge challenge) {
         List<UserGoal> userGoals = challenge.getUserGoals();
 
@@ -55,7 +54,7 @@ public class NotificationCreateService {
     }
 
     public void createGoalCreatedNotification(Long creatorId, Long goalId) {
-        List<User> friends = userService.getFriendsByUserId(creatorId);
+        List<User> friends = userQueryService.getFriendsByUserId(creatorId);
 
         for (User friend : friends) {
             notificationService.createNotification(

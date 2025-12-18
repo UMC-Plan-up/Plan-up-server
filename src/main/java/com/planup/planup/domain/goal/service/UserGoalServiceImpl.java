@@ -2,8 +2,7 @@ package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserGoalException;
-import com.planup.planup.domain.friend.service.FriendService;
-import com.planup.planup.domain.global.service.AchievementCalculationService;
+import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.goal.dto.UserGoalResponseDto;
 import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
@@ -40,7 +39,7 @@ public class UserGoalServiceImpl implements UserGoalService{
     private final UserGoalRepository userGoalRepository;
     private final GoalRepository goalRepository;
     private final UserRepository userRepository;
-    private final FriendService friendService;
+    private final FriendReadService friendService;
     private final PhotoVerificationReadService photoVerificationReadService;
     private final TimerVerificationReadService timerVerificationReadService;
 

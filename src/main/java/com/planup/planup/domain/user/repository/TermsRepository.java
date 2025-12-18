@@ -10,5 +10,6 @@ import java.util.List;
 public interface TermsRepository extends JpaRepository<Terms, Long> {
 
     List<Terms> findAllByOrderByOrderAsc();
+
     List<Terms> findByIsRequiredTrue();
 }

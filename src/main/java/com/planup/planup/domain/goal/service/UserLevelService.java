@@ -6,9 +6,9 @@ import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.report.entity.DailyAchievementRate;
-import com.planup.planup.domain.report.service.GoalReportServiceImpl;
+import com.planup.planup.domain.report.service.GoalReportService.GoalReportWriteServiceImpl;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.entity.UserLevel;
+import com.planup.planup.domain.user.enums.UserLevel;
 import com.planup.planup.domain.user.repository.UserRepository;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
@@ -27,7 +27,7 @@ import java.util.List;
 public class UserLevelService {
     private final UserRepository userRepository;
     private final UserGoalRepository userGoalRepository;
-    private final GoalReportServiceImpl goalReportService;
+    private final GoalReportWriteServiceImpl goalReportWritrService;
     private final TimerVerificationRepository timerVerificationRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
 
@@ -218,7 +218,7 @@ public class UserLevelService {
         int period = (int) ((java.time.Duration.between(createdAt, now).toDays()) / 7);
         LocalDateTime periodStart = createdAt.plusDays(period * 7);
 
-        DailyAchievementRate rate = goalReportService.calculateVerification(
+        DailyAchievementRate rate = goalReportWritrService.calculateDailyAchievementRate(
                 userGoal, userGoal.getGoal(), periodStart
         );
         return rate.getTotal();
@@ -230,8 +230,8 @@ public class UserLevelService {
         LocalDateTime week1Start = now.minusDays(7);
         LocalDateTime week2Start = now.minusDays(14);
 
-        int week1Rate = goalReportService.calculateVerification(userGoal, userGoal.getGoal(), week1Start).getTotal();
-        int week2Rate = goalReportService.calculateVerification(userGoal, userGoal.getGoal(), week2Start).getTotal();
+        int week1Rate = goalReportWritrService.calculateDailyAchievementRate(userGoal, userGoal.getGoal(), week1Start).getTotal();
+        int week2Rate = goalReportWritrService.calculateDailyAchievementRate(userGoal, userGoal.getGoal(), week2Start).getTotal();
 
         return (week1Rate + week2Rate) / 2;
     }
@@ -243,9 +243,9 @@ public class UserLevelService {
         LocalDateTime week2Start = now.minusDays(14);
         LocalDateTime week3Start = now.minusDays(21);
 
-        int week1Rate = goalReportService.calculateVerification(userGoal, userGoal.getGoal(), week1Start).getTotal();
-        int week2Rate = goalReportService.calculateVerification(userGoal, userGoal.getGoal(), week2Start).getTotal();
-        int week3Rate = goalReportService.calculateVerification(userGoal, userGoal.getGoal(), week3Start).getTotal();
+        int week1Rate = goalReportWritrService.calculateDailyAchievementRate(userGoal, userGoal.getGoal(), week1Start).getTotal();
+        int week2Rate = goalReportWritrService.calculateDailyAchievementRate(userGoal, userGoal.getGoal(), week2Start).getTotal();
+        int week3Rate = goalReportWritrService.calculateDailyAchievementRate(userGoal, userGoal.getGoal(), week3Start).getTotal();
 
         return (week1Rate + week2Rate + week3Rate) / 3;
     }

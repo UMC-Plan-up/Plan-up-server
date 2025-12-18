@@ -1,17 +1,11 @@
 package com.planup.planup.domain.goal.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
-import com.planup.planup.domain.friend.service.FriendService;
-import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.CommunityResponseDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.dto.UserGoalResponseDto;
-import com.planup.planup.domain.goal.repository.GoalRepository;
-import com.planup.planup.domain.goal.service.GoalService;
 import com.planup.planup.domain.goal.service.UserGoalAggregationService;
 import com.planup.planup.domain.goal.service.UserGoalService;
-import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -27,7 +21,6 @@ import java.time.LocalDate;
 public class UserGoalController {
 
     private final UserGoalService userGoalService;
-    private final FriendService friendService;
     private final UserGoalAggregationService userGoalAggregationService;
 
     @PostMapping("/{goalId}/join")

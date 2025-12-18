@@ -5,8 +5,6 @@ import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.service.GoalService;
 import com.planup.planup.domain.notification.entity.Notification;
 import com.planup.planup.domain.notification.entity.NotificationType;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
