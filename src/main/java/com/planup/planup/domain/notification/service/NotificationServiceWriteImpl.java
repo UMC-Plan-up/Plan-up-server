@@ -28,8 +28,8 @@ public class NotificationServiceWriteImpl implements NotificationServiceWrite {
     @Override
     public Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId) {
 
-        User receiver = userService.getUserbyUserId(receiverId);
-        User sender = userService.getUserbyUserId(senderId);
+        User receiver = userService.getUserByUserId(receiverId);
+        User sender = userService.getUserByUserId(senderId);
 
         Notification notification = Notification.builder()
                 .receiver(receiver)
@@ -53,8 +53,8 @@ public class NotificationServiceWriteImpl implements NotificationServiceWrite {
 
         String updatedPartsStr = String.join(", ", updatedParts);
 
-        User receiver = userService.getUserbyUserId(receiverId);
-        User sender = userService.getUserbyUserId(senderId);
+        User receiver = userService.getUserByUserId(receiverId);
+        User sender = userService.getUserByUserId(senderId);
 
         Notification notification = Notification.builder()
                 .receiver(receiver)

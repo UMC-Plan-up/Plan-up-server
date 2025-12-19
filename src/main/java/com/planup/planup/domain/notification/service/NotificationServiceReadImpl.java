@@ -25,14 +25,14 @@ public class NotificationServiceReadImpl implements NotificationServiceRead {
     //유저의 읽지 않은 알림을 시간 순 대로 가져온다
     @Override
     public List<NotificationResponseDTO.NotificationDTO> getUnreadNotifications(Long receiverId) {
-        User receiver = userService.getUserbyUserId(receiverId);
+        User receiver = userService.getUserByUserId(receiverId);
         List<Notification> notifications = notificationRepository.findByReceiverAndIsReadFalseOrderByCreatedAtDesc(receiver);
         return notifications.stream().map(NotificationConverter::toNotificationDTO).collect(Collectors.toList());
     }
 
     @Override
     public List<NotificationResponseDTO.NotificationDTO> getUnreadNotificationsWithType(Long receiverId, String type) {
-        User receiver = userService.getUserbyUserId(receiverId);
+        User receiver = userService.getUserByUserId(receiverId);
         List<Notification> notifications = notificationRepository.findUnreadByReceiverAndType(receiver);
         List<Notification> filteredNotificationList = notifications.stream().filter(no -> no.getType().getGroup().toString().equals(type)).toList();
         return filteredNotificationList.stream().map(NotificationConverter::toNotificationDTO).collect(Collectors.toList());
@@ -41,14 +41,14 @@ public class NotificationServiceReadImpl implements NotificationServiceRead {
     //유저의 모든 알림을 조회한다. (시간 순대로)
     @Override
     public List<NotificationResponseDTO.NotificationDTO> getAllNotifications(Long receiverId) {
-        User receiver = userService.getUserbyUserId(receiverId);
+        User receiver = userService.getUserByUserId(receiverId);
         return NotificationConverter.toNotificationDTOs(notificationRepository.findByReceiverIdOrderByCreatedAtDesc(receiver));
     }
 
     //유저에 따라 가장 최근의 5개 알림을 반환한다. (읽음 여부와 상관없이)
     @Override
     public List<NotificationResponseDTO.NotificationDTO> getTop5RecentByUser(Long userId) {
-        User receiver = userService.getUserbyUserId(userId);
+        User receiver = userService.getUserByUserId(userId);
         List<Notification> notificationList = notificationRepository.findTop3ByReceiverOrderByCreatedAtDesc(receiver);
         return NotificationConverter.toNotificationDTOs(notificationList);
     }
