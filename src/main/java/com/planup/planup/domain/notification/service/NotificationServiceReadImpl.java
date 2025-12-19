@@ -5,7 +5,6 @@ import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.notification.entity.Notification;
 import com.planup.planup.domain.notification.repository.NotificationRepository;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.service.UserService;
 import com.planup.planup.domain.user.service.query.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,6 +29,7 @@ public class NotificationServiceReadImpl implements NotificationServiceRead {
         return notifications.stream().map(NotificationConverter::toNotificationDTO).collect(Collectors.toList());
     }
 
+    //읽지 않은 알림을 알림의 타입에 따라 가져온다
     @Override
     public List<NotificationResponseDTO.NotificationDTO> getUnreadNotificationsWithType(Long receiverId, String type) {
         User receiver = userService.getUserByUserId(receiverId);
@@ -55,7 +55,6 @@ public class NotificationServiceReadImpl implements NotificationServiceRead {
 
     @Override
     public Notification getById(Long id) {
-        Notification byId = notificationRepository.getById(id);
-        return byId;
+        return notificationRepository.getReferenceById(id);
     }
 }

@@ -22,6 +22,7 @@ import java.util.Map;
 @Component
 public class FirebasePushSender implements PushSender{
 
+    /**단일 토큰(기기)에 하나의 메시지를 보낸다. (제목/본문을 보낸다) */
     @Override
     public String sendToToken(String token, String title, String body, Map<String, String> data) throws FirebaseMessagingException {
         var notification = Notification.builder().setTitle(title).setBody(body).build();
@@ -33,12 +34,16 @@ public class FirebasePushSender implements PushSender{
         return FirebaseMessaging.getInstance().send(msg);           //전송 부분
     }
 
+    /** 단일 토큰에 데이터만 보냄
+     * setNotification 설정 안함 -> 알림이 안갈 수 있음. 조용한 안내 */
     @Override
     public String sendDataOnly(String token, Map<String, String> data) throws FirebaseMessagingException {
         var msg = Message.builder().setToken(token).putAllData(data).build();
         return FirebaseMessaging.getInstance().send(msg);
     }
 
+    /** 특정 토픽을 구독하고 있는 사용자 전체에게 알림을 보낸다.
+     * 토픽 구독 설정은 클라이언트가*/
     @Override
     public String sendToTopic(String topic, String title, String body) throws FirebaseMessagingException {
         var msg = Message.builder()
