@@ -6,6 +6,7 @@ import com.planup.planup.domain.notification.entity.Notification;
 import com.planup.planup.domain.notification.repository.NotificationRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 public class NotificationServiceReadImpl implements NotificationServiceRead {
 
     private final NotificationRepository notificationRepository;
-    private final UserService userService;
+    private final UserQueryService userService;
 
     //유저의 읽지 않은 알림을 시간 순 대로 가져온다
     @Override

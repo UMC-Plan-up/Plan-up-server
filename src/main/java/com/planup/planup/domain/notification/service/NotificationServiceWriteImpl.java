@@ -7,6 +7,7 @@ import com.planup.planup.domain.notification.entity.device.NotificationCreatedEv
 import com.planup.planup.domain.notification.repository.NotificationRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ import java.util.List;
 public class NotificationServiceWriteImpl implements NotificationServiceWrite {
 
     private final NotificationRepository notificationRepository;
-    private final UserService userService;
+    private final UserQueryService userService;
     private final ApplicationEventPublisher eventPublisher;
 
     //새로운 알림을 만든다.
