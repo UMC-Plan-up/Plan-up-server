@@ -179,6 +179,13 @@ public class UserQueryServiceImpl implements UserQueryService {
         return userAuthConverter.toEmailVerificationStatusResponseDTO(email, verified);
     }
 
+    @Override
+    public OAuthResponseDTO.KakaoLinkStatus getKakaoLinkStatus(Long userId) {
+        User user = userQueryService.getUserByUserId(userId);
+        boolean isLinked = oAuthAccountRepository.existsByUserAndProvider(user, AuthProvideerEnum.KAKAO);
+        return userAuthConverter.toKakaoLinkStatusResponseDTO(isLinked);
+    }
+
     private String getEmailByToken(String token) {
         String email = redisTemplate.opsForValue().get("email-verification:" + token);
         if (email == null) {

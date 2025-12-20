@@ -266,4 +266,13 @@ public class UserAuthConverter {
                 .kakaoEmail(kakaoEmail)
                 .build();
     }
+
+    /**
+     * 카카오 계정 연동 여부 응답 DTO 생성
+     */
+    public OAuthResponseDTO.KakaoLinkStatus toKakaoLinkStatusResponseDTO(boolean isLinked) {
+        return OAuthResponseDTO.KakaoLinkStatus.builder()
+                .isKakaoLinked(isLinked)
+                .build();
+    }
 }

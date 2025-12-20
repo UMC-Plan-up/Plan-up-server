@@ -28,6 +28,7 @@ public interface UserQueryService {
     Boolean isEmailVerified(String email);
     Boolean isPasswordChangeEmailVerified(String email);
     AuthResponseDTO.EmailVerificationStatus getEmailVerificationStatus(String token);
+    OAuthResponseDTO.KakaoLinkStatus getKakaoLinkStatus(Long userId);
 
     // 관계 조회
     List<User> getFriendsByUserId(Long userId);

@@ -177,6 +177,14 @@ public class UserAuthController {
         return ApiResponse.onSuccess(result);
     }
 
+    @Operation(summary = "카카오 계정 연동 여부 조회",
+            description = "현재 로그인한 사용자의 카카오 계정 연동 여부를 확인합니다.")
+    @GetMapping("/auth/kakao/linked")
+    public ApiResponse<OAuthResponseDTO.KakaoLinkStatus> getKakaoLinkStatus(@CurrentUser Long userId) {
+        OAuthResponseDTO.KakaoLinkStatus result = userQueryService.getKakaoLinkStatus(userId);
+        return ApiResponse.onSuccess(result);
+    }
+
     // ======================== 초대 코드 처리 ========================
 
     @Operation(summary = "내 초대코드 조회", description = "내 초대코드를 조회하거나 새로 생성합니다")
