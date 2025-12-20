@@ -315,6 +315,10 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             validateRequiredTerms(request.getAgreements());
         }
         User user =  userAuthConverter.toKakaoUserEntity(kakaoUserInfo, request);
+
+        UserStat userStat = new UserStat();
+        user.setUserStat(userStat);
+
         User savedUser = userRepository.save(user);
 
         OAuthAccount oAuthAccount = userAuthConverter.toOAuthAccountEntity(savedUser, kakaoUserInfo.getKakaoAccount().getEmail(), AuthProvideerEnum.KAKAO);
