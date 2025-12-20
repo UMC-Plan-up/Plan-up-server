@@ -2,6 +2,7 @@ package com.planup.planup.validation.jwt;
 
 
 import com.planup.planup.domain.user.entity.User;
+import com.planup.planup.domain.user.enums.UserActivate;
 import com.planup.planup.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,7 +18,7 @@ public class UserDetailServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmailAndUserActivate(email, com.planup.planup.domain.user.entity.UserActivate.ACTIVE)
+        User user = userRepository.findByEmailAndUserActivate(email, UserActivate.ACTIVE)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
 
         return createUserDetails(user);

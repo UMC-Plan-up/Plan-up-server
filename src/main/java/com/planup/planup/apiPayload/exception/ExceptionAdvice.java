@@ -3,6 +3,7 @@ package com.planup.planup.apiPayload.exception;
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.apiPayload.code.ErrorReasonDTO;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.TokenException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +66,17 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, reason, null, request);
     }
 
+    @ExceptionHandler(value = IllegalArgumentException.class)
+    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException e, HttpServletRequest request) {
+        return handleExceptionInternalConstraint(e, ErrorStatus.INVALID_EMAIL_TOKEN, HttpHeaders.EMPTY, new ServletWebRequest(request));
+    }
+
+    @ExceptionHandler(value = TokenException.class)
+    public ResponseEntity<Object> handleTokenException(TokenException ex, HttpServletRequest request) {
+        ErrorReasonDTO reason = ex.getErrorReasonHttpStatus();
+        return handleExceptionInternal(ex, reason, null, request);
+    }
+
     private ResponseEntity<Object> handleExceptionInternal(Exception e, ErrorReasonDTO reason,
                                                            HttpHeaders headers, HttpServletRequest request) {
 
@@ -121,5 +133,4 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
         String profile = System.getProperty("spring.profiles.active", "local");
         return profile.equals("dev") || profile.equals("prod");
     }
-
 }

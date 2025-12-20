@@ -2,8 +2,8 @@ package com.planup.planup.validation.jwt;
 
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.repository.UserRepository;
-import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.validation.annotation.CurrentUser;
+import com.planup.planup.validation.jwt.service.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +21,7 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
 
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
+    private final TokenService tokenService;
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
@@ -53,6 +54,12 @@ public class CurrentUserArgumentResolver implements HandlerMethodArgumentResolve
         try {
             String token = jwtUtil.extractTokenFromHeader(authHeader);
             log.debug("추출된 토큰: {}", token != null ? "존재" : "null");
+
+            // 블랙리스트 확인 (토큰 검증 전에 먼저 확인)
+            if (tokenService.isTokenBlacklisted(token)) {
+                log.warn("블랙리스트에 등록된 토큰입니다");
+                throw new RuntimeException("로그아웃된 토큰입니다");
+            }
 
             // JWT 토큰 유효성 검증
             if (!jwtUtil.validateToken(token)) {

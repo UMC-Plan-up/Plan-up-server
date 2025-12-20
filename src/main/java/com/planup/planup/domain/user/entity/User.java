@@ -5,7 +5,11 @@ import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
+import com.planup.planup.domain.reaction.domain.Reaction;
 import com.planup.planup.domain.report.entity.WeeklyReport;
+import com.planup.planup.domain.user.enums.Role;
+import com.planup.planup.domain.user.enums.UserActivate;
+import com.planup.planup.domain.user.enums.UserLevel;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -26,19 +30,29 @@ public class User extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String email;
+
+    @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
     private String nickname;
 
     @Enumerated(EnumType.STRING)
-    private UserActivate userActivate;
-
-    @Enumerated(EnumType.STRING)
-    private UserLevel userLevel;
+    @Column(nullable = false)
+    @Builder.Default
+    private UserActivate userActivate = UserActivate.ACTIVE;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role;
+    @Builder.Default
+    private UserLevel userLevel = UserLevel.LEVEL_1;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private Role role = Role.USER;
 
     @Lob
     private String profileImg;
@@ -47,7 +61,11 @@ public class User extends BaseTimeEntity {
 
     @Column(name = "alarm_allow", nullable = false)
     @Builder.Default
-    private Boolean alarmAllow = false;
+    private Boolean marketingNotificationAllow = false; // 혜택 및 마케팅 알림 동의
+    
+    @Column(name = "service_notification_allow", nullable = false)
+    @Builder.Default
+    private Boolean serviceNotificationAllow = true; // 서비스 알림 (기본값: true)
     
     private String inviteCode;
 
@@ -60,28 +78,35 @@ public class User extends BaseTimeEntity {
 
     // 연관 관계
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<UserTerms> userTermList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
-    private List<InvitedUser> invitedUserList;
+    @Builder.Default
+    private List<InvitedUser> invitedUserList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
-    private List<OAuthAccount> oAuthAccountList;
+    @Builder.Default
+    private List<OAuthAccount> oAuthAccountList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
-    private List<Friend> friendList;
+    @Builder.Default
+    private List<Friend> friendList = new ArrayList<>();
 
 
     @OneToMany(mappedBy = "user")
-    private List<WeeklyReport> weeklyReportList;
+    @Builder.Default
+    private List<WeeklyReport> weeklyReportList = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<UserBadge> userBadges = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<UserGoal> userGoals = new ArrayList<>();
 
-    @OneToOne(mappedBy = "user")
+    @OneToOne(optional = false, cascade = CascadeType.ALL, orphanRemoval = true)
     private UserStat userStat;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
@@ -96,12 +121,14 @@ public class User extends BaseTimeEntity {
         this.nickname = nickname;
     }
 
-    public void switchAlarmAllow() {
-        if (this.alarmAllow == true) {
-            this.alarmAllow = false;
-        } else {
-            this.alarmAllow = true;
-        }
+    public Boolean toggleMarketingNotificationAllow() {
+        this.marketingNotificationAllow = !this.marketingNotificationAllow;
+        return this.marketingNotificationAllow;
+    }
+
+    public Boolean toggleServiceNotificationAllow() {
+        this.serviceNotificationAllow = !this.serviceNotificationAllow;
+        return this.serviceNotificationAllow;
     }
 
     public void setPassword(String password) {
@@ -115,5 +142,11 @@ public class User extends BaseTimeEntity {
 
     public void updateProfileImage(String profileImg) {
         this.profileImg = profileImg;
+    }
+
+    public UserStat setUserStat(UserStat userStat) {
+        this.userStat = userStat;
+        userStat.setUser(this);
+        return userStat;
     }
 }

@@ -23,12 +23,8 @@ public class UserBadge extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // 뱃지와 매핑
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "badge_id", nullable = false)
-//    private Badge badge;
-
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private BadgeType badgeType;
 
     public void setUser(User user) {

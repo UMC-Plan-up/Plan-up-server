@@ -5,7 +5,7 @@ import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
-import com.planup.planup.domain.friend.service.FriendService;
+import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
@@ -17,9 +17,16 @@ import com.planup.planup.domain.goal.entity.GoalMemo;
 import com.planup.planup.domain.goal.repository.CommentRepository;
 import com.planup.planup.domain.goal.repository.GoalMemoRepository;
 import com.planup.planup.domain.notification.service.NotificationCreateService;
-import com.planup.planup.domain.user.entity.UserLevel;
-import com.planup.planup.domain.user.service.UserService;
-import com.planup.planup.domain.user.service.UserStatService;
+import com.planup.planup.domain.reaction.domain.Reaction;
+import com.planup.planup.domain.reaction.domain.ReactionTargetType;
+import com.planup.planup.domain.reaction.domain.ReactionType;
+import com.planup.planup.domain.reaction.repository.ReactionRepository;
+import com.planup.planup.domain.reaction.repository.projection.ReactionCountProjection;
+import com.planup.planup.domain.reaction.service.ReactionCommandService;
+import com.planup.planup.domain.reaction.service.ReactionQueryService;
+import com.planup.planup.domain.user.enums.UserLevel;
+import com.planup.planup.domain.user.service.query.UserBadgeQueryService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.domain.verification.repository.PhotoVerificationRepository;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
@@ -49,24 +56,26 @@ public class GoalServiceImpl implements GoalService{
     private final GoalRepository goalRepository;
     private final UserGoalRepository userGoalRepository;
     private final UserGoalService userGoalService;
+    private final UserQueryService userQueryService;
     private final UserRepository userRepository;
     private final TimerVerificationRepository timerVerificationRepository;
     private final PhotoVerificationRepository photoVerificationRepository;
     private final CommentRepository commentRepository;
-    private final FriendService friendService;
+    private final FriendReadService friendService;
     private final GoalMemoRepository goalMemoRepository;
     private final TimerVerificationReadService timerVerificationReadService;
-    private final UserService userService;
     private final NotificationCreateService notificationCreateService;
-    private final RedisTemplate<String, String> redisTemplate;
-    private final UserStatService userStatService;
+    private final UserBadgeQueryService userBadgeQueryService;
+    private final ReactionQueryService reactionQueryService;
+    private final ReactionCommandService reactionCommandService;
+    private final ReactionRepository reactionRepository;
     //목표 생성
     @Transactional
     public GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto createGoalDto){
         //목표 제목 에러 처리
         validateGoalName(createGoalDto.getGoalName(), userId);
         //유저 검증
-        User user = userService.getUserbyUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
         //레벨 별 목표 생성 제한
         validateGoalCreationLimit(user);
         //종료일 에러 처리
@@ -94,7 +103,7 @@ public class GoalServiceImpl implements GoalService{
     //목표 리스트 조회(목표 생성시 -> 세부 내용 조회X) 카테고리별 친구 목표
     @Transactional(readOnly = true)
     public List<GoalResponseDto.GoalCreateListDto> getFriendGoalsByCategory(Long userId, GoalCategory goalCategory) {
-        userService.getUserbyUserId(userId);
+        userQueryService.getUserByUserId(userId);
 
         List<UserGoal> friendGoals = userGoalRepository.findFriendGoalsByCategory(userId, goalCategory);
 
@@ -128,7 +137,7 @@ public class GoalServiceImpl implements GoalService{
     //내 목표 조회(리스트)
     @Transactional(readOnly = true)
     public List<GoalResponseDto.MyGoalListDto> getMyGoals(Long userId) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
 
         List<UserGoal> userGoals = userGoalRepository.findByUserId(userId);
 
@@ -140,8 +149,8 @@ public class GoalServiceImpl implements GoalService{
     //친구 목표 조회(리스트)
     @Transactional(readOnly = true)
     public List<GoalResponseDto.FriendGoalListDto> getFriendGoals(Long userId, Long friendsId) {
-        User user = userService.getUserbyUserId(userId);
-        userService.getUserbyUserId(friendsId);
+        User user = userQueryService.getUserByUserId(userId);
+        userQueryService.getUserByUserId(friendsId);
 
         friendService.isFriend(userId, friendsId);
 
@@ -415,60 +424,43 @@ public class GoalServiceImpl implements GoalService{
 
     @Transactional(readOnly = true)
     public GoalResponseDto.GoalReactionDto getGoalReactions(Long goalId, Long userId) {
-        findGoalById(goalId);
 
-        int cheerCount = getReactionCount(goalId, "cheer");
-        int encourageCount = getReactionCount(goalId, "encourage");
+        //각 타입 수를 저장할 곳
+        long cheerCount = 0l;
+        long encourageCount = 0l;
 
-        boolean hasCheer = hasUserReacted(goalId, userId, "cheer");
-        boolean hasEncourage = hasUserReacted(goalId, userId, "encourage");
+        List<ReactionCountProjection> reactionCountProjections = reactionRepository.countByTargetGroupedByType(ReactionTargetType.GOAL, goalId);
+        for (ReactionCountProjection rp : reactionCountProjections) {
+            if (rp.getType() == ReactionType.CHEER) cheerCount = rp.getCount();
+            else if (rp.getType() == ReactionType.ENCOURAGE) encourageCount = rp.getCount();
+        }
+
+
+        List<ReactionType> myTypes = reactionRepository.findTypesByUserAndTarget(userId, ReactionTargetType.GOAL, goalId);
+
+        boolean hasCheer = myTypes.contains(ReactionType.CHEER);
+        boolean hasEncourage = myTypes.contains(ReactionType.ENCOURAGE);
 
         return GoalConvertor.toGoalReactionDto(goalId, cheerCount, encourageCount, hasCheer, hasEncourage);
     }
 
     @Transactional
     public GoalResponseDto.ReactionResultDto addCheer(Long goalId, Long userId) {
-        findGoalById(goalId);
 
-        if (hasUserReacted(goalId, userId, "cheer")) {
-            throw new GoalException(ErrorStatus.ALREADY_REACTED);
-        }
+        boolean result = reactionCommandService.toggleReaction(userId, ReactionTargetType.GOAL, goalId, ReactionType.CHEER);
+        GoalResponseDto.GoalReactionDto reactionData = getGoalReactions(goalId, userId);
 
-        try {
-            addReactionToRedis(goalId, userId, "cheer");
-
-            updateUserStat(userId, "cheer");
-
-            GoalResponseDto.GoalReactionDto reactionData = getGoalReactions(goalId, userId);
-
-            return GoalConvertor.toSuccessReactionResult("응원이 등록되었습니다.", reactionData);
-
-        } catch (Exception e) {
-            throw new GoalException(ErrorStatus.REACTION_ADD_FAILED);
-        }
+        if (result) return GoalConvertor.toSuccessReactionResult("응원이 등록되었습니다.", reactionData);
+        else throw new GoalException(ErrorStatus.REACTION_ADD_FAILED);
     }
 
     @Transactional
     public GoalResponseDto.ReactionResultDto addEncourage(Long goalId, Long userId) {
-        findGoalById(goalId);
+        boolean result = reactionCommandService.toggleReaction(userId, ReactionTargetType.GOAL, goalId, ReactionType.ENCOURAGE);
+        GoalResponseDto.GoalReactionDto reactionData = getGoalReactions(goalId, userId);
 
-        if (hasUserReacted(goalId, userId, "encourage")) {
-            throw new GoalException(ErrorStatus.ALREADY_REACTED)
-                    .setCustomMessage("이미 분발하셨습니다.");
-        }
-
-        try {
-            addReactionToRedis(goalId, userId, "encourage");
-
-            updateUserStat(userId, "encourage");
-
-            GoalResponseDto.GoalReactionDto reactionData = getGoalReactions(goalId, userId);
-
-            return GoalConvertor.toSuccessReactionResult("분발이 등록되었습니다.", reactionData);
-
-        } catch (Exception e) {
-            throw new GoalException(ErrorStatus.REACTION_ADD_FAILED);
-        }
+        if (result) return GoalConvertor.toSuccessReactionResult("응원이 등록되었습니다.", reactionData);
+        else throw new GoalException(ErrorStatus.REACTION_ADD_FAILED);
     }
 
 
@@ -574,51 +566,10 @@ public class GoalServiceImpl implements GoalService{
         return goal.getGoalName();
     }
 
-    //레디스 헬퍼 메서드
-    private int getReactionCount(Long goalId, String reactionType) {
-        String countKey = String.format("goal:%d:%s:count", goalId, reactionType);
-        String count = redisTemplate.opsForValue().get(countKey);
-        return count != null ? Integer.parseInt(count) : 0;
-    }
-
-    private boolean hasUserReacted(Long goalId, Long userId, String reactionType) {
-        String usersKey = String.format("goal:%d:%s:users", goalId, reactionType);
-        return redisTemplate.opsForSet().isMember(usersKey, userId.toString());
-    }
-
-    private void addReactionToRedis(Long goalId, Long userId, String reactionType) {
-        String countKey = String.format("goal:%d:%s:count", goalId, reactionType);
-        String usersKey = String.format("goal:%d:%s:users", goalId, reactionType);
-
-        redisTemplate.opsForSet().add(usersKey, userId.toString());
-
-        redisTemplate.opsForValue().increment(countKey);
-
-        long ttl = getSecondsUntilMidnight();
-        redisTemplate.expire(countKey, Duration.ofSeconds(ttl));
-        redisTemplate.expire(usersKey, Duration.ofSeconds(ttl));
-    }
-
     // 자정까지 남은 초 계산
     private long getSecondsUntilMidnight() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime midnight = now.toLocalDate().plusDays(1).atStartOfDay();
         return Duration.between(now, midnight).getSeconds();
-    }
-
-    private void updateUserStat(Long userId, String reactionType) {
-        try {
-            UserStat userStat = userStatService.getUserStatByUserId(userId);
-
-            if ("cheer".equals(reactionType)) {
-                userStat.addLikeCnt();
-            } else if ("encourage".equals(reactionType)) {
-                userStat.addEncourageCnt();
-            }
-
-            userStat.addReactionButton();
-
-        } catch (Exception e) {
-        }
     }
 }

@@ -24,9 +24,17 @@ public class TimerVerification extends BaseTimeEntity {
 
     //타입 통일
     private LocalDateTime endTime;
-    private Duration spentTime;
+    private Long spentTimeSeconds;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usergoal_id")
     private UserGoal userGoal;
+
+    public Duration getSpentTime() {
+        return Duration.ofSeconds(spentTimeSeconds);
+    }
+
+    public void setSpentTime(Duration duration) {
+        this.spentTimeSeconds = duration.getSeconds();
+    }
 }

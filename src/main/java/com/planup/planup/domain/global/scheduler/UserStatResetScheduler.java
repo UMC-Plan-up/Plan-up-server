@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -18,7 +20,10 @@ public class UserStatResetScheduler {
 
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
     public void resetUserDailyStats() {
-        List<UserStat> statsToReset = userStatRepository.findAllByMarkedChange(true);
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        LocalDateTime start = yesterday.atStartOfDay();
+        LocalDateTime end = yesterday.plusDays(1).atStartOfDay();
+        List<UserStat> statsToReset = userStatRepository.findAllByUpdatedAtBetween(start, end);
 
         for (UserStat stat : statsToReset) {
             stat.resetDailyStats();
@@ -30,7 +35,17 @@ public class UserStatResetScheduler {
 
     @Scheduled(cron = "0 0 0 * * MON", zone = "Asia/Seoul")
     public void resetUserStatPerWeek() {
+        LocalDate yesterday = LocalDate.now().minusDays(7);
+        LocalDateTime start = yesterday.atStartOfDay();
+        LocalDateTime end = yesterday.plusDays(1).atStartOfDay();
+        List<UserStat> statsToReset = userStatRepository.findAllByUpdatedAtBetween(start, end);
 
+        for (UserStat stat : statsToReset) {
+            stat.resetWeeklyStats();
+        }
+
+        userStatRepository.saveAll(statsToReset);
+        log.info("WEEKLY 초기화 완료");
     }
 
 }

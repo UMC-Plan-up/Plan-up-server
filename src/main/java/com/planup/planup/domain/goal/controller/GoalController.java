@@ -1,7 +1,7 @@
 package com.planup.planup.domain.goal.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
-import com.planup.planup.domain.friend.service.FriendService;
+import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.goal.dto.CommentRequestDto;
 import com.planup.planup.domain.goal.dto.CommentResponseDto;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
@@ -10,7 +10,7 @@ import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.service.CommentService;
 import com.planup.planup.domain.goal.service.GoalService;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.service.UserService;
+import com.planup.planup.domain.user.service.query.UserQueryService;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,8 +29,9 @@ import java.util.List;
 public class GoalController {
     private final GoalService goalService;
     private final CommentService commentService;
-    private final UserService userService;
-    private final FriendService friendService;
+    private final UserQueryService userQueryService;
+    private final UserQueryService userService;
+    private final FriendReadService friendService;
 
     @PostMapping("/create")
     @Operation(summary = "목표 생성 API", description = "목표를 생성하는 API입니다.")
@@ -177,7 +178,7 @@ public class GoalController {
             @PathVariable Long friendId,
             @PathVariable Long goalId,
             @CurrentUser Long userId) {
-        User user = userService.getUserbyUserId(userId);
+        User user = userQueryService.getUserByUserId(userId);
         friendService.isFriend(userId, friendId);
 
         List<PhotoVerificationResponseDto.uploadPhotoResponseDto> result =

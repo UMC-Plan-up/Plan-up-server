@@ -23,10 +23,10 @@ public class StatChangeAspect {
     public void markUserStatChanged(JoinPoint joinPoint) {
         Object target = joinPoint.getTarget();
 
-        if (target instanceof UserStat) {
-            ((UserStat) target).markChanged();
-            log.debug("UserStat 변경 감지: changed = true");
-        }
+//        if (target instanceof UserStat) {
+//            ((UserStat) target).markChanged();
+//            log.debug("UserStat 변경 감지: changed = true");
+//        }
     }
 
     @After("@annotation(com.planup.planup.domain.global.annotation.StatChanging)")
