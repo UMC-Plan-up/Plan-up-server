@@ -109,9 +109,6 @@ public class User extends BaseTimeEntity {
     @OneToOne(optional = false, cascade = CascadeType.ALL, orphanRemoval = true)
     private UserStat userStat;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private UserWithdrawal userWithdrawal;
-
     public void verifyEmail() {
         this.emailVerified = true;
         this.emailVerifiedAt = LocalDateTime.now();

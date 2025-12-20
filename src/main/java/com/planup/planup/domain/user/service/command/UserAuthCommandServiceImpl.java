@@ -151,11 +151,10 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         UserWithdrawal withdrawal = userAuthConverter.toUserWithdrawalEntity(user, request.getReason());
         userWithdrawalRepository.save(withdrawal);
 
-        user.setUserActivate(UserActivate.INACTIVE);
-        userRepository.save(user);
-
         // 연관 데이터 정리
         cleanupUserData(user);
+
+        userRepository.delete(user);
 
         log.info("사용자 {} 회원 탈퇴 완료. 이유: {}", user.getNickname(), request.getReason());
         return userAuthConverter.toWithdrawalResponseDTO(true, "회원 탈퇴가 완료되었습니다.", LocalDateTime.now().toString());

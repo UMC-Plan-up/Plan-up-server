@@ -94,7 +94,7 @@ public class UserAuthConverter {
      */
     public UserWithdrawal toUserWithdrawalEntity(User user, String reason) {
         return UserWithdrawal.builder()
-                .user(user)
+                .userId(user.getId())
                 .reason(reason)
                 .email(user.getEmail())
                 .nickname(user.getNickname())
