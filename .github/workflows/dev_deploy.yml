@@ -130,8 +130,29 @@ jobs:
           ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} \
             "mkdir -p /home/${EC2_USERNAME}/planup/build/libs /home/${EC2_USERNAME}/planup/monitoring"
 
+          # 파일 전송 전에 디스크 정리
+          echo "=== Cleaning up disk space before transfer ==="
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} << 'CLEANUP'
+            cd /home/${EC2_USERNAME}/planup
+          
+            echo "Current disk usage:"
+            df -h
+          
+            echo "Stopping existing containers..."
+            docker-compose down 2>/dev/null || true
+          
+            echo "Cleaning Docker resources..."
+            docker system prune -af --volumes 2>/dev/null || true
+          
+            echo "Removing old build files..."
+            rm -rf /home/${EC2_USERNAME}/planup/build/libs/*.jar 2>/dev/null || true
+          
+            echo "Disk usage after cleanup:"
+            df -h
+          CLEANUP
+
           # 파일 전송
-          echo "Transferring files to EC2..."
+          echo "=== Transferring files to EC2 ==="
           
           rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" \
             Dockerfile ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/planup/
@@ -149,7 +170,7 @@ jobs:
             monitoring/ ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/planup/monitoring/
 
           # Docker Compose 배포 스크립트
-          cat <<DEPLOY_SCRIPT > deploy.sh
+          cat <<'DEPLOY_SCRIPT' > deploy.sh
           #!/bin/bash
           set -e
 
@@ -161,18 +182,12 @@ jobs:
           echo "=== Stopping existing containers ==="
           docker-compose down || true
 
-          echo "=== Cleaning up Docker resources ==="
-          docker system prune -af --volumes || true
-          echo "Docker cleanup completed"
-
-          echo "=== Disk space after cleanup ==="
-          df -h
-
           echo "=== Building and starting containers ==="
           docker-compose up -d --build
 
           echo "=== Waiting for services to be healthy ==="
-          sleep 120
+          echo "Initial startup delay: 60 seconds..."
+          sleep 60
           
           echo "=== Checking application health ==="
           MAX_ATTEMPTS=12
@@ -190,15 +205,18 @@ jobs:
             ATTEMPT=$((ATTEMPT + 1))
             sleep 10
           done
-            
+          
           echo "=== Container status ==="
           docker-compose ps
-            
+          
           echo "=== Application logs (last 100 lines) ==="
           docker-compose logs --tail=100 app
-            
+          
           echo "=== Final health check ==="
           curl -f http://localhost:8080/actuator/health || echo "Health check failed"
+
+          echo "=== Final disk space ==="
+          df -h
           
           echo "=== Deployment completed ==="
           DEPLOY_SCRIPT
