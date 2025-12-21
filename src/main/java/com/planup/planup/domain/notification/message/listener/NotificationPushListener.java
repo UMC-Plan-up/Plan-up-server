@@ -1,5 +1,6 @@
 package com.planup.planup.domain.notification.message.listener;
 
+import com.planup.planup.domain.notification.entity.device.DeviceToken;
 import com.planup.planup.domain.notification.repository.DeviceTokenRepository;
 import com.planup.planup.domain.notification.entity.device.NotificationCreatedEvent;
 import com.planup.planup.domain.notification.entity.device.PushSender;
@@ -20,13 +21,11 @@ import java.util.List;
 public class NotificationPushListener {
     private final PushSender pushSender;
     private final DeviceTokenRepository deviceTokenRepository;
-    private final NotificationRepository notificationRepository;
-    private final NotificationServiceRead notificationServiceRead;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Async
     public void onCreated(NotificationCreatedEvent event) {
-        List<String> tokens = deviceTokenRepository.findActiveByUserId(event.receiverId()).stream().map(dt -> dt.getToken()).toList();
+        List<String> tokens = deviceTokenRepository.findActiveByUserId(event.receiverId()).stream().map(DeviceToken::getToken).toList();
 
         if (tokens.isEmpty()) return;
 

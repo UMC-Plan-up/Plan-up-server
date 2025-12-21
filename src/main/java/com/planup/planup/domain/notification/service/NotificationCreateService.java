@@ -16,7 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NotificationCreateService {
 
-    private final NotificationService notificationService;
+    private final NotificationServiceWrite notificationService;
     private final UserQueryService userQueryService;
 
     public void createChallengeNotification(Challenge challenge) {
