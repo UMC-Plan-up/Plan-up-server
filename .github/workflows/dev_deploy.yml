@@ -172,17 +172,34 @@ jobs:
           docker-compose up -d --build
 
           echo "=== Waiting for services to be healthy ==="
-          sleep 20
-
+          sleep 120
+          
+          echo "=== Checking application health ==="
+          MAX_ATTEMPTS=12
+          ATTEMPT=1
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
+              echo "✓ Application is healthy!"
+              break
+            fi
+            if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+              echo "✗ Health check failed after $MAX_ATTEMPTS attempts"
+            else  
+              echo "Attempt $ATTEMPT/$MAX_ATTEMPTS: Waiting 10 more seconds..."
+            fi
+            ATTEMPT=$((ATTEMPT + 1))
+            sleep 10
+          done
+            
           echo "=== Container status ==="
           docker-compose ps
-
-          echo "=== Application logs (last 50 lines) ==="
-          docker-compose logs --tail=50 app
-
-          echo "=== Checking health ==="
+            
+          echo "=== Application logs (last 100 lines) ==="
+          docker-compose logs --tail=100 app
+            
+          echo "=== Final health check ==="
           curl -f http://localhost:8080/actuator/health || echo "Health check failed"
-
+          
           echo "=== Deployment completed ==="
           DEPLOY_SCRIPT
 
