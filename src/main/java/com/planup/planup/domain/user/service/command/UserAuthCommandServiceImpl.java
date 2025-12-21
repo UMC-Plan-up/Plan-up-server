@@ -495,20 +495,15 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     // ========== 비밀번호 변경 ==========
 
     @Override
-    public void changePasswordWithToken(String token, String newPassword) {
-        // 토큰 검증
-        String[] tokenInfo = validatePasswordChangeToken(token);
-        String email = tokenInfo[0];
+    public void changePassword(Long userId,String newPassword) {
 
-        User user = userRepository.findByEmailAndUserActivate(email, UserActivate.ACTIVE)
+        User user = userRepository.findByIdAndUserActivate(userId, UserActivate.ACTIVE)
                 .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
 
         // 비밀번호 변경
         String encodedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(encodedPassword);
         userRepository.save(user);
-
-        cleanupUsedTokens(token, email);
     }
 
     @Override

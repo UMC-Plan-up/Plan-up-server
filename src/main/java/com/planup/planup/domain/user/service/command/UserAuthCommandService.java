@@ -24,7 +24,7 @@ public interface UserAuthCommandService {
     String handleEmailVerificationLink(String token);
 
     // 비밀번호 변경
-    void changePasswordWithToken(String token, String newPassword);
+    void changePassword(Long userId, String newPassword);
     AuthResponseDTO.EmailSend sendPasswordChangeEmail(String email, Boolean isLoggedIn);
     AuthResponseDTO.EmailSend resendPasswordChangeEmail(String email, Boolean isLoggedIn);
     String handlePasswordChangeLink(String token);
