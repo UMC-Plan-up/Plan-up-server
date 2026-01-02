@@ -43,7 +43,6 @@ public class UserQueryServiceImpl implements UserQueryService {
     private final TermsRepository termsRepository;
     private final Random random = new Random();
     private final UserAuthConverter userAuthConverter;
-    private final UserProfileConverter userProfileConverter;
 
     // ========== 기본 정보 조회 ==========
 
@@ -177,6 +176,13 @@ public class UserQueryServiceImpl implements UserQueryService {
         String email = getEmailByToken(token);
         boolean verified = isEmailVerified(email);
         return userAuthConverter.toEmailVerificationStatusResponseDTO(email, verified);
+    }
+
+    @Override
+    public OAuthResponseDTO.KakaoLinkStatus getKakaoLinkStatus(Long userId) {
+        User user = getUserByUserId(userId);
+        boolean isLinked = oAuthAccountRepository.existsByUserAndProvider(user, AuthProvideerEnum.KAKAO);
+        return userAuthConverter.toKakaoLinkStatusResponseDTO(isLinked);
     }
 
     private String getEmailByToken(String token) {

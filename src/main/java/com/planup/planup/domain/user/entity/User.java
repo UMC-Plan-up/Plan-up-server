@@ -106,11 +106,8 @@ public class User extends BaseTimeEntity {
     @Builder.Default
     private List<UserGoal> userGoals = new ArrayList<>();
 
-    @OneToOne(optional = false, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private UserStat userStat;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private UserWithdrawal userWithdrawal;
 
     public void verifyEmail() {
         this.emailVerified = true;
@@ -146,7 +143,9 @@ public class User extends BaseTimeEntity {
 
     public UserStat setUserStat(UserStat userStat) {
         this.userStat = userStat;
-        userStat.setUser(this);
+        if (userStat != null) {
+            userStat.setUser(this);
+        }
         return userStat;
     }
 }
