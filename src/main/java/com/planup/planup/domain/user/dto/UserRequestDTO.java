@@ -55,6 +55,7 @@ public class UserRequestDTO {
         private String nickname;
 
         @Schema(description = "성별 (MALE: 남성, FEMALE: 여성)", example = "FEMALE")
+        @NotNull(message = "성별은 필수입니다.")
         private Gender gender;
 
         @Schema(description = "프로필 이미지 경로", example = "https://example.com/image.jpg")
