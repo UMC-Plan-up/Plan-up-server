@@ -30,7 +30,7 @@ public class UserStat extends BaseTimeEntity {
     private Long id;
 
     @Setter
-    @OneToOne
+    @OneToOne(mappedBy = "userStat")
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 

@@ -101,7 +101,6 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         //유저 스텟 클래스 추가
         UserStat userStat = new UserStat();
         user.setUserStat(userStat);
-        userStatRepository.save(userStat);
 
         User savedUser = userRepository.save(user);
 
