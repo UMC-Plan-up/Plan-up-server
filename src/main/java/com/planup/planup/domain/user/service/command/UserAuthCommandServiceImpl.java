@@ -65,6 +65,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     private final KaKaoService kakaoService;
     private final UserAuthConverter userAuthConverter;
     private final UserQueryService userQueryService;
+    private final UserStatRepository userStatRepository;
 
     @Qualifier("objectRedisTemplate")
     private final RedisTemplate<String, Object> objectRedisTemplate;
@@ -100,6 +101,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         //유저 스텟 클래스 추가
         UserStat userStat = new UserStat();
         user.setUserStat(userStat);
+        userStatRepository.save(userStat);
 
         User savedUser = userRepository.save(user);
 
