@@ -17,6 +17,7 @@ import com.planup.planup.domain.user.entity.Terms;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserTerms;
 import com.planup.planup.domain.user.entity.UserWithdrawal;
+import com.planup.planup.domain.user.enums.Gender;
 import com.planup.planup.domain.user.enums.UserActivate;
 import com.planup.planup.domain.user.repository.*;
 import com.planup.planup.domain.user.service.external.KaKaoService;
@@ -85,6 +86,10 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
         if (!request.getPassword().equals(request.getPasswordCheck())) {
             throw new UserException(ErrorStatus.PASSWORD_MISMATCH);
+        }
+
+        if (request.getGender() == Gender.UNKNOWN) {
+            throw new UserException(ErrorStatus.GENDER_INVALID);
         }
 
         validateRequiredTerms(request.getAgreements());
