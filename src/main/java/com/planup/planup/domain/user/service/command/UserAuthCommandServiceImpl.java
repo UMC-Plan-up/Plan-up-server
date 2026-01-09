@@ -151,11 +151,10 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         UserWithdrawal withdrawal = userAuthConverter.toUserWithdrawalEntity(user, request.getReason());
         userWithdrawalRepository.save(withdrawal);
 
-        user.setUserActivate(UserActivate.INACTIVE);
-        userRepository.save(user);
-
         // 연관 데이터 정리
         cleanupUserData(user);
+
+        userRepository.delete(user);
 
         log.info("사용자 {} 회원 탈퇴 완료. 이유: {}", user.getNickname(), request.getReason());
         return userAuthConverter.toWithdrawalResponseDTO(true, "회원 탈퇴가 완료되었습니다.", LocalDateTime.now().toString());
@@ -315,6 +314,10 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             validateRequiredTerms(request.getAgreements());
         }
         User user =  userAuthConverter.toKakaoUserEntity(kakaoUserInfo, request);
+
+        UserStat userStat = new UserStat();
+        user.setUserStat(userStat);
+
         User savedUser = userRepository.save(user);
 
         OAuthAccount oAuthAccount = userAuthConverter.toOAuthAccountEntity(savedUser, kakaoUserInfo.getKakaoAccount().getEmail(), AuthProvideerEnum.KAKAO);
@@ -492,20 +495,15 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     // ========== 비밀번호 변경 ==========
 
     @Override
-    public void changePasswordWithToken(String token, String newPassword) {
-        // 토큰 검증
-        String[] tokenInfo = validatePasswordChangeToken(token);
-        String email = tokenInfo[0];
+    public void changePassword(Long userId,String newPassword) {
 
-        User user = userRepository.findByEmailAndUserActivate(email, UserActivate.ACTIVE)
+        User user = userRepository.findByIdAndUserActivate(userId, UserActivate.ACTIVE)
                 .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
 
         // 비밀번호 변경
         String encodedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(encodedPassword);
         userRepository.save(user);
-
-        cleanupUsedTokens(token, email);
     }
 
     @Override

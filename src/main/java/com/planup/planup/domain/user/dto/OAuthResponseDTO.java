@@ -36,4 +36,9 @@ public class OAuthResponseDTO {
         private String kakaoEmail;
         private UserResponseDTO.UserInfo userInfo;
     }
+
+    @Builder
+    public record KakaoLinkStatus (
+            boolean isKakaoLinked
+    ) {};
 }

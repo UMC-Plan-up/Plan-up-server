@@ -87,10 +87,10 @@ public class UserAuthController {
         return ApiResponse.onSuccess(response);
     }
 
-    @Operation(summary = "비밀번호 변경", description = "이메일 인증 토큰으로 비밀번호를 변경한다.")
+    @Operation(summary = "비밀번호 변경", description = "현재 유저의 비밀번호를 변경한다.")
     @PostMapping("/password/change")
-    public ApiResponse<Boolean> changePasswordWithToken(@RequestBody UserRequestDTO.PasswordChangeWithToken request) {
-        userAuthCommandService.changePasswordWithToken(request.getToken(), request.getNewPassword());
+    public ApiResponse<Boolean> changePasswordWithToken(@RequestBody UserRequestDTO.PasswordChange request, @CurrentUser Long userId) {
+        userAuthCommandService.changePassword(userId, request.getNewPassword());
         return ApiResponse.onSuccess(true);
     }
 
@@ -174,6 +174,14 @@ public class UserAuthController {
     @PostMapping("/auth/email/alternative")
     public ApiResponse<OAuthResponseDTO.KakaoAuth> emailAuthAlternative(@Valid @RequestBody OAuthRequestDTO.KakaoAuth request) {
         OAuthResponseDTO.KakaoAuth result = userAuthCommandService.kakaoAuth(request);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @Operation(summary = "카카오 계정 연동 여부 조회",
+            description = "현재 로그인한 사용자의 카카오 계정 연동 여부를 확인합니다.")
+    @GetMapping("/auth/kakao/linked")
+    public ApiResponse<OAuthResponseDTO.KakaoLinkStatus> getKakaoLinkStatus(@CurrentUser Long userId) {
+        OAuthResponseDTO.KakaoLinkStatus result = userQueryService.getKakaoLinkStatus(userId);
         return ApiResponse.onSuccess(result);
     }
 

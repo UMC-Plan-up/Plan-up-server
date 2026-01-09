@@ -94,7 +94,7 @@ public class UserAuthConverter {
      */
     public UserWithdrawal toUserWithdrawalEntity(User user, String reason) {
         return UserWithdrawal.builder()
-                .user(user)
+                .userId(user.getId())
                 .reason(reason)
                 .email(user.getEmail())
                 .nickname(user.getNickname())
@@ -264,6 +264,15 @@ public class UserAuthConverter {
         return OAuthResponseDTO.KakaoAccount.builder()
                 .isLinked(isLinked)
                 .kakaoEmail(kakaoEmail)
+                .build();
+    }
+
+    /**
+     * 카카오 계정 연동 여부 응답 DTO 생성
+     */
+    public OAuthResponseDTO.KakaoLinkStatus toKakaoLinkStatusResponseDTO(boolean isLinked) {
+        return OAuthResponseDTO.KakaoLinkStatus.builder()
+                .isKakaoLinked(isLinked)
                 .build();
     }
 }

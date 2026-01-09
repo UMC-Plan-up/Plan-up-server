@@ -5,9 +5,8 @@ import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.reaction.domain.ReactionType;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,6 +21,9 @@ import java.util.List;
                 @Index(name = "user_stat_index", columnList = "user_id")
         }
 )
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserStat extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
