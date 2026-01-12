@@ -102,11 +102,13 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         String profileImgUrl = determineProfileImageUrl(request.getEmail(), request.getProfileImg());
         User user = userAuthConverter.toUserEntity(request, encodedPassword, profileImgUrl);
 
-        //유저 스텟 클래스 추가
-        UserStat userStat = new UserStat();
-        user.setUserStat(userStat);
-
         User savedUser = userRepository.save(user);
+
+        UserStat userStat = UserStat.builder()
+                .user(savedUser)
+                .build();
+
+        savedUser.setUserStat(userStat);
 
         // 약관 저장
         addTermsAgreements(savedUser, request.getAgreements());
