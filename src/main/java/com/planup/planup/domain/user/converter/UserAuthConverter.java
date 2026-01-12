@@ -70,9 +70,11 @@ public class UserAuthConverter {
     /**
      * User 엔티티를 로그인 응답 DTO로 변환
      */
-    public UserResponseDTO.Login toLoginResponseDTO(User user, String accessToken) {
+    public UserResponseDTO.Login toLoginResponseDTO(User user, String accessToken, String refreshToken, Long expiresIn) {
         return UserResponseDTO.Login.builder()
                 .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .expiresIn(expiresIn)
                 .nickname(user.getNickname())
                 .profileImgUrl(user.getProfileImg())
                 .build();

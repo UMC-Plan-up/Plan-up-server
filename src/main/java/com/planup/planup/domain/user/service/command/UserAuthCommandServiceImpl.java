@@ -137,9 +137,13 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             throw new UserException(ErrorStatus.INVALID_CREDENTIALS);
         }
 
-        String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+        // 토큰 발급 (액세스 토큰 + 리프레시 토큰)
+        TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
-        return userAuthConverter.toLoginResponseDTO(user, accessToken);
+        return userAuthConverter.toLoginResponseDTO(user, 
+                tokenResponse.getAccessToken(), 
+                tokenResponse.getRefreshToken(), 
+                tokenResponse.getExpiresIn());
     }
 
     @Override
