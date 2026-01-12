@@ -478,8 +478,13 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                     TimeUnit.MINUTES
             );
 
-            // 사용한 인증 토큰은 삭제 (재사용 방지)
-            redisTemplate.delete("email-verification:" + verificationToken);
+            // 토큰을 삭제하지 않고 인증 완료 상태로 변경 (60분 유효, 프론트엔드 상태 확인용)
+            redisTemplate.opsForValue().set(
+                    "email-verification:" + verificationToken,
+                    "VERIFIED:" + email,
+                    60,
+                    TimeUnit.MINUTES
+            );
 
             return email;
 

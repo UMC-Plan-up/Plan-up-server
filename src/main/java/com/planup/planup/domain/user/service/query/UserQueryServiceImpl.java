@@ -10,6 +10,7 @@ import com.planup.planup.domain.user.dto.AuthResponseDTO;
 import com.planup.planup.domain.user.dto.OAuthResponseDTO;
 import com.planup.planup.domain.user.dto.UserResponseDTO;
 import com.planup.planup.domain.user.entity.*;
+import com.planup.planup.domain.user.enums.TokenStatus;
 import com.planup.planup.domain.user.enums.UserActivate;
 import com.planup.planup.domain.user.repository.*;
 import com.planup.planup.domain.oauth.repository.OAuthAccountRepository;
@@ -173,9 +174,22 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     @Override
     public AuthResponseDTO.EmailVerificationStatus getEmailVerificationStatus(String token) {
-        String email = getEmailByToken(token);
-        boolean verified = isEmailVerified(email);
-        return userAuthConverter.toEmailVerificationStatusResponseDTO(email, verified);
+        String tokenValue = redisTemplate.opsForValue().get("email-verification:" + token);
+        
+        if (tokenValue == null) {
+            // 토큰이 없거나 만료된 경우
+            return userAuthConverter.toEmailVerificationStatusResponseDTO(null, false, TokenStatus.EXPIRED_OR_INVALID);
+        }
+        
+        // 토큰 값에서 이메일과 인증 상태 추출
+        boolean verified = tokenValue.startsWith("VERIFIED:");
+        String email = verified ? tokenValue.substring(9) : tokenValue; // "VERIFIED:" 제거
+        
+        // 인증 완료된 경우 verified: true, VALID 반환
+        // 인증 미완료인 경우 verified: false, VALID 반환
+        TokenStatus tokenStatus = TokenStatus.VALID;
+        
+        return userAuthConverter.toEmailVerificationStatusResponseDTO(email, verified, tokenStatus);
     }
 
     @Override
@@ -186,11 +200,12 @@ public class UserQueryServiceImpl implements UserQueryService {
     }
 
     private String getEmailByToken(String token) {
-        String email = redisTemplate.opsForValue().get("email-verification:" + token);
-        if (email == null) {
+        String tokenValue = redisTemplate.opsForValue().get("email-verification:" + token);
+        if (tokenValue == null) {
             throw new AuthException(ErrorStatus.INVALID_EMAIL_TOKEN);
         }
-        return email;
+        // VERIFIED: 접두사가 있으면 제거하고 이메일만 반환
+        return tokenValue.startsWith("VERIFIED:") ? tokenValue.substring(9) : tokenValue;
     }
 
     // ========== 관계 조회 ==========

@@ -166,19 +166,19 @@ public class UserAuthConverter {
      * 이메일 인증 상태 응답 DTO 생성
      */
     public AuthResponseDTO.EmailVerificationStatus toEmailVerificationStatusResponseDTO(String email, boolean verified) {
-        if (email != null) {
-            return AuthResponseDTO.EmailVerificationStatus.builder()
-                    .verified(verified)
-                    .email(email)
-                    .tokenStatus(TokenStatus.VALID)
-                    .build();
-        } else {
-            return AuthResponseDTO.EmailVerificationStatus.builder()
-                    .verified(verified)
-                    .email(null)
-                    .tokenStatus(TokenStatus.EXPIRED_OR_INVALID)
-                    .build();
-        }
+        TokenStatus tokenStatus = email != null ? TokenStatus.VALID : TokenStatus.EXPIRED_OR_INVALID;
+        return toEmailVerificationStatusResponseDTO(email, verified, tokenStatus);
+    }
+
+    /**
+     * 이메일 인증 상태 응답 DTO 생성 (tokenStatus 지정)
+     */
+    public AuthResponseDTO.EmailVerificationStatus toEmailVerificationStatusResponseDTO(String email, boolean verified, TokenStatus tokenStatus) {
+        return AuthResponseDTO.EmailVerificationStatus.builder()
+                .verified(verified)
+                .email(email)
+                .tokenStatus(tokenStatus)
+                .build();
     }
 
     // ======= 약관동의 =======
