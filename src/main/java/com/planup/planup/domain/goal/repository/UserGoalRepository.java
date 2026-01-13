@@ -1,6 +1,8 @@
 package com.planup.planup.domain.goal.repository;
 
+import com.planup.planup.domain.goal.dto.UserWithGoalCountDTO;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
+import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
@@ -72,4 +74,38 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
             "WHERE ug.user = :user " +
             "AND ug.isActive = true " +
             "AND (ug.goal.endDate IS NULL OR ug.goal.endDate >= :targetDate)")
-    List<UserGoal> findActiveUserGoalsByUser(@Param("user") User user, @Param("targetDate") LocalDate targetDate);}
+    List<UserGoal> findActiveUserGoalsByUser(@Param("user") User user, @Param("targetDate") LocalDate targetDate);
+
+    @Query("""
+        select new com.planup.planup.domain.goal.dto.UserWithGoalCountDTO(
+            ug.user, count(ug)
+        )
+        from UserGoal ug
+        where ug.user.id in :userIds
+        and ug.goal.isActive = true
+        group by ug.user.id
+    """)
+    List<UserWithGoalCountDTO> getUserGoalCntByUserIds(@Param("userIds") List<Long> userIds);
+
+    @Query("select count(ug) " +
+                  "from UserGoal ug " +
+                  "where ug.user.id = :userId")
+    Integer countByUserId(@Param("userId") Long userId);
+
+    @Query("""
+select new com.planup.planup.domain.goal.dto.UserWithGoalCountDTO(
+    ug.user, count(ug)
+)
+from UserGoal ug
+join ug.goal g
+where ug.user.id = :userId
+  and g.goalType in :challengeTypes
+group by ug.user
+""")
+    List<UserWithGoalCountDTO> getUserByChallengesAndUserId(@Param("userId") Long userId,
+                                                            @Param("challengeTypes") List<GoalType> challengeTypes);
+
+
+}
+
+

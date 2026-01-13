@@ -1,7 +1,6 @@
 package com.planup.planup.domain.user.converter;
 
-import com.planup.planup.domain.user.dto.TermsDetailResponseDTO;
-import com.planup.planup.domain.user.dto.TermsListResponseDTO;
+import com.planup.planup.domain.user.dto.AuthResponseDTO;
 import com.planup.planup.domain.user.entity.Terms;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -13,9 +12,11 @@ import java.util.stream.Collectors;
 @Component
 public class TermsConverter {
 
-    // Terms → TermsListResponseDTO 변환
-    public static TermsListResponseDTO toTermsListResponse(Terms terms) {
-        return TermsListResponseDTO.builder()
+    /**
+     * Terms 엔티티를 약관 목록 응답 DTO로 변환
+     */
+    public static AuthResponseDTO.TermsList toTermsListResponse(Terms terms) {
+        return AuthResponseDTO.TermsList.builder()
                 .id(terms.getId())
                 .summary(terms.getSummary())
                 .isRequired(terms.getIsRequired())
@@ -23,16 +24,20 @@ public class TermsConverter {
                 .build();
     }
 
-    // Terms → TermsDetailResponseDTO 변환
-    public static TermsDetailResponseDTO toTermsDetailResponse(Terms terms) {
-        return TermsDetailResponseDTO.builder()
+    /**
+     * Terms 엔티티를 약관 상세 응답 DTO로 변환
+     */
+    public static AuthResponseDTO.TermsDetail toTermsDetailResponse(Terms terms) {
+        return AuthResponseDTO.TermsDetail.builder()
                 .id(terms.getId())
                 .content(terms.getContent())
                 .build();
     }
 
-    // List<Terms> → List<TermsListResponseDTO> 변환
-    public static List<TermsListResponseDTO> toTermsListResponseList(List<Terms> termsList) {
+    /**
+     * Terms 엔티티 리스트를 약관 목록 응답 DTO 리스트로 변환
+     */
+    public static List<AuthResponseDTO.TermsList> toTermsListResponseList(List<Terms> termsList) {
         return termsList.stream()
                 .map(TermsConverter::toTermsListResponse)
                 .collect(Collectors.toList());

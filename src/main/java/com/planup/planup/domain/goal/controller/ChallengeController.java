@@ -2,18 +2,13 @@ package com.planup.planup.domain.goal.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
-import com.planup.planup.domain.friend.service.FriendService;
+import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
 import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
-import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.service.ChallengeService;
-import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +20,7 @@ import java.util.List;
 public class ChallengeController {
 
     private final ChallengeService challengeService;
-    private final FriendService friendService;
+    private final FriendReadService friendService;
 
 
     @PostMapping("/create")
@@ -38,9 +33,9 @@ public class ChallengeController {
 
     @GetMapping("/friends")
     @Operation(summary = "챌린지에서 친구 조회", description = "친구에게 신청하기 위해 친구 정보 찾기")
-    public ApiResponse<List<FriendResponseDTO.FriendInfoInChallengeCreate>> getFriendList(@CurrentUser Long userId) {
-        List<FriendResponseDTO.FriendInfoInChallengeCreate> frinedListInChallenge = friendService.getFrinedListInChallenge(userId);
-        return ApiResponse.onSuccess(frinedListInChallenge);
+    public ApiResponse<List<FriendResponseDTO.FriendInfoSummary>> getFriendList(@CurrentUser Long userId) {
+        List<FriendResponseDTO.FriendInfoSummary> requestedFriends = friendService.getRequestedFriends(userId);
+        return ApiResponse.onSuccess(requestedFriends);
     }
 
 
