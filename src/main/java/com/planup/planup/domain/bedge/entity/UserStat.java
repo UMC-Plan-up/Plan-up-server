@@ -31,7 +31,6 @@ public class UserStat extends BaseTimeEntity {
 
     @Setter
     @OneToOne(mappedBy = "userStat")
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
 
@@ -49,7 +48,7 @@ public class UserStat extends BaseTimeEntity {
     /* ========= 일주일 기준 ========= */
     private int reactionCntWeek = 0;                        // 전체 반응 버튼
 
-    @OneToMany(mappedBy = "userStat")
+    @OneToMany(mappedBy = "userStat", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<SpecificGoalDays> recordAllGoal7Days = new ArrayList<>();
 
@@ -94,7 +93,14 @@ public class UserStat extends BaseTimeEntity {
         goalRecordCnt++;
 
         //설정한 전체 목표 7일 연속
-        SpecificGoalDays sg = recordAllGoal7Days.stream().filter(sg1 -> sg1.getGoal().getId().equals(goalId)).findFirst().orElseThrow();
+        SpecificGoalDays sg = recordAllGoal7Days.stream().filter(sg1 -> sg1.getGoal().getId().equals(goalId)).findFirst().orElse(null);
+
+        if (sg == null) {
+            SpecificGoalDays specificGoalDays = new SpecificGoalDays(goal, user.getUserStat());
+            this.recordAllGoal7Days.add(specificGoalDays);
+            return;
+        }
+
         boolean update = sg.isUpdatableThanUpdate();
         if (!update) {
             SpecificGoalDays specificGoalDays = new SpecificGoalDays(goal, user.getUserStat());
