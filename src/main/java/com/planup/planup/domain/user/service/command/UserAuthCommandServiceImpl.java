@@ -66,6 +66,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     private final KaKaoService kakaoService;
     private final UserAuthConverter userAuthConverter;
     private final UserQueryService userQueryService;
+    private final UserStatRepository userStatRepository;
 
     @Qualifier("objectRedisTemplate")
     private final RedisTemplate<String, Object> objectRedisTemplate;
