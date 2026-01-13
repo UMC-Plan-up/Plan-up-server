@@ -30,8 +30,7 @@ public class UserStat extends BaseTimeEntity {
     private Long id;
 
     @Setter
-    @OneToOne(mappedBy = "userStat")
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, optional = false)
     private User user;
 
 
