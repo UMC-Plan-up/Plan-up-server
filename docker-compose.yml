@@ -74,8 +74,12 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       REST_API_KEY: ${REST_API_KEY}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+
+      #파이어베이스 관련 설정
+      FIREBASE_CREDENTIALS: /run/secrets/firebase.json
     volumes:
       - ./logs:/app/logs
+      - ./secrets/firebase.json:/run/secrets/firebase.json:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
