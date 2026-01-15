@@ -32,6 +32,9 @@ public class UserAuthConverter {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .expiresIn(expiresIn)
+                .userInfo(UserResponseDTO.RandomNickname.builder()
+                        .nickname(user.getNickname())
+                        .build())
                 .build();
     }
 
