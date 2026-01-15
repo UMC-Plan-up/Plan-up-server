@@ -17,6 +17,7 @@ import com.planup.planup.domain.user.entity.Terms;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserTerms;
 import com.planup.planup.domain.user.entity.UserWithdrawal;
+import com.planup.planup.domain.user.enums.Gender;
 import com.planup.planup.domain.user.enums.UserActivate;
 import com.planup.planup.domain.user.repository.*;
 import com.planup.planup.domain.user.service.external.KaKaoService;
@@ -65,6 +66,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     private final KaKaoService kakaoService;
     private final UserAuthConverter userAuthConverter;
     private final UserQueryService userQueryService;
+    private final UserStatRepository userStatRepository;
 
     @Qualifier("objectRedisTemplate")
     private final RedisTemplate<String, Object> objectRedisTemplate;
@@ -86,6 +88,10 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             throw new UserException(ErrorStatus.PASSWORD_MISMATCH);
         }
 
+        if (request.getGender() == Gender.UNKNOWN) {
+            throw new UserException(ErrorStatus.GENDER_INVALID);
+        }
+
         validateRequiredTerms(request.getAgreements());
 
         if (!userQueryService.isEmailVerified(request.getEmail())) {
@@ -97,8 +103,10 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         String profileImgUrl = determineProfileImageUrl(request.getEmail(), request.getProfileImg());
         User user = userAuthConverter.toUserEntity(request, encodedPassword, profileImgUrl);
 
-        //유저 스텟 클래스 추가
-        UserStat userStat = new UserStat();
+        UserStat userStat = UserStat.builder()
+                .user(user)
+                .build();
+
         user.setUserStat(userStat);
 
         User savedUser = userRepository.save(user);

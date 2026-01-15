@@ -43,6 +43,7 @@ jobs:
             Dockerfile
             docker-compose.yml
             monitoring/
+            nginx/
 
   deploy:
     needs: build
@@ -110,13 +111,13 @@ jobs:
 
           # 카카오 OAuth
           REST_API_KEY=${REST_API_KEY}
-          KAKAO_REDIRECT_URI=http://${EC2_HOST}:8080/test/kakao/callback
+          KAKAO_REDIRECT_URI=http://${EC2_HOST}/test/kakao/callback
 
           # Google Gemini
           GOOGLE_API_KEY=${GOOGLE_API_KEY}
 
           # 애플리케이션 설정
-          APP_DOMAIN=http://${EC2_HOST}:8080
+          APP_DOMAIN=http://${EC2_HOST}
           APP_FRONTEND_URL=http://localhost:3000
           APP_FRONTEND_URLS=http://localhost:3000,http://localhost:3001,http://${EC2_HOST}:3000
           SPRING_PROFILES_ACTIVE=dev
@@ -128,7 +129,7 @@ jobs:
 
           # 배포 디렉토리 생성
           ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} \
-            "mkdir -p /home/${EC2_USERNAME}/planup/build/libs /home/${EC2_USERNAME}/planup/monitoring"
+            "mkdir -p /home/${EC2_USERNAME}/planup/build/libs /home/${EC2_USERNAME}/planup/monitoring /home/${EC2_USERNAME}/planup/nginx/conf.d"
 
           # 파일 전송 전에 디스크 정리
           echo "=== Cleaning up disk space before transfer ==="
@@ -169,6 +170,9 @@ jobs:
           rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" \
             monitoring/ ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/planup/monitoring/
 
+          rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" \
+            nginx/ ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/planup/nginx/
+
           # Docker Compose 배포 스크립트
           cat <<DEPLOY_SCRIPT > deploy.sh
           #!/bin/bash
@@ -193,7 +197,7 @@ jobs:
           MAX_ATTEMPTS=12
           ATTEMPT=1
           while [ \$ATTEMPT -le \$MAX_ATTEMPTS ]; do
-            if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
+            if curl -f http://localhost/actuator/health > /dev/null 2>&1; then
               echo "✓ Application is healthy!"
               break
             fi
@@ -211,9 +215,9 @@ jobs:
           
           echo "=== Application logs (last 100 lines) ==="
           docker-compose logs --tail=100 app
-          
+
           echo "=== Final health check ==="
-          curl -f http://localhost:8080/actuator/health || echo "Health check failed"
+          curl -f http://localhost/actuator/health || echo "Health check failed"
 
           echo "=== Final disk space ==="
           df -h

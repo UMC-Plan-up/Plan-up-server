@@ -30,8 +30,7 @@ public class UserStat extends BaseTimeEntity {
     private Long id;
 
     @Setter
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @OneToOne(mappedBy = "userStat")
     private User user;
 
 
@@ -49,7 +48,7 @@ public class UserStat extends BaseTimeEntity {
     /* ========= 일주일 기준 ========= */
     private int reactionCntWeek = 0;                        // 전체 반응 버튼
 
-    @OneToMany(mappedBy = "userStat")
+    @OneToMany(mappedBy = "userStat", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<SpecificGoalDays> recordAllGoal7Days = new ArrayList<>();
 
@@ -80,6 +79,16 @@ public class UserStat extends BaseTimeEntity {
         this.reactionCntWeek = 0;
     }
 
+    public void addSpecificGoalDays(SpecificGoalDays child) {
+        recordAllGoal7Days.add(child);
+        child.setUserStat(this);
+    }
+
+    public void removeSpecificGoalDays(SpecificGoalDays child) {
+        recordAllGoal7Days.remove(child);
+        child.setUserStat(null);
+    }
+
     /**
      * 사용자의 활동에 따른 스텍의 변화 처리 메서드
      */
@@ -94,7 +103,14 @@ public class UserStat extends BaseTimeEntity {
         goalRecordCnt++;
 
         //설정한 전체 목표 7일 연속
-        SpecificGoalDays sg = recordAllGoal7Days.stream().filter(sg1 -> sg1.getGoal().getId().equals(goalId)).findFirst().orElseThrow();
+        SpecificGoalDays sg = recordAllGoal7Days.stream().filter(sg1 -> sg1.getGoal().getId().equals(goalId)).findFirst().orElse(null);
+
+        if (sg == null) {
+            SpecificGoalDays specificGoalDays = new SpecificGoalDays(goal, user.getUserStat());
+            this.recordAllGoal7Days.add(specificGoalDays);
+            return;
+        }
+
         boolean update = sg.isUpdatableThanUpdate();
         if (!update) {
             SpecificGoalDays specificGoalDays = new SpecificGoalDays(goal, user.getUserStat());

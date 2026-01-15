@@ -56,6 +56,7 @@ public class UserAuthConverter {
                 .password(encodedPassword)
                 .nickname(request.getNickname())
                 .role(Role.USER)
+                .gender(request.getGender())
                 .userActivate(UserActivate.ACTIVE)
                 .userLevel(UserLevel.LEVEL_1)
                 .serviceNotificationAllow(true)

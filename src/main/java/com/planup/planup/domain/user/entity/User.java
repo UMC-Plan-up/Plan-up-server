@@ -5,8 +5,8 @@ import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
-import com.planup.planup.domain.reaction.domain.Reaction;
 import com.planup.planup.domain.report.entity.WeeklyReport;
+import com.planup.planup.domain.user.enums.Gender;
 import com.planup.planup.domain.user.enums.Role;
 import com.planup.planup.domain.user.enums.UserActivate;
 import com.planup.planup.domain.user.enums.UserLevel;
@@ -38,6 +38,11 @@ public class User extends BaseTimeEntity {
 
     @Column(nullable = false)
     private String nickname;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private Gender gender = Gender.UNKNOWN;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -106,7 +111,8 @@ public class User extends BaseTimeEntity {
     @Builder.Default
     private List<UserGoal> userGoals = new ArrayList<>();
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, optional = false)
+    @JoinColumn(name = "user_stat_id", nullable = false)
     private UserStat userStat;
 
     public void verifyEmail() {

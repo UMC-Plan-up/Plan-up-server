@@ -37,6 +37,7 @@ public enum ErrorStatus implements BaseErrorCode {
     EXIST_NICKNAME(HttpStatus.CONFLICT, "USER4002", "이미 존재하는 닉네임입니다"),
     USER_WITHDRAWAL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "USER5001", "회원 탈퇴 처리 중 오류가 발생했습니다."),
     NOT_FOUND_STAT(HttpStatus.NOT_FOUND, "USER4003", "사용자 통계 정보를 찾을 수 없습니다."),
+    GENDER_INVALID(HttpStatus.BAD_REQUEST, "USER4004", "성별이 올바르지 않습니다."),
 
     // 로그인, 회원가입 관련 에러
     USER_EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER4003", "이미 존재하는 이메일입니다"),

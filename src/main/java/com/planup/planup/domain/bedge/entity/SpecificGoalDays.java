@@ -12,10 +12,10 @@ import java.time.LocalDate;
 @Table(
         name = "specific_goal_days",
         indexes = {
-                @Index(name = "idx_user_goal", columnList = "user_id, goal_id, updatedAt")
+                @Index(name = "idx_stat_goal_last_update", columnList = "user_stat_id, goal_id, last_update")
         },
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_user_goal", columnNames = {"user_id", "goal_id"})
+                @UniqueConstraint(name = "uk_user_goal", columnNames = {"user_stat_id", "goal_id"})
         }
 )
 @Getter
@@ -26,19 +26,24 @@ public class SpecificGoalDays {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "goal_id", nullable = false)
     private Goal goal;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userstat_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_stat_id", nullable = false)
     private UserStat userStat;
 
-    @NonNull
+    @Column(name="last_update", nullable = false)
     private LocalDate lastUpdate;               //가장 최근에 업데이트한 날짜.
 
     @Builder.Default
+    @Column(nullable = false)
     private int consecutiveSuccessDays = 1;
+
+    public void setUserStat(UserStat userStat) {
+        this.userStat = userStat;
+    }
 
     public void updateNewRecord() {
         this.consecutiveSuccessDays++;
