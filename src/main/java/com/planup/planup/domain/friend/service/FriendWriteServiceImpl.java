@@ -90,12 +90,10 @@ public class FriendWriteServiceImpl implements FriendWriteService {
     }
 
     @Override
-    public boolean createFriend(Long userId, Long friendId) {
+    public boolean createFriend(User user, User friend) {
         //에러 체크
-        checkRequestSendFriend(userId, friendId);
+        checkRequestSendFriend(user.getId(), friend.getId());
 
-        User user = userService.getUserByUserId(userId);
-        User friend = userService.getUserByUserId(friendId);
 
         // Friend 엔티티 생성
         Friend friendRequest = Friend.builder()

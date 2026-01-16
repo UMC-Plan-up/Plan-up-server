@@ -374,7 +374,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         }
 
         // 친구 관계 저장
-        friendWriteService.
+        friendWriteService.createFriend(currentUser, inviterUser);
 
         return userAuthConverter.toInviteCodeProcessResponseDTO(true, inviterUser.getNickname(), "친구 관계가 성공적으로 생성되었습니다.");
     }
