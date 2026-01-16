@@ -103,6 +103,8 @@ public class FriendWriteServiceImpl implements FriendWriteService {
                 .build();
 
         friendRepository.save(friendRequest);
+
+        return true;
     }
 
     @Override
