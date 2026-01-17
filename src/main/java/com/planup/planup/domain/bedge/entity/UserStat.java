@@ -79,6 +79,16 @@ public class UserStat extends BaseTimeEntity {
         this.reactionCntWeek = 0;
     }
 
+    public void addSpecificGoalDays(SpecificGoalDays child) {
+        recordAllGoal7Days.add(child);
+        child.setUserStat(this);
+    }
+
+    public void removeSpecificGoalDays(SpecificGoalDays child) {
+        recordAllGoal7Days.remove(child);
+        child.setUserStat(null);
+    }
+
     /**
      * 사용자의 활동에 따른 스텍의 변화 처리 메서드
      */

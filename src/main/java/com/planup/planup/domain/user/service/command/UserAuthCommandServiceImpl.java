@@ -7,6 +7,7 @@ import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
+import com.planup.planup.domain.friend.service.FriendWriteService;
 import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
 import com.planup.planup.domain.oauth.repository.OAuthAccountRepository;
@@ -66,7 +67,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     private final KaKaoService kakaoService;
     private final UserAuthConverter userAuthConverter;
     private final UserQueryService userQueryService;
-    private final UserStatRepository userStatRepository;
+    private final FriendWriteService friendWriteService;
 
     @Qualifier("objectRedisTemplate")
     private final RedisTemplate<String, Object> objectRedisTemplate;
@@ -372,12 +373,8 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             throw new UserException(ErrorStatus.ALREADY_FRIEND);
         }
 
-        // 친구 관계 양방향 저장
-        Friend friendship1 = userAuthConverter.toFriendEntity(currentUser, inviterUser, FriendStatus.ACCEPTED);
-        Friend friendship2 = userAuthConverter.toFriendEntity(inviterUser, currentUser, FriendStatus.ACCEPTED);
-
-        friendRepository.save(friendship1);
-        friendRepository.save(friendship2);
+        // 친구 관계 저장
+        friendWriteService.createFriend(currentUser, inviterUser);
 
         return userAuthConverter.toInviteCodeProcessResponseDTO(true, inviterUser.getNickname(), "친구 관계가 성공적으로 생성되었습니다.");
     }
