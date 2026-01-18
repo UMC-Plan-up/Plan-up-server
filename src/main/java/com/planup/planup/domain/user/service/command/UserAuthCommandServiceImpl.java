@@ -140,9 +140,13 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             throw new UserException(ErrorStatus.INVALID_CREDENTIALS);
         }
 
-        String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+        // 토큰 발급 (액세스 토큰 + 리프레시 토큰)
+        TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
-        return userAuthConverter.toLoginResponseDTO(user, accessToken);
+        return userAuthConverter.toLoginResponseDTO(user, 
+                tokenResponse.getAccessToken(), 
+                tokenResponse.getRefreshToken(), 
+                tokenResponse.getExpiresIn());
     }
 
     @Override
@@ -475,8 +479,13 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                     TimeUnit.MINUTES
             );
 
-            // 사용한 인증 토큰은 삭제 (재사용 방지)
-            redisTemplate.delete("email-verification:" + verificationToken);
+            // 토큰을 삭제하지 않고 인증 완료 상태로 변경 (60분 유효, 프론트엔드 상태 확인용)
+            redisTemplate.opsForValue().set(
+                    "email-verification:" + verificationToken,
+                    "VERIFIED:" + email,
+                    60,
+                    TimeUnit.MINUTES
+            );
 
             return email;
 
