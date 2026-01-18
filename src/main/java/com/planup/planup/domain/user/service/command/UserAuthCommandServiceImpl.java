@@ -367,7 +367,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         User inviterUser = userQueryService.getUserByUserId(inviterId);
 
         // 이미 친구인지 확인
-        boolean alreadyFriend = friendRepository.existsByUserAndFriendAndStatus(currentUser, inviterUser, FriendStatus.ACCEPTED);
+        Boolean alreadyFriend = friendRepository.existsByUserAndFriendAndStatus(currentUser, inviterUser, FriendStatus.ACCEPTED);
 
         if (alreadyFriend) {
             throw new UserException(ErrorStatus.ALREADY_FRIEND);
