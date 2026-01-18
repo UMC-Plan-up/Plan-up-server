@@ -5,6 +5,7 @@ import com.planup.planup.domain.friend.event.dto.FriendRequestAcceptedEvent;
 import com.planup.planup.domain.friend.event.dto.FriendRequestSentEvent;
 import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.entity.TargetType;
+import com.planup.planup.domain.notification.service.NotificationServiceWrite;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -14,7 +15,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class FriendNotificationListener {
 
-    private final NotificationService notificationService;
+    private final NotificationServiceWrite notificationService;
 
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

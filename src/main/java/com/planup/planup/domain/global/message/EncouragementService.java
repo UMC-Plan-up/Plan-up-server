@@ -4,6 +4,8 @@ import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.service.UserGoalAggregationService;
 import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
+import com.planup.planup.domain.notification.service.NotificationServiceRead;
+import com.planup.planup.domain.notification.service.NotificationServiceWrite;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.query.UserQueryService;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,9 +28,10 @@ public class EncouragementService {
     private final String model;
     private final UserGoalAggregationService userGoalAggregationService;
     private final UserGoalService userGoalService;
-    private final NotificationService notificationService;
+    private final NotificationServiceWrite notificationService;
     private final DailyLimitService dailyLimitService;
     private final UserQueryService userQueryService;
+    private final NotificationServiceRead notificationServiceRead;
 
     public EncouragementService(
             WebClient.Builder builder,
@@ -37,9 +40,10 @@ public class EncouragementService {
             @Value("${gemini.api-key}") String apiKey,
             UserGoalAggregationService userGoalAggregationService,
             UserGoalService userGoalService,
-            NotificationService notificationService,
+            NotificationServiceWrite notificationService,
             DailyLimitService dailyLimitService,
-            UserQueryService userQueryService
+            UserQueryService userQueryService,
+            NotificationServiceRead notificationServiceRead
     ) {
         this.webClient = builder
                 .baseUrl(endpoint)
@@ -52,6 +56,7 @@ public class EncouragementService {
         this.notificationService = notificationService;
         this.userQueryService = userQueryService;
         this.dailyLimitService = dailyLimitService;
+        this.notificationServiceRead = notificationServiceRead;
     }
 
     public Mono<MessageResponse> generate(Long userId) {
@@ -131,7 +136,7 @@ public class EncouragementService {
         int lastWeekAchievement = userGoalAggregationService.getDailyAchievement(userId, today.minusWeeks(1)).getAchievementRate();
         
         // 최근 알림
-        List<NotificationResponseDTO.NotificationDTO> recentNotifications = notificationService.getTop5RecentByUser(userId);
+        List<NotificationResponseDTO.NotificationDTO> recentNotifications = notificationServiceRead.getTop5RecentByUser(userId);
         
         // 추가 데이터 계산
         int consecutiveDays = calculateConsecutiveDays(userId, today);
