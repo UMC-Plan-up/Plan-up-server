@@ -369,7 +369,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         // 이미 친구인지 확인
         Boolean alreadyFriend = friendRepository.existsByUserAndFriendAndStatus(currentUser, inviterUser, FriendStatus.ACCEPTED);
 
-        if (alreadyFriend) {
+        if (alreadyFriend == null || alreadyFriend) {
             throw new UserException(ErrorStatus.ALREADY_FRIEND);
         }
 
