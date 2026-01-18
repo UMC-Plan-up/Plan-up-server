@@ -2,6 +2,7 @@ package com.planup.planup.domain.user.service.command;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.AuthException;
+import com.planup.planup.apiPayload.exception.custom.FriendException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.domain.friend.entity.Friend;
@@ -369,7 +370,9 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         // 이미 친구인지 확인
         Boolean alreadyFriend = friendRepository.existsByUserAndFriendAndStatus(currentUser, inviterUser, FriendStatus.ACCEPTED);
 
-        if (alreadyFriend == null || alreadyFriend) {
+        if (alreadyFriend == null) {
+            throw new FriendException(ErrorStatus.INTERNAL_FRIEND_ERROR);
+        } else if (alreadyFriend) {
             throw new UserException(ErrorStatus.ALREADY_FRIEND);
         }
 
