@@ -13,6 +13,18 @@ import java.util.Objects;
 @NoArgsConstructor
 @SuperBuilder
 @AllArgsConstructor
+@Table(
+        name = "friend",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_friend_pair",
+                        columnNames = {"user_low_id", "user_high_id"}
+                )
+        },
+        indexes = {
+                @Index(name = "idx_friend_pair", columnList = "user_low_id,user_high_id")
+        }
+)
 public class Friend extends BaseTimeEntity {
 
     @Id

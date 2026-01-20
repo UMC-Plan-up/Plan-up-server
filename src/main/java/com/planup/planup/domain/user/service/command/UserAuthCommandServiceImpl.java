@@ -2,11 +2,13 @@ package com.planup.planup.domain.user.service.command;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.AuthException;
+import com.planup.planup.apiPayload.exception.custom.FriendException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
+import com.planup.planup.domain.friend.service.FriendWriteService;
 import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
 import com.planup.planup.domain.oauth.repository.OAuthAccountRepository;
@@ -66,7 +68,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     private final KaKaoService kakaoService;
     private final UserAuthConverter userAuthConverter;
     private final UserQueryService userQueryService;
-    private final UserStatRepository userStatRepository;
+    private final FriendWriteService friendWriteService;
 
     @Qualifier("objectRedisTemplate")
     private final RedisTemplate<String, Object> objectRedisTemplate;
@@ -138,9 +140,13 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             throw new UserException(ErrorStatus.INVALID_CREDENTIALS);
         }
 
-        String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+        // 토큰 발급 (액세스 토큰 + 리프레시 토큰)
+        TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
-        return userAuthConverter.toLoginResponseDTO(user, accessToken);
+        return userAuthConverter.toLoginResponseDTO(user, 
+                tokenResponse.getAccessToken(), 
+                tokenResponse.getRefreshToken(), 
+                tokenResponse.getExpiresIn());
     }
 
     @Override
@@ -366,18 +372,16 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         User inviterUser = userQueryService.getUserByUserId(inviterId);
 
         // 이미 친구인지 확인
-        boolean alreadyFriend = friendRepository.existsByUserAndFriendAndStatus(currentUser, inviterUser, FriendStatus.ACCEPTED);
+        Boolean alreadyFriend = friendRepository.existsByUserAndFriendAndStatus(currentUser, inviterUser, FriendStatus.ACCEPTED);
 
-        if (alreadyFriend) {
+        if (alreadyFriend == null) {
+            throw new FriendException(ErrorStatus.INTERNAL_FRIEND_ERROR);
+        } else if (alreadyFriend) {
             throw new UserException(ErrorStatus.ALREADY_FRIEND);
         }
 
-        // 친구 관계 양방향 저장
-        Friend friendship1 = userAuthConverter.toFriendEntity(currentUser, inviterUser, FriendStatus.ACCEPTED);
-        Friend friendship2 = userAuthConverter.toFriendEntity(inviterUser, currentUser, FriendStatus.ACCEPTED);
-
-        friendRepository.save(friendship1);
-        friendRepository.save(friendship2);
+        // 친구 관계 저장
+        friendWriteService.createFriend(currentUser, inviterUser);
 
         return userAuthConverter.toInviteCodeProcessResponseDTO(true, inviterUser.getNickname(), "친구 관계가 성공적으로 생성되었습니다.");
     }
@@ -475,8 +479,13 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                     TimeUnit.MINUTES
             );
 
-            // 사용한 인증 토큰은 삭제 (재사용 방지)
-            redisTemplate.delete("email-verification:" + verificationToken);
+            // 토큰을 삭제하지 않고 인증 완료 상태로 변경 (60분 유효, 프론트엔드 상태 확인용)
+            redisTemplate.opsForValue().set(
+                    "email-verification:" + verificationToken,
+                    "VERIFIED:" + email,
+                    60,
+                    TimeUnit.MINUTES
+            );
 
             return email;
 

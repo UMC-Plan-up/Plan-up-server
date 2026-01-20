@@ -31,6 +31,7 @@ public enum ErrorStatus implements BaseErrorCode {
     FRIEND_BLOCKED(BAD_REQUEST, "FRIEND4004", "차단된 친구입니다."),
     NOT_EXIST_USERBLOCK(BAD_REQUEST, "FRIEND4005", "이미 친구 차단 상태가 아닙니다."),
     NOT_FRIEND(BAD_REQUEST, "FRIEND4006", "친구 관계가 아닙니다."),
+    INTERNAL_FRIEND_ERROR(INTERNAL_SERVER_ERROR, "FRIEND5001", "친구 관련 프로세스 중 내부적인 문제가 발생했습니다."),
 
     // User 에러
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "USER4001", "존재하지 않는 유저입니다"),
