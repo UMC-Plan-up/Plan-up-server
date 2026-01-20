@@ -6,6 +6,7 @@ import com.planup.planup.domain.bedge.entity.BadgeType;
 import com.planup.planup.domain.global.message.EncouragementService;
 import com.planup.planup.domain.global.message.MessageResponse;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
+import com.planup.planup.domain.notification.service.NotificationServiceRead;
 import com.planup.planup.domain.report.converter.WeeklyReportResponseConverter;
 import com.planup.planup.domain.report.dto.WeeklyReportResponseDTO;
 import com.planup.planup.domain.report.entity.WeeklyReport;
@@ -17,6 +18,7 @@ import com.planup.planup.domain.user.service.query.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -28,7 +30,7 @@ import java.util.List;
 public class WeeklyReportReadServiceImpl implements WeeklyReportReadService {
 
     private final UserBadgeQueryService userBadgeQueryService;
-    private final NotificationService notificationService;
+    private final NotificationServiceRead notificationService;
     private final EncouragementService encouragementService;
     private final UserQueryService userQueryService;
     private final WeeklyReportRepository weeklyReportRepository;

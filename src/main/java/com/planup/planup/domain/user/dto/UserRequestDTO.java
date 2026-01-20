@@ -1,8 +1,8 @@
 package com.planup.planup.domain.user.dto;
 
+import com.planup.planup.domain.user.enums.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
-import com.planup.planup.domain.user.enums.Gender;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -54,12 +54,10 @@ public class UserRequestDTO {
         @Pattern(regexp = "^[가-힣a-zA-Z0-9 ]+$", message = "닉네임은 한글, 영문, 숫자, 공백만 가능합니다.")
         private String nickname;
 
-        @Schema(description = "성별 (MALE: 남성, FEMALE: 여성)", example = "FEMALE")
-        @NotNull(message = "성별은 필수입니다.")
-        private Gender gender;
-
         @Schema(description = "프로필 이미지 경로", example = "https://example.com/image.jpg")
         private String profileImg;
+
+        private Gender gender;
 
         @Schema(description = "약관 동의 목록")
         @NotEmpty
@@ -68,7 +66,10 @@ public class UserRequestDTO {
 
     @Getter
     @Setter
-    public static class PasswordChange {
+    public static class PasswordChangeWithToken {
+        @NotBlank(message = "인증 토큰은 필수입니다.")
+        private String token;
+
         @NotBlank(message = "새 비밀번호는 필수입니다.")
         @Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다.")
         private String newPassword;
@@ -91,5 +92,13 @@ public class UserRequestDTO {
         @Size(max = 20, message = "닉네임은 공백 포함 20자 이하여야 합니다.")
         @Pattern(regexp = "^[가-힣a-zA-Z0-9 ]+$", message = "닉네임은 한글, 영문, 숫자, 공백만 가능합니다.")
         private String nickname;
+    }
+
+    @Getter
+    @Setter
+    public static class PasswordChange {
+        @NotBlank(message = "새 비밀번호는 필수입니다.")
+        @Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다.")
+        private String newPassword;
     }
 }

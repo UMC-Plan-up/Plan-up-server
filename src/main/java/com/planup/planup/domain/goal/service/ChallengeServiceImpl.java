@@ -18,6 +18,7 @@ import com.planup.planup.domain.goal.repository.TimeChallengeRepository;
 import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.entity.TargetType;
 import com.planup.planup.domain.notification.service.NotificationCreateService;
+import com.planup.planup.domain.notification.service.NotificationServiceWrite;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.query.UserQueryService;
 import com.planup.planup.domain.verification.service.PhotoVerificationReadService;
@@ -43,7 +44,7 @@ public class ChallengeServiceImpl implements ChallengeService {
     private final GoalService goalService;
     private final UserGoalService userGoalService;
     private final NotificationCreateService notificationCreateService;
-    private final NotificationService notificationService;
+    private final NotificationServiceWrite notificationService;
     private final AchievementCalculationService achievementCalculationService;
     private final PhotoVerificationReadService photoVerificationReadService;
     private final TimerVerificationReadService timerVerificationReadService;

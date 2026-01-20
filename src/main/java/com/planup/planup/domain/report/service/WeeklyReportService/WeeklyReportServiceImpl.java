@@ -9,6 +9,7 @@ import com.planup.planup.domain.global.message.MessageResponse;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
+import com.planup.planup.domain.notification.service.NotificationServiceRead;
 import com.planup.planup.domain.report.converter.DailyRecordConverter;
 import com.planup.planup.domain.report.converter.WeeklyReportResponseConverter;
 import com.planup.planup.domain.report.dto.WeeklyReportResponseDTO;
@@ -46,7 +47,7 @@ public class WeeklyReportServiceImpl implements WeeklyReportService {
 
     private final UserBadgeQueryService userBadgeQueryService;
     private final UserGoalService userGoalService;
-    private final NotificationService notificationService;
+    private final NotificationServiceRead notificationService;
     private final WeeklyReportRepository weeklyReportRepository;
     private final GoalReportReadService goalReportReadService;
     private final PhotoVerificationRepository photoVerificationRepository;
