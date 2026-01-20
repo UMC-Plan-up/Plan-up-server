@@ -7,37 +7,51 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 @Configuration
 public class FireBaseConfig {
 
     @Bean
-    public FirebaseApp firebaseApp(@Value("${firebase.credentials-json:}") String credentialsJsonEnv) throws IOException {
-        InputStream credsStream;
+    public FirebaseApp firebaseApp(
+            @Value("${firebase.credentials-json:}") String credentialsJson,
+            @Value("${firebase.credentials-path:}") String credentialsPath
+    ) throws IOException {
 
-        if (!credentialsJsonEnv.isBlank()) {
-            // 환경변수/Config에 문자열로 들어온 JSON
-            credsStream = new ByteArrayInputStream(credentialsJsonEnv.getBytes(StandardCharsets.UTF_8));
-        } else {
-            // 또는 파일 경로를 쓰고 싶다면: -DFIREBASE_CREDENTIALS_PATH=/path/creds.json
-            String path = System.getProperty("FIREBASE_CREDENTIALS_PATH", "");
-            credsStream = new FileInputStream(path);
+        // 이미 초기화되어 있으면 그대로 사용
+        if (!FirebaseApp.getApps().isEmpty()) {
+            return FirebaseApp.getInstance();
         }
 
-        GoogleCredentials credentials = GoogleCredentials.fromStream(credsStream);
-        FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(credentials)
-                .build();
-
-        // 중복 초기화 방지
-        if (FirebaseApp.getApps().isEmpty()) {
+        try (InputStream credsStream = resolveCredentialsStream(credentialsJson, credentialsPath)) {
+            GoogleCredentials credentials = GoogleCredentials.fromStream(credsStream);
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(credentials)
+                    .build();
             return FirebaseApp.initializeApp(options);
         }
-        return FirebaseApp.getInstance();
+    }
+
+    private InputStream resolveCredentialsStream(String credentialsJson, String credentialsPath) throws IOException {
+        // 1) 환경변수/설정으로 JSON 문자열이 들어온 경우 (우선)
+        if (credentialsJson != null && !credentialsJson.isBlank()) {
+            return new ByteArrayInputStream(credentialsJson.getBytes(StandardCharsets.UTF_8));
+        }
+
+        // 2) 파일 경로로 주는 경우
+        if (credentialsPath != null && !credentialsPath.isBlank()) {
+            File f = new File(credentialsPath);
+            if (!f.exists()) {
+                throw new FileNotFoundException("Firebase credentials file not found: " + credentialsPath);
+            }
+            return new FileInputStream(f);
+        }
+
+        // 둘 다 없으면 명확하게 실패
+        throw new IllegalStateException(
+                "Firebase credentials not configured. " +
+                        "Set either 'firebase.credentials-json' or 'firebase.credentials-path'."
+        );
     }
 }
