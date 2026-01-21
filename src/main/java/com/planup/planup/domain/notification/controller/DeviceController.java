@@ -29,7 +29,7 @@ public class DeviceController {
         - 이미 존재하는 토큰인 경우: 사용자 재연결 및 활성화
         - 신규 토큰인 경우: 새로 저장
         
-        로그인 직후 또는 앱 실행 시 호출됩니다.
+        로그인 직후 또는 앱 실행 시 호출
         """
     )
     @ApiResponses(value = {
