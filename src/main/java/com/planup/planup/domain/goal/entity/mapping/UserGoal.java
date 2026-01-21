@@ -27,6 +27,16 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(
+        name = "user_goal",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_user_goal", columnNames = {"user_id", "goal_id"})
+        },
+        indexes = {
+                @Index(name = "idx_user_goal_user_active", columnList = "user_id, is_active"),
+                @Index(name = "idx_user_goal_goal", columnList = "goal_id"),
+        }
+)
 public class UserGoal extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
