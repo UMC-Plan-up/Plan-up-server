@@ -41,6 +41,7 @@ public class UserBlock extends BaseTimeEntity {
     private User blocked;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean active = true;
 
     private LocalDateTime deletedAt;

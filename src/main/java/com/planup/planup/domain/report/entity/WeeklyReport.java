@@ -48,9 +48,11 @@ public class WeeklyReport extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private GoalMessage nextGoalMessage;
 
+    @Builder.Default
     @OneToMany(mappedBy = "weeklyReport", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GoalReport> goalReports = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "weeklyReport", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DailyRecord> dailyRecords = new ArrayList<>();
 

@@ -18,6 +18,8 @@ public class Challenge extends Goal {
     private ChallengeStatus status;  // 거절/수락 상태
 
     private String penalty;
+
+    @Builder.Default
     private boolean isRePenalty = false;
 
     public void setChallengeStatus(ChallengeStatus status) {

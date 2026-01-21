@@ -75,6 +75,7 @@ public class Goal extends BaseTimeEntity {
     private int limitFriendCount;
 
     @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Comment> commentList = new ArrayList<>();
 
 

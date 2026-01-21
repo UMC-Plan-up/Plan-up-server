@@ -51,6 +51,7 @@ public class GoalReport extends BaseTimeEntity {
     private WeeklyReport weeklyReport;
 
     @OneToMany(mappedBy = "goalReport", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Comment> commentList = new ArrayList<>();
 
 
