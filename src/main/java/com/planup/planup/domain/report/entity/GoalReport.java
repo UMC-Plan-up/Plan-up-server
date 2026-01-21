@@ -39,9 +39,9 @@ public class GoalReport extends BaseTimeEntity {
     @Embedded
     private DailyAchievementRate dailyAchievementRate;
 
+    @Builder.Default
     @OneToMany(mappedBy = "goalReport", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ReportUser> reportUsers;
-
+    private List<ReportUser> reportUsers = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private ReportType reportType;
