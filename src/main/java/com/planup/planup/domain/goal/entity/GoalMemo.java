@@ -20,6 +20,12 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "goal_type")
+@Table(
+        name = "goal_memo",
+        indexes = {
+                @Index(name = "idx_goal_memo", columnList = "user_goal_id")
+        }
+)
 public class GoalMemo extends BaseTimeEntity {
 
     @Id
