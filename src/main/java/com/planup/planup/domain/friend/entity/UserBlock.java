@@ -14,9 +14,15 @@ import org.hibernate.annotations.Where;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name="user_block", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"blocker_id", "blocked_id", "active"})
-})
+@Table(
+        name="user_block",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"blocker_id", "blocked_id", "active"})
+        },
+        indexes = {
+            @Index(name = "idx_user_block_pair", columnList = "blocker_id, blocked_id")
+        }
+)
 @Getter
 @SuperBuilder
 @SQLDelete(sql = "UPDATE user_block SET active = false, deleted_at = NOW() WHERE id = ?")   //soft delete
