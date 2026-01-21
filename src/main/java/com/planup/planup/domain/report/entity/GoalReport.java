@@ -14,6 +14,13 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @SuperBuilder
+@Table(
+        name = "goal_report",
+        indexes = {
+                @Index(name = "idx_goal_report_goal_created_at", columnList = "goal_id, created_at"),
+                @Index(name = "idx_goal_report_user_created_at", columnList = "user_id, created_at")
+        }
+)
 public class GoalReport extends BaseTimeEntity {
 
     @Id
