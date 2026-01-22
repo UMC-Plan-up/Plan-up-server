@@ -12,6 +12,7 @@ public class AuthRequestDTO {
 
     @Getter
     @Setter
+    @Schema(name = "AuthEmailVerificationRequest")
     public static class EmailVerification {
         @Schema(description = "이메일", example = "user@planup.com")
         @Email @NotBlank(message = "이메일은 필수입니다")
@@ -20,6 +21,7 @@ public class AuthRequestDTO {
 
     @Getter
     @Setter
+    @Schema(name = "AuthInviteCodeRequest")
     public static class InviteCode {
         @Schema(description = "초대코드", example = "123456")
         @NotBlank(message = "초대코드를 입력해주세요")
@@ -28,6 +30,7 @@ public class AuthRequestDTO {
 
     @Getter
     @Setter
+    @Schema(name = "AuthTermsAgreementRequest")
     public static class TermsAgreement {
         @Schema(description = "약관 ID", example = "1")
         @NotNull
