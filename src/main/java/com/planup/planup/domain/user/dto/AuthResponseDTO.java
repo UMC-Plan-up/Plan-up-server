@@ -13,6 +13,7 @@ public class AuthResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(name = "AuthEmailDuplicateResponse")
     public static class EmailDuplicate {
         @Schema(description = "이메일 사용 가능 여부", example = "true")
         private boolean available;
@@ -25,6 +26,7 @@ public class AuthResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(name = "AuthEmailSendResponse")
     public static class EmailSend {
         @Schema(description = "이메일", example = "user@planup.com")
         @Email
@@ -41,6 +43,7 @@ public class AuthResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(name = "AuthEmailVerificationStatusResponse")
     public static class EmailVerificationStatus {
         @Schema(description = "인증 완료 여부", example = "true")
         private Boolean verified;
@@ -56,6 +59,7 @@ public class AuthResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(name = "AuthEmailVerifyLinkResponse")
     public static class EmailVerifyLink {
         private boolean verified;
         private String email;
@@ -68,6 +72,7 @@ public class AuthResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(name = "AuthInviteCodeResponse")
     public static class InviteCode {
         @Schema(description = "내 초대코드", example = "123456")
         private String inviteCode;
@@ -83,6 +88,7 @@ public class AuthResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(name = "AuthInviteCodeProcessResponse")
     public static class InviteCodeProcess {
         @Schema(description = "초대코드로 친구가 된 사용자 닉네임", example = "라미")
         private String friendNickname;
@@ -98,6 +104,7 @@ public class AuthResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(name = "AuthTermsDetailResponse")
     public static class TermsDetail {
         @Schema(description = "약관 ID", example = "1")
         private Long id;
@@ -110,6 +117,7 @@ public class AuthResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(name = "AuthTermsListResponse")
     public static class TermsList {
         @Schema(description = "약관 ID", example = "1")
         private Long id;
@@ -128,6 +136,7 @@ public class AuthResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(name = "AuthValidateInviteCodeResponse")
     public static class ValidateInviteCode {
         @Schema(description = "초대코드 유효성", example = "true")
         private boolean valid;

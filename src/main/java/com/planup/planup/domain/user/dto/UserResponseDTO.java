@@ -13,6 +13,7 @@ public class UserResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(name = "UserLoginResponse")
     public static class Login {
         @Schema(description = "JWT 액세스 토큰", example = "eyJhbGciOiJIUz...")
         private String accessToken;
@@ -34,6 +35,7 @@ public class UserResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(name = "UserSignupResponse")
     public static class Signup {
         @Schema(description = "회원 고유 ID", example = "1")
         private Long id;
@@ -57,6 +59,7 @@ public class UserResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(name = "UserRandomNicknameResponse")
     public static class RandomNickname {
         @Schema(description = "랜덤 닉네임", example = "행복한고양이")
         private String nickname;
@@ -66,6 +69,7 @@ public class UserResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(name = "UserWithdrawalResponse")
     public static class Withdrawal {
         @Schema(description = "탈퇴 성공 여부", example = "true")
         private boolean success;
@@ -81,6 +85,7 @@ public class UserResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @Schema(name = "UserResponseUserInfo")
     public static class UserInfo {
         private Long id;
         private String email;

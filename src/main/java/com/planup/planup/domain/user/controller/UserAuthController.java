@@ -89,7 +89,7 @@ public class UserAuthController {
 
     @Operation(summary = "비밀번호 변경", description = "현재 유저의 비밀번호를 변경한다.")
     @PostMapping("/password/change")
-    public ApiResponse<Boolean> changePasswordWithToken(@RequestBody UserRequestDTO.PasswordChange request, @CurrentUser Long userId) {
+    public ApiResponse<Boolean> changePasswordWithToken(@RequestBody UserRequestDTO.PasswordChangeWithToken request, @CurrentUser Long userId) {
         userAuthCommandService.changePassword(userId, request.getNewPassword());
         return ApiResponse.onSuccess(true);
     }
