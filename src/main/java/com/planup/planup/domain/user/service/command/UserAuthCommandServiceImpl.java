@@ -406,6 +406,11 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
     @Override
     public AuthResponseDTO.EmailSend sendEmailVerification(String email) {
+        // 이미 인증된 이메일인지 확인 (재발송 로직 통합)
+        if (userQueryService.isEmailVerified(email)) {
+            throw new UserException(ErrorStatus.EMAIL_ALREADY_VERIFIED);
+        }
+
         userQueryService.checkEmail(email);
 
         String verificationToken = UUID.randomUUID().toString();
@@ -434,15 +439,6 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         }
 
         return userAuthConverter.toEmailSendResponseDTO(email, verificationToken, "인증 메일이 발송되었습니다");
-    }
-
-    @Override
-    public AuthResponseDTO.EmailSend resendEmailVerification(String email) {
-        if (userQueryService.isEmailVerified(email)) {
-            throw new UserException(ErrorStatus.EMAIL_ALREADY_VERIFIED);
-        }
-
-        return sendEmailVerification(email);
     }
 
     @Override
