@@ -283,9 +283,9 @@ public class UserQueryServiceImpl implements UserQueryService {
     // ========== 약관 조회 ==========
 
     @Override
-    public List<AuthResponseDTO.TermsList> getTermsList() {
+    public AuthResponseDTO.TermsList getTermsList() {
         List<Terms> termsList = termsRepository.findAllByOrderByOrderAsc();
-        return TermsConverter.toTermsListResponseList(termsList);
+        return TermsConverter.toTermsListResponse(termsList);
     }
 
     @Override
