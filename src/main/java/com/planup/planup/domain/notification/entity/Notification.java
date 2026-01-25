@@ -14,6 +14,23 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @SuperBuilder
 @AllArgsConstructor
+@Table(
+        name = "notification",
+        indexes = {
+                @Index(
+                        name = "idx_notification_receiver_created",
+                        columnList = "receiver_id, created_at"
+                ),
+                @Index(
+                        name = "idx_notification_receiver_isread",
+                        columnList = "receiver_id, is_read"
+                ),
+                @Index(
+                        name = "idx_notification_receiver_type",
+                        columnList = "receiver_id, type"
+                )
+        }
+)
 public class Notification extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
