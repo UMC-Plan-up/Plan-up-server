@@ -2,6 +2,7 @@ package com.planup.planup.domain.notification.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
+import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.service.NotificationServiceRead;
 import com.planup.planup.domain.notification.service.NotificationServiceWrite;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class NotificationController {
     @GetMapping("/unread/{receiverId}/{type}")
     public ApiResponse<List<NotificationResponseDTO.NotificationDTO>> getUnreadNotificationsWithType(
             @PathVariable Long receiverId,
-            @PathVariable String type) {
+            @PathVariable NotificationType.NotificationGroup type) {
 
         List<NotificationResponseDTO.NotificationDTO> unreadNotifications =
                 notificationServiceRead.getUnreadNotificationsWithType(receiverId, type);

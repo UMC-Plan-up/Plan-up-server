@@ -2,6 +2,7 @@ package com.planup.planup.domain.notification.service;
 
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.notification.entity.Notification;
+import com.planup.planup.domain.notification.entity.NotificationType;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -12,7 +13,7 @@ public interface NotificationServiceRead {
     List<NotificationResponseDTO.NotificationDTO> getUnreadNotifications(Long receiverId);
 
     @Transactional(readOnly = true)
-    List<NotificationResponseDTO.NotificationDTO> getUnreadNotificationsWithType(Long receiverId, String type);
+    List<NotificationResponseDTO.NotificationDTO> getUnreadNotificationsWithType(Long receiverId, NotificationType.NotificationGroup type);
 
     //유저의 모든 알림을 조회한다. (시간 순대로)
     @Transactional(readOnly = true)

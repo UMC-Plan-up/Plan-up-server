@@ -33,16 +33,13 @@ public class NotificationServiceReadImpl implements NotificationServiceRead {
 
     //읽지 않은 알림을 알림의 타입에 따라 가져온다
     @Override
-    public List<NotificationResponseDTO.NotificationDTO> getUnreadNotificationsWithType(Long receiverId, String type) {
+    public List<NotificationResponseDTO.NotificationDTO> getUnreadNotificationsWithType(Long receiverId, NotificationType.NotificationGroup type) {
         //받는 사람 조회
         User receiver = userService.getUserByUserId(receiverId);
 
-        // String -> enum
-        NotificationType.NotificationGroup group = NotificationType.NotificationGroup.valueOf(type);
-
         // group에 속하는 NotificationType 목록 생성
         List<NotificationType> types = Arrays.stream(NotificationType.values())
-                .filter(t -> t.getGroup() == group)
+                .filter(t -> t.getGroup() == type)
                 .toList();
 
         // DB에서 바로 필터링해서 가져오기
