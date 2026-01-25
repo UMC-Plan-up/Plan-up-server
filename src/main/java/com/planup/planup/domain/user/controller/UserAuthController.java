@@ -101,13 +101,6 @@ public class UserAuthController {
         return ApiResponse.onSuccess(response);
     }
 
-    @Operation(summary = "이메일 인증 재발송")
-    @PostMapping("/email/resend")
-    public ApiResponse<AuthResponseDTO.EmailSend> resendVerificationEmail(@RequestBody @Valid AuthRequestDTO.EmailVerification request) {
-        AuthResponseDTO.EmailSend response = userAuthCommandService.resendEmailVerification(request.getEmail());
-        return ApiResponse.onSuccess(response);
-    }
-
     @Operation(summary = "이메일 인증 여부 확인", description = "토큰으로 이메일을 확인하고 인증 상태를 반환합니다")
     @GetMapping("/email/verification-status")
     public ApiResponse<AuthResponseDTO.EmailVerificationStatus> getEmailVerificationStatus(@RequestParam("token") String token) {

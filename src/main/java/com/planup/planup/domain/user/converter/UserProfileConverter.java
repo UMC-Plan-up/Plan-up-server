@@ -2,6 +2,7 @@ package com.planup.planup.domain.user.converter;
 
 import com.planup.planup.domain.user.dto.AuthResponseDTO;
 import com.planup.planup.domain.user.dto.FileResponseDTO;
+import com.planup.planup.domain.user.dto.UserResponseDTO;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -24,6 +25,15 @@ public class UserProfileConverter {
                 .email(email)
                 .message(message)
                 .verificationToken(verificationToken)
+                .build();
+    }
+
+    /**
+     * 랜덤 닉네임 문자열을 응답 DTO로 변환
+     */
+    public static UserResponseDTO.RandomNickname toRandomNicknameResponseDTO(String nickname) {
+        return UserResponseDTO.RandomNickname.builder()
+                .nickname(nickname)
                 .build();
     }
 }
