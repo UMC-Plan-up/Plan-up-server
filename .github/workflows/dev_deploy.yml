@@ -1,4 +1,4 @@
-name: Planup Dev CI/CD
+name: Planup Dev CI/CD (Blue-Green)
 
 on:
   push:
@@ -44,6 +44,7 @@ jobs:
             docker-compose.yml
             monitoring/
             nginx/
+            scripts/
 
   deploy:
     needs: build
@@ -58,7 +59,7 @@ jobs:
         with:
           name: build-files
 
-      - name: Deploy to EC2 with Docker
+      - name: Blue-Green Deploy to EC2
         shell: bash
         env:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
@@ -125,110 +126,66 @@ jobs:
           # Grafana 설정
           GRAFANA_ADMIN_USER=admin
           GRAFANA_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+
+          # EC2 Username (for deploy script)
+          EC2_USERNAME=${EC2_USERNAME}
           EOF
 
           # 배포 디렉토리 생성
           ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} \
-            "mkdir -p /home/${EC2_USERNAME}/planup/build/libs /home/${EC2_USERNAME}/planup/monitoring /home/${EC2_USERNAME}/planup/nginx/conf.d"
+            "mkdir -p /home/${EC2_USERNAME}/planup/build/libs /home/${EC2_USERNAME}/planup/monitoring /home/${EC2_USERNAME}/planup/nginx/conf.d /home/${EC2_USERNAME}/planup/scripts"
 
-          # 파일 전송 전에 디스크 정리
+          # 파일 전송 전에 디스크 정리 (컨테이너는 유지)
           echo "=== Cleaning up disk space before transfer ==="
           ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} << 'CLEANUP'
-            cd /home/${EC2_USERNAME}/planup
-          
+            cd /home/${USER}/planup
+
             echo "Current disk usage:"
             df -h
-          
-            echo "Stopping existing containers..."
-            docker-compose down 2>/dev/null || true
-          
-            echo "Cleaning Docker resources..."
-            docker system prune -af --volumes 2>/dev/null || true
-          
+
+            echo "Cleaning unused Docker resources (keeping running containers)..."
+            docker image prune -af 2>/dev/null || true
+            docker builder prune -af 2>/dev/null || true
+
             echo "Removing old build files..."
-            rm -rf /home/${EC2_USERNAME}/planup/build/libs/*.jar 2>/dev/null || true
-          
+            rm -rf /home/${USER}/planup/build/libs/*.jar 2>/dev/null || true
+
             echo "Disk usage after cleanup:"
             df -h
           CLEANUP
 
           # 파일 전송
           echo "=== Transferring files to EC2 ==="
-          
+
           rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" \
             Dockerfile ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/planup/
-          
+
           rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" \
             docker-compose.yml ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/planup/
-          
+
           rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" \
             .env ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/planup/
-          
+
           rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" \
             build/libs/*.jar ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/planup/build/libs/
-          
+
           rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" \
             monitoring/ ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/planup/monitoring/
 
           rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" \
             nginx/ ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/planup/nginx/
 
-          # Docker Compose 배포 스크립트
-          cat <<DEPLOY_SCRIPT > deploy.sh
-          #!/bin/bash
-          set -e
+          rsync -avz -e "ssh -i private_key.pem -o StrictHostKeyChecking=no" \
+            scripts/ ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/planup/scripts/
 
-          cd /home/${EC2_USERNAME}/planup
-
-          echo "=== Checking disk space ==="
-          df -h
-
-          echo "=== Stopping existing containers ==="
-          docker-compose down || true
-
-          echo "=== Building and starting containers ==="
-          docker-compose up -d --build
-
-          echo "=== Waiting for services to be healthy ==="
-          echo "Initial startup delay: 60 seconds..."
-          sleep 60
-          
-          echo "=== Checking application health ==="
-          MAX_ATTEMPTS=12
-          ATTEMPT=1
-          while [ \$ATTEMPT -le \$MAX_ATTEMPTS ]; do
-            if curl -f http://localhost/actuator/health > /dev/null 2>&1; then
-              echo "✓ Application is healthy!"
-              break
-            fi
-            if [ \$ATTEMPT -eq \$MAX_ATTEMPTS ]; then
-              echo "✗ Health check failed after \$MAX_ATTEMPTS attempts"
-            else  
-              echo "Attempt \$ATTEMPT/\$MAX_ATTEMPTS: Waiting 10 more seconds..."
-            fi
-            ATTEMPT=\$((ATTEMPT + 1))
-            sleep 10
-          done
-          
-          echo "=== Container status ==="
-          docker-compose ps
-          
-          echo "=== Application logs (last 100 lines) ==="
-          docker-compose logs --tail=100 app
-
-          echo "=== Final health check ==="
-          curl -f http://localhost/actuator/health || echo "Health check failed"
-
-          echo "=== Final disk space ==="
-          df -h
-          
-          echo "=== Deployment completed ==="
-          DEPLOY_SCRIPT
-
-          # 배포 스크립트 전송 및 실행
-          scp -i private_key.pem -o StrictHostKeyChecking=no deploy.sh ${EC2_USERNAME}@${EC2_HOST}:/home/${EC2_USERNAME}/planup/
-          
+          # Blue-Green 배포 스크립트 실행
+          echo "=== Starting Blue-Green Deployment ==="
           ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} \
-            "chmod +x /home/${EC2_USERNAME}/planup/deploy.sh && /home/${EC2_USERNAME}/planup/deploy.sh"
+            "chmod +x /home/${EC2_USERNAME}/planup/scripts/deploy.sh && EC2_USERNAME=${EC2_USERNAME} /home/${EC2_USERNAME}/planup/scripts/deploy.sh"
 
-          rm -f private_key.pem .env deploy.sh
+          # 최종 상태 확인
+          echo "=== Final Health Check ==="
+          ssh -i private_key.pem -o StrictHostKeyChecking=no ${EC2_USERNAME}@${EC2_HOST} \
+            "curl -sf http://localhost/actuator/health && echo '' && echo '✓ Deployment successful!'"
+
+          rm -f private_key.pem .env

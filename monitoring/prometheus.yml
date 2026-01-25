@@ -7,10 +7,20 @@ scrape_configs:
     static_configs:
       - targets: ['prometheus:9090']
 
-  - job_name: 'planup-app'
+  - job_name: 'planup-app-blue'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['app:8080']
+      - targets: ['app-blue:8080']
         labels:
           application: 'planup'
-          environment: 'local'
+          environment: 'dev'
+          deployment: 'blue'
+
+  - job_name: 'planup-app-green'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['app-green:8080']
+        labels:
+          application: 'planup'
+          environment: 'dev'
+          deployment: 'green'
