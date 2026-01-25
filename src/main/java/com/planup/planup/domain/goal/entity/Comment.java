@@ -16,6 +16,12 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(
+        name = "comment",
+        indexes = {
+                @Index(name = "idx_comment_goal", columnList = "goal_id, status")
+        }
+)
 public class Comment extends BaseTimeEntity {
 
     @Id
