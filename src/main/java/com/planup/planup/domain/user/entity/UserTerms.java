@@ -9,7 +9,15 @@ import java.time.LocalDateTime;
 
 
 @Entity
-@Table(name = "user_terms")
+@Table(
+        name = "user_terms",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_user_terms_user_terms",
+                        columnNames = {"user_id", "terms_id"}
+                )
+        }
+)
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor

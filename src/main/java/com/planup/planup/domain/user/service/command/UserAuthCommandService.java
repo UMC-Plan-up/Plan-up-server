@@ -20,7 +20,6 @@ public interface UserAuthCommandService {
 
     // 이메일 인증 (회원가입용)
     AuthResponseDTO.EmailSend sendEmailVerification(String email);
-    AuthResponseDTO.EmailSend resendEmailVerification(String email);
     String handleEmailVerificationLink(String token);
 
     // 비밀번호 변경

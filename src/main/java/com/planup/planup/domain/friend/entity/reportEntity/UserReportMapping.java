@@ -18,6 +18,13 @@ import java.time.LocalDateTime;
 @SuperBuilder
 @AllArgsConstructor
 @Builder
+@Table(
+        name = "user_report_mapping",
+        indexes = {
+                @Index(name = "idx_reporter_reported", columnList = "reporter_id, reported_id"),
+                @Index(name = "idx_reported_status", columnList = "reported_id, status")
+        }
+)
 public class UserReportMapping extends BaseTimeEntity {
 
     @Id

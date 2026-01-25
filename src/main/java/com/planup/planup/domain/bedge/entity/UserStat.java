@@ -35,17 +35,27 @@ public class UserStat extends BaseTimeEntity {
 
 
     /* ========= 하루 기준 ========= */
+    @Builder.Default
     private int commentCntInFriendDay = 0;      // 하루에 친구 글에서 댓글 수
+    @Builder.Default
     private int cheerCnt = 0;                    // ‘응원해요’
+    @Builder.Default
     private int encourageCnt = 0;               // ‘분발해요’
+    @Builder.Default
     private int goalRecordCnt = 0;              // 목표 기록 수(루티너)
+    @Builder.Default
     private int pushOpenCnt = 0;                // 푸시 열람 수
+    @Builder.Default
     private int completeGoalCnt= 0;             // 하루에 3개 이상의 목표 완료(몰입의 날)
+    @Builder.Default
     private LocalDate lastCompleteGoalDate = null;
+    @Builder.Default
     private int requestFriendOneDay = 0;        // 하루에 3번 이상 친구 신청
+    @Builder.Default
     private int sendVerityCntDay = 0;           // 하루에 인증을 보낸 갯수
 
     /* ========= 일주일 기준 ========= */
+    @Builder.Default
     private int reactionCntWeek = 0;                        // 전체 반응 버튼
 
     @OneToMany(mappedBy = "userStat", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -53,13 +63,20 @@ public class UserStat extends BaseTimeEntity {
     private List<SpecificGoalDays> recordAllGoal7Days = new ArrayList<>();
 
     /* ========= 누적 카운터 ========= */
-    private int totalProfileClickCnt = 0;            // 친구 프로필 클릭
-    private int weeklyStatViewCnt = 0;               // 주간 통계 조회
-    private long totalRecordCnt = 0;                 // 총 기록 수
-    private long totalInviteShareCnt = 0;            // 초대 코드 공유 수
-    private long totalInviteAcceptedCnt = 0;         // 초대한 친구 중 가입 수
-    private long totalGoalCreatedCnt = 0;            // 목표 생성 수
-    private long totalCommentCnt = 0;                // 총 댓글 수
+        @Builder.Default
+        private int totalProfileClickCnt = 0;            // 친구 프로필 클릭
+        @Builder.Default
+        private int weeklyStatViewCnt = 0;               // 주간 통계 조회
+        @Builder.Default
+        private long totalRecordCnt = 0;                 // 총 기록 수
+        @Builder.Default
+        private long totalInviteShareCnt = 0;            // 초대 코드 공유 수
+        @Builder.Default
+        private long totalInviteAcceptedCnt = 0;         // 초대한 친구 중 가입 수
+        @Builder.Default
+        private long totalGoalCreatedCnt = 0;            // 목표 생성 수
+        @Builder.Default
+        private long totalCommentCnt = 0;                // 총 댓글 수
 
     /**
      * 각 스텟은 주기적으로 초기화 된다.

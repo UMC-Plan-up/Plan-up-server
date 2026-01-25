@@ -12,6 +12,7 @@ public class UserRequestDTO {
 
     @Getter
     @Setter
+    @Schema(name = "UserLoginRequest")
     public static class Login {
         @NotBlank @Email @Schema(description = "이메일", example = "june5355@naver.com")
         private String email;
@@ -22,6 +23,7 @@ public class UserRequestDTO {
 
     @Getter
     @Setter
+    @Schema(name = "UserPasswordChangeEmailRequest")
     public static class PasswordChangeEmail {
         @NotBlank(message = "이메일은 필수입니다.")
         @Email(message = "유효한 이메일 형식이 아닙니다.")
@@ -32,6 +34,7 @@ public class UserRequestDTO {
 
     @Getter
     @Setter
+    @Schema(name = "UserSignupRequest")
     public static class Signup {
         @Schema(description = "이메일", example = "user@planup.com")
         @NotBlank
@@ -66,6 +69,7 @@ public class UserRequestDTO {
 
     @Getter
     @Setter
+    @Schema(name = "UserPasswordChangeWithTokenRequest")
     public static class PasswordChangeWithToken {
         @NotBlank(message = "인증 토큰은 필수입니다.")
         private String token;
@@ -77,6 +81,7 @@ public class UserRequestDTO {
 
     @Getter
     @Setter
+    @Schema(name = "UserWithdrawalRequest")
     public static class Withdrawal {
         @Schema(description = "탈퇴 이유", example = "서비스 불만족")
         @NotBlank(message = "탈퇴 이유를 입력해주세요.")
@@ -86,6 +91,7 @@ public class UserRequestDTO {
 
     @Getter
     @Setter
+    @Schema(name = "UserUpdateNicknameRequest")
     public static class UpdateNickname {
         @NotBlank(message = "닉네임은 비어 있을 수 없습니다.")
         @Schema(example = "닉네임")

@@ -27,6 +27,16 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(
+        name = "user_goal",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_user_goal", columnNames = {"user_id", "goal_id"})
+        },
+        indexes = {
+                @Index(name = "idx_user_goal_user_active", columnList = "user_id, is_active"),
+                @Index(name = "idx_user_goal_goal", columnList = "goal_id"),
+        }
+)
 public class UserGoal extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -59,9 +69,11 @@ public class UserGoal extends BaseTimeEntity {
     @JoinColumn(name = "goal_id")
     private Goal goal;
 
+    @Builder.Default
     @OneToMany(mappedBy = "userGoal", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TimerVerification> timerVerifications = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "userGoal", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PhotoVerification> photoVerifications = new ArrayList<>();
 

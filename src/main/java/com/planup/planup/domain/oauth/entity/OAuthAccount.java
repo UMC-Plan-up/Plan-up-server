@@ -13,6 +13,15 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(
+        name = "oauth_account",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_oauth_provider_email",
+                        columnNames = {"provider", "email"}
+                )
+        }
+)
 public class OAuthAccount extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

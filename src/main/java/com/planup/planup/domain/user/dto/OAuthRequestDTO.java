@@ -13,6 +13,7 @@ public class OAuthRequestDTO {
 
     @Getter
     @Setter
+    @Schema(name = "OAuthKakaoAuthRequest")
     public static class KakaoAuth {
         @NotBlank(message = "카카오 인가코드는 필수입니다")
         private String code;
@@ -20,6 +21,7 @@ public class OAuthRequestDTO {
 
     @Getter
     @Setter
+    @Schema(name = "OAuthKakaoLinkRequest")
     public static class KaKaoLink {
         @NotBlank(message = "카카오 인가코드는 필수입니다")
         private String code;
@@ -27,7 +29,7 @@ public class OAuthRequestDTO {
 
     @Getter
     @Setter
-    @Schema(description = "카카오 회원가입 완료 요청")
+    @Schema(name = "OAuthKakaoSignupRequest", description = "카카오 회원가입 완료 요청")
     public static class KaKaoSignup {
 
         @NotBlank(message = "임시 사용자 ID는 필수입니다")

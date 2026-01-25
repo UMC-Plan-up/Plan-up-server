@@ -36,6 +36,6 @@ public interface UserQueryService {
     AuthResponseDTO.ValidateInviteCode validateInviteCode(String inviteCode);
 
     // 약관 조회
-    List<AuthResponseDTO.TermsList> getTermsList();
+    AuthResponseDTO.TermsList getTermsList();
     AuthResponseDTO.TermsDetail getTermsDetail(Long termsId);
 }

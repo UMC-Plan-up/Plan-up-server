@@ -7,7 +7,15 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "user_badge")
+@Table(
+        name = "user_badge",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_user_badge_user_badge_type",
+                        columnNames = {"user_id", "badge_type"}
+                )
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
