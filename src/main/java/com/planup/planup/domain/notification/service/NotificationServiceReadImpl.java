@@ -3,6 +3,7 @@ package com.planup.planup.domain.notification.service;
 import com.planup.planup.domain.notification.converter.NotificationConverter;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.notification.entity.Notification;
+import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.repository.NotificationRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.query.UserQueryService;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,10 +34,24 @@ public class NotificationServiceReadImpl implements NotificationServiceRead {
     //읽지 않은 알림을 알림의 타입에 따라 가져온다
     @Override
     public List<NotificationResponseDTO.NotificationDTO> getUnreadNotificationsWithType(Long receiverId, String type) {
+        //받는 사람 조회
         User receiver = userService.getUserByUserId(receiverId);
-        List<Notification> notifications = notificationRepository.findUnreadByReceiverAndType(receiver);
-        List<Notification> filteredNotificationList = notifications.stream().filter(no -> no.getType().getGroup().toString().equals(type)).toList();
-        return filteredNotificationList.stream().map(NotificationConverter::toNotificationDTO).collect(Collectors.toList());
+
+        // String -> enum
+        NotificationType.NotificationGroup group = NotificationType.NotificationGroup.valueOf(type);
+
+        // group에 속하는 NotificationType 목록 생성
+        List<NotificationType> types = Arrays.stream(NotificationType.values())
+                .filter(t -> t.getGroup() == group)
+                .toList();
+
+        // DB에서 바로 필터링해서 가져오기
+        List<Notification> notifications =
+                notificationRepository.findByReceiverAndIsReadFalseAndTypeIn(receiver, types);
+
+        return notifications.stream()
+                .map(NotificationConverter::toNotificationDTO)
+                .collect(Collectors.toList());
     }
 
     //유저의 모든 알림을 조회한다. (시간 순대로)
