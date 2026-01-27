@@ -24,14 +24,10 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: ${DB_NAME}
-#      MYSQL_USER: ${DB_USER}
-#      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpass}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       TZ: Asia/Seoul
-    ports:
-      - "3306:3306"
     volumes:
-      - mysql-data:/var/lib/mysql
+      - /var/lib/mysql:/var/lib/mysql
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 10s
@@ -138,7 +134,6 @@ services:
       - planup-network
 
 volumes:
-  mysql-data:
   redis-data:
   prometheus-data:
   grafana-data:
