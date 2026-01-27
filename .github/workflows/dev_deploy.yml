@@ -143,8 +143,10 @@ jobs:
             docker-compose down 2>/dev/null || true
           
             echo "Cleaning Docker resources..."
-            docker system prune -af --volumes 2>/dev/null || true
-          
+#            docker system prune -af --volumes 2>/dev/null || true
+            docker image prune -af || true
+            docker builder prune -af || true
+
             echo "Removing old build files..."
             rm -rf /home/${EC2_USERNAME}/planup/build/libs/*.jar 2>/dev/null || true
           
@@ -184,8 +186,9 @@ jobs:
           df -h
 
           echo "=== Stopping existing containers ==="
-          docker-compose down || true
-
+#          docker-compose down || true
+          docker compose up -d --build
+               
           echo "=== Building and starting containers ==="
           docker-compose up -d --build
 
