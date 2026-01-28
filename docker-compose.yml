@@ -22,6 +22,8 @@ services:
     image: mysql:8.0
     container_name: planup-mysql
     restart: unless-stopped
+    ports:
+      - "3306:3306"
     environment:
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
