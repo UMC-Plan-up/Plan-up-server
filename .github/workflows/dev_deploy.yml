@@ -212,10 +212,10 @@ jobs:
           done
           
           echo "=== Container status ==="
-          docker-compose ps
+          docker compose ps
           
           echo "=== Application logs (last 100 lines) ==="
-          docker-compose logs --tail=100 app
+          docker compose logs --tail=100 app
 
           echo "=== Final health check ==="
           curl -f http://localhost/actuator/health || echo "Health check failed"
