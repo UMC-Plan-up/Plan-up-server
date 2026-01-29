@@ -29,7 +29,8 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
         join fetch f.friend fr
         where f.status = :status and fr.id = :friendId
     """)
-    List<Friend> findByStatusAndFriendIdOrderByCreatedAtDescWithUser(FriendStatus status, Long friendId);
+    List<Friend> findByStatusAndFriendIdOrderByCreatedAtDescWithUser(@Param("status")FriendStatus status,
+                                                                     @Param("friendId")Long friendId);
 
     // 사용자가 차단한 친구 목록 조회
     List<Friend> findByUserAndStatusOrderByCreatedAtDesc(User user, FriendStatus status);
