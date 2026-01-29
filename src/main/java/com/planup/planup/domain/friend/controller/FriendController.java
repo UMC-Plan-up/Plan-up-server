@@ -49,7 +49,7 @@ public class FriendController {
     @PostMapping("/delete")
     public ApiResponse<Boolean> deleteFriend(
             @CurrentUser User user,
-            @RequestParam Long friendId) {
+            @RequestParam("friendId")Long friendId) {
         boolean result = friendWriteService.deleteFriend(user, friendId);
         return ApiResponse.onSuccess(result);
     }
@@ -90,7 +90,7 @@ public class FriendController {
     @PostMapping("/accept")
     public ApiResponse<Boolean> acceptFriendRequest(
             @Parameter(hidden = true) @CurrentUser Long userId,
-            @RequestParam Long friendId) {
+            @RequestParam("friendId") Long friendId) {
         boolean result = friendWriteService.acceptFriendRequest(userId, friendId);
         return ApiResponse.onSuccess(result);
     }
@@ -99,7 +99,7 @@ public class FriendController {
     @PostMapping("/request")
     public ApiResponse<Boolean> sendFriendRequest(
             @Parameter(hidden = true) @CurrentUser Long userId,
-            @RequestParam Long friendId) {
+            @RequestParam("friendId") Long friendId) {
         boolean result = friendWriteService.sendFriendRequest(userId, friendId);
         return ApiResponse.onSuccess(result);
     }
