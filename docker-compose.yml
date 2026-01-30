@@ -18,6 +18,26 @@ services:
     networks:
       - planup-network
 
+  mysql:
+    image: mysql:8.0
+    container_name: planup-mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Seoul
+    volumes:
+      - /var/lib/mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - planup-network
+
   app:
     build:
       context: .
@@ -25,13 +45,15 @@ services:
     container_name: planup-app
     restart: unless-stopped
     depends_on:
+      mysql:
+        condition: service_healthy
       redis:
         condition: service_healthy
     env_file:
       - .env
     environment:
       # MySQL은 서비스 이름으로 접근
-      DB_HOST: ${DB_HOST}
+      DB_HOST: mysql
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
@@ -118,7 +140,6 @@ services:
       - planup-network
 
 volumes:
-  mysql-data:
   redis-data:
   prometheus-data:
   grafana-data:

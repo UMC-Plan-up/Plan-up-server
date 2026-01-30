@@ -75,7 +75,12 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.REQUESTED, userId, friendId);
 
         if (optionalFriend.isPresent()) {
+
             Friend friend = optionalFriend.get();
+
+            //셀프 수락 여부 확인
+            friendValidator.isFriendRequester(friend, userId);
+
             friend.setStatus(FriendStatus.ACCEPTED);
 
             //커밋 이후 알림 생성

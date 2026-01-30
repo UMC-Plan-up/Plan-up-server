@@ -48,7 +48,9 @@ public class FriendReadServiceImpl implements FriendReadService {
         User me = userService.getUserByUserId(userId);
 
         List<Friend> relations = friendRepository.findListByUserIdWithUsers(ACCEPTED, me.getId());
-        List<User> friends = relations.stream().map(Friend::getFriend).toList();
+        List<User> friends = relations.stream()
+                .map(relation -> relation.getFriendNotMe(me.getId()))
+                .toList();
 
         return FriendConverter.toFriendSummaryList(
                 friends.stream()

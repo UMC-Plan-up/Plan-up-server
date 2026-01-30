@@ -64,7 +64,6 @@ jobs:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
-          DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USER: ${{ secrets.DB_USER }}
@@ -86,7 +85,7 @@ jobs:
           # .env 파일 생성
           cat <<EOF > .env
           # 데이터베이스 설정
-          DB_HOST=${DB_HOST}
+          DB_HOST=mysql
           DB_PORT=${DB_PORT}
           DB_NAME=${DB_NAME}
           DB_USER=${DB_USER}
@@ -143,8 +142,10 @@ jobs:
             docker-compose down 2>/dev/null || true
           
             echo "Cleaning Docker resources..."
-            docker system prune -af --volumes 2>/dev/null || true
-          
+          # docker system prune -af --volumes 2>/dev/null || true
+            docker image prune -af || true
+            docker builder prune -af || true
+
             echo "Removing old build files..."
             rm -rf /home/${EC2_USERNAME}/planup/build/libs/*.jar 2>/dev/null || true
           
@@ -184,17 +185,20 @@ jobs:
           df -h
 
           echo "=== Stopping existing containers ==="
-          docker-compose down || true
+          docker compose down || true
+
+          echo "=== Cleaning old images ==="
+          docker image prune -af || true
 
           echo "=== Building and starting containers ==="
-          docker-compose up -d --build
+          docker compose up -d --build
 
           echo "=== Waiting for services to be healthy ==="
           echo "Initial startup delay: 60 seconds..."
           sleep 60
           
           echo "=== Checking application health ==="
-          MAX_ATTEMPTS=12
+          MAX_ATTEMPTS=6
           ATTEMPT=1
           while [ \$ATTEMPT -le \$MAX_ATTEMPTS ]; do
             if curl -f http://localhost/actuator/health > /dev/null 2>&1; then
@@ -211,10 +215,10 @@ jobs:
           done
           
           echo "=== Container status ==="
-          docker-compose ps
+          docker compose ps
           
           echo "=== Application logs (last 100 lines) ==="
-          docker-compose logs --tail=100 app
+          docker compose logs --tail=100 app
 
           echo "=== Final health check ==="
           curl -f http://localhost/actuator/health || echo "Health check failed"

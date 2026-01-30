@@ -14,7 +14,7 @@ public class UserRequestDTO {
     @Setter
     @Schema(name = "UserLoginRequest")
     public static class Login {
-        @NotBlank @Email @Schema(description = "이메일", example = "user1@test.com")
+        @NotBlank @Email @Schema(description = "이메일", example = "user10@test.com")
         private String email;
 
         @NotBlank @Schema(description = "비밀번호", example = "pw")
