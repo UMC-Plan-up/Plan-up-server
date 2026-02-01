@@ -101,13 +101,6 @@ public class UserAuthController implements UserAuthControllerDocs {
     }
 
     @Override
-    @PostMapping("/email/resend")
-    public ApiResponse<AuthResponseDTO.EmailSend> resendVerificationEmail(@RequestBody @Valid AuthRequestDTO.EmailVerification request) {
-        AuthResponseDTO.EmailSend response = userAuthCommandService.sendEmailVerification(request.getEmail());
-        return ApiResponse.onSuccess(response);
-    }
-
-    @Override
     @GetMapping("/email/verification-status")
     public ApiResponse<AuthResponseDTO.EmailVerificationStatus> getEmailVerificationStatus(@RequestParam("token") String token) {
         AuthResponseDTO.EmailVerificationStatus response = userQueryService.getEmailVerificationStatus(token);
@@ -128,17 +121,6 @@ public class UserAuthController implements UserAuthControllerDocs {
         AuthResponseDTO.EmailSend response = userAuthCommandService.sendPasswordChangeEmail(
                 request.getEmail(),
                 request.getIsLoggedIn() // 로그인 상태 추가
-        );
-        return ApiResponse.onSuccess(response);
-    }
-
-    @Override
-    @PostMapping("/password/change-email/resend")
-    public ApiResponse<AuthResponseDTO.EmailSend> resendPasswordChangeEmail(
-            @RequestBody @Valid UserRequestDTO.PasswordChangeEmail request) {
-        AuthResponseDTO.EmailSend response = userAuthCommandService.resendPasswordChangeEmail(
-                request.getEmail(),
-                request.getIsLoggedIn()  // 로그인 상태 포함
         );
         return ApiResponse.onSuccess(response);
     }

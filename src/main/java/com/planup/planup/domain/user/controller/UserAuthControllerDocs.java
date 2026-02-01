@@ -48,9 +48,6 @@ public interface UserAuthControllerDocs {
     @Operation(summary = "이메일 인증 발송", description = "이메일 중복 확인 후 인증메일을 발송하고 토큰을 반환합니다.")
     ApiResponse<AuthResponseDTO.EmailSend> sendEmailVerification(@RequestBody @Valid AuthRequestDTO.EmailVerification request);
 
-    @Operation(summary = "이메일 인증 재발송", description = "기존 이메일로 인증 메일을 재발송합니다.")
-    ApiResponse<AuthResponseDTO.EmailSend> resendVerificationEmail(@RequestBody @Valid AuthRequestDTO.EmailVerification request);
-
     @Operation(summary = "이메일 인증 여부 확인", description = "토큰으로 이메일을 확인하고 인증 상태를 반환합니다.")
     ApiResponse<AuthResponseDTO.EmailVerificationStatus> getEmailVerificationStatus(@RequestParam("token") String token);
 
@@ -59,9 +56,6 @@ public interface UserAuthControllerDocs {
 
     @Operation(summary = "비밀번호 변경 확인 이메일 발송", description = "비밀번호 변경을 위한 확인 메일을 발송하고 토큰을 반환합니다.")
     ApiResponse<AuthResponseDTO.EmailSend> sendPasswordChangeEmail(@RequestBody @Valid UserRequestDTO.PasswordChangeEmail request);
-
-    @Operation(summary = "비밀번호 변경 확인 이메일 재발송", description = "비밀번호 변경을 위한 확인 메일을 재발송합니다.")
-    ApiResponse<AuthResponseDTO.EmailSend> resendPasswordChangeEmail(@RequestBody @Valid UserRequestDTO.PasswordChangeEmail request);
 
     @Operation(summary = "비밀번호 변경 요청 이메일 링크 클릭 처리", description = "비밀번호 변경 링크 클릭 시 확인 처리 후 웹페이지(HTML)를 반환합니다.")
     ResponseEntity<String> handlePasswordChangeLink(@RequestParam String token);
