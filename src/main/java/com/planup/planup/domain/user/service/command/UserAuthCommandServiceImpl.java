@@ -195,7 +195,9 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
     @Override
     public OAuthResponseDTO.KakaoAuth kakaoAuth(OAuthRequestDTO.KakaoAuth request) {
-        KakaoUserInfo kakaoUserInfo = kakaoService.getUserInfo(request.getCode());
+        // 클라이언트로부터 받은 이메일로 카카오 유저 정보 생성 (Mocking)
+        KakaoUserInfo kakaoUserInfo = kakaoService.getUserInfo(request.getEmail());
+        
         if (kakaoUserInfo == null) {
             throw new AuthException(ErrorStatus.KAKAO_USER_INFO_FAILED);
         }
@@ -248,7 +250,8 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
     @Override
     public OAuthResponseDTO.KaKaoLink linkKakaoAccount(Long userId, OAuthRequestDTO.KaKaoLink request) {
-        KakaoUserInfo kakaoUserInfo = kakaoService.getUserInfo(request.getCode());
+        // 이메일 기반으로 변경
+        KakaoUserInfo kakaoUserInfo = kakaoService.getUserInfo(request.getEmail());
         if (kakaoUserInfo == null) {
             throw new AuthException(ErrorStatus.KAKAO_USER_INFO_FAILED);
         }
@@ -284,6 +287,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     }
 
     private OAuthResponseDTO.KakaoAuth handleKakaoAuth(KakaoUserInfo kakaoUserInfo, String email) {
+        // 이메일로 기존 계정 조회 (Provider ID가 아닌 이메일로 조회)
         Optional<OAuthAccount> existingOAuth = oAuthAccountRepository
                 .findByEmailAndProvider(email, AuthProvideerEnum.KAKAO);
 
