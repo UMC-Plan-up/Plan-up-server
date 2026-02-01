@@ -27,7 +27,7 @@ import com.planup.planup.domain.user.dto.OAuthResponseDTO;
 @RequiredArgsConstructor
 @Slf4j
 @RequestMapping("/users")
-public class UserAuthController {
+public class UserAuthController implements UserAuthControllerDocs {
 
     private final UserAuthCommandService userAuthCommandService;
     private final TokenService tokenService;
