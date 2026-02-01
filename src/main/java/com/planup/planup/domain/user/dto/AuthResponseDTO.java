@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 public class AuthResponseDTO {
     @Getter
     @Builder
@@ -117,8 +119,8 @@ public class AuthResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    @Schema(name = "AuthTermsListResponse")
-    public static class TermsList {
+    @Schema(name = "AuthTermsItem")
+    public static class TermsItem {
         @Schema(description = "약관 ID", example = "1")
         private Long id;
 
@@ -130,6 +132,17 @@ public class AuthResponseDTO {
 
         @Schema(description = "약관 순서", example = "1")
         private Integer order;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(name = "AuthTermsListResponse")
+    public static class TermsList {
+
+        @Schema(description = "약관 목록")
+        private List<TermsItem> termsList;
     }
 
     @Getter

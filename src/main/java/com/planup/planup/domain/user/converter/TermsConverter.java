@@ -13,14 +13,27 @@ import java.util.stream.Collectors;
 public class TermsConverter {
 
     /**
-     * Terms 엔티티를 약관 목록 응답 DTO로 변환
+     * Terms 엔티티를 단일 약관 DTO로 변환
      */
-    public static AuthResponseDTO.TermsList toTermsListResponse(Terms terms) {
-        return AuthResponseDTO.TermsList.builder()
+    public static AuthResponseDTO.TermsItem toTermsItem(Terms terms) {
+        return AuthResponseDTO.TermsItem.builder()
                 .id(terms.getId())
                 .summary(terms.getSummary())
                 .isRequired(terms.getIsRequired())
                 .order(terms.getOrder())
+                .build();
+    }
+
+    /**
+     * Terms 엔티티 리스트를 약관 목록 응답 DTO로 변환
+     */
+    public static AuthResponseDTO.TermsList toTermsListResponse(List<Terms> termsList) {
+        List<AuthResponseDTO.TermsItem> items = termsList.stream()
+                .map(TermsConverter::toTermsItem)
+                .toList();
+
+        return AuthResponseDTO.TermsList.builder()
+                .termsList(items)
                 .build();
     }
 
@@ -32,14 +45,5 @@ public class TermsConverter {
                 .id(terms.getId())
                 .content(terms.getContent())
                 .build();
-    }
-
-    /**
-     * Terms 엔티티 리스트를 약관 목록 응답 DTO 리스트로 변환
-     */
-    public static List<AuthResponseDTO.TermsList> toTermsListResponseList(List<Terms> termsList) {
-        return termsList.stream()
-                .map(TermsConverter::toTermsListResponse)
-                .collect(Collectors.toList());
     }
 }

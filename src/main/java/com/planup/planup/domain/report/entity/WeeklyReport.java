@@ -17,6 +17,15 @@ import java.util.List;
 @AllArgsConstructor
 @ToString(exclude = {"user", "goalReports", "dailyRecords"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Table(
+        name = "weekly_report",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_weekly_report_user_year_month_week",
+                        columnNames = {"user_id", "year", "month", "week_number"}
+                )
+        }
+)
 public class WeeklyReport extends BaseTimeEntity {
 
     @Id
@@ -30,6 +39,7 @@ public class WeeklyReport extends BaseTimeEntity {
 
     private int year;
     private int month;
+    @Column(name = "week_number")
     private int weekNumber;
 
     private LocalDateTime startDate;
@@ -38,9 +48,11 @@ public class WeeklyReport extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private GoalMessage nextGoalMessage;
 
+    @Builder.Default
     @OneToMany(mappedBy = "weeklyReport", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GoalReport> goalReports = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "weeklyReport", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DailyRecord> dailyRecords = new ArrayList<>();
 

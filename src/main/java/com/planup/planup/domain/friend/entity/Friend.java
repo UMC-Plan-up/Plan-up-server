@@ -18,11 +18,12 @@ import java.util.Objects;
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "uk_friend_pair",
-                        columnNames = {"user_low_id", "user_high_id"}
+                        columnNames = {"user_id", "friend_id"}
                 )
         },
         indexes = {
-                @Index(name = "idx_friend_pair", columnList = "user_low_id,user_high_id")
+                @Index(name = "idx_friend_pair", columnList = "user_id, friend_id"),
+                @Index(name = "idx_friend_pair_rev", columnList = "friend_id, user_id")
         }
 )
 public class Friend extends BaseTimeEntity {

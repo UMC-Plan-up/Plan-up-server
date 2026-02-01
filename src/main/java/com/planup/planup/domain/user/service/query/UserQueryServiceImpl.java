@@ -109,41 +109,26 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     @Override
     public UserResponseDTO.RandomNickname generateRandomNickname() {
-        List<Adjective> adjectives = adjectiveRepository.findAll();
-        List<Noun> nouns = nounRepository.findAll();
+        Adjective adjective = adjectiveRepository.findRandomAdjective()
+                .orElseThrow(() -> new UserException(ErrorStatus.NICKNAME_DATA_NOT_FOUND));
+        Noun noun = nounRepository.findRandomNoun()
+                .orElseThrow(() -> new UserException(ErrorStatus.NICKNAME_DATA_NOT_FOUND));
 
-        if (adjectives.isEmpty() || nouns.isEmpty()) {
-            log.error("형용사 또는 명사 데이터가 없습니다. adjectives: {}, nouns: {}", adjectives.size(), nouns.size());
-            throw new UserException(ErrorStatus.NICKNAME_DATA_NOT_FOUND);
+        String baseNickname = adjective.getWord() + noun.getWord();
+
+        if (!userRepository.existsByNickname(baseNickname)) {
+            return UserProfileConverter.toRandomNicknameResponseDTO(baseNickname);
         }
 
-        RandomNickname randomNickname = generateNickname(adjectives, nouns);
+        // 중복이면 숫자 suffix 붙여서 재시도
+        for (int i = 1; i < 1000 ; i++) {
+            String candidate = baseNickname + i;
 
-        return UserResponseDTO.RandomNickname.builder()
-                .nickname(randomNickname.getFullNickname())
-                .build();
-    }
-
-    private RandomNickname generateNickname(List<Adjective> adjectives, List<Noun> nouns) {
-        int maxAttempts = 10;
-
-        for (int attempt = 0; attempt < maxAttempts; attempt++) {
-            Adjective adjective = adjectives.get(random.nextInt(adjectives.size()));
-            Noun noun = nouns.get(random.nextInt(nouns.size()));
-
-            String fullNickname = adjective.getWord() + noun.getWord();
-
-            if (fullNickname.length() > 20) {
-                continue;
-            }
-
-            if (!userRepository.existsByNickname(fullNickname)) {
-                return RandomNickname.of(adjective.getWord(), noun.getWord());
+            if (!userRepository.existsByNickname(candidate)) {
+                return UserProfileConverter.toRandomNicknameResponseDTO(candidate);
             }
         }
-
-        log.warn("랜덤 닉네임 생성 중 중복이 많아 기본 닉네임을 반환합니다.");
-        return RandomNickname.of("행복한", "사용자");
+        throw new UserException(ErrorStatus.NICKNAME_GENERATION_FAILED);
     }
 
     // ========== 인증 상태 조회 ==========
@@ -283,9 +268,9 @@ public class UserQueryServiceImpl implements UserQueryService {
     // ========== 약관 조회 ==========
 
     @Override
-    public List<AuthResponseDTO.TermsList> getTermsList() {
+    public AuthResponseDTO.TermsList getTermsList() {
         List<Terms> termsList = termsRepository.findAllByOrderByOrderAsc();
-        return TermsConverter.toTermsListResponseList(termsList);
+        return TermsConverter.toTermsListResponse(termsList);
     }
 
     @Override

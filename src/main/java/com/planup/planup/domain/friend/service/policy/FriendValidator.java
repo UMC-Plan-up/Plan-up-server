@@ -2,6 +2,7 @@ package com.planup.planup.domain.friend.service.policy;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.FriendException;
+import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,5 +28,9 @@ public class FriendValidator {
 
     public void ensureNotSelfRequest(Long userId, Long friendId) {
         if (userId == friendId) throw new FriendException(ErrorStatus.SAME_USER);
+    }
+
+    public void isFriendRequester(Friend friend, Long userId) {
+        if (friend.getUser().getId().equals(userId)) throw new FriendException(ErrorStatus.SAME_USER);
     }
 }

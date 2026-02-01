@@ -103,7 +103,7 @@ public class UserAuthController implements UserAuthControllerDocs {
     @Override
     @PostMapping("/email/resend")
     public ApiResponse<AuthResponseDTO.EmailSend> resendVerificationEmail(@RequestBody @Valid AuthRequestDTO.EmailVerification request) {
-        AuthResponseDTO.EmailSend response = userAuthCommandService.resendEmailVerification(request.getEmail());
+        AuthResponseDTO.EmailSend response = userAuthCommandService.sendEmailVerification(request.getEmail());
         return ApiResponse.onSuccess(response);
     }
 
