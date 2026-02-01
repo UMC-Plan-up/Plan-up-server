@@ -66,7 +66,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                         // 인증 불필요 - 회원가입/로그인 관련
-                        .requestMatchers("/users/signup", "/users/login").permitAll()
+                        .requestMatchers("/users/signup", "/users/login", "/users/refresh").permitAll()
                         // 이메일 인증 (회원가입 시)
                         .requestMatchers("/users/email/send").permitAll()
                         .requestMatchers("/users/email/resend").permitAll()
