@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,16 +23,16 @@ public interface UserAuthControllerDocs {
     // ======================== 기본 인증 (가입/로그인/토큰) ========================
 
     @Operation(summary = "회원가입", description = "이메일/비밀번호로 새 계정을 생성합니다.")
-    ApiResponse<UserResponseDTO.Signup> signup(@RequestBody UserRequestDTO.Signup request);
+    ApiResponse<UserResponseDTO.Signup> signup(@Valid @RequestBody UserRequestDTO.Signup request);
 
     @Operation(summary = "로그인", description = "이메일/비밀번호로 로그인하여 JWT 토큰을 발급받습니다.")
-    ApiResponse<UserResponseDTO.Login> login(@RequestBody UserRequestDTO.Login request);
+    ApiResponse<UserResponseDTO.Login> login(@Valid @RequestBody UserRequestDTO.Login request);
 
     @Operation(summary = "로그아웃", description = "현재 사용자를 로그아웃합니다.")
     ApiResponse<String> logout(@Parameter(hidden = true) Long userId, HttpServletRequest httpRequest);
 
     @Operation(summary = "토큰 갱신", description = "리프레쉬 토큰을 사용하여 새로운 액세스 토큰을 발급받습니다.")
-    ApiResponse<TokenRefreshResponseDTO> refreshToken(@RequestBody TokenRefreshRequestDTO request);
+    ApiResponse<TokenRefreshResponseDTO> refreshToken(@Valid @RequestBody TokenRefreshRequestDTO request);
 
     @Operation(summary = "토큰 유효성 확인", description = "현재 액세스 토큰의 유효성을 확인합니다.")
     ApiResponse<String> validateToken(@Parameter(hidden = true) Long userId);
@@ -45,10 +46,10 @@ public interface UserAuthControllerDocs {
     ApiResponse<Boolean> changePasswordWithToken(@RequestBody UserRequestDTO.PasswordChangeWithToken request, @Parameter(hidden = true) Long userId);
 
     @Operation(summary = "이메일 인증 발송", description = "이메일 중복 확인 후 인증메일을 발송하고 토큰을 반환합니다.")
-    ApiResponse<AuthResponseDTO.EmailSend> sendEmailVerification(@RequestBody AuthRequestDTO.EmailVerification request);
+    ApiResponse<AuthResponseDTO.EmailSend> sendEmailVerification(@RequestBody @Valid AuthRequestDTO.EmailVerification request);
 
     @Operation(summary = "이메일 인증 재발송", description = "기존 이메일로 인증 메일을 재발송합니다.")
-    ApiResponse<AuthResponseDTO.EmailSend> resendVerificationEmail(@RequestBody AuthRequestDTO.EmailVerification request);
+    ApiResponse<AuthResponseDTO.EmailSend> resendVerificationEmail(@RequestBody @Valid AuthRequestDTO.EmailVerification request);
 
     @Operation(summary = "이메일 인증 여부 확인", description = "토큰으로 이메일을 확인하고 인증 상태를 반환합니다.")
     ApiResponse<AuthResponseDTO.EmailVerificationStatus> getEmailVerificationStatus(@RequestParam("token") String token);
@@ -57,10 +58,10 @@ public interface UserAuthControllerDocs {
     ResponseEntity<String> handleEmailLink(@RequestParam String token);
 
     @Operation(summary = "비밀번호 변경 확인 이메일 발송", description = "비밀번호 변경을 위한 확인 메일을 발송하고 토큰을 반환합니다.")
-    ApiResponse<AuthResponseDTO.EmailSend> sendPasswordChangeEmail(@RequestBody UserRequestDTO.PasswordChangeEmail request);
+    ApiResponse<AuthResponseDTO.EmailSend> sendPasswordChangeEmail(@RequestBody @Valid UserRequestDTO.PasswordChangeEmail request);
 
     @Operation(summary = "비밀번호 변경 확인 이메일 재발송", description = "비밀번호 변경을 위한 확인 메일을 재발송합니다.")
-    ApiResponse<AuthResponseDTO.EmailSend> resendPasswordChangeEmail(@RequestBody UserRequestDTO.PasswordChangeEmail request);
+    ApiResponse<AuthResponseDTO.EmailSend> resendPasswordChangeEmail(@RequestBody @Valid UserRequestDTO.PasswordChangeEmail request);
 
     @Operation(summary = "비밀번호 변경 요청 이메일 링크 클릭 처리", description = "비밀번호 변경 링크 클릭 시 확인 처리 후 웹페이지(HTML)를 반환합니다.")
     ResponseEntity<String> handlePasswordChangeLink(@RequestParam String token);
@@ -120,13 +121,13 @@ public interface UserAuthControllerDocs {
                     )
             )
     })
-    ApiResponse<OAuthResponseDTO.KakaoAuth> kakaoAuth(@RequestBody OAuthRequestDTO.KakaoAuth request);
+    ApiResponse<OAuthResponseDTO.KakaoAuth> kakaoAuth(@Valid @RequestBody OAuthRequestDTO.KakaoAuth request);
 
     @Operation(summary = "카카오 회원가입 완료", description = "카카오 온보딩 완료 후 모든 정보를 받아서 회원가입을 완료합니다.")
-    ApiResponse<UserResponseDTO.Signup> kakaoSignupComplete(@RequestBody OAuthRequestDTO.KaKaoSignup request);
+    ApiResponse<UserResponseDTO.Signup> kakaoSignupComplete(@Valid @RequestBody OAuthRequestDTO.KaKaoSignup request);
 
     @Operation(summary = "이메일 인증 대안 - 카카오 로그인", description = "이메일 인증 실패 시 카카오 소셜 로그인으로 전환합니다.")
-    ApiResponse<OAuthResponseDTO.KakaoAuth> emailAuthAlternative(@RequestBody OAuthRequestDTO.KakaoAuth request);
+    ApiResponse<OAuthResponseDTO.KakaoAuth> emailAuthAlternative(@Valid @RequestBody OAuthRequestDTO.KakaoAuth request);
 
     @Operation(summary = "카카오 계정 연동 여부 조회", description = "현재 로그인한 사용자의 카카오 계정 연동 여부를 확인합니다.")
     ApiResponse<OAuthResponseDTO.KakaoLinkStatus> getKakaoLinkStatus(@Parameter(hidden = true) Long userId);
@@ -137,13 +138,13 @@ public interface UserAuthControllerDocs {
     ApiResponse<AuthResponseDTO.InviteCode> getMyInviteCode(@Parameter(hidden = true) Long userId);
 
     @Operation(summary = "초대코드 처리", description = "초대코드를 검증하고 친구 관계를 생성합니다.")
-    ApiResponse<AuthResponseDTO.InviteCodeProcess> processInviteCode(@RequestBody AuthRequestDTO.InviteCode request, @Parameter(hidden = true) Long userId);
+    ApiResponse<AuthResponseDTO.InviteCodeProcess> processInviteCode(@Valid @RequestBody AuthRequestDTO.InviteCode request, @Parameter(hidden = true) Long userId);
 
     @Operation(summary = "초대코드 실시간 검증", description = "입력된 초대코드가 유효한지 실시간으로 검증합니다.")
-    ApiResponse<AuthResponseDTO.ValidateInviteCode> validateInviteCode(@RequestBody AuthRequestDTO.InviteCode request);
+    ApiResponse<AuthResponseDTO.ValidateInviteCode> validateInviteCode(@Valid @RequestBody AuthRequestDTO.InviteCode request);
 
     // ======================== 회원 탈퇴 ========================
 
     @Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 처리하고 탈퇴 이유를 저장합니다.")
-    ApiResponse<UserResponseDTO.Withdrawal> withdrawUser(@RequestBody UserRequestDTO.Withdrawal request, @Parameter(hidden = true) Long userId);
+    ApiResponse<UserResponseDTO.Withdrawal> withdrawUser(@Valid @RequestBody UserRequestDTO.Withdrawal request, @Parameter(hidden = true) Long userId);
 }
