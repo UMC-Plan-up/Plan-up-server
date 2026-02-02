@@ -120,9 +120,6 @@ public interface UserAuthControllerDocs {
     @Operation(summary = "카카오 회원가입 완료", description = "카카오 온보딩 완료 후 모든 정보를 받아서 회원가입을 완료합니다.")
     ApiResponse<UserResponseDTO.Signup> kakaoSignupComplete(@Valid @RequestBody OAuthRequestDTO.KaKaoSignup request);
 
-    @Operation(summary = "이메일 인증 대안 - 카카오 로그인", description = "이메일 인증 실패 시 카카오 소셜 로그인으로 전환합니다.")
-    ApiResponse<OAuthResponseDTO.KakaoAuth> emailAuthAlternative(@Valid @RequestBody OAuthRequestDTO.KakaoAuth request);
-
     @Operation(summary = "카카오 계정 연동 여부 조회", description = "현재 로그인한 사용자의 카카오 계정 연동 여부를 확인합니다.")
     ApiResponse<OAuthResponseDTO.KakaoLinkStatus> getKakaoLinkStatus(@Parameter(hidden = true) Long userId);
 
