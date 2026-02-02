@@ -66,7 +66,7 @@ public class FriendReadServiceImpl implements FriendReadService {
         //데이터가 없으면 빈 리스트를 만환한다.
         if (friendRequests.isEmpty()) return Collections.emptyList();
 
-        //friend 리스트 중에서 자신이 아닌 친구의 데이터를 모든다.
+        //friend 리스트 중에서 자신이 아닌 친구의 데이터를 모은다.
         List<User> friendList = friendRequests.stream().map(f -> f.getFriendNotMe(userId)).toList();
 
         return friendList.stream()
