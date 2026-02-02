@@ -162,6 +162,13 @@ public class UserAuthController implements UserAuthControllerDocs {
         return ApiResponse.onSuccess(result);
     }
 
+    @Override
+    @PostMapping("/auth/kakao/link")
+    public ApiResponse<OAuthResponseDTO.KaKaoLink> linkKakaoAccount(@CurrentUser Long userId, @Valid @RequestBody OAuthRequestDTO.KaKaoLink request) {
+        OAuthResponseDTO.KaKaoLink result = userAuthCommandService.linkKakaoAccount(userId, request);
+        return ApiResponse.onSuccess(result);
+    }
+
     // ======================== 초대 코드 처리 ========================
 
     @Override

@@ -20,6 +20,10 @@ public class OAuthRequestDTO {
         @Email(message = "이메일 형식이 올바르지 않습니다")
         @Schema(description = "카카오이메일", example = "test@planup.com")
         private String email;
+
+        @NotBlank(message = "카카오 액세스 토큰은 필수입니다")
+        @Schema(description = "카카오에서 발급받은 액세스 토큰")
+        private String kakaoAccessToken;
     }
 
     @Getter
@@ -30,6 +34,10 @@ public class OAuthRequestDTO {
         @Email(message = "이메일 형식이 올바르지 않습니다")
         @Schema(description = "카카오이메일", example = "test@planup.com")
         private String email;
+
+        @NotBlank(message = "카카오 액세스 토큰은 필수입니다")
+        @Schema(description = "카카오에서 발급받은 액세스 토큰")
+        private String kakaoAccessToken;
     }
 
     @Getter
