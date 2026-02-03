@@ -25,7 +25,8 @@ public class ChallengeController {
 
     @PostMapping("/create")
     @Operation(summary = "챌린지 생성 요청", description = "goal을 상속한 challenge를 생성하고 userGoal도 생성한다.")
-    public ApiResponse<Void> createChallenge(@CurrentUser Long userId, @RequestBody @Valid ChallengeRequestDTO.create createDTO) {
+    public ApiResponse<Void> createChallenge(@CurrentUser Long userId,
+                                             @RequestBody @Valid ChallengeRequestDTO.create createDTO) {
         challengeService.createChallenge(userId, createDTO);
         return ApiResponse.onSuccess(null);
     }
@@ -38,7 +39,6 @@ public class ChallengeController {
         return ApiResponse.onSuccess(requestedFriends);
     }
 
-
     @GetMapping("/{challengeId}")
     @Operation(summary = "챌린지 정보 조회", description = "친구가 신청한 챌린지의 자세한 정보 확인")
     public ApiResponse<ChallengeResponseDTO.ChallengeResponseInfo> getChallengeInfo(@CurrentUser Long userId, Long challengeId) {
@@ -48,7 +48,8 @@ public class ChallengeController {
 
     @GetMapping("/{challengeId}/reject")
     @Operation(summary = "챌린지 거절")
-    public ApiResponse<Void> rejectChallengeRequest(@CurrentUser Long userId, @PathVariable Long challengeId) {
+    public ApiResponse<Void> rejectChallengeRequest(@CurrentUser Long userId,
+                                                    @PathVariable Long challengeId) {
         challengeService.rejectChallengeRequest(userId, challengeId);
         return ApiResponse.onSuccess(null);
     }
@@ -56,14 +57,16 @@ public class ChallengeController {
 
     @GetMapping("/{challengeId}/accept")
     @Operation(summary = "챌린지 수락")
-    public ApiResponse<Void> acceptChallengeRequest(@CurrentUser Long userId, @PathVariable Long challengeId) {
+    public ApiResponse<Void> acceptChallengeRequest(@CurrentUser Long userId,
+                                                    @PathVariable Long challengeId) {
         challengeService.acceptChallengeRequest(userId, challengeId);
         return ApiResponse.onSuccess(null);
     }
 
     @PostMapping("/repenalty")
     @Operation(summary = "챌린지에 대한 다른 패널티 제안")
-    public ApiResponse<Void> reRequestPenalty(@CurrentUser Long userId, @RequestBody @Valid ChallengeRequestDTO.ReRequestPenalty dto) {
+    public ApiResponse<Void> reRequestPenalty(@CurrentUser Long userId,
+                                              @RequestBody @Valid ChallengeRequestDTO.ReRequestPenalty dto) {
         challengeService.reRequestPenalty(userId, dto);
         return ApiResponse.onSuccess(null);
     }
@@ -77,8 +80,9 @@ public class ChallengeController {
 
     @GetMapping("/{challengeId}/result")
     @Operation(summary = "챌린지의 결과를 확인한다.")
-    public ApiResponse<ChallengeResponseDTO.ChallengeResultResponseDTO> requestChallengeResult(@CurrentUser Long userId, @PathVariable Long challengeId) {
-        ChallengeResponseDTO.ChallengeResultResponseDTO challengeResult = challengeService.getChallengeResult(userId, challengeId);
+    public ApiResponse<ChallengeResponseDTO.ChallengeResultDTO> requestChallengeResult(@CurrentUser Long userId,
+                                                                                       @PathVariable Long challengeId) {
+        ChallengeResponseDTO.ChallengeResultDTO challengeResult = challengeService.getChallengeResult(userId, challengeId);
         return ApiResponse.onSuccess(challengeResult);
     }
 
