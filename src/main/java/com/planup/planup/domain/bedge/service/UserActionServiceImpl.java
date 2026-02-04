@@ -1,8 +1,7 @@
 package com.planup.planup.domain.bedge.service;
 
 import com.planup.planup.domain.bedge.entity.UserStat;
-import com.planup.planup.domain.bedge.service.badge.BadgeService;
-import com.planup.planup.domain.bedge.service.badge.BadgeServiceImpl;
+import com.planup.planup.domain.bedge.service.badge.BadgeCommandServiceImpl;
 import com.planup.planup.domain.bedge.service.userstat.UserStatQueryServiceImpl;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.reaction.domain.ReactionType;
@@ -17,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserActionServiceImpl {
 
     private final UserStatQueryServiceImpl userStatService;
-    private final BadgeServiceImpl badgeService;
+    private final BadgeCommandServiceImpl badgeService;
 
     //인증을 추가
     public void recordVerification(Goal goal, User user) {
