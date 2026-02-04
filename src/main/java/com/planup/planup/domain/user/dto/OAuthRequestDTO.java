@@ -1,6 +1,7 @@
 package com.planup.planup.domain.user.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -15,16 +16,20 @@ public class OAuthRequestDTO {
     @Setter
     @Schema(name = "OAuthKakaoAuthRequest")
     public static class KakaoAuth {
-        @NotBlank(message = "카카오 인가코드는 필수입니다")
-        private String code;
+        @NotBlank(message = "이메일은 필수입니다")
+        @Email(message = "이메일 형식이 올바르지 않습니다")
+        @Schema(description = "카카오이메일", example = "test@planup.com")
+        private String email;
     }
 
     @Getter
     @Setter
     @Schema(name = "OAuthKakaoLinkRequest")
     public static class KaKaoLink {
-        @NotBlank(message = "카카오 인가코드는 필수입니다")
-        private String code;
+        @NotBlank(message = "이메일은 필수입니다")
+        @Email(message = "이메일 형식이 올바르지 않습니다")
+        @Schema(description = "카카오이메일", example = "test@planup.com")
+        private String email;
     }
 
     @Getter

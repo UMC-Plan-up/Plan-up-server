@@ -10,6 +10,7 @@ import com.planup.planup.domain.user.entity.Terms;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserTerms;
 import com.planup.planup.domain.user.entity.UserWithdrawal;
+import com.planup.planup.domain.user.enums.Gender;
 import com.planup.planup.domain.user.enums.Role;
 import com.planup.planup.domain.user.enums.TokenStatus;
 import com.planup.planup.domain.user.enums.UserActivate;
@@ -248,11 +249,22 @@ public class UserAuthConverter {
      * 카카오 회원가입용 User 엔티티 생성
      */
     public User toKakaoUserEntity(KakaoUserInfo kakaoUserInfo, OAuthRequestDTO.KaKaoSignup request) {
+        Gender gender = Gender.UNKNOWN;
+        if (kakaoUserInfo.getKakaoAccount() != null && kakaoUserInfo.getKakaoAccount().getGender() != null) {
+            String genderStr = kakaoUserInfo.getKakaoAccount().getGender().toLowerCase();
+            if ("male".equals(genderStr)) {
+                gender = Gender.MALE;
+            } else if ("female".equals(genderStr)) {
+                gender = Gender.FEMALE;
+            }
+        }
+
         return User.builder()
                 .email(kakaoUserInfo.getKakaoAccount().getEmail())
                 .password(null)
                 .nickname(request.getNickname())
                 .role(Role.USER)
+                .gender(gender)
                 .userActivate(UserActivate.ACTIVE)
                 .userLevel(UserLevel.LEVEL_1)
                 .serviceNotificationAllow(true)

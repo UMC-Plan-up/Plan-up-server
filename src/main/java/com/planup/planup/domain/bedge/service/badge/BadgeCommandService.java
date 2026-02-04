@@ -2,7 +2,7 @@ package com.planup.planup.domain.bedge.service.badge;
 
 import com.planup.planup.domain.bedge.entity.UserStat;
 
-public interface BadgeService {
+public interface BadgeCommandService {
     void checkBadgeOnComment(UserStat userStat, boolean isFriendPost);
 
     void checkBadgeOnRecord(UserStat userStat);

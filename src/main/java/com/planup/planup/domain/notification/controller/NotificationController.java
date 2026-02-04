@@ -3,10 +3,9 @@ package com.planup.planup.domain.notification.controller;
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.notification.entity.NotificationType;
-import com.planup.planup.domain.notification.service.NotificationService;
+import com.planup.planup.domain.notification.service.NotificationServiceRead;
+import com.planup.planup.domain.notification.service.NotificationServiceWrite;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,11 +15,12 @@ import java.util.List;
 @RequestMapping("/notifications")
 public class NotificationController {
 
-    private final NotificationService notificationService;
+    private final NotificationServiceRead notificationServiceRead;
+    private final NotificationServiceWrite notificationServiceWrite;
 
     @PatchMapping("/{notificationId}")
     public ApiResponse<Void> patchNotificationRead(Long userId, Long notificationId) {
-        notificationService.markAsRead(notificationId, userId);
+        notificationServiceWrite.markAsRead(notificationId, userId);
         return ApiResponse.onSuccess(null);
     }
 
@@ -29,7 +29,7 @@ public class NotificationController {
             @PathVariable Long receiverId) {
 
         List<NotificationResponseDTO.NotificationDTO> unreadNotifications =
-                notificationService.getUnreadNotifications(receiverId);
+                notificationServiceRead.getUnreadNotifications(receiverId);
 
         return ApiResponse.onSuccess(unreadNotifications);
     }
@@ -37,11 +37,17 @@ public class NotificationController {
     @GetMapping("/unread/{receiverId}/{type}")
     public ApiResponse<List<NotificationResponseDTO.NotificationDTO>> getUnreadNotificationsWithType(
             @PathVariable Long receiverId,
-            @PathVariable String type) {
+            @PathVariable NotificationType.NotificationGroup type) {
 
         List<NotificationResponseDTO.NotificationDTO> unreadNotifications =
-                notificationService.getUnreadNotificationsWithType(receiverId, type);
+                notificationServiceRead.getUnreadNotificationsWithType(receiverId, type);
 
         return ApiResponse.onSuccess(unreadNotifications);
+    }
+
+    @GetMapping("/{userId}")
+    public ApiResponse<List<NotificationResponseDTO.NotificationDTO>> getNotificationByUserId(@PathVariable Long userId) {
+        List<NotificationResponseDTO.NotificationDTO> notificationDTOS = notificationServiceRead.getAllNotifications(userId);
+        return ApiResponse.onSuccess(notificationDTOS);
     }
 }
