@@ -15,6 +15,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,12 @@ public class User extends BaseTimeEntity {
 
     @Column(nullable = false)
     private String nickname;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
+    private LocalDate birthDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
