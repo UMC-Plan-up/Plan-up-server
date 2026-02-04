@@ -5,7 +5,6 @@ import com.planup.planup.domain.bedge.dto.BadgeResponseDTO;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserBadge;
 import com.planup.planup.domain.user.repository.UserBadgeRepository;
-import com.planup.planup.domain.user.repository.UserRepository;
 import com.planup.planup.domain.user.service.query.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +21,7 @@ public class BadgeQueryServiceImpl implements BadgeQueryService {
     private final UserBadgeRepository userBadgeRepository;
     private final UserQueryService userQueryService;
 
+    @Override
     public List<BadgeResponseDTO.SimpleBadgeDTO> getUserBadgeList(Long userId) {
         User user = userQueryService.getUserByUserId(userId);
         List<UserBadge> userBadges = userBadgeRepository.findAllByUser(user);
