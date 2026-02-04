@@ -44,7 +44,7 @@ public class GoalReportReadServiceImpl implements GoalReportReadService {
         return CommentConverter.toResponseDtoList(commentList, goalReport.getUserId());
     }
 
-    //가장 최근의 리포트 2개를 반환한다.
+    //목표 아이디 기준 가장 최근의 리포트 2개를 반환한다.
     @Override
     public List<GoalReport> findTop2RecentByGoalId(Long id) {
         return goalReportRepository.findTop2ByGoalIdOrderByCreatedAt(id);
