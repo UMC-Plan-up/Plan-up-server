@@ -21,6 +21,7 @@ import com.planup.planup.domain.user.entity.UserTerms;
 import com.planup.planup.domain.user.entity.UserWithdrawal;
 import com.planup.planup.domain.user.enums.Gender;
 import com.planup.planup.domain.user.enums.UserActivate;
+import com.planup.planup.domain.user.enums.UserStatus;
 import com.planup.planup.domain.user.repository.*;
 import com.planup.planup.domain.user.service.external.KaKaoService;
 import com.planup.planup.domain.user.service.query.UserQueryService;
@@ -217,7 +218,11 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
             // SocialType 확인
             if (user.getSocialType() == AuthProvideerEnum.EMAIL) {
-                throw new UserException(ErrorStatus.DUPLICATE_EMAIL_ACCOUNT);
+                // 일반 이메일 가입 유저가 카카오 로그인 시도 시 차단 -> 상태값 반환으로 변경
+                return userAuthConverter.toKakaoAuthResponseDTO(
+                        UserStatus.EXISTING_EMAIL,
+                        null
+                );
             }
 
             // 로그인 진행 (KAKAO 타입인 경우)
@@ -228,7 +233,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
             return userAuthConverter.toKakaoAuthResponseDTO(
-                    false,
+                    UserStatus.EXISTING_KAKAO,
                     tokenResponse.getAccessToken(),
                     tokenResponse.getRefreshToken(),
                     tokenResponse.getExpiresIn(),
@@ -251,7 +256,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                 // Redis 연결 실패 등을 잡아서 처리
                 throw new AuthException(ErrorStatus.REDIS_SAVE_FAILED);
             }
-            return userAuthConverter.toKakaoAuthResponseDTO(true, tempUserId);
+            return userAuthConverter.toKakaoAuthResponseDTO(UserStatus.NEW, tempUserId);
         }
     }
 
