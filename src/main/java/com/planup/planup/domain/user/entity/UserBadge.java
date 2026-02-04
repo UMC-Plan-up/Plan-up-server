@@ -14,6 +14,12 @@ import lombok.experimental.SuperBuilder;
                         name = "uk_user_badge_user_badge_type",
                         columnNames = {"user_id", "badge_type"}
                 )
+        },
+        indexes = {
+                @Index(
+                        name = "idx_user_badge_user_id",
+                        columnList = "user_id"
+                )
         }
 )
 @Getter
