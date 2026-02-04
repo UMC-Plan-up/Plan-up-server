@@ -10,11 +10,7 @@ import com.planup.planup.domain.user.entity.Terms;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.entity.UserTerms;
 import com.planup.planup.domain.user.entity.UserWithdrawal;
-import com.planup.planup.domain.user.enums.Gender;
-import com.planup.planup.domain.user.enums.Role;
-import com.planup.planup.domain.user.enums.TokenStatus;
-import com.planup.planup.domain.user.enums.UserActivate;
-import com.planup.planup.domain.user.enums.UserLevel;
+import com.planup.planup.domain.user.enums.*;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -30,6 +26,8 @@ public class UserAuthConverter {
         return UserResponseDTO.Signup.builder()
                 .id(user.getId())
                 .email(user.getEmail())
+                .name(user.getName())
+                .birthDate(user.getBirthDate())
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .expiresIn(expiresIn)
@@ -47,6 +45,8 @@ public class UserAuthConverter {
                 .id(user.getId())
                 .email(user.getEmail())
                 .nickname(user.getNickname())
+                .name(user.getName())
+                .birthDate(user.getBirthDate())
                 .profileImg(user.getProfileImg())
                 .build();
     }
@@ -59,10 +59,13 @@ public class UserAuthConverter {
                 .email(request.getEmail())
                 .password(encodedPassword)
                 .nickname(request.getNickname())
+                .name(request.getName())
+                .birthDate(request.getBirthDate())
                 .role(Role.USER)
                 .gender(request.getGender())
                 .userActivate(UserActivate.ACTIVE)
                 .userLevel(UserLevel.LEVEL_1)
+                .socialType(AuthProvideerEnum.EMAIL)
                 .serviceNotificationAllow(true)
                 .marketingNotificationAllow(true)
                 .profileImg(profileImgUrl)
@@ -225,9 +228,9 @@ public class UserAuthConverter {
     /**
      * 카카오 인증 응답 DTO 생성 (기존 사용자)
      */
-    public OAuthResponseDTO.KakaoAuth toKakaoAuthResponseDTO(boolean isNewUser, String accessToken, String refreshToken, Long expiresIn, UserResponseDTO.UserInfo userInfo) {
+    public OAuthResponseDTO.KakaoAuth toKakaoAuthResponseDTO(UserStatus userStatus, String accessToken, String refreshToken, Long expiresIn, UserResponseDTO.UserInfo userInfo) {
         return OAuthResponseDTO.KakaoAuth.builder()
-                .isNewUser(isNewUser)
+                .userStatus(userStatus)
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .expiresIn(expiresIn)
@@ -238,9 +241,9 @@ public class UserAuthConverter {
     /**
      * 카카오 인증 응답 DTO 생성 (신규 사용자)
      */
-    public OAuthResponseDTO.KakaoAuth toKakaoAuthResponseDTO(boolean isNewUser, String tempUserId) {
+    public OAuthResponseDTO.KakaoAuth toKakaoAuthResponseDTO(UserStatus userStatus, String tempUserId) {
         return OAuthResponseDTO.KakaoAuth.builder()
-                .isNewUser(isNewUser)
+                .userStatus(userStatus)
                 .tempUserId(tempUserId)
                 .build();
     }
@@ -263,10 +266,13 @@ public class UserAuthConverter {
                 .email(kakaoUserInfo.getKakaoAccount().getEmail())
                 .password(null)
                 .nickname(request.getNickname())
+                .name(request.getName())
+                .birthDate(request.getBirthDate())
                 .role(Role.USER)
                 .gender(gender)
                 .userActivate(UserActivate.ACTIVE)
                 .userLevel(UserLevel.LEVEL_1)
+                .socialType(AuthProvideerEnum.KAKAO)
                 .serviceNotificationAllow(true)
                 .marketingNotificationAllow(true)
                 .profileImg(request.getProfileImg())

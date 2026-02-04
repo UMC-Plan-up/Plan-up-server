@@ -62,7 +62,7 @@ public interface UserAuthControllerDocs {
 
     // ======================== 소셜 인증 및 연동 (핵심 변경 사항) ========================
 
-    @Operation(summary = "카카오 소셜 인증", description = "카카오 인가코드로 로그인 또는 회원가입 여부를 판단합니다.")
+    @Operation(summary = "카카오 소셜 인증", description = "인가코드 방식에서 액세스 토큰 검증 방식으로 변경됨. 카카오 엑세스 토큰을 사용하여 로그인 또는 회원가입 여부를 판단합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공",
                     content = @Content(mediaType = "application/json",
@@ -120,11 +120,11 @@ public interface UserAuthControllerDocs {
     @Operation(summary = "카카오 회원가입 완료", description = "카카오 온보딩 완료 후 모든 정보를 받아서 회원가입을 완료합니다.")
     ApiResponse<UserResponseDTO.Signup> kakaoSignupComplete(@Valid @RequestBody OAuthRequestDTO.KaKaoSignup request);
 
-    @Operation(summary = "이메일 인증 대안 - 카카오 로그인", description = "이메일 인증 실패 시 카카오 소셜 로그인으로 전환합니다.")
-    ApiResponse<OAuthResponseDTO.KakaoAuth> emailAuthAlternative(@Valid @RequestBody OAuthRequestDTO.KakaoAuth request);
-
     @Operation(summary = "카카오 계정 연동 여부 조회", description = "현재 로그인한 사용자의 카카오 계정 연동 여부를 확인합니다.")
     ApiResponse<OAuthResponseDTO.KakaoLinkStatus> getKakaoLinkStatus(@Parameter(hidden = true) Long userId);
+
+    @Operation(summary = "카카오 계정 연동", description = "마이페이지에서 카카오 계정을 연동합니다. 카카오 액세스 토큰을 사용하여 검증 후 연동합니다.")
+    ApiResponse<OAuthResponseDTO.KaKaoLink> linkKakaoAccount(@Parameter(hidden = true) Long userId, @Valid @RequestBody OAuthRequestDTO.KaKaoLink request);
 
     // ======================== 초대 코드 처리 ========================
 

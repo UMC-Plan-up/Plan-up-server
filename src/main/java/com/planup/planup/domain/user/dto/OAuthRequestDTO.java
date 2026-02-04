@@ -1,13 +1,11 @@
 package com.planup.planup.domain.user.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class OAuthRequestDTO {
@@ -20,6 +18,10 @@ public class OAuthRequestDTO {
         @Email(message = "이메일 형식이 올바르지 않습니다")
         @Schema(description = "카카오이메일", example = "test@planup.com")
         private String email;
+
+        @NotBlank(message = "카카오 액세스 토큰은 필수입니다")
+        @Schema(description = "카카오에서 발급받은 액세스 토큰")
+        private String kakaoAccessToken;
     }
 
     @Getter
@@ -30,6 +32,10 @@ public class OAuthRequestDTO {
         @Email(message = "이메일 형식이 올바르지 않습니다")
         @Schema(description = "카카오이메일", example = "test@planup.com")
         private String email;
+
+        @NotBlank(message = "카카오 액세스 토큰은 필수입니다")
+        @Schema(description = "카카오에서 발급받은 액세스 토큰")
+        private String kakaoAccessToken;
     }
 
     @Getter
@@ -46,6 +52,14 @@ public class OAuthRequestDTO {
         @Pattern(regexp = "^[가-힣a-zA-Z0-9 ]+$", message = "닉네임은 한글, 영문, 숫자, 공백만 가능합니다(특수문자 불가)")
         @Schema(description = "사용자 닉네임", example = "테스트유저")
         private String nickname;
+
+        @Schema(description = "이름", example = "김라미")
+        @NotBlank(message = "이름은 필수입니다.")
+        private String name;
+
+        @Schema(description = "생년월일", example = "2000-01-01")
+        @NotNull(message = "생년월일은 필수입니다.")
+        private LocalDate birthDate;
 
         @Schema(description = "프로필 이미지 URL")
         private String profileImg;

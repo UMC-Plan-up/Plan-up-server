@@ -1,6 +1,7 @@
 package com.planup.planup.domain.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.planup.planup.domain.user.enums.UserStatus;
 import lombok.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -23,7 +24,7 @@ public class OAuthResponseDTO {
     @Schema(name = "OAuthKakaoAuthResponse")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class KakaoAuth {
-        private boolean isNewUser;
+        private UserStatus userStatus;
         private String tempUserId;   // 신규 사용자인 경우
         private String accessToken;  // 기존 사용자인 경우
         private String refreshToken; // 기존 사용자인 경우

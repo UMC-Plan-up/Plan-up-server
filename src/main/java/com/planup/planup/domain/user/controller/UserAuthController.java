@@ -149,16 +149,16 @@ public class UserAuthController implements UserAuthControllerDocs {
     }
 
     @Override
-    @PostMapping("/auth/email/alternative")
-    public ApiResponse<OAuthResponseDTO.KakaoAuth> emailAuthAlternative(@Valid @RequestBody OAuthRequestDTO.KakaoAuth request) {
-        OAuthResponseDTO.KakaoAuth result = userAuthCommandService.kakaoAuth(request);
+    @GetMapping("/auth/kakao/linked")
+    public ApiResponse<OAuthResponseDTO.KakaoLinkStatus> getKakaoLinkStatus(@CurrentUser Long userId) {
+        OAuthResponseDTO.KakaoLinkStatus result = userQueryService.getKakaoLinkStatus(userId);
         return ApiResponse.onSuccess(result);
     }
 
     @Override
-    @GetMapping("/auth/kakao/linked")
-    public ApiResponse<OAuthResponseDTO.KakaoLinkStatus> getKakaoLinkStatus(@CurrentUser Long userId) {
-        OAuthResponseDTO.KakaoLinkStatus result = userQueryService.getKakaoLinkStatus(userId);
+    @PostMapping("/auth/kakao/link")
+    public ApiResponse<OAuthResponseDTO.KaKaoLink> linkKakaoAccount(@CurrentUser Long userId, @Valid @RequestBody OAuthRequestDTO.KaKaoLink request) {
+        OAuthResponseDTO.KaKaoLink result = userAuthCommandService.linkKakaoAccount(userId, request);
         return ApiResponse.onSuccess(result);
     }
 
