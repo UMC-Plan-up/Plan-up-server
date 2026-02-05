@@ -132,4 +132,4 @@ management:
 
 #파이어베이스 관련 설정
 firebase:
-  credentials-path: ${FIREBASE_PATH:/Users/mymac/planup-8th-firebase-adminsdk-fbsvc-f1d10012f7.json}
+  credentials-path: ${./secrets/firebase-service-account.json}
