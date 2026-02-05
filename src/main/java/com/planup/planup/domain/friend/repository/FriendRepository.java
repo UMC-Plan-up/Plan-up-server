@@ -27,7 +27,9 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
         from Friend f
         join fetch f.user u
         join fetch f.friend fr
-        where f.status = :status and fr.id = :friendId
+        where f.status = :status 
+        and ((f.user.id = :userId and f.friend.id = :friendId)
+            or (f.user.id = :friendId and f.friend.id = :userId))
     """)
     List<Friend> findByStatusAndFriendIdOrderByCreatedAtDescWithUser(@Param("status")FriendStatus status,
                                                                      @Param("friendId")Long friendId);
@@ -78,10 +80,8 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
     select (count(f) > 0)
     from Friend f
     where f.status = :status
-      and (
-        (f.user.id = :userId and f.friend.id = :friendId)
-        or (f.user.id = :friendId and f.friend.id = :userId)
-      )
+      and ((f.user.id = :userId and f.friend.id = :friendId)
+        or (f.user.id = :friendId and f.friend.id = :userId))
 """)
     Boolean existsByUsersAndStatus(@Param("userId") Long userId,
                                    @Param("friendId") Long friendId,

@@ -1,11 +1,12 @@
 package com.planup.planup.domain.user.dto;
 
-import com.planup.planup.domain.user.enums.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
+import com.planup.planup.domain.user.enums.Gender;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class UserRequestDTO {
@@ -57,10 +58,20 @@ public class UserRequestDTO {
         @Pattern(regexp = "^[가-힣a-zA-Z0-9 ]+$", message = "닉네임은 한글, 영문, 숫자, 공백만 가능합니다.")
         private String nickname;
 
+        @Schema(description = "이름", example = "김라미")
+        @NotBlank(message = "이름은 필수입니다.")
+        private String name;
+
+        @Schema(description = "생년월일", example = "2000-01-01")
+        @NotNull(message = "생년월일은 필수입니다.")
+        private LocalDate birthDate;
+
+        @Schema(description = "성별 (MALE: 남성, FEMALE: 여성)", example = "FEMALE")
+        @NotNull(message = "성별은 필수입니다.")
+        private Gender gender;
+
         @Schema(description = "프로필 이미지 경로", example = "https://example.com/image.jpg")
         private String profileImg;
-
-        private Gender gender;
 
         @Schema(description = "약관 동의 목록")
         @NotEmpty

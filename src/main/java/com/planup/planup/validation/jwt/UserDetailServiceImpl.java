@@ -25,9 +25,15 @@ public class UserDetailServiceImpl implements UserDetailsService {
     }
 
     private UserDetails createUserDetails(User user) {
+        String password = user.getPassword();
+        if (password == null) {
+            // Spring Security는 비밀번호가 null이면 인증 실패로 간주할 수 있으므로 임시 값 설정
+            password = ""; 
+        }
+
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())
-                .password(user.getPassword())
+                .password(password)
                 .authorities(user.getRole().name()) // 실제 사용자의 Role 사용
                 .accountExpired(false)
                 .accountLocked(false)

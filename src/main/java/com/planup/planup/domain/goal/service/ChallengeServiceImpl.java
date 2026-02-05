@@ -260,7 +260,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 
     @Override
     @Transactional
-    public ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId) {
+    public ChallengeResponseDTO.ChallengeResultDTO getChallengeResult(Long userId, Long challengeId) {
         User user = userQueryService.getUserByUserId(userId);
         Challenge challenge = getChallengeById(challengeId);
 
@@ -271,7 +271,7 @@ public class ChallengeServiceImpl implements ChallengeService {
         int myPercent = calcAchievementRate(challenge, myUserGoal);
         int friendPercent = calcAchievementRate(challenge, friendUserGoal);
 
-        return ChallengeResponseDTO.ChallengeResultResponseDTO.builder()
+        return ChallengeResponseDTO.ChallengeResultDTO.builder()
                 .id(challengeId)
                 .myName(user.getNickname())
                 .myProfile(user.getProfileImg())

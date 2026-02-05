@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 public class UserResponseDTO {
 
     @Getter
@@ -42,6 +44,12 @@ public class UserResponseDTO {
 
         @Schema(description = "이메일", example = "user@planup.com")
         private String email;
+
+        @Schema(description = "이름", example = "김라미")
+        private String name;
+
+        @Schema(description = "생년월일", example = "2000-01-01")
+        private LocalDate birthDate;
 
         @Schema(description = "JWT 액세스 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
         private String accessToken;
@@ -90,6 +98,8 @@ public class UserResponseDTO {
         private Long id;
         private String email;
         private String nickname;
+        private String name;
+        private LocalDate birthDate;
         private String profileImg;
         private Boolean serviceNotificationAllow; // 서비스 알림 동의 상태
         private Boolean marketingNotificationAllow; // 혜택 및 마케팅 알림 동의 상태
@@ -99,6 +109,8 @@ public class UserResponseDTO {
                     .id(user.getId())
                     .email(user.getEmail())
                     .nickname(user.getNickname())
+                    .name(user.getName())
+                    .birthDate(user.getBirthDate())
                     .profileImg(user.getProfileImg())
                     .serviceNotificationAllow(user.getServiceNotificationAllow())
                     .marketingNotificationAllow(user.getMarketingNotificationAllow())
