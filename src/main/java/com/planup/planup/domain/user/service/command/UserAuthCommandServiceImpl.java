@@ -21,6 +21,7 @@ import com.planup.planup.domain.user.entity.UserTerms;
 import com.planup.planup.domain.user.entity.UserWithdrawal;
 import com.planup.planup.domain.user.enums.Gender;
 import com.planup.planup.domain.user.enums.UserActivate;
+import com.planup.planup.domain.user.enums.UserStatus;
 import com.planup.planup.domain.user.repository.*;
 import com.planup.planup.domain.user.service.external.KaKaoService;
 import com.planup.planup.domain.user.service.query.UserQueryService;
@@ -195,17 +196,68 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
     @Override
     public OAuthResponseDTO.KakaoAuth kakaoAuth(OAuthRequestDTO.KakaoAuth request) {
-        // 클라이언트로부터 받은 이메일로 카카오 유저 정보 생성 (Mocking)
-        KakaoUserInfo kakaoUserInfo = kakaoService.getUserInfo(request.getEmail());
+        // 카카오 유저 정보 조회 (액세스 토큰 사용)
+        KakaoUserInfo kakaoUserInfo = kakaoService.getUserInfo(request.getKakaoAccessToken());
         
-        if (kakaoUserInfo == null) {
+        if (kakaoUserInfo == null || kakaoUserInfo.getKakaoAccount() == null) {
             throw new AuthException(ErrorStatus.KAKAO_USER_INFO_FAILED);
         }
-        String email = Optional.ofNullable(kakaoUserInfo.getKakaoAccount())
-                .map(account -> account.getEmail())
-                .orElseThrow(() -> new AuthException(ErrorStatus.KAKAO_USER_INFO_FAILED));
 
-        return handleKakaoAuth(kakaoUserInfo, email);
+        String kakaoEmail = kakaoUserInfo.getKakaoAccount().getEmail();
+
+        // 이메일 일치 여부 검증
+        if (!kakaoEmail.equals(request.getEmail())) {
+            throw new AuthException(ErrorStatus.KAKAO_EMAIL_MISMATCH);
+        }
+
+        // 이메일로 유저 조회
+        Optional<User> existingUser = userRepository.findByEmail(kakaoEmail);
+
+        if (existingUser.isPresent()) {
+            User user = existingUser.get();
+
+            // SocialType 확인
+            if (user.getSocialType() == AuthProvideerEnum.EMAIL) {
+                // 일반 이메일 가입 유저가 카카오 로그인 시도 시 차단 -> 상태값 반환으로 변경
+                return userAuthConverter.toKakaoAuthResponseDTO(
+                        UserStatus.EXISTING_EMAIL,
+                        null
+                );
+            }
+
+            // 로그인 진행 (KAKAO 타입인 경우)
+            if (user.getUserActivate() != UserActivate.ACTIVE) {
+                throw new UserException(ErrorStatus.USER_INACTIVE);
+            }
+
+            TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
+
+            return userAuthConverter.toKakaoAuthResponseDTO(
+                    UserStatus.EXISTING_KAKAO,
+                    tokenResponse.getAccessToken(),
+                    tokenResponse.getRefreshToken(),
+                    tokenResponse.getExpiresIn(),
+                    UserResponseDTO.UserInfo.from(user)
+            );
+        } else {
+            // 신규 회원가입 진행
+            String tempUserId = UUID.randomUUID().toString();
+            String redisKey = TEMP_USER_PREFIX + tempUserId;
+
+            try {
+                // Redis 저장 시도
+                objectRedisTemplate.opsForValue().set(
+                        redisKey,
+                        kakaoUserInfo,
+                        Duration.ofMinutes(TEMP_USER_EXPIRE_MINUTES)
+                );
+
+            } catch (Exception e) {
+                // Redis 연결 실패 등을 잡아서 처리
+                throw new AuthException(ErrorStatus.REDIS_SAVE_FAILED);
+            }
+            return userAuthConverter.toKakaoAuthResponseDTO(UserStatus.NEW, tempUserId);
+        }
     }
 
     @Override
@@ -250,81 +302,42 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
     @Override
     public OAuthResponseDTO.KaKaoLink linkKakaoAccount(Long userId, OAuthRequestDTO.KaKaoLink request) {
-        // 이메일 기반으로 변경
-        KakaoUserInfo kakaoUserInfo = kakaoService.getUserInfo(request.getEmail());
-        if (kakaoUserInfo == null) {
+        // 카카오 유저 정보 조회
+        KakaoUserInfo kakaoUserInfo = kakaoService.getUserInfo(request.getKakaoAccessToken());
+        if (kakaoUserInfo == null || kakaoUserInfo.getKakaoAccount() == null) {
             throw new AuthException(ErrorStatus.KAKAO_USER_INFO_FAILED);
         }
 
-        String email = Optional.ofNullable(kakaoUserInfo.getKakaoAccount())
-                .map(account -> account.getEmail())
+        String kakaoEmail = Optional.ofNullable(kakaoUserInfo.getKakaoAccount().getEmail())
                 .orElseThrow(() -> new AuthException(ErrorStatus.KAKAO_EMAIL_NOT_FOUND));
+
+        // 이메일 일치 여부 검증
+        if (!kakaoEmail.equals(request.getEmail())) {
+            throw new AuthException(ErrorStatus.KAKAO_EMAIL_MISMATCH);
+        }
 
         User user = userQueryService.getUserByUserId(userId);
 
         // 이미 연동되어 있는지 확인
         boolean isAlreadyLinked = oAuthAccountRepository.existsByUserAndProvider(user, AuthProvideerEnum.KAKAO);
-
         if (isAlreadyLinked) {
             throw new UserException(ErrorStatus.KAKAO_ACCOUNT_ALREADY_LINKED);
         }
 
-        // 이미 다른 유저와 연동되었는지 확인
+        // 해당 카카오 계정이 다른 유저에게 연동되었는지 확인
         Optional<OAuthAccount> otherUserOAuth = oAuthAccountRepository
-                .findByEmailAndProvider(email, AuthProvideerEnum.KAKAO);
-
+                .findByEmailAndProvider(kakaoEmail, AuthProvideerEnum.KAKAO);
         if (otherUserOAuth.isPresent()) {
             throw new UserException(ErrorStatus.KAKAO_ACCOUNT_ALREADY_USED);
         }
 
         // 연동 정보 저장
-        OAuthAccount oAuthAccount = userAuthConverter.toOAuthAccountEntity(user, email, AuthProvideerEnum.KAKAO);
+        OAuthAccount oAuthAccount = userAuthConverter.toOAuthAccountEntity(user, kakaoEmail, AuthProvideerEnum.KAKAO);
         oAuthAccountRepository.save(oAuthAccount);
 
-        log.info("카카오 계정 연동 성공 (User ID: {}, Email: {})", userId, email);
+        log.info("카카오 계정 연동 성공 (User ID: {}, Email: {})", userId, kakaoEmail);
 
-        return userAuthConverter.toKakaoLinkResponseDTO(true, "카카오 계정 연동이 완료되었습니다", email, userAuthConverter.toUserInfoResponseDTO(user));
-    }
-
-    private OAuthResponseDTO.KakaoAuth handleKakaoAuth(KakaoUserInfo kakaoUserInfo, String email) {
-        // 이메일로 기존 계정 조회 (Provider ID가 아닌 이메일로 조회)
-        Optional<OAuthAccount> existingOAuth = oAuthAccountRepository
-                .findByEmailAndProvider(email, AuthProvideerEnum.KAKAO);
-
-        if (existingOAuth.isPresent()) {
-            User user = existingOAuth.get().getUser();
-
-            if (user.getUserActivate() != UserActivate.ACTIVE) {
-                throw new UserException(ErrorStatus.USER_INACTIVE);
-            }
-
-            TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
-
-            return userAuthConverter.toKakaoAuthResponseDTO(
-                    false,
-                    tokenResponse.getAccessToken(),
-                    tokenResponse.getRefreshToken(),
-                    tokenResponse.getExpiresIn(),
-                    UserResponseDTO.UserInfo.from(user)
-            );
-        } else {
-            String tempUserId = UUID.randomUUID().toString();
-            String redisKey = TEMP_USER_PREFIX + tempUserId;
-
-            try {
-                // Redis 저장 시도
-                objectRedisTemplate.opsForValue().set(
-                        redisKey,
-                        kakaoUserInfo,
-                        Duration.ofMinutes(TEMP_USER_EXPIRE_MINUTES)
-                );
-
-            } catch (Exception e) {
-                // Redis 연결 실패 등을 잡아서 처리
-                throw new AuthException(ErrorStatus.REDIS_SAVE_FAILED);
-            }
-            return userAuthConverter.toKakaoAuthResponseDTO(true, tempUserId);
-        }
+        return userAuthConverter.toKakaoLinkResponseDTO(true, "카카오 계정 연동이 완료되었습니다", kakaoEmail, userAuthConverter.toUserInfoResponseDTO(user));
     }
 
     private User createBasicKakaoUser(KakaoUserInfo kakaoUserInfo, OAuthRequestDTO.KaKaoSignup request) {

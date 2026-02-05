@@ -1,32 +1,46 @@
 package com.planup.planup.domain.user.service.external;
 
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.AuthException;
 import com.planup.planup.domain.user.dto.external.KakaoUserInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class KakaoServiceImpl implements KaKaoService {
 
-    // 이메일을 받아서 KakaoUserInfo 객체로 감싸서 반환 (Mocking)
+    private final RestTemplate restTemplate = new RestTemplate();
+
     @Override
-    public KakaoUserInfo getUserInfo(String email) {
-        KakaoUserInfo userInfo = new KakaoUserInfo();
+    public KakaoUserInfo getUserInfo(String accessToken) {
+        String reqURL = "https://kapi.kakao.com/v2/user/me";
 
-        // 중복 방지용 랜덤 ID
-        userInfo.setId(System.nanoTime());
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", "Bearer " + accessToken);
+            headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
-        KakaoUserInfo.KakaoAccount account = new KakaoUserInfo.KakaoAccount();
-        account.setEmail(email);
+            HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        // 카카오 API는 보통 "male" 또는 "female" 소문자 문자열 반환
-        // Converter가 이를 보고 Gender.MALE로 변환
-        account.setGender("male");
+            ResponseEntity<KakaoUserInfo> response = restTemplate.exchange(
+                    reqURL,
+                    HttpMethod.GET,
+                    entity,
+                    KakaoUserInfo.class
+            );
 
-        userInfo.setKakaoAccount(account);
-        
-        return userInfo;
+            return response.getBody();
+        } catch (Exception e) {
+            log.error("카카오 유저 정보 조회 실패: {}", e.getMessage());
+            throw new AuthException(ErrorStatus.KAKAO_USER_INFO_FAILED);
+        }
     }
 }

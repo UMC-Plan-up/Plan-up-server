@@ -51,6 +51,7 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_NICKNAME(HttpStatus.BAD_REQUEST, "USER4008", "닉네임은 필수 입력값입니다."),
     INVALID_EMAIL_FORMAT(HttpStatus.BAD_REQUEST, "USER4009", "이메일 형식이 올바르지 않거나 비어있습니다."),
     PASSWORD_TOKEN_INVALID(BAD_REQUEST, "AUTH4002", "만료되거나 유효하지 않은 비밀번호 변경 토큰입니다."),
+    DUPLICATE_EMAIL_ACCOUNT(HttpStatus.CONFLICT, "USER4010", "이미 일반 계정으로 가입된 이메일입니다"),
 
     //Challenge 에러
     MISSING_TIME_CHALLENGE_INFO(HttpStatus.BAD_REQUEST, "CHALLENGE4001", "시간 챌린지 정보가 필요합니다."),
@@ -95,6 +96,7 @@ public enum ErrorStatus implements BaseErrorCode {
     KAKAO_ACCOUNT_ALREADY_LINKED(BAD_REQUEST, "KAKAO4003", "이미 카카오 계정이 연동되어 있습니다."),
     KAKAO_ACCOUNT_ALREADY_USED(BAD_REQUEST, "KAKAO4004", "이미 다른 사용자에게 연동된 카카오 계정입니다."),
     KAKAO_EMAIL_NOT_FOUND(HttpStatus.BAD_REQUEST, "KAKAO4005", "카카오 계정에서 이메일 정보를 찾을 수 없습니다. 이메일 동의가 필요합니다."),
+    KAKAO_EMAIL_MISMATCH(HttpStatus.BAD_REQUEST, "KAKAO4006", "카카오 계정의 이메일과 입력된 이메일이 일치하지 않습니다."),
     REDIS_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH5001", "서버 일시적 오류로 회원가입을 진행할 수 없습니다."),
     REDIS_ACCESS_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH5002", "데이터베이스(Redis) 접근에 실패했습니다"),
 
