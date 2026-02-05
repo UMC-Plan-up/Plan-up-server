@@ -20,10 +20,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class BadgeServiceImpl implements BadgeService {
+public class BadgeCommandServiceImpl implements BadgeCommandService {
 
     private final UserBadgeCommandService userBadgecommandService;
-    private final UserBadgeQueryService userBadgeQueryService;
     private final UserBadgeRepository userBadgeRepository;
     private final SpecificGoalDaysRepository specificGoalDaysRepository;
 
