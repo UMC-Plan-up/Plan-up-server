@@ -110,4 +110,12 @@ public class UserRequestDTO {
         @Pattern(regexp = "^[가-힣a-zA-Z0-9 ]+$", message = "닉네임은 한글, 영문, 숫자, 공백만 가능합니다.")
         private String nickname;
     }
+
+    @Getter
+    @Setter
+    public static class PasswordChange {
+        @NotBlank(message = "새 비밀번호는 필수입니다.")
+        @Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다.")
+        private String newPassword;
+    }
 }
