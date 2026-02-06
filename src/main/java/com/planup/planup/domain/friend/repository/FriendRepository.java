@@ -14,12 +14,27 @@ import java.util.Optional;
 @Repository
 public interface FriendRepository extends JpaRepository<Friend, Long> {
 
-    List<Friend> findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
-            FriendStatus s1, Long u1, FriendStatus s2, Long u2);
-
-    List<Friend> findByStatusAndFriend_IdOrderByCreatedAtDesc(
-            FriendStatus status, Long friendId
+    @Query("""
+    select f
+    from Friend f
+    where f.status = :status
+      and (f.user.id = :userId or f.friend.id = :userId)
+    order by f.createdAt desc
+""")
+    List<Friend> findFriendsOfUser(
+            @Param("status") FriendStatus status,
+            @Param("userId") Long userId
     );
+
+    //특정 사람과 관련된 모든 친구 관계를 반환
+    @Query("""
+        select f
+        from Friend f
+        where f.status = :status 
+        and (f.id = :userId or f.id = :userId)
+    """)
+    List<Friend> findByStatusAndFriendIdOrderByCreatedAt(@Param("status")FriendStatus status,
+                                                                     @Param("friendId")Long friendId);
 
     //나에게 보낸 친구 요청을 반환하되, 요청을 보낸 사람의 데이터도 같이 반환
     @Query("""
@@ -29,11 +44,12 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
         join fetch f.friend fr
         where f.status = :status 
         and (u.id = :userId or fr.id = :userId)
+        order by f.createdAt DESC 
     """)
     List<Friend> findByStatusAndFriendIdOrderByCreatedAtDescWithUser(@Param("status")FriendStatus status,
                                                                      @Param("friendId")Long friendId);
 
-    //친구 관계 상태에 따라 친구 리스트를 반환
+    //친구 관계 상태에 특정 친구 값 반환
     @Query("""
         select f
         from Friend f
