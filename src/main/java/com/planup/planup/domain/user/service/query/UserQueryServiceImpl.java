@@ -62,7 +62,7 @@ public class UserQueryServiceImpl implements UserQueryService {
     @Override
     public UserResponseDTO.UserInfo getUserInfo(Long userId) {
         User user = getUserByUserId(userId);
-        return userAuthConverter.toUserInfoResponseDTO(user);
+        return userAuthConverter.toUserInfo(user);
     }
 
     // ========== 이메일 검증 ==========

@@ -43,15 +43,15 @@ public class UserAuthController implements UserAuthControllerDocs {
 
     @Override
     @PostMapping("/signup")
-    public ApiResponse<UserResponseDTO.Signup> signup(@Valid @RequestBody UserRequestDTO.Signup request) {
-        UserResponseDTO.Signup result = userAuthCommandService.signup(request);
+    public ApiResponse<UserResponseDTO.AuthResponseDTO> signup(@Valid @RequestBody UserRequestDTO.Signup request) {
+        UserResponseDTO.AuthResponseDTO result = userAuthCommandService.signup(request);
         return ApiResponse.onSuccess(result);
     }
 
     @Override
     @PostMapping("/login")
-    public ApiResponse<UserResponseDTO.Login> login(@Valid @RequestBody UserRequestDTO.Login request) {
-        UserResponseDTO.Login result = userAuthCommandService.login(request);
+    public ApiResponse<UserResponseDTO.AuthResponseDTO> login(@Valid @RequestBody UserRequestDTO.Login request) {
+        UserResponseDTO.AuthResponseDTO result = userAuthCommandService.login(request);
         return ApiResponse.onSuccess(result);
     }
 
@@ -136,15 +136,15 @@ public class UserAuthController implements UserAuthControllerDocs {
 
     @Override
     @PostMapping("/auth/kakao")
-    public ApiResponse<OAuthResponseDTO.KakaoAuth> kakaoAuth(@Valid @RequestBody OAuthRequestDTO.KakaoAuth request) {
-        OAuthResponseDTO.KakaoAuth result = userAuthCommandService.kakaoAuth(request);
+    public ApiResponse<UserResponseDTO.AuthResponseDTO> kakaoAuth(@Valid @RequestBody OAuthRequestDTO.KakaoAuth request) {
+        UserResponseDTO.AuthResponseDTO result = userAuthCommandService.kakaoAuth(request);
         return ApiResponse.onSuccess(result);
     }
 
     @Override
     @PostMapping("/auth/kakao/complete")
-    public ApiResponse<UserResponseDTO.Signup> kakaoSignupComplete(@Valid @RequestBody OAuthRequestDTO.KaKaoSignup request) {
-        UserResponseDTO.Signup result = userAuthCommandService.kakaoSignupComplete(request);
+    public ApiResponse<UserResponseDTO.AuthResponseDTO> kakaoSignupComplete(@Valid @RequestBody OAuthRequestDTO.KaKaoSignup request) {
+        UserResponseDTO.AuthResponseDTO result = userAuthCommandService.kakaoSignupComplete(request);
         return ApiResponse.onSuccess(result);
     }
 
