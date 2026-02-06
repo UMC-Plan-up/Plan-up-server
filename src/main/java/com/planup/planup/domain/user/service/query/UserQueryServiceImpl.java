@@ -198,9 +198,8 @@ public class UserQueryServiceImpl implements UserQueryService {
     @Override
     public List<User> getFriendsByUserId(Long userId) {
         User user = getUserByUserId(userId);
-        List<Friend> friends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
-                FriendStatus.ACCEPTED, user.getId(), FriendStatus.ACCEPTED, user.getId()
-        );
+        List<Friend> friends = friendRepository.findFriendsOfUser(FriendStatus.ACCEPTED, user.getId());
+
         return friends.stream()
                 .map(Friend::getFriend)
                 .toList();
