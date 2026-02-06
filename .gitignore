@@ -128,3 +128,6 @@ truststore
 *.bak
 *.backup
 *.orig
+
+#설정 관련 폴더
+secrets/

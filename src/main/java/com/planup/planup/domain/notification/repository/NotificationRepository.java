@@ -33,4 +33,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<Notification> findUnreadByReceiverAndType(
             @Param("receiver") User receiver
     );
+
+    List<Notification> findByReceiverAndIsReadFalseAndTypeIn(User receiver, List<NotificationType> types);
+
 }

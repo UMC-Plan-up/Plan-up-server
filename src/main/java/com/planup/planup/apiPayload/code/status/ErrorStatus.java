@@ -120,6 +120,9 @@ public enum ErrorStatus implements BaseErrorCode {
     NICKNAME_DATA_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "NICKNAME5001", "닉네임 생성에 필요한 데이터가 없습니다."),
     NICKNAME_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "NICKNAME4001", "랜덤 닉네임 생성에 실패했습니다."),
 
+    //PushSend Error
+    PushSendError(INTERNAL_SERVER_ERROR, "PUSHSENDERROR", "알림 전송에 문제가 발생했습니다"),
+
     // 토큰 관련 에러
     TOKEN_CREATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN4001", "토큰 생성에 실패했습니다."),
     TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "TOKEN4002", "유효하지 않은 토큰입니다."),
@@ -128,7 +131,7 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_REFRESH_TOKEN(BAD_REQUEST, "TOKEN4005", "유효하지 않은 리프레시 토큰입니다."),
     // 로그아웃
     LOGOUT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN5002", "로그아웃 처리 중 오류가 발생했습니다."),
-    TOKEN_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "TOKEN4006", "잘못된 토큰 형식이거나 토큰 헤더가 누락되었습니다."),
+    TOKEN_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "TOKEN4006", "잘못된 토큰 형식이거나 토큰 헤더가 누락되었습니다.")
 
     ;
 

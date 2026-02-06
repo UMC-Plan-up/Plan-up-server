@@ -18,6 +18,8 @@ public interface UserBadgeRepository extends JpaRepository<UserBadge, Long> {
 
     List<UserBadge> findByUserOrderByCreatedAtDesc(User user);
 
+    List<UserBadge> findAllByUser(User user);
+
     boolean existsByUserAndBadgeType(User user, BadgeType badge);
 
     boolean existsByUserIdAndAndBadgeType(Long userId, BadgeType badgeType);

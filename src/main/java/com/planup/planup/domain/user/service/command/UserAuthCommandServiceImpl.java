@@ -180,12 +180,11 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     private void cleanupUserData(User user) {
         try {
             // 친구 관계 삭제
-            List<Friend> userFriends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
-                    FriendStatus.ACCEPTED, user.getId(), FriendStatus.ACCEPTED, user.getId());
+            List<Friend> userFriends = friendRepository.findFriendsOfUser(FriendStatus.ACCEPTED, user.getId());
             friendRepository.deleteAll(userFriends);
 
             // 친구 요청 삭제
-            List<Friend> friendRequests = friendRepository.findByStatusAndFriend_IdOrderByCreatedAtDesc(
+            List<Friend> friendRequests = friendRepository.findByStatusAndFriendIdOrderByCreatedAt(
                     FriendStatus.REQUESTED, user.getId());
             friendRepository.deleteAll(friendRequests);
 
