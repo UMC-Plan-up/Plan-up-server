@@ -84,7 +84,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     // ========== 회원가입/로그인 ==========
 
     @Override
-    public UserResponseDTO.Signup signup(UserRequestDTO.Signup request) {
+    public UserResponseDTO.AuthResponseDTO signup(UserRequestDTO.Signup request) {
         userQueryService.checkEmail(request.getEmail());
 
         if (!request.getPassword().equals(request.getPasswordCheck())) {
@@ -125,7 +125,8 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
         log.info("회원가입 완료: userId={}, email={}", savedUser.getId(), savedUser.getEmail());
 
-        return userAuthConverter.toSignupResponseDTO(savedUser,
+        return userAuthConverter.toAuthResponseDTO(savedUser,
+                UserStatus.SIGNUP_SUCCESS,
                 tokenResponse.getAccessToken(),
                 tokenResponse.getRefreshToken(),
                 tokenResponse.getExpiresIn()
@@ -133,7 +134,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     }
 
     @Override
-    public UserResponseDTO.Login login(UserRequestDTO.Login request) {
+    public UserResponseDTO.AuthResponseDTO login(UserRequestDTO.Login request) {
         User user = userRepository.findByEmailAndUserActivate(request.getEmail(), UserActivate.ACTIVE)
                 .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
 
@@ -144,9 +145,10 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         // 토큰 발급 (액세스 토큰 + 리프레시 토큰)
         TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
-        return userAuthConverter.toLoginResponseDTO(user, 
-                tokenResponse.getAccessToken(), 
-                tokenResponse.getRefreshToken(), 
+        return userAuthConverter.toAuthResponseDTO(user,
+                UserStatus.LOGIN_SUCCESS,
+                tokenResponse.getAccessToken(),
+                tokenResponse.getRefreshToken(),
                 tokenResponse.getExpiresIn());
     }
 
@@ -194,10 +196,10 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     // ========== 카카오 OAuth ==========
 
     @Override
-    public OAuthResponseDTO.KakaoAuth kakaoAuth(OAuthRequestDTO.KakaoAuth request) {
+    public UserResponseDTO.AuthResponseDTO kakaoAuth(OAuthRequestDTO.KakaoAuth request) {
         // 카카오 유저 정보 조회 (액세스 토큰 사용)
         KakaoUserInfo kakaoUserInfo = kakaoService.getUserInfo(request.getKakaoAccessToken());
-        
+
         if (kakaoUserInfo == null || kakaoUserInfo.getKakaoAccount() == null) {
             throw new AuthException(ErrorStatus.KAKAO_USER_INFO_FAILED);
         }
@@ -218,9 +220,9 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             // SocialType 확인
             if (user.getSocialType() == AuthProvideerEnum.EMAIL) {
                 // 일반 이메일 가입 유저가 카카오 로그인 시도 시 차단 -> 상태값 반환으로 변경
-                return userAuthConverter.toKakaoAuthResponseDTO(
-                        UserStatus.EXISTING_EMAIL,
-                        null
+                return userAuthConverter.toAuthResponseDTO(
+                        UserStatus.ACCOUNT_CONFLICT,
+                        userAuthConverter.toUserInfo(user)
                 );
             }
 
@@ -231,12 +233,12 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
             TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
-            return userAuthConverter.toKakaoAuthResponseDTO(
-                    UserStatus.EXISTING_KAKAO,
+            return userAuthConverter.toAuthResponseDTO(
+                    user,
+                    UserStatus.LOGIN_SUCCESS,
                     tokenResponse.getAccessToken(),
                     tokenResponse.getRefreshToken(),
-                    tokenResponse.getExpiresIn(),
-                    UserResponseDTO.UserInfo.from(user)
+                    tokenResponse.getExpiresIn()
             );
         } else {
             // 신규 회원가입 진행
@@ -255,12 +257,12 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                 // Redis 연결 실패 등을 잡아서 처리
                 throw new AuthException(ErrorStatus.REDIS_SAVE_FAILED);
             }
-            return userAuthConverter.toKakaoAuthResponseDTO(UserStatus.NEW, tempUserId);
+            return userAuthConverter.toAuthResponseDTO(UserStatus.SIGNUP_REQUIRED, tempUserId, kakaoUserInfo);
         }
     }
 
     @Override
-    public UserResponseDTO.Signup kakaoSignupComplete(OAuthRequestDTO.KaKaoSignup request) {
+    public UserResponseDTO.AuthResponseDTO kakaoSignupComplete(OAuthRequestDTO.KaKaoSignup request) {
         // Redis에서 임시 유저 정보 조회
         String redisKey = TEMP_USER_PREFIX + request.getTempUserId();
         KakaoUserInfo kakaoUserInfo;
@@ -292,7 +294,8 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         // 토큰 발급 및 응답
         TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
-        return userAuthConverter.toSignupResponseDTO(user,
+        return userAuthConverter.toAuthResponseDTO(user,
+                UserStatus.SIGNUP_SUCCESS,
                 tokenResponse.getAccessToken(),
                 tokenResponse.getRefreshToken(),
                 tokenResponse.getExpiresIn()
@@ -336,7 +339,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
         log.info("카카오 계정 연동 성공 (User ID: {}, Email: {})", userId, kakaoEmail);
 
-        return userAuthConverter.toKakaoLinkResponseDTO(true, "카카오 계정 연동이 완료되었습니다", kakaoEmail, userAuthConverter.toUserInfoResponseDTO(user));
+        return userAuthConverter.toKakaoLinkResponseDTO(true, "카카오 계정 연동이 완료되었습니다", kakaoEmail, userAuthConverter.toUserInfo(user));
     }
 
     private User createBasicKakaoUser(KakaoUserInfo kakaoUserInfo, OAuthRequestDTO.KaKaoSignup request) {
@@ -627,20 +630,12 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         return parts;
     }
 
-    private void cleanupUsedTokens(String token, String email) {
-        try {
-            // 사용한 토큰 삭제
-            redisTemplate.delete("password-change:" + token);
-            // 인증 마킹 삭제
-            redisTemplate.delete("password-change-verified:" + email);
-        } catch (Exception e) {
-            log.warn("비밀번호 변경 후 Redis 정리 실패 (데이터 불일치 아님): {}", e.getMessage());
-        }
-    }
-
     // ========== 약관 동의 ==========
 
     private void validateRequiredTerms(List<AuthRequestDTO.TermsAgreement> agreements) {
+        if (agreements == null) {
+            throw new UserException(ErrorStatus.REQUIRED_TERMS_NOT_AGREED);
+        }
         List<Terms> requiredTerms = termsRepository.findByIsRequiredTrue();
 
         Set<Long> agreedTermsIds = agreements.stream()
@@ -656,18 +651,17 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     }
 
     private void addTermsAgreements(User user, List<AuthRequestDTO.TermsAgreement> agreements) {
+        if (agreements == null) return;
         List<Long> termsIds = agreements.stream()
                 .map(AuthRequestDTO.TermsAgreement::getTermsId)
                 .toList();
 
-        // 약관 엔티티 한 번에 조회
         List<Terms> foundTerms = termsRepository.findAllById(termsIds);
 
         if (foundTerms.size() != termsIds.size()) {
             throw new UserException(ErrorStatus.NOT_FOUND_TERMS);
         }
 
-        // 매핑 편의를 위해 (ID -> Terms) 맵 생성
         Map<Long, Terms> termsMap = foundTerms.stream()
                 .collect(Collectors.toMap(Terms::getId, terms -> terms));
 
@@ -678,55 +672,10 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                 })
                 .toList();
 
-        // 한 번에 저장 (Batch Insert) - N+1 문제 방지
         userTermsRepository.saveAll(userTermsList);
     }
 
     // ========== Private 헬퍼 메서드 ==========
-
-    // 프로필 이미지 URL 결정
-    private String determineProfileImageUrl(String email, String requestProfileImg) {
-        // Redis에서 업로드된 임시 이미지 확인
-        String uploadedImageUrl = getUploadedProfileImageSafely(email);
-        if (uploadedImageUrl != null) {
-            return uploadedImageUrl;
-        }
-
-        // 요청에 포함된 이미지 URL 확인
-        if (requestProfileImg != null && !requestProfileImg.trim().isEmpty()) {
-            return requestProfileImg.trim();
-        }
-
-        // 둘 다 없으면 null
-        return null;
-    }
-
-    // Redis에서 업로드된 프로필 이미지 조회
-    private String getUploadedProfileImageSafely(String email) {
-        try {
-            Object obj = objectRedisTemplate.opsForValue().get(TEMP_PROFILE_PREFIX + email);
-            return (obj != null) ? (String) obj : null;
-        } catch (Exception e) {
-            log.warn("Redis 임시 프로필 이미지 조회 실패(회원가입은 계속 진행): email={}", email, e);
-            return null;
-        }
-    }
-
-    // [일반 회원가입용] 정리 작업
-    private void cleanupAfterSignup(String email) {
-        // 이메일 인증 토큰 삭제
-        try {
-            clearVerificationToken(email);
-        } catch (Exception e) {
-            log.warn("인증 토큰 삭제 실패: email={}", email, e);
-        }
-        // Redis 임시 프로필 이미지 삭제
-        try {
-            objectRedisTemplate.delete(TEMP_PROFILE_PREFIX + email);
-        } catch (Exception e) {
-            log.warn("Redis 임시 프로필 이미지 삭제 실패 (무시): email={}", email, e);
-        }
-    }
 
     private void processProfileImage(User user, String email, String requestProfileImg) {
         String finalProfileUrl = determineProfileImageUrl(email, requestProfileImg);
@@ -737,7 +686,40 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         }
     }
 
-    // [카카오 회원가입용] 정리 작업
+    private String determineProfileImageUrl(String email, String requestProfileImg) {
+        String uploadedImageUrl = getUploadedProfileImageSafely(email);
+        if (uploadedImageUrl != null) {
+            return uploadedImageUrl;
+        }
+        if (requestProfileImg != null && !requestProfileImg.trim().isEmpty()) {
+            return requestProfileImg.trim();
+        }
+        return null;
+    }
+
+    private String getUploadedProfileImageSafely(String email) {
+        try {
+            Object obj = objectRedisTemplate.opsForValue().get(TEMP_PROFILE_PREFIX + email);
+            return (obj != null) ? (String) obj : null;
+        } catch (Exception e) {
+            log.warn("Redis 임시 프로필 이미지 조회 실패(회원가입은 계속 진행): email={}", email, e);
+            return null;
+        }
+    }
+
+    private void cleanupAfterSignup(String email) {
+        try {
+            clearVerificationToken(email);
+        } catch (Exception e) {
+            log.warn("인증 토큰 삭제 실패: email={}", email, e);
+        }
+        try {
+            objectRedisTemplate.delete(TEMP_PROFILE_PREFIX + email);
+        } catch (Exception e) {
+            log.warn("Redis 임시 프로필 이미지 삭제 실패 (무시): email={}", email, e);
+        }
+    }
+    
     private void cleanupRedisData(String userInfoKey, String email) {
         try {
             objectRedisTemplate.delete(userInfoKey); // 카카오 유저 정보 삭제

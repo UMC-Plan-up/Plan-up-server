@@ -31,6 +31,8 @@ public class KakaoUserInfo {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Properties {
         private String nickname;
+        @JsonProperty("profile_image_url")
+        private String profileImageUrl;
     }
 
     public String getNickname() {

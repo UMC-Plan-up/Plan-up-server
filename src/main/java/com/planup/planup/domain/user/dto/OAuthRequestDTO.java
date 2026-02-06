@@ -1,5 +1,6 @@
 package com.planup.planup.domain.user.dto;
 
+import com.planup.planup.domain.user.enums.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -60,12 +61,15 @@ public class OAuthRequestDTO {
         @Schema(description = "생년월일", example = "2000-01-01")
         @NotNull(message = "생년월일은 필수입니다.")
         private LocalDate birthDate;
+        
+        @NotNull(message = "성별은 필수입니다.")
+        @Schema(description = "성별 (MALE/FEMALE/UNKNOWN)", example = "MALE")
+        private Gender gender;
 
         @Schema(description = "프로필 이미지 URL")
         private String profileImg;
 
         @Schema(description = "약관 동의 정보", example = "[{\"termsId\": 1, \"isAgreed\": true}, {\"termsId\": 2, \"isAgreed\": true}]")
         private List<AuthRequestDTO.TermsAgreement> agreements;
-
     }
 }

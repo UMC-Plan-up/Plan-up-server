@@ -5,14 +5,14 @@ import jakarta.servlet.http.HttpServletRequest;
 
 public interface UserAuthCommandService {
     // 회원가입/로그인
-    UserResponseDTO.Signup signup(UserRequestDTO.Signup request);
-    UserResponseDTO.Login login(UserRequestDTO.Login request);
+    UserResponseDTO.AuthResponseDTO signup(UserRequestDTO.Signup request);
+    UserResponseDTO.AuthResponseDTO login(UserRequestDTO.Login request);
     void logout(Long userId, HttpServletRequest request);
     UserResponseDTO.Withdrawal withdrawUser(Long userId, UserRequestDTO.Withdrawal request);
 
     // 카카오 OAuth
-    OAuthResponseDTO.KakaoAuth kakaoAuth(OAuthRequestDTO.KakaoAuth request);
-    UserResponseDTO.Signup kakaoSignupComplete(OAuthRequestDTO.KaKaoSignup request);
+    UserResponseDTO.AuthResponseDTO kakaoAuth(OAuthRequestDTO.KakaoAuth request);
+    UserResponseDTO.AuthResponseDTO kakaoSignupComplete(OAuthRequestDTO.KaKaoSignup request);
     OAuthResponseDTO.KaKaoLink linkKakaoAccount(Long userId, OAuthRequestDTO.KaKaoLink request);
 
     // 초대 코드

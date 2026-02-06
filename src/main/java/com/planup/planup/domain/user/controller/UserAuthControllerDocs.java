@@ -22,11 +22,31 @@ public interface UserAuthControllerDocs {
 
     // ======================== 기본 인증 (가입/로그인/토큰) ========================
 
-    @Operation(summary = "회원가입", description = "이메일/비밀번호로 새 계정을 생성합니다.")
-    ApiResponse<UserResponseDTO.Signup> signup(@Valid @RequestBody UserRequestDTO.Signup request);
+    @Operation(summary = "일반 회원가입", description = "이메일/비밀번호로 새 계정을 생성하고 토큰을 발급합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "회원가입 성공",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(name = "회원가입 성공 (SIGNUP_SUCCESS)",
+                                    value = "{\"isSuccess\":true,\"code\":\"COMMON200\",\"message\":\"성공입니다.\",\"result\":{\"userStatus\":\"SIGNUP_SUCCESS\",\"accessToken\":\"eyJhbGciOiJIUzI1NiJ9...\",\"refreshToken\":\"eyJhbGciOiJIUzI1NiJ9...\",\"expiresIn\":3600,\"userInfo\":{\"id\":1,\"email\":\"user@planup.com\",\"name\":\"이름\",\"nickname\":\"닉네임\",\"birthDate\":\"2000-01-01\",\"gender\":\"MALE\",\"profileImg\":\"string\",\"serviceNotificationAllow\":true,\"marketingNotificationAllow\":true}}}"
+                            )
+                    )
+            )
+    })
+    ApiResponse<UserResponseDTO.AuthResponseDTO> signup(@Valid @RequestBody UserRequestDTO.Signup request);
 
-    @Operation(summary = "로그인", description = "이메일/비밀번호로 로그인하여 JWT 토큰을 발급받습니다.")
-    ApiResponse<UserResponseDTO.Login> login(@Valid @RequestBody UserRequestDTO.Login request);
+    @Operation(summary = "일반 로그인", description = "이메일/비밀번호로 로그인하여 JWT 토큰을 발급받습니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그인 성공",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(name = "로그인 성공 (LOGIN_SUCCESS)",
+                                    value = "{\"isSuccess\":true,\"code\":\"COMMON200\",\"message\":\"성공입니다.\",\"result\":{\"userStatus\":\"LOGIN_SUCCESS\",\"accessToken\":\"eyJhbGciOiJIUzI1NiJ9...\",\"refreshToken\":\"eyJhbGciOiJIUzI1NiJ9...\",\"expiresIn\":3600,\"userInfo\":{\"id\":1,\"email\":\"user@planup.com\",\"name\":\"이름\",\"nickname\":\"닉네임\",\"birthDate\":\"2000-01-01\",\"gender\":\"MALE\",\"profileImg\":\"string\",\"serviceNotificationAllow\":true,\"marketingNotificationAllow\":true}}}"
+                            )
+                    )
+            )
+    })
+    ApiResponse<UserResponseDTO.AuthResponseDTO> login(@Valid @RequestBody UserRequestDTO.Login request);
 
     @Operation(summary = "로그아웃", description = "현재 사용자를 로그아웃합니다.")
     ApiResponse<String> logout(@Parameter(hidden = true) Long userId, HttpServletRequest httpRequest);
@@ -62,63 +82,39 @@ public interface UserAuthControllerDocs {
 
     // ======================== 소셜 인증 및 연동 (핵심 변경 사항) ========================
 
-    @Operation(summary = "카카오 소셜 인증", description = "인가코드 방식에서 액세스 토큰 검증 방식으로 변경됨. 카카오 엑세스 토큰을 사용하여 로그인 또는 회원가입 여부를 판단합니다.")
+    @Operation(summary = "카카오 소셜 인증", description = "카카오 엑세스 토큰을 사용하여 로그인 또는 회원가입 여부를 판단합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "요청 성공",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ApiResponse.class),
                             examples = {
-                                    @ExampleObject(name = "1. 로그인 성공 (기존 유저)",
-                                            description = "이미 가입된 유저입니다. 액세스 토큰과 유저 정보를 반환합니다.",
-                                            value = """
-                                                {
-                                                  "isSuccess": true,
-                                                  "code": "COMMON200",
-                                                  "message": "성공입니다.",
-                                                  "result": {
-                                                    "tempUserId": null,
-                                                    "accessToken": "eyJhbGciOiJIUzUxMiJ9.eyJyb...",
-                                                    "refreshToken": "eyJhbGciOiJIUzUxMiJ9.eyJ1c...",
-                                                    "expiresIn": 3600,
-                                                    "userInfo": {
-                                                      "id": 46,
-                                                      "email": "test@planup.com",
-                                                      "nickname": "테스트유저",
-                                                      "profileImg": "string",
-                                                      "serviceNotificationAllow": true,
-                                                      "marketingNotificationAllow": true
-                                                    },
-                                                    "newUser": false
-                                                  }
-                                                }
-                                                """
+                                    @ExampleObject(name = "1. 로그인 성공 (LOGIN_SUCCESS)",
+                                            value = "{\"isSuccess\":true,\"code\":\"COMMON200\",\"message\":\"성공입니다.\",\"result\":{\"userStatus\":\"LOGIN_SUCCESS\",\"accessToken\":\"eyJhbGciOiJIUzI1NiJ9...\",\"refreshToken\":\"eyJhbGciOiJIUzI1NiJ9...\",\"expiresIn\":3600,\"userInfo\":{\"id\":1,\"email\":\"kakao@test.com\",\"name\":\"이름\",\"nickname\":\"닉네임\",\"birthDate\":\"2000-01-01\",\"gender\":\"MALE\",\"profileImg\":\"string\",\"serviceNotificationAllow\":true,\"marketingNotificationAllow\":true}}}"
                                     ),
-                                    @ExampleObject(name = "2. 회원가입 필요 (신규 유저)",
-                                            description = "가입되지 않은 유저입니다. tempUserId를 반환하며, 이를 이용해 회원가입 완료 API를 호출해야 합니다.",
-                                            value = """
-                                                {
-                                                  "isSuccess": true,
-                                                  "code": "COMMON200",
-                                                  "message": "성공입니다.",
-                                                  "result": {
-                                                    "tempUserId": "4423fc15-ad4d-45b8-a153-81c50f3fe223",
-                                                    "accessToken": null,
-                                                    "refreshToken": null,
-                                                    "expiresIn": null,
-                                                    "userInfo": null,
-                                                    "newUser": true
-                                                  }
-                                                }
-                                                """
+                                    @ExampleObject(name = "2. 회원가입 필요 (SIGNUP_REQUIRED)",
+                                            value = "{\"isSuccess\":true,\"code\":\"COMMON200\",\"message\":\"성공입니다.\",\"result\":{\"userStatus\":\"SIGNUP_REQUIRED\",\"tempUserId\":\"a1b2c3d4-e5f6-1234-5678-90abcdef12\",\"userInfo\":{\"id\":null,\"email\":\"new_kakao@test.com\",\"name\":null,\"nickname\":null,\"birthDate\":null,\"gender\":null,\"profileImg\":null,\"serviceNotificationAllow\":null,\"marketingNotificationAllow\":null}}}"
+                                    ),
+                                    @ExampleObject(name = "3. 계정 충돌 (ACCOUNT_CONFLICT)",
+                                            value = "{\"isSuccess\":true,\"code\":\"COMMON200\",\"message\":\"성공입니다.\",\"result\":{\"userStatus\":\"ACCOUNT_CONFLICT\",\"userInfo\":{\"id\":2,\"email\":\"general@test.com\",\"name\":\"이름\",\"nickname\":\"닉니엠\",\"birthDate\":\"1999-01-01\",\"gender\":\"FEMALE\",\"profileImg\":null,\"serviceNotificationAllow\":true,\"marketingNotificationAllow\":true}}}"
                                     )
                             }
                     )
             )
     })
-    ApiResponse<OAuthResponseDTO.KakaoAuth> kakaoAuth(@Valid @RequestBody OAuthRequestDTO.KakaoAuth request);
+    ApiResponse<UserResponseDTO.AuthResponseDTO> kakaoAuth(@Valid @RequestBody OAuthRequestDTO.KakaoAuth request);
 
-    @Operation(summary = "카카오 회원가입 완료", description = "카카오 온보딩 완료 후 모든 정보를 받아서 회원가입을 완료합니다.")
-    ApiResponse<UserResponseDTO.Signup> kakaoSignupComplete(@Valid @RequestBody OAuthRequestDTO.KaKaoSignup request);
+    @Operation(summary = "카카오 회원가입 완료", description = "카카오 인증 후 받은 tempUserId와 추가 정보를 사용하여 회원가입을 완료합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "회원가입 성공",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(name = "카카오 회원가입 성공 (SIGNUP_SUCCESS)",
+                                    value = "{\"isSuccess\":true,\"code\":\"COMMON200\",\"message\":\"성공입니다.\",\"result\":{\"userStatus\":\"SIGNUP_SUCCESS\",\"accessToken\":\"eyJhbGciOiJIUzI1NiJ9...\",\"refreshToken\":\"eyJhbGciOiJIUzI1NiJ9...\",\"expiresIn\":3600,\"userInfo\":{\"id\":1,\"email\":\"new_kakao@test.com\",\"name\":\"이름\",\"nickname\":\"닉네임\",\"birthDate\":\"2001-01-01\",\"gender\":\"FEMALE\",\"profileImg\":\"http://...\",\"serviceNotificationAllow\":true,\"marketingNotificationAllow\":true}}}"
+                            )
+                    )
+            )
+    })
+    ApiResponse<UserResponseDTO.AuthResponseDTO> kakaoSignupComplete(@Valid @RequestBody OAuthRequestDTO.KaKaoSignup request);
 
     @Operation(summary = "카카오 계정 연동 여부 조회", description = "현재 로그인한 사용자의 카카오 계정 연동 여부를 확인합니다.")
     ApiResponse<OAuthResponseDTO.KakaoLinkStatus> getKakaoLinkStatus(@Parameter(hidden = true) Long userId);
