@@ -28,17 +28,10 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
         join fetch f.user u
         join fetch f.friend fr
         where f.status = :status 
-        and ((f.user.id = :userId and f.friend.id = :friendId)
-            or (f.user.id = :friendId and f.friend.id = :userId))
+        and (u.id = :userId or fr.id = :userId)
     """)
     List<Friend> findByStatusAndFriendIdOrderByCreatedAtDescWithUser(@Param("status")FriendStatus status,
                                                                      @Param("friendId")Long friendId);
-
-    // 사용자가 차단한 친구 목록 조회
-    List<Friend> findByUserAndStatusOrderByCreatedAtDesc(User user, FriendStatus status);
-
-    // 특정 사용자가 특정 친구를 차단한 관계 조회 (닉네임으로)
-    Optional<Friend> findByUserAndFriend_NicknameAndStatus(User user, String friendNickname, FriendStatus status);
 
     //친구 관계 상태에 따라 친구 리스트를 반환
     @Query("""
@@ -65,16 +58,6 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
     List<Friend> findListByUserIdWithUsers(@Param("status") FriendStatus status,
                                            @Param("userId") Long userId);
 
-    @Query("""
-        select f
-        from Friend f
-        where f.status <> :status
-        and ((f.user.id = :userId and f.friend.id = :friendId)
-          or (f.user.id = :friendId and f.friend.id = :userId))
-    """)
-    Optional<Friend> findByUserIdAndFriendIdAndStatusNot(@Param("userId") Long userId,
-                                                         @Param("friendId") Long friendId,
-                                                         @Param("status") FriendStatus status);
 
     @Query("""
     select (count(f) > 0)
