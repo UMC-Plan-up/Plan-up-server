@@ -31,10 +31,10 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
         select f
         from Friend f
         where f.status = :status 
-        and (f.id = :userId or f.id = :userId)
+        and (f.user.id = :friendId or f.friend.id = :friendId)
     """)
-    List<Friend> findByStatusAndFriendIdOrderByCreatedAt(@Param("status")FriendStatus status,
-                                                                     @Param("friendId")Long friendId);
+    List<Friend> findByStatusAndFriendIdOrderByCreatedAt(@Param("status") FriendStatus status,
+                                                                     @Param("friendId") Long friendId);
 
     //나에게 보낸 친구 요청을 반환하되, 요청을 보낸 사람의 데이터도 같이 반환
     @Query("""
