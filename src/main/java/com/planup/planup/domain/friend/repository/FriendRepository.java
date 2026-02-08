@@ -43,7 +43,7 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
         join fetch f.user u
         join fetch f.friend fr
         where f.status = :status 
-        and (u.id = :userId or fr.id = :friendId)
+        and (u.id = :friendId or fr.id = :friendId)
         order by f.createdAt DESC 
     """)
     List<Friend> findByStatusAndFriendIdOrderByCreatedAtDescWithUser(@Param("status")FriendStatus status,
