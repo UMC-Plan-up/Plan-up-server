@@ -238,4 +238,10 @@ public class UserGoalServiceImpl implements UserGoalService{
     public boolean existUserGoal(Long goalId, Long userId) {
         return userGoalRepository.existsUserGoalByGoalIdAndUserId(goalId, userId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void getTimerAchievementWithFriendInDate(Long goalId, LocalDate date, Long userId) {
+
+    }
 }
