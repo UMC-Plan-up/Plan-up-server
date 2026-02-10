@@ -46,4 +46,6 @@ public interface GoalService {
 
     @Transactional(readOnly = true)
     List<User> getOtherMember(User user, Goal goal);
+
+    GoalResponseDto.UserLevelInfo getUserLevel(Long userId);
 }
