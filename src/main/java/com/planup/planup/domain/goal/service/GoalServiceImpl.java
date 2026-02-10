@@ -488,6 +488,13 @@ public class GoalServiceImpl implements GoalService{
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public GoalResponseDto.UserLevelInfo getUserLevel(Long userId) {
+        User user = userQueryService.getUserByUserId(userId);
+        return GoalResponseDto.UserLevelInfo.from(user);
+    }
+
     private void validateGoalCreationLimit(User user) {
         if (user.getUserLevel() == UserLevel.LEVEL_MAX) {
             return;

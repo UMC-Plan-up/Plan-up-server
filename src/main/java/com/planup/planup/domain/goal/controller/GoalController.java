@@ -33,6 +33,13 @@ public class GoalController {
     private final UserQueryService userService;
     private final FriendReadService friendService;
 
+    @GetMapping("/level")
+    @Operation(summary = "유저 레벨 조회", description = "유저의 현재 레벨 정보를 조회합니다. 목표 생성 시 레벨별 제한을 확인하는 데 사용됩니다.")
+    public ApiResponse<GoalResponseDto.UserLevelInfo> getUserLevel(@Parameter(hidden = true) @CurrentUser Long userId) {
+        GoalResponseDto.UserLevelInfo userLevelInfo = goalService.getUserLevel(userId);
+        return ApiResponse.onSuccess(userLevelInfo);
+    }
+
     @PostMapping("/create")
     @Operation(summary = "목표 생성 API", description = "목표를 생성하는 API입니다.")
     public ApiResponse<GoalResponseDto.GoalResultDto> createGoal(
