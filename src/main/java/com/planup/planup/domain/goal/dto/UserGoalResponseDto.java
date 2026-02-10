@@ -16,4 +16,12 @@ public class UserGoalResponseDto {
         @Schema(description = "전체 달성률 (퍼센트)", example = "85")
         private int totalAchievementRate;
     }
+
+//    @Builder
+//    @Data
+//    @NoArgsConstructor
+//    @AllArgsConstructor
+//    public static class TimerGoalAchievementWithFriendDto {
+//
+//    }
 }

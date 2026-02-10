@@ -25,4 +25,6 @@ public class ReportUser {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "goal_report_id") // FK 이름은 DB 컬럼과 일치시켜야 함
     private GoalReport goalReport;
+
+    private String profileUrl;
 }

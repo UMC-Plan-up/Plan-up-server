@@ -69,4 +69,12 @@ public class UserGoalController {
 
         return ApiResponse.onSuccess(result);
     }
+//    @GetMapping("/{goalId}/timers")
+//    public ApiResponse<UserGoalResponseDto.TimerGoalAchievementWithFriendDto> getGoalTimer(
+//            @PathVariable Long goalId,
+//            @RequestParam LocalDate date,
+//            @CurrentUser Long userId
+//    ) {
+//        userGoalAggregationService.getTimerAchievementWithFriendInDate(goalId, date, userId);
+//    }
 }
