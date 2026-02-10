@@ -56,7 +56,8 @@ public class GoalReportConverter {
                 .map(user -> new ReportUserResponse(
                         user.getId(),
                         user.getUserName(),
-                        user.getRate()
+                        user.getRate(),
+                        user.getProfileUrl()
                 ))
                 .collect(Collectors.toList());
     }

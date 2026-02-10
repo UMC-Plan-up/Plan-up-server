@@ -140,6 +140,7 @@ public class GoalReportWriteServiceImpl implements GoalReportWriteService {
                     .userName(userA.getNickname())
                     .rate(userValue)
                     .goalReport(goalReport)
+                    .profileUrl(userA.getProfileImg())
                     .build();
             reportUserRepository.save(reportUser);
             reportUsers.add(reportUser);
