@@ -17,11 +17,11 @@ public class UserGoalResponseDto {
         private int totalAchievementRate;
     }
 
-    @Builder
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class TimerGoalAchievementWithFriendDto {
-
-    }
+//    @Builder
+//    @Data
+//    @NoArgsConstructor
+//    @AllArgsConstructor
+//    public static class TimerGoalAchievementWithFriendDto {
+//
+//    }
 }
