@@ -80,7 +80,10 @@ public class GoalReportResponseDTO {
             String userName,
 
             @Schema(description = "친구/참여자의 성취율", example = "90")
-            int rate
+            int rate,
+
+            @Schema(description = "친구의 프로필 사진", example = "")
+            String profileImg
     ) {
     }
 }
