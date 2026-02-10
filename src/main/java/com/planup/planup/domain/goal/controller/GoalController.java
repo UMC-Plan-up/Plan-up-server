@@ -35,7 +35,7 @@ public class GoalController {
 
     @GetMapping("/level")
     @Operation(summary = "유저 레벨 조회", description = "유저의 현재 레벨 정보를 조회합니다. 목표 생성 시 레벨별 제한을 확인하는 데 사용됩니다.")
-    public ApiResponse<GoalResponseDto.UserLevelInfo> getUserLevel(@Parameter(hidden = true) @CurrentUser Long userId) {
+    public ApiResponse<GoalResponseDto.UserLevelInfo> getUserLevel(@CurrentUser Long userId) {
         GoalResponseDto.UserLevelInfo userLevelInfo = goalService.getUserLevel(userId);
         return ApiResponse.onSuccess(userLevelInfo);
     }
@@ -44,7 +44,7 @@ public class GoalController {
     @Operation(summary = "목표 생성 API", description = "목표를 생성하는 API입니다.")
     public ApiResponse<GoalResponseDto.GoalResultDto> createGoal(
             @Valid @RequestBody GoalRequestDto.CreateGoalDto dto,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
         GoalResponseDto.GoalResultDto result = goalService.createGoal(userId, dto);
 
         return ApiResponse.onSuccess(result);
@@ -54,7 +54,7 @@ public class GoalController {
     @Operation(summary = "카테고리별 친구 목표 조회 API", description = "선택한 카테고리의 친구 목표 목록을 조회합니다.")
     public ApiResponse<List<GoalResponseDto.GoalCreateListDto>> getFriendGoalsByCategory(
             @RequestParam GoalCategory goalCategory,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
 
         List<GoalResponseDto.GoalCreateListDto> result = goalService.getFriendGoalsByCategory(userId, goalCategory);
         return ApiResponse.onSuccess(result);
@@ -72,7 +72,7 @@ public class GoalController {
     @GetMapping("/mygoal/list")
     @Operation(summary = "내 목표 조회 리스트 API", description = "내 목표 리스트들을 조회하는 API입니다.")
     public ApiResponse<List<GoalResponseDto.MyGoalListDto>> getMyGoals(
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+             @CurrentUser Long userId) {
 
         List<GoalResponseDto.MyGoalListDto> result = goalService.getMyGoals(userId);
 
@@ -84,7 +84,7 @@ public class GoalController {
     public ApiResponse<GoalResponseDto.MyGoalDetailDto> getGoalDetail(
             @Parameter(description = "목표 ID", example = "1")
             @RequestParam Long goalId,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
         GoalResponseDto.MyGoalDetailDto result = goalService.getMyGoalDetails(goalId, userId);
 
         return ApiResponse.onSuccess(result);
@@ -94,7 +94,7 @@ public class GoalController {
     @Operation(summary = "친구 목표 조회 리스트 API", description = "친구 목표 리스트들을 조회하는 API입니다.")
     public ApiResponse<List<GoalResponseDto.FriendGoalListDto>> getFriendGoals(
             @RequestParam Long friendId,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
 
         List<GoalResponseDto.FriendGoalListDto> result = goalService.getFriendGoals(userId,friendId);
 
@@ -106,7 +106,7 @@ public class GoalController {
     public ApiResponse<Void> updateActiveGoal(
             @Parameter(description = "목표 ID", example = "1")
             @RequestParam Long goalId,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+             @CurrentUser Long userId) {
         goalService.updateActiveGoal(goalId, userId);
 
         return ApiResponse.onSuccess(null);
@@ -117,7 +117,7 @@ public class GoalController {
     public ApiResponse<Void> updatePublicGoal(
             @Parameter(description = "목표 ID", example = "1")
             @RequestParam Long goalId,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
         goalService.updatePublicGoal(goalId, userId);
 
         return ApiResponse.onSuccess(null);
@@ -128,7 +128,7 @@ public class GoalController {
     public ApiResponse<GoalRequestDto.CreateGoalDto> getGoalForEdit(
             @Parameter(description = "목표 ID", example = "1")
             @RequestParam Long goalId,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
         GoalRequestDto.CreateGoalDto result = goalService.getGoalInfoToUpdate(goalId, userId);
 
         return ApiResponse.onSuccess(result);
@@ -140,7 +140,7 @@ public class GoalController {
             @Parameter(description = "목표 ID", example = "1")
             @RequestParam Long goalId,
             @Valid @RequestBody GoalRequestDto.CreateGoalDto dto,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
         goalService.updateGoal(goalId, userId, dto);
 
         return ApiResponse.onSuccess(null);
@@ -151,7 +151,7 @@ public class GoalController {
     public ApiResponse<String> deleteGoal(
             @Parameter(description = "목표 ID", example = "1")
             @RequestParam Long goalId,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
         goalService.deleteGoal(goalId, userId);
 
         return ApiResponse.onSuccess(null);
@@ -171,7 +171,7 @@ public class GoalController {
     public ApiResponse<List<PhotoVerificationResponseDto.uploadPhotoResponseDto>> getGoalPhotos(
             @Parameter(description = "목표 ID", example = "1")
             @RequestParam Long goalId,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
 
         List<PhotoVerificationResponseDto.uploadPhotoResponseDto> result = goalService.getGoalPhotos(userId, goalId);
 
@@ -185,7 +185,6 @@ public class GoalController {
             @PathVariable Long friendId,
             @PathVariable Long goalId,
             @CurrentUser Long userId) {
-        User user = userQueryService.getUserByUserId(userId);
         friendService.isFriend(userId, friendId);
 
         List<PhotoVerificationResponseDto.uploadPhotoResponseDto> result =
@@ -200,7 +199,7 @@ public class GoalController {
     public ApiResponse<CommentResponseDto.CommentDto> createComment(
             @PathVariable Long goalId,
             @Valid @RequestBody CommentRequestDto.CommentCreateRequestDto requestDto,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
 
         CommentResponseDto.CommentDto result = commentService.createCommentByGoal(goalId, userId, requestDto);
         return ApiResponse.onSuccess(result);
@@ -210,7 +209,7 @@ public class GoalController {
     @Operation(summary = "댓글 조회 API", description = "특정 목표의 댓글 목록을 조회합니다.")
     public ApiResponse<List<CommentResponseDto.CommentDto>> getComments(
             @PathVariable Long goalId,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
 
         List<CommentResponseDto.CommentDto> result = commentService.getComments(goalId, userId);
         return ApiResponse.onSuccess(result);
@@ -221,7 +220,7 @@ public class GoalController {
     public ApiResponse<CommentResponseDto.CommentDto> updateComment(
             @PathVariable Long commentId,
             @RequestBody String content,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
 
         CommentResponseDto.CommentDto result = commentService.updateComment(commentId, userId, content);
         return ApiResponse.onSuccess(result);
@@ -231,7 +230,7 @@ public class GoalController {
     @Operation(summary = "댓글 삭제 API", description = "본인이 작성한 댓글을 삭제합니다.")
     public ApiResponse<Void> deleteComment(
             @PathVariable Long commentId,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
 
         commentService.deleteComment(commentId, userId);
         return ApiResponse.onSuccess(null);
@@ -242,7 +241,7 @@ public class GoalController {
     public ApiResponse<List<GoalResponseDto.FriendTimerStatusDto>> getFriendTimerStatus(
             @Parameter(description = "목표 ID", example = "1")
             @PathVariable Long goalId,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
 
         List<GoalResponseDto.FriendTimerStatusDto> result = goalService.getFriendTimerStatus(goalId, userId);
 
@@ -258,7 +257,7 @@ public class GoalController {
     public ApiResponse<GoalResponseDto.GoalMemoResponseDto> saveMemo(
             @Parameter(description = "목표 ID", example = "1")
             @PathVariable Long goalId,
-            @Parameter(hidden = true) @CurrentUser Long userId,
+            @CurrentUser Long userId,
             @Valid @RequestBody GoalRequestDto.CreateMemoRequestDto request) {
 
         GoalResponseDto.GoalMemoResponseDto response = goalService.saveMemo(
@@ -272,7 +271,7 @@ public class GoalController {
     public ApiResponse<GoalResponseDto.DailyVerifiedGoalsResponse> getDailyVerifiedGoals(
             @Parameter(description = "조회할 날짜 (yyyy-MM-dd)", example = "2025-01-15")
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
 
         GoalResponseDto.DailyVerifiedGoalsResponse result = goalService.getDailyVerifiedGoals(userId, date);
         return ApiResponse.onSuccess(result);
@@ -283,7 +282,7 @@ public class GoalController {
     public ApiResponse<GoalResponseDto.GoalMemoReadDto> getMemo(
             @PathVariable Long goalId,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
 
         GoalResponseDto.GoalMemoReadDto memo = goalService.getMemo(userId, goalId, date);
         return ApiResponse.onSuccess(memo);
@@ -298,7 +297,7 @@ public class GoalController {
             @PathVariable Long goalId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
 
         List<GoalResponseDto.GoalMemoReadDto> memos = goalService.getMemosByPeriod(
                 userId, goalId, startDate, endDate);
@@ -311,7 +310,7 @@ public class GoalController {
     public ApiResponse<GoalResponseDto.GoalReactionDto> getGoalReactions(
             @Parameter(description = "목표 ID", example = "1")
             @PathVariable Long goalId,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
 
         GoalResponseDto.GoalReactionDto result = goalService.getGoalReactions(goalId, userId);
         return ApiResponse.onSuccess(result);
@@ -322,7 +321,7 @@ public class GoalController {
     public ApiResponse<GoalResponseDto.ReactionResultDto> addCheer(
             @Parameter(description = "목표 ID", example = "1")
             @PathVariable Long goalId,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
 
         GoalResponseDto.ReactionResultDto result = goalService.addCheer(goalId, userId);
         return ApiResponse.onSuccess(result);
@@ -333,7 +332,7 @@ public class GoalController {
     public ApiResponse<GoalResponseDto.ReactionResultDto> addEncourage(
             @Parameter(description = "목표 ID", example = "1")
             @PathVariable Long goalId,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
 
         GoalResponseDto.ReactionResultDto result = goalService.addEncourage(goalId, userId);
         return ApiResponse.onSuccess(result);
