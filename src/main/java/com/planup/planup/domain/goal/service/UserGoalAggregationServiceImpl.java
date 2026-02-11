@@ -72,4 +72,6 @@ public class UserGoalAggregationServiceImpl implements UserGoalAggregationServic
     private String generateKeyUserAndGoal(String userId, String goalId) {
         return "user:" + userId + ":goal:" + goalId + ":" + "goalAchievement";
     }
+
+    public UserGoalResponseDto.
 }
