@@ -73,5 +73,13 @@ public class UserGoalAggregationServiceImpl implements UserGoalAggregationServic
         return "user:" + userId + ":goal:" + goalId + ":" + "goalAchievement";
     }
 
-    public UserGoalResponseDto.
+    public UserGoalResponseDto.TimerGoalAchievementWithFriendDto getTimerGoalAchievementInfoWithFriend(Long userId, Long goalId, LocalDate date) {
+
+    }
+
+    //특정 사용자의 특정 일자의 목표에 대해 간단한 정보 조회(프로필 이미지, 총 시간, 닉네임)
+    public UserGoalResponseDto.TimerGoalAchievementAboutFriendInfo getTimerGoalAchievementInfoAboutFriend(Long userId, Long goalId, LocalDate date) {
+
+    }
+
 }
