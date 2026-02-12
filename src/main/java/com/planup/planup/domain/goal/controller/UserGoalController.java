@@ -69,7 +69,9 @@ public class UserGoalController {
 
         return ApiResponse.onSuccess(result);
     }
-    @GetMapping("/{goalId}/timers")
+    @GetMapping("/{goalId}/timers/info")
+    @Operation(summary = "특정 일, 특정 목표에 대해 타이머 미션의 값을 보여준다.",
+            description = "내가 특정 일자에 특정 목표에 대해 timer 미션을 수행한 값을 합하여 친구들의 데이터와 함깨 보여준다.")
     public ApiResponse<UserGoalResponseDto.TimerGoalAchievementWithFriendDto> getGoalTimer(
             @PathVariable Long goalId,
             @RequestParam LocalDate date,
