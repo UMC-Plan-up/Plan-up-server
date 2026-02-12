@@ -4,8 +4,12 @@ import com.planup.planup.domain.goal.dto.CommunityResponseDto;
 import com.planup.planup.domain.goal.dto.UserGoalResponseDto;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.user.dto.UserDailySummaryDTO;
+import com.planup.planup.domain.user.dto.UserProfileDTO;
 import com.planup.planup.domain.user.entity.User;
-import lombok.Data;
+
+import java.time.LocalDate;
+import java.util.List;
 
 public class UserGoalConvertor {
     public static CommunityResponseDto.JoinGoalResponseDto toJoinGoalResponseDto(
@@ -27,6 +31,28 @@ public class UserGoalConvertor {
         return UserGoalResponseDto.GoalTotalAchievementDto.builder()
                 .goalId(goalId)
                 .totalAchievementRate(totalAchievementRate)
+                .build();
+    }
+
+
+    public static UserGoalResponseDto.TimerGoalAchievementWithFriendDto toAchievementWithFriend(
+            Goal goal,
+            List<UserDailySummaryDTO> list,
+            LocalDate date,
+            long totalSeconds,
+            boolean isAchievement
+
+    ) {
+        return UserGoalResponseDto.TimerGoalAchievementWithFriendDto.builder()
+                .date(date)
+                .totalSeconds(totalSeconds)
+                .photoUrl(null)
+                .goalName(goal.getGoalName())
+                .isAchievement(isAchievement)
+                .todayMemo(null)
+                .frequency(goal.getFrequency())
+                .goalAmount(goal.getGoalAmount())
+                .friendInfoList(list)
                 .build();
     }
 

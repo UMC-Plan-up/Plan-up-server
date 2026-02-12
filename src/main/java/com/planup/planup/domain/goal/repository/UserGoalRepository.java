@@ -6,6 +6,7 @@ import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.user.dto.UserDailySummaryDTO;
 import com.planup.planup.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -56,6 +57,8 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
 
     List<UserGoal> findAllByGoal(Goal goal);
 
+    List<UserGoal> findAllByGoalId(Long goalId);
+
     List<UserGoal> findAllByUserAndGoal(User user, Goal goal);
 
     List<UserGoal> findAllByUpdatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
@@ -93,19 +96,40 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     Integer countByUserId(@Param("userId") Long userId);
 
     @Query("""
-select new com.planup.planup.domain.goal.dto.UserWithGoalCountDTO(
-    ug.user, count(ug)
-)
-from UserGoal ug
-join ug.goal g
-where ug.user.id = :userId
-  and g.goalType in :challengeTypes
-group by ug.user
-""")
+    select new com.planup.planup.domain.goal.dto.UserWithGoalCountDTO(
+        ug.user, count(ug)
+    )
+    from UserGoal ug
+    join ug.goal g
+    where ug.user.id = :userId
+      and g.goalType in :challengeTypes
+    group by ug.user
+    """)
     List<UserWithGoalCountDTO> getUserByChallengesAndUserId(@Param("userId") Long userId,
                                                             @Param("challengeTypes") List<GoalType> challengeTypes);
 
-
+    @Query("""
+    select new com.planup.planup.domain.user.dto.UserDailySummaryDTO (
+        u.id,
+        u.nickname,
+        u.profileImg,
+        coalesce(sum(tv.spentTimeSeconds), 0L)
+    )
+    from User u
+    left join TimerVerification tv
+        on tv.userGoal.user.id = u.id
+        and tv.userGoal.goal.id = :goalId
+       and tv.endTime >= :start
+       and tv.endTime < :end
+    where u.id in :userIds
+    group by u.id, u.nickname, u.profileImg
+    """)
+    List<UserDailySummaryDTO> findUserDailySummary(
+            @Param("userIds") List<Long> userIds,
+            @Param("goalId") Long goalId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 }
 
 

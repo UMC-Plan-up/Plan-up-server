@@ -1,6 +1,7 @@
 package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.GoalException;
 import com.planup.planup.apiPayload.exception.custom.UserGoalException;
 import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.goal.dto.UserGoalResponseDto;
@@ -14,6 +15,8 @@ import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.GoalRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
+import com.planup.planup.domain.user.dto.UserDailySummaryDTO;
+import com.planup.planup.domain.user.dto.UserProfileDTO;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.repository.UserRepository;
 import com.planup.planup.domain.verification.service.PhotoVerificationReadService;
@@ -26,10 +29,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -122,15 +122,12 @@ public class UserGoalServiceImpl implements UserGoalService{
     public int calculateSingleGoalAchievement(UserGoal userGoal, LocalDate targetDate) {
         Goal goal = userGoal.getGoal();
 
-        LocalDateTime startOfDay = targetDate.atStartOfDay();
-        LocalDateTime endOfDay = targetDate.atTime(23, 59, 59);
-
         Map<LocalDate, Integer> dailyCount;
 
         if (goal.getVerificationType().equals(VerificationType.PHOTO)) {
-            dailyCount = photoVerificationReadService.calculateVerification(userGoal, startOfDay, endOfDay);
+            dailyCount = photoVerificationReadService.calculateVerification(userGoal, targetDate);
         } else if (goal.getVerificationType().equals(VerificationType.TIMER)) {
-            dailyCount = timerVerificationReadService.calculateVerification(userGoal, startOfDay, endOfDay);
+            dailyCount = timerVerificationReadService.calculateVerification(userGoal, targetDate);
         } else {
             return 0;
         }
@@ -217,6 +214,12 @@ public class UserGoalServiceImpl implements UserGoalService{
 
     @Override
     @Transactional(readOnly = true)
+    public List<UserGoal> getUserGoalListByGoalId(Long goalId) {
+        return userGoalRepository.findAllByGoalId(goalId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public VerificationType checkVerificationType(UserGoal userGoal) {
         return userGoal.getGoal().getVerificationType();
     }
@@ -242,6 +245,29 @@ public class UserGoalServiceImpl implements UserGoalService{
     @Override
     @Transactional(readOnly = true)
     public void getTimerAchievementWithFriendInDate(Long goalId, LocalDate date, Long userId) {
+        UserGoal userGoal = getByGoalIdAndUserId(goalId, userId);
+        Optional<Goal> optionalGoal = goalRepository.findById(goalId);
 
+        Goal goal = optionalGoal.orElseThrow(() -> new GoalException(ErrorStatus.NOT_FOUND_GOAL));
+
+        LocalDateTime startDate = getStartLocalDateTime(date);
+        LocalDateTime endDate = getEndLocalDateTime(date);
+
+        //내 타이머 합산 값을 가져온다.
+        Long myTimer = timerVerificationReadService.getSpecificDayTimerGoalSum(userGoal, date);
+
+        List<UserGoal> userGoalListByGoalId = getUserGoalListByGoalId(goalId);
+        List<Long> friendIds = userGoalListByGoalId.stream().map(UserGoal::getId).toList();
+        List<UserDailySummaryDTO> userDailySummary = userGoalRepository.findUserDailySummary(friendIds, goalId, startDate, endDate);
+
+
+    }
+
+    private LocalDateTime getStartLocalDateTime(LocalDate date) {
+        return date.atStartOfDay();
+    }
+
+    private LocalDateTime getEndLocalDateTime(LocalDate date) {
+        return date.plusDays(1).atStartOfDay();
     }
 }

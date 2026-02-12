@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -57,6 +58,19 @@ public interface TimerVerificationRepository extends JpaRepository<TimerVerifica
             "WHERE t.userGoal.id = :userGoalId " +
             "AND FUNCTION('DATE', t.createdAt) = CURRENT_DATE")
     Integer sumTodayVerificationsByUserGoalId(@Param("userGoalId") Long userGoalId);
+
+    @Query("""
+    select coalesce(sum(t.spentTimeSeconds), 0)
+    from TimerVerification t
+    where t.createdAt >= :start
+      and t.createdAt < :end
+      and t.userGoal.id = :userGoalId
+""")
+    Long sumSpentTimeByDateAndUserGoal(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end,
+            @Param("userGoalId") Long userGaolId
+    );
 }
 
 

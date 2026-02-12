@@ -1,5 +1,6 @@
 package com.planup.planup.domain.goal.dto;
 
+import com.planup.planup.domain.user.dto.UserDailySummaryDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -50,18 +51,7 @@ public class UserGoalResponseDto {
         @Schema(description = "세부 기준", example = "하루에 3번 이상 공부하기")
         String goalAmount;
 
-        @Schema(description = "", example = "")
-        List<TimerGoalAchievementAboutFriendInfo> friendInfoList;
-    }
-
-
-    @Builder
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class TimerGoalAchievementAboutFriendInfo {
-        String profileUrl;
-        String nickName;
-        long totalSeconds;
+        @Schema(description = "친구에 대한 정보", example = "")
+        List<UserDailySummaryDTO> friendInfoList;
     }
 }

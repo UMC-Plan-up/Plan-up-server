@@ -18,6 +18,9 @@ public interface UserGoalService {
     UserGoal getUserGoalByUserAndGoal(User user, Goal goal);
     List<UserGoal> getUserGoalListByGoal(Goal goal);
 
+    @Transactional(readOnly = true)
+    List<UserGoal> getUserGoalListByGoalId(Long goalId);
+
     VerificationType checkVerificationType(UserGoal userGoal);
 
     //Command Service

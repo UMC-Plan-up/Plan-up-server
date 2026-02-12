@@ -32,7 +32,18 @@ public class PhotoVerificationReadService {
     }
 
     @Transactional(readOnly = true)
-    public Map<LocalDate, Integer> calculateVerification(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
+    public Map<LocalDate, Integer> calculateVerification(UserGoal userGoal, LocalDate date) {
+        LocalDateTime startDate = getStartLocalDateTime(date);
+        LocalDateTime endDate = getEndLocalDateTime(date);
+        List<PhotoVerification> verifications = getPhotoVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
+
+        return calcVerificationLocalDate(verifications);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<LocalDate, Integer> calculateVerification7Day(UserGoal userGoal, LocalDate date) {
+        LocalDateTime startDate = getStartLocalDateTime(date);
+        LocalDateTime endDate = getEndLocalDateTime(date).plusDays(7);
         List<PhotoVerification> verifications = getPhotoVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
 
         return calcVerificationLocalDate(verifications);
@@ -58,5 +69,13 @@ public class PhotoVerificationReadService {
         List<PhotoVerification> verifications = getPhotoVerificationListByUserGoal(userGoal);
 
         return calcVerificationLocalDate(verifications);
+    }
+
+    private LocalDateTime getStartLocalDateTime(LocalDate date) {
+        return date.atStartOfDay();
+    }
+
+    private LocalDateTime getEndLocalDateTime(LocalDate date) {
+        return date.plusDays(1).atStartOfDay();
     }
 }
