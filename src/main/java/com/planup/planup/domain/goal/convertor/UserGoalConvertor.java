@@ -40,16 +40,18 @@ public class UserGoalConvertor {
             List<UserDailySummaryDTO> list,
             LocalDate date,
             long totalSeconds,
-            boolean isAchievement
+            boolean isAchievement,
+            String memo,
+            String url
 
     ) {
         return UserGoalResponseDto.TimerGoalAchievementWithFriendDto.builder()
                 .date(date)
                 .totalSeconds(totalSeconds)
-                .photoUrl(null)
+                .photoUrl(url)
                 .goalName(goal.getGoalName())
                 .isAchievement(isAchievement)
-                .todayMemo(null)
+                .todayMemo(memo)
                 .frequency(goal.getFrequency())
                 .goalAmount(goal.getGoalAmount())
                 .friendInfoList(list)

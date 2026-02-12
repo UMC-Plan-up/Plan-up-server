@@ -39,5 +39,5 @@ public interface UserGoalService {
     List<UserGoal> getActiveUserGoalsByUser(Long userId, LocalDate targetDate);
 
     @Transactional(readOnly = true)
-    void getTimerAchievementWithFriendInDate(Long goalId, LocalDate date, Long userId);
+    UserGoalResponseDto.TimerGoalAchievementWithFriendDto getTimerAchievementWithFriendInDate(Long userId,Long goalId, LocalDate date);
 }
