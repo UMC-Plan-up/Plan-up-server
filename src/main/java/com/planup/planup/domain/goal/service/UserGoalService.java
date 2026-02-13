@@ -32,6 +32,9 @@ public interface UserGoalService {
     UserGoal getByGoalIdAndUserId(Long goalId, Long userId);
 
     @Transactional(readOnly = true)
+    UserGoal getByGoalIdAndUserIdWithGoal(Long goalId, Long userId);
+
+    @Transactional(readOnly = true)
     boolean existUserGoal(Long goalId, Long userId);
 
     int calculateDailyAchievement(Long userId, LocalDate targetDate);

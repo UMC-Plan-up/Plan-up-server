@@ -92,6 +92,10 @@ public class GoalResponseDto {
         private int oneDose;
         private boolean isPublic;
         private List<Comment> commentList;
+        private String goalAmount;
+        private int frequency;
+        private GoalPeriod period;
+        private VerificationType verificationType;
     }
 
     //랭킹 Dto

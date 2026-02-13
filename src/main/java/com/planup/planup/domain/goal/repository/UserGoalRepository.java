@@ -25,7 +25,19 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     UserGoal findByGoalIdAndStatus(Long goalId, Status status);
     List<UserGoal> findByGoalId(Long goalId);
 
-    UserGoal findByGoalIdAndUserId(Long goalId, Long userId);
+    Optional<UserGoal> findByGoalIdAndUserId(Long goalId, Long userId);
+
+    @Query("""
+    select ug
+    from UserGoal ug
+    join fetch ug.goal g
+    where g.id = :goalId
+      and ug.user.id = :userId
+    """)
+    Optional<UserGoal> findByGoalIdAndUserIdWithGoal(
+            @Param("goalId") Long goalId,
+            @Param("userId") Long userId
+    );
 
     List<UserGoal> findByUserId(Long userId);
 

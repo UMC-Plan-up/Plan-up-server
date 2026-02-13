@@ -2,6 +2,7 @@ package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.apiPayload.exception.custom.GoalException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
+import com.planup.planup.apiPayload.exception.custom.UserGoalException;
 import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
@@ -164,9 +165,10 @@ public class GoalServiceImpl implements GoalService{
     //내 목표 조회(세부 내용 조회)
     @Transactional(readOnly = true)
     public GoalResponseDto.MyGoalDetailDto getMyGoalDetails(Long goalId, Long userId) {
-        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserIdWithGoal(goalId, userId);
+        Goal goal = userGoal.getGoal();
 
-        return GoalConvertor.toMyGoalDetailsDto(userGoal);
+        return GoalConvertor.toMyGoalDetailsDto(userGoal, goal);
     }
 
     //활성화/비활성화
@@ -304,7 +306,7 @@ public class GoalServiceImpl implements GoalService{
             Long goalId,
             GoalRequestDto.CreateMemoRequestDto request) {
 
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
 
         Optional<GoalMemo> existingMemoOpt = goalMemoRepository
                 .findByUserGoalAndMemoDate(userGoal, request.getMemoDate());

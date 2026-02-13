@@ -18,7 +18,6 @@ import com.planup.planup.domain.goal.repository.GoalMemoRepository;
 import com.planup.planup.domain.goal.repository.GoalRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.user.dto.UserDailySummaryDTO;
-import com.planup.planup.domain.user.dto.UserProfileDTO;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.repository.UserRepository;
 import com.planup.planup.domain.verification.service.PhotoVerificationReadService;
@@ -155,7 +154,7 @@ public class UserGoalServiceImpl implements UserGoalService{
 
     @Transactional(readOnly = true)
     public UserGoalResponseDto.GoalTotalAchievementDto calculateGoalTotalAchievement(Long goalId, Long userId) {
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
 
         if (userGoal == null) {
             throw new UserGoalException(ErrorStatus.NOT_FOUND_GOAL);
@@ -236,7 +235,13 @@ public class UserGoalServiceImpl implements UserGoalService{
     @Override
     @Transactional(readOnly = true)
     public UserGoal getByGoalIdAndUserId(Long goalId, Long userId) {
-        return userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        return userGoalRepository.findByGoalIdAndUserId(goalId, userId).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserGoal getByGoalIdAndUserIdWithGoal(Long goalId, Long userId) {
+        return userGoalRepository.findByGoalIdAndUserIdWithGoal(goalId, userId).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
     }
 
     @Override
