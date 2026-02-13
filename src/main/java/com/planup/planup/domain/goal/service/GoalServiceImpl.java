@@ -66,8 +66,6 @@ public class GoalServiceImpl implements GoalService{
     private final GoalMemoRepository goalMemoRepository;
     private final TimerVerificationReadService timerVerificationReadService;
     private final NotificationCreateService notificationCreateService;
-    private final UserBadgeQueryService userBadgeQueryService;
-    private final ReactionQueryService reactionQueryService;
     private final ReactionCommandService reactionCommandService;
     private final ReactionRepository reactionRepository;
     //목표 생성
@@ -111,7 +109,7 @@ public class GoalServiceImpl implements GoalService{
         return friendGoals.stream()
                 .map(userGoal -> {
                     User creator = userGoalRepository.findByGoalIdAndStatus(
-                            userGoal.getGoal().getId(), Status.ADMIN).getUser();
+                            userGoal.getGoal().getId(), Status.ADMIN).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL)).getUser();
                     int currentParticipants = userGoalRepository.countByGoalId(userGoal.getGoal().getId());
                     int remainingSlots = userGoal.getGoal().getLimitFriendCount() - currentParticipants;
                     return GoalConvertor.toGoalCreateListDto(userGoal, creator, remainingSlots);
@@ -127,7 +125,7 @@ public class GoalServiceImpl implements GoalService{
         return communityGoals.stream()
                 .map(userGoal -> {
                     User creator = userGoalRepository.findByGoalIdAndStatus(
-                            userGoal.getGoal().getId(), Status.ADMIN).getUser();
+                            userGoal.getGoal().getId(), Status.ADMIN).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL)).getUser();
                     int currentParticipants = userGoalRepository.countByGoalId(userGoal.getGoal().getId());
                     int remainingSlots = userGoal.getGoal().getLimitFriendCount() - currentParticipants;
                     return GoalConvertor.toGoalCreateListDto(userGoal, creator, remainingSlots);
@@ -222,7 +220,7 @@ public class GoalServiceImpl implements GoalService{
     public void deleteGoal(Long goalId, Long userId) {
         Goal goal = findGoalById(goalId);
 
-        UserGoal adminUserGoal = userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN);
+        UserGoal adminUserGoal = userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
         if (adminUserGoal == null) {
             throw new RuntimeException("목표의 관리자를 찾을 수 없습니다.");
         }

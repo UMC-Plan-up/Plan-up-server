@@ -22,7 +22,7 @@ import java.util.Optional;
 @Repository
 public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     //Query Service
-    UserGoal findByGoalIdAndStatus(Long goalId, Status status);
+    Optional<UserGoal> findByGoalIdAndStatus(Long goalId, Status status);
     List<UserGoal> findByGoalId(Long goalId);
 
     Optional<UserGoal> findByGoalIdAndUserId(Long goalId, Long userId);

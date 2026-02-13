@@ -88,7 +88,7 @@ public class UserGoalServiceImpl implements UserGoalService{
 
     //친구 관계 검증을 위한 헬퍼 메서드
     private void validateFriendRelation(Long userId, Long goalId) {
-        UserGoal adminUserGoal = userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN);
+        UserGoal adminUserGoal = userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
         if (adminUserGoal == null) {
             throw new RuntimeException("목표 생성자를 찾을 수 없습니다.");
         }
