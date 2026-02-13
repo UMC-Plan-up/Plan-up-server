@@ -1,6 +1,7 @@
 package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.GoalException;
 import com.planup.planup.apiPayload.exception.custom.UserGoalException;
 import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.goal.dto.UserGoalResponseDto;
@@ -11,9 +12,12 @@ import com.planup.planup.domain.goal.convertor.UserGoalConvertor;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Goal;
+import com.planup.planup.domain.goal.entity.GoalMemo;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.goal.repository.GoalMemoRepository;
 import com.planup.planup.domain.goal.repository.GoalRepository;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
+import com.planup.planup.domain.user.dto.UserDailySummaryDTO;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.repository.UserRepository;
 import com.planup.planup.domain.verification.service.PhotoVerificationReadService;
@@ -26,10 +30,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +43,7 @@ public class UserGoalServiceImpl implements UserGoalService{
     private final FriendReadService friendService;
     private final PhotoVerificationReadService photoVerificationReadService;
     private final TimerVerificationReadService timerVerificationReadService;
+    private final GoalMemoRepository goalMemoRepository;
 
     @Transactional
     public CommunityResponseDto.JoinGoalResponseDto joinGoal(Long userId, Long goalId) {
@@ -86,7 +88,7 @@ public class UserGoalServiceImpl implements UserGoalService{
 
     //친구 관계 검증을 위한 헬퍼 메서드
     private void validateFriendRelation(Long userId, Long goalId) {
-        UserGoal adminUserGoal = userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN);
+        UserGoal adminUserGoal = userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
         if (adminUserGoal == null) {
             throw new RuntimeException("목표 생성자를 찾을 수 없습니다.");
         }
@@ -122,15 +124,12 @@ public class UserGoalServiceImpl implements UserGoalService{
     public int calculateSingleGoalAchievement(UserGoal userGoal, LocalDate targetDate) {
         Goal goal = userGoal.getGoal();
 
-        LocalDateTime startOfDay = targetDate.atStartOfDay();
-        LocalDateTime endOfDay = targetDate.atTime(23, 59, 59);
-
         Map<LocalDate, Integer> dailyCount;
 
         if (goal.getVerificationType().equals(VerificationType.PHOTO)) {
-            dailyCount = photoVerificationReadService.calculateVerification(userGoal, startOfDay, endOfDay);
+            dailyCount = photoVerificationReadService.calculateVerification(userGoal, targetDate);
         } else if (goal.getVerificationType().equals(VerificationType.TIMER)) {
-            dailyCount = timerVerificationReadService.calculateVerification(userGoal, startOfDay, endOfDay);
+            dailyCount = timerVerificationReadService.calculateVerification(userGoal, targetDate);
         } else {
             return 0;
         }
@@ -155,7 +154,7 @@ public class UserGoalServiceImpl implements UserGoalService{
 
     @Transactional(readOnly = true)
     public UserGoalResponseDto.GoalTotalAchievementDto calculateGoalTotalAchievement(Long goalId, Long userId) {
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
 
         if (userGoal == null) {
             throw new UserGoalException(ErrorStatus.NOT_FOUND_GOAL);
@@ -217,6 +216,12 @@ public class UserGoalServiceImpl implements UserGoalService{
 
     @Override
     @Transactional(readOnly = true)
+    public List<UserGoal> getUserGoalListByGoalId(Long goalId) {
+        return userGoalRepository.findAllByGoalId(goalId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public VerificationType checkVerificationType(UserGoal userGoal) {
         return userGoal.getGoal().getVerificationType();
     }
@@ -230,7 +235,13 @@ public class UserGoalServiceImpl implements UserGoalService{
     @Override
     @Transactional(readOnly = true)
     public UserGoal getByGoalIdAndUserId(Long goalId, Long userId) {
-        return userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        return userGoalRepository.findByGoalIdAndUserId(goalId, userId).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserGoal getByGoalIdAndUserIdWithGoal(Long goalId, Long userId) {
+        return userGoalRepository.findByGoalIdAndUserIdWithGoal(goalId, userId).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
     }
 
     @Override
@@ -241,7 +252,34 @@ public class UserGoalServiceImpl implements UserGoalService{
 
     @Override
     @Transactional(readOnly = true)
-    public void getTimerAchievementWithFriendInDate(Long goalId, LocalDate date, Long userId) {
+    public UserGoalResponseDto.TimerGoalAchievementWithFriendDto getTimerAchievementWithFriendInDate(Long userId,Long goalId, LocalDate date)  {
+        UserGoal userGoal = getByGoalIdAndUserId(goalId, userId);
+        Optional<Goal> optionalGoal = goalRepository.findById(goalId);
 
+        Goal goal = optionalGoal.orElseThrow(() -> new GoalException(ErrorStatus.NOT_FOUND_GOAL));
+
+        LocalDateTime startDate = getStartLocalDateTime(date);
+        LocalDateTime endDate = getEndLocalDateTime(date);
+
+        //내 타이머 합산 값을 가져온다.
+        Long myTimer = timerVerificationReadService.getSpecificDayTimerGoalSum(userGoal, date);
+        //저장된 메모 값 가져온다.
+        Optional<GoalMemo> memoOpt = goalMemoRepository.findByUserGoalAndMemoDate(userGoal, date);
+        String memoStr;
+        memoStr = memoOpt.map(GoalMemo::getMemo).orElse(null);
+
+        //나와 같이 참여하는 친구들의 정보를 조회하고 값을 반환한다.
+        List<UserGoal> userGoalListByGoalId = getUserGoalListByGoalId(goalId);
+        List<Long> friendIds = userGoalListByGoalId.stream().map(UserGoal::getId).toList();
+        List<UserDailySummaryDTO> userDailySummary = userGoalRepository.findUserDailySummary(friendIds, goalId, startDate, endDate);
+        return UserGoalConvertor.toAchievementWithFriend(goal, userDailySummary, date, myTimer, true, memoStr, null);
+    }
+
+    private LocalDateTime getStartLocalDateTime(LocalDate date) {
+        return date.atStartOfDay();
+    }
+
+    private LocalDateTime getEndLocalDateTime(LocalDate date) {
+        return date.plusDays(1).atStartOfDay();
     }
 }

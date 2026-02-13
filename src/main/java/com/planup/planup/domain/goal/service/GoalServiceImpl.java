@@ -2,6 +2,7 @@ package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.apiPayload.exception.custom.GoalException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
+import com.planup.planup.apiPayload.exception.custom.UserGoalException;
 import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
@@ -65,8 +66,6 @@ public class GoalServiceImpl implements GoalService{
     private final GoalMemoRepository goalMemoRepository;
     private final TimerVerificationReadService timerVerificationReadService;
     private final NotificationCreateService notificationCreateService;
-    private final UserBadgeQueryService userBadgeQueryService;
-    private final ReactionQueryService reactionQueryService;
     private final ReactionCommandService reactionCommandService;
     private final ReactionRepository reactionRepository;
     //목표 생성
@@ -110,7 +109,7 @@ public class GoalServiceImpl implements GoalService{
         return friendGoals.stream()
                 .map(userGoal -> {
                     User creator = userGoalRepository.findByGoalIdAndStatus(
-                            userGoal.getGoal().getId(), Status.ADMIN).getUser();
+                            userGoal.getGoal().getId(), Status.ADMIN).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL)).getUser();
                     int currentParticipants = userGoalRepository.countByGoalId(userGoal.getGoal().getId());
                     int remainingSlots = userGoal.getGoal().getLimitFriendCount() - currentParticipants;
                     return GoalConvertor.toGoalCreateListDto(userGoal, creator, remainingSlots);
@@ -126,7 +125,7 @@ public class GoalServiceImpl implements GoalService{
         return communityGoals.stream()
                 .map(userGoal -> {
                     User creator = userGoalRepository.findByGoalIdAndStatus(
-                            userGoal.getGoal().getId(), Status.ADMIN).getUser();
+                            userGoal.getGoal().getId(), Status.ADMIN).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL)).getUser();
                     int currentParticipants = userGoalRepository.countByGoalId(userGoal.getGoal().getId());
                     int remainingSlots = userGoal.getGoal().getLimitFriendCount() - currentParticipants;
                     return GoalConvertor.toGoalCreateListDto(userGoal, creator, remainingSlots);
@@ -164,9 +163,10 @@ public class GoalServiceImpl implements GoalService{
     //내 목표 조회(세부 내용 조회)
     @Transactional(readOnly = true)
     public GoalResponseDto.MyGoalDetailDto getMyGoalDetails(Long goalId, Long userId) {
-        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserIdWithGoal(goalId, userId);
+        Goal goal = userGoal.getGoal();
 
-        return GoalConvertor.toMyGoalDetailsDto(userGoal);
+        return GoalConvertor.toMyGoalDetailsDto(userGoal, goal);
     }
 
     //활성화/비활성화
@@ -220,7 +220,7 @@ public class GoalServiceImpl implements GoalService{
     public void deleteGoal(Long goalId, Long userId) {
         Goal goal = findGoalById(goalId);
 
-        UserGoal adminUserGoal = userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN);
+        UserGoal adminUserGoal = userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
         if (adminUserGoal == null) {
             throw new RuntimeException("목표의 관리자를 찾을 수 없습니다.");
         }
@@ -304,7 +304,7 @@ public class GoalServiceImpl implements GoalService{
             Long goalId,
             GoalRequestDto.CreateMemoRequestDto request) {
 
-        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId);
+        UserGoal userGoal = userGoalRepository.findByGoalIdAndUserId(goalId, userId).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
 
         Optional<GoalMemo> existingMemoOpt = goalMemoRepository
                 .findByUserGoalAndMemoDate(userGoal, request.getMemoDate());

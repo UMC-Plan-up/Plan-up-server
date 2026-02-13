@@ -38,7 +38,9 @@ public class TimerVerificationReadService {
 
 
     @Transactional(readOnly = true)
-    public Map<LocalDate, Integer> calculateVerification(UserGoal userGoal, LocalDateTime startDate, LocalDateTime endDate) {
+    public Map<LocalDate, Integer> calculateVerification(UserGoal userGoal, LocalDate date) {
+        LocalDateTime startDate = getStartLocalDateTime(date);
+        LocalDateTime endDate = getEndLocalDateTime(date);
         List<TimerVerification> verifications = getTimerVerificationListByUserAndDateBetween(userGoal, startDate, endDate);
 
         return calcVerificationLocalDate(verifications);
@@ -88,5 +90,19 @@ public class TimerVerificationReadService {
         );
     }
 
+    public Long getSpecificDayTimerGoalSum(UserGoal userGoal, LocalDate date) {
+        LocalDateTime startDate = getStartLocalDateTime(date);
+        LocalDateTime endDate = getEndLocalDateTime(date);
 
+        return timerVerificationRepository.sumSpentTimeByDateAndUserGoal(startDate, endDate, userGoal.getId());
+    }
+
+
+    private LocalDateTime getStartLocalDateTime(LocalDate date) {
+        return date.atStartOfDay();
+    }
+
+    private LocalDateTime getEndLocalDateTime(LocalDate date) {
+        return date.plusDays(1).atStartOfDay();
+    }
 }

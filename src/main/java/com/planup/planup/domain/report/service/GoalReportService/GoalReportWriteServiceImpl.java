@@ -188,21 +188,17 @@ public class GoalReportWriteServiceImpl implements GoalReportWriteService {
     @Transactional(readOnly = true)
     public DailyAchievementRate calculateDailyAchievementRate(UserGoal userGoal, Goal goal, LocalDateTime startDate) {
 
-        //주간 경계 설정
-        LocalDateTime start = getStartOfWeek(startDate);
-        LocalDateTime endEX = start.plusDays(7);
-
         Map<LocalDate, Integer> dailyCount;
 
         //각 케이스에 따라 값을 불러온다
         if (goal.getVerificationType().equals(VerificationType.PHOTO)) {
-            dailyCount = photoVerificationReadService.calculateVerification(userGoal, start, endEX);
+            dailyCount = photoVerificationReadService.calculateVerification7Day(userGoal, startDate.toLocalDate());
         } else if (goal.getVerificationType().equals(VerificationType.TIMER)) {
-            dailyCount = timerVerificationReadService.calculateVerification(userGoal, start, endEX);
+            dailyCount = timerVerificationReadService.calculateVerification(userGoal, startDate.toLocalDate());
         } else {
             throw new RuntimeException();
         }
-        DailyAchievementRate result = getDailyAchievementRate(dailyCount, goal.getOneDose(), start);
+        DailyAchievementRate result = getDailyAchievementRate(dailyCount, goal.getOneDose(), startDate);
 
         // 날짜별 성취도 계산
         return result;

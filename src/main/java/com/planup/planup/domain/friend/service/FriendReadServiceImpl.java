@@ -41,16 +41,20 @@ public class FriendReadServiceImpl implements FriendReadService {
     private final TimerVerificationReadService timerVerificationReadService;
     private final TimerVerificationRepository timerVerificationRepository;
 
+    @Override
+    public List<User> getMyFriend(Long userId) {
+        List<Friend> relations = friendRepository.findListByUserIdWithUsers(ACCEPTED, userId);
+        List<User> friends = relations.stream()
+                .map(relation -> relation.getFriendNotMe(userId))
+                .toList();
+        return friends;
+    }
+
     //친구 리스트를 반환한다.
     @Override
     public FriendResponseDTO.FriendSummaryList getFriendSummeryList(Long userId) {
 
-        User me = userService.getUserByUserId(userId);
-
-        List<Friend> relations = friendRepository.findListByUserIdWithUsers(ACCEPTED, me.getId());
-        List<User> friends = relations.stream()
-                .map(relation -> relation.getFriendNotMe(me.getId()))
-                .toList();
+        List<User> friends = getMyFriend(userId);
 
         return FriendConverter.toFriendSummaryList(
                 friends.stream()

@@ -5,8 +5,6 @@ import com.planup.planup.domain.notification.controller.docs.DeviceControllerDoc
 import com.planup.planup.domain.notification.dto.DeviceTokenRequestDTO;
 import com.planup.planup.domain.notification.service.deviceTokenService.DeviceTokenService;
 import com.planup.planup.validation.annotation.CurrentUser;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +22,7 @@ public class DeviceController implements DeviceControllerDocs {
     @Override
     @PostMapping("post")
     public ApiResponse<Boolean> postDeviceTokenFromUser(@RequestBody DeviceTokenRequestDTO dto, @CurrentUser Long userId) {
-        deviceTokenService.upsert(userId, dto.token(), dto.plateFrom(), dto.appVersion(), dto.local());
+        deviceTokenService.upsert(userId, dto.token(), dto.platform(), dto.appVersion(), dto.local());
         return ApiResponse.onSuccess(true);
     }
 

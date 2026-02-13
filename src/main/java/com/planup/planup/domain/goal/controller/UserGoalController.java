@@ -39,7 +39,7 @@ public class UserGoalController {
     public ApiResponse<GoalResponseDto.DailyAchievementDto> getDailyAchievement(
             @Parameter(description = "조회할 날짜 (yyyy-MM-dd 형식)", example = "2024-08-21")
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate targetDate,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
 
         GoalResponseDto.DailyAchievementDto result = userGoalAggregationService.getDailyAchievement(userId, targetDate);
         return ApiResponse.onSuccess(result);
@@ -50,7 +50,7 @@ public class UserGoalController {
     public ApiResponse<UserGoalResponseDto.GoalTotalAchievementDto> getGoalTotalAchievement(
             @Parameter(description = "목표 ID", example = "1")
             @PathVariable Long goalId,
-            @Parameter(hidden = true) @CurrentUser Long userId) {
+            @CurrentUser Long userId) {
 
         UserGoalResponseDto.GoalTotalAchievementDto result = userGoalAggregationService.getTotalAchievement(goalId, userId);
         return ApiResponse.onSuccess(result);
@@ -69,12 +69,15 @@ public class UserGoalController {
 
         return ApiResponse.onSuccess(result);
     }
-//    @GetMapping("/{goalId}/timers")
-//    public ApiResponse<UserGoalResponseDto.TimerGoalAchievementWithFriendDto> getGoalTimer(
-//            @PathVariable Long goalId,
-//            @RequestParam LocalDate date,
-//            @CurrentUser Long userId
-//    ) {
-//        userGoalAggregationService.getTimerAchievementWithFriendInDate(goalId, date, userId);
-//    }
+    @GetMapping("/{goalId}/timers/info")
+    @Operation(summary = "특정 일, 특정 목표에 대해 타이머 미션의 값을 보여준다.",
+            description = "내가 특정 일자에 특정 목표에 대해 timer 미션을 수행한 값을 합하여 친구들의 데이터와 함깨 보여준다.")
+    public ApiResponse<UserGoalResponseDto.TimerGoalAchievementWithFriendDto> getGoalTimer(
+            @PathVariable Long goalId,
+            @RequestParam LocalDate date,
+            @CurrentUser Long userId
+    ) {
+        UserGoalResponseDto.TimerGoalAchievementWithFriendDto dto = userGoalService.getTimerAchievementWithFriendInDate(userId, goalId, date);
+        return ApiResponse.onSuccess(dto);
+    }
 }

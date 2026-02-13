@@ -6,6 +6,7 @@ import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
 import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
 import com.planup.planup.domain.goal.service.ChallengeService;
+import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -34,9 +35,9 @@ public class ChallengeController {
 
     @GetMapping("/friends")
     @Operation(summary = "챌린지에서 친구 조회", description = "친구에게 신청하기 위해 친구 정보 찾기")
-    public ApiResponse<List<FriendResponseDTO.FriendInfoSummary>> getFriendList(@CurrentUser Long userId) {
-        List<FriendResponseDTO.FriendInfoSummary> requestedFriends = friendService.getRequestedFriends(userId);
-        return ApiResponse.onSuccess(requestedFriends);
+    public ApiResponse<FriendResponseDTO.FriendSummaryList> getFriendList(@CurrentUser Long userId) {
+        FriendResponseDTO.FriendSummaryList friendSummaryList = friendService.getFriendSummeryList(userId);
+        return ApiResponse.onSuccess(friendSummaryList);
     }
 
     @GetMapping("/{challengeId}")
