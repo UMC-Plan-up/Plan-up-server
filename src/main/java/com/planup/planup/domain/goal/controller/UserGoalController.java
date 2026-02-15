@@ -74,7 +74,7 @@ public class UserGoalController {
             description = "내가 특정 일자에 특정 목표에 대해 timer 미션을 수행한 값을 합하여 친구들의 데이터와 함깨 보여준다.")
     public ApiResponse<UserGoalResponseDto.TimerGoalAchievementWithFriendDto> getGoalTimer(
             @PathVariable Long goalId,
-            @RequestParam LocalDate date,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)  LocalDate date,
             @CurrentUser Long userId
     ) {
         UserGoalResponseDto.TimerGoalAchievementWithFriendDto dto = userGoalService.getTimerAchievementWithFriendInDate(userId, goalId, date);
