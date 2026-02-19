@@ -58,6 +58,8 @@ public class UserGoalServiceImpl implements UserGoalService{
         return UserGoalConvertor.toJoinGoalResponseDto(savedUserGoal, goal, user);
     }
 
+    @Transactional
+    @Override
     public UserGoal joinGoalWithEntity(Long userId, Long goalId) {
         Goal goal = goalRepository.findById(goalId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 목표입니다."));
