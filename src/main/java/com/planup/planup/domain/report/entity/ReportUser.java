@@ -12,6 +12,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
+@Table(
+        name = "report_user",
+        indexes = {
+                @Index(
+                        name = "idx_report_user_goal_report_id",
+                        columnList = "goal_report_id"
+                )
+        }
+)
 public class ReportUser {
 
     @Id
