@@ -74,7 +74,8 @@ public class ChallengeController {
 
     @GetMapping("/{challengeId}/name")
     @Operation(summary = " 챌린지 이름 조회")
-    public ApiResponse<String> requestChallengeName(@CurrentUser Long userId, @PathVariable Long challengeId) {
+    public ApiResponse<String> requestChallengeName(@CurrentUser Long userId,
+                                                    @PathVariable Long challengeId) {
         String challengeName = challengeService.getChallengeName(userId, challengeId);
         return ApiResponse.onSuccess(challengeName);
     }

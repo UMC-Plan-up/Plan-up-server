@@ -53,8 +53,20 @@ public class UserGoalServiceImpl implements UserGoalService{
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
 
+        UserGoal savedUserGoal = joinGoalWithEntity(userId, goalId);
+
+        return UserGoalConvertor.toJoinGoalResponseDto(savedUserGoal, goal, user);
+    }
+
+    public UserGoal joinGoalWithEntity(Long userId, Long goalId) {
+        Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 목표입니다."));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다."));
+
         if (existUserGoal(goalId, userId)) {
-            return UserGoalConvertor.toJoinGoalResponseDto(getUserGoalByUserAndGoal(user, goal), goal, user);
+            return getUserGoalByUserAndGoal(user, goal);
         }
 
         if (goal.getGoalType() == GoalType.FRIEND) {
@@ -81,9 +93,7 @@ public class UserGoalServiceImpl implements UserGoalService{
                 .goalTime(0)
                 .build();
 
-        UserGoal savedUserGoal = userGoalRepository.save(userGoal);
-
-        return UserGoalConvertor.toJoinGoalResponseDto(savedUserGoal, goal, user);
+        return userGoalRepository.save(userGoal);
     }
 
     //친구 관계 검증을 위한 헬퍼 메서드
