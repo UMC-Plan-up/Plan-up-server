@@ -122,6 +122,10 @@ public class UserGoal extends BaseTimeEntity {
         return true;
     }
 
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
     public void setGoalTime(int time) {
         this.goalTime = time;
     }

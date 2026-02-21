@@ -37,6 +37,9 @@ public interface UserGoalService {
     @Transactional(readOnly = true)
     boolean existUserGoal(Long goalId, Long userId);
 
+    @Transactional
+    UserGoal joinGoalWithEntity(Long userId, Long goalId);
+
     int calculateDailyAchievement(Long userId, LocalDate targetDate);
     UserGoalResponseDto.GoalTotalAchievementDto calculateGoalTotalAchievement(Long goalId, Long userId);
     List<UserGoal> getActiveUserGoalsByUser(Long userId, LocalDate targetDate);

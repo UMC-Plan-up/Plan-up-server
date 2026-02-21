@@ -9,6 +9,7 @@ import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Enum.ChallengeStatus;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
+import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.TimeChallenge;
@@ -85,8 +86,13 @@ public class ChallengeServiceImpl implements ChallengeService {
 
             challengeRepository.flush();
 
-            userGoalService.joinGoal(user.getId(), save.getId());
-            userGoalService.joinGoal(friend.getId(), save.getId());
+            //UserGoal을 생성한다.
+            UserGoal myUserGoal = userGoalService.joinGoalWithEntity(user.getId(), save.getId());
+            myUserGoal.setStatus(Status.ADMIN);
+            myUserGoal.setActive(false, user);
+
+            //상대방의 userGoal은 아직 생성하지 않는다.
+//            userGoalService.joinGoal(friend.getId(), save.getId());
             notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_REQUEST_SENT, TargetType.CHALLENGE, save.getId());
             notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_REQUEST_RECEIVED, TargetType.CHALLENGE, save.getId());
 
@@ -179,7 +185,8 @@ public class ChallengeServiceImpl implements ChallengeService {
     public void acceptChallengeRequest(Long userId, Long challengeId) {
         User user = userQueryService.getUserByUserId(userId);
         Goal goal = goalService.getGoalById(challengeId);
-        UserGoal userGoal = userGoalService.getUserGoalByUserAndGoal(user, goal);
+
+        UserGoal userGoal = userGoalService.joinGoalWithEntity(userId, goal.getId());
         Challenge challenge = getChallengeById(challengeId);
 
         challenge.setChallengeStatus(ChallengeStatus.ACCEPTED);
