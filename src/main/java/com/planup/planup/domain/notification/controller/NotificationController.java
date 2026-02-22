@@ -2,9 +2,9 @@ package com.planup.planup.domain.notification.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
-import com.planup.planup.domain.notification.entity.NotificationType;
-import com.planup.planup.domain.notification.service.NotificationServiceRead;
-import com.planup.planup.domain.notification.service.NotificationServiceWrite;
+import com.planup.planup.domain.notification.entity.notification.NotificationType;
+import com.planup.planup.domain.notification.service.notification.NotificationServiceRead;
+import com.planup.planup.domain.notification.service.notification.NotificationServiceWrite;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

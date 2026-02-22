@@ -1,8 +1,8 @@
-package com.planup.planup.domain.notification.service;
+package com.planup.planup.domain.notification.service.notification;
 
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
-import com.planup.planup.domain.notification.entity.Notification;
-import com.planup.planup.domain.notification.entity.NotificationType;
+import com.planup.planup.domain.notification.entity.notification.Notification;
+import com.planup.planup.domain.notification.entity.notification.NotificationType;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;

@@ -1,9 +1,9 @@
-package com.planup.planup.domain.notification.entity;
+package com.planup.planup.domain.notification.entity.notification;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.notification.message.MessageContext;
 import com.planup.planup.domain.notification.message.NotificationMessageProvider;
-import com.planup.planup.domain.notification.service.NotificationUrlProvider;
+import com.planup.planup.domain.notification.service.notification.NotificationUrlProvider;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;

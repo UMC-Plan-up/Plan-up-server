@@ -3,7 +3,7 @@ package com.planup.planup.domain.goal.service;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.repository.GoalRepository;
-import com.planup.planup.domain.notification.service.NotificationCreateService;
+import com.planup.planup.domain.notification.service.notification.NotificationCreateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;

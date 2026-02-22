@@ -4,7 +4,7 @@ import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.service.UserGoalAggregationService;
 import com.planup.planup.domain.goal.service.UserGoalService;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
-import com.planup.planup.domain.notification.service.NotificationServiceRead;
+import com.planup.planup.domain.notification.service.notification.NotificationServiceRead;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.query.UserQueryService;
 import org.springframework.beans.factory.annotation.Value;

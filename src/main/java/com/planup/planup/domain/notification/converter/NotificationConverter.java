@@ -1,7 +1,7 @@
 package com.planup.planup.domain.notification.converter;
 
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
-import com.planup.planup.domain.notification.entity.Notification;
+import com.planup.planup.domain.notification.entity.notification.Notification;
 
 import java.util.List;
 import java.util.stream.Collectors;

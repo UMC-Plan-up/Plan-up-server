@@ -1,10 +1,10 @@
-package com.planup.planup.domain.notification.service;
+package com.planup.planup.domain.notification.service.notification;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.NotificationError;
-import com.planup.planup.domain.notification.entity.Notification;
-import com.planup.planup.domain.notification.entity.NotificationType;
-import com.planup.planup.domain.notification.entity.TargetType;
+import com.planup.planup.domain.notification.entity.notification.Notification;
+import com.planup.planup.domain.notification.entity.notification.NotificationType;
+import com.planup.planup.domain.notification.entity.notification.TargetType;
 import com.planup.planup.domain.notification.entity.device.NotificationCreatedEvent;
 import com.planup.planup.domain.notification.repository.NotificationRepository;
 import com.planup.planup.domain.user.entity.User;

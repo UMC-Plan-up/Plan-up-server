@@ -1,7 +1,7 @@
 package com.planup.planup.domain.notification.entity.device;
 
-import com.planup.planup.domain.notification.entity.NotificationType;
-import com.planup.planup.domain.notification.entity.TargetType;
+import com.planup.planup.domain.notification.entity.notification.NotificationType;
+import com.planup.planup.domain.notification.entity.notification.TargetType;
 
 public record NotificationCreatedEvent(
         Long notificationId,

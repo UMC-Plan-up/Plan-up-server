@@ -1,4 +1,4 @@
-package com.planup.planup.domain.notification.service.deviceTokenService;
+package com.planup.planup.domain.notification.service.deviceToken;
 
 import com.planup.planup.domain.notification.entity.device.DeviceToken;
 import com.planup.planup.domain.notification.repository.DeviceTokenRepository;

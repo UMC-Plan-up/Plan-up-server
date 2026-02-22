@@ -1,9 +1,9 @@
-package com.planup.planup.domain.notification.service;
+package com.planup.planup.domain.notification.service.notification;
 
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
-import com.planup.planup.domain.notification.entity.NotificationType;
-import com.planup.planup.domain.notification.entity.TargetType;
+import com.planup.planup.domain.notification.entity.notification.NotificationType;
+import com.planup.planup.domain.notification.entity.notification.TargetType;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.query.UserQueryService;
 import lombok.RequiredArgsConstructor;

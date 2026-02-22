@@ -6,8 +6,6 @@ import com.planup.planup.domain.notification.entity.device.NotificationCreatedEv
 import com.planup.planup.domain.notification.entity.device.PushSender;
 import com.planup.planup.domain.notification.message.MessageContext;
 import com.planup.planup.domain.notification.message.NotificationMessageProvider;
-import com.planup.planup.domain.notification.repository.NotificationRepository;
-import com.planup.planup.domain.notification.service.NotificationServiceRead;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;

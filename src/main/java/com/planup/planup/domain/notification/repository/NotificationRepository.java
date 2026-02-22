@@ -1,9 +1,8 @@
 package com.planup.planup.domain.notification.repository;
 
-import com.planup.planup.domain.notification.entity.Notification;
-import com.planup.planup.domain.notification.entity.NotificationType;
+import com.planup.planup.domain.notification.entity.notification.Notification;
+import com.planup.planup.domain.notification.entity.notification.NotificationType;
 import com.planup.planup.domain.user.entity.User;
-import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
