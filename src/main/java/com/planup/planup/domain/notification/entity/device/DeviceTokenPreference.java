@@ -1,5 +1,6 @@
 package com.planup.planup.domain.notification.entity.device;
 
+import com.planup.planup.domain.notification.entity.notification.NotificationGroup;
 import com.planup.planup.domain.notification.entity.notification.NotificationType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -37,7 +38,7 @@ public class DeviceTokenPreference {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
-    private NotificationType.NotificationGroup type;
+    private NotificationGroup group;
 
     @Column(nullable = false)
     @Builder.Default

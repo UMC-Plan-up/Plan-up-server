@@ -45,6 +45,11 @@ public class Notification extends BaseTimeEntity {
     private User sender;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private NotificationGroup group;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
     private NotificationType type;
 
     @Enumerated(EnumType.STRING)
@@ -58,11 +63,12 @@ public class Notification extends BaseTimeEntity {
 
     private String updatedGoalInfo;
 
-    public static Notification create(User sender, User receiver, NotificationType type, TargetType targetType, Long targetId) {
+    public static Notification create(User sender, User receiver, NotificationGroup group, NotificationType type, TargetType targetType, Long targetId) {
         Notification n = new Notification();
         n.sender = sender;
         n.receiver = receiver;
         n.type = type;
+        n.group = group;
         n.targetType = targetType;
         n.targetId = targetId;
         n.isRead = false;
