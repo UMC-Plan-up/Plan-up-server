@@ -33,7 +33,7 @@ public class GoalPhotoController {
         return ApiResponse.onSuccess(result);
     }
 
-    @GetMapping("/{goalId}/photos")
+    @GetMapping("/{goalId}/photos/date")
     @Operation(summary = "목표 사진 조회", description = "특정 날짜의 목표 사진 목록을 조회합니다.")
     public ApiResponse<GoalPhotoResponseDto.GoalPhotoListDto> getGoalPhotos(
             @PathVariable Long goalId,
