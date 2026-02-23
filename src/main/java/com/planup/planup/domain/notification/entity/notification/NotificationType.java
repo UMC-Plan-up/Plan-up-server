@@ -45,5 +45,4 @@ public enum NotificationType {
         return group;
     }
 
-    public enum NotificationGroup { GOAL, CHALLENGE, FEEDBACK, ETC }
 }
