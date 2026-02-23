@@ -34,7 +34,33 @@ public class JpaDeviceTokenRepository implements DeviceTokenRepository {
 
     @Override @Transactional
     public void save(DeviceToken dt) {
-        jpa.save(JpaMapper.toJpa(dt));
+        DeviceTokenJpa entity;
+
+        //dt에 id 값이 있다 -> 기존에 데이터베이스에 저장된 값이다.
+        if (dt.getId() != null) {
+            entity = jpa.findById(dt.getId())
+                    .orElseThrow(() -> new IllegalStateException("DeviceTokenJpa not found: " + dt.getId()));
+        } else {
+            //기존에 데이터베이스에 저장되지 않은 엔티티라면 token을 기준으로 검색, 없으면 새로운 객체
+            entity = jpa.findByToken(dt.getToken()).orElse(null);
+
+            if (entity == null) {
+                entity = new DeviceTokenJpa();
+            }
+        }
+
+        // 여기서 entity에 dt 값을 반영 (update)
+        entity.updateInfo(
+                dt.getUserId(),
+                dt.getToken(),
+                dt.getPlatform(),
+                dt.getAppVersion(),
+                dt.getLocale(),
+                dt.getDeviceId(),
+                dt.isActive()
+        );
+
+        jpa.save(entity);
     }
 
     @Override @Transactional

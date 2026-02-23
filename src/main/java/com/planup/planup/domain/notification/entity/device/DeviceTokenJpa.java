@@ -68,16 +68,39 @@ public class DeviceTokenJpa extends BaseTimeEntity {
 
     public void touch() {
         this.lastSeenAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void deactivate() {
         this.active = false;
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void activate() {
         this.active = true;
-        this.updatedAt = LocalDateTime.now();
+        this.lastSeenAt = LocalDateTime.now();
+    }
+
+    public void updateAppInfo(Platform platform, String appVersion, String locale) {
+        this.platform = platform;
+        this.appVersion = appVersion;
+        this.locale = locale;
+    }
+
+    public void updateInfo(
+            Long userId,
+            String token,
+            Platform platform,
+            String appVersion,
+            String locale,
+            String deviceId,
+            boolean active
+    ) {
+        this.userId = userId;
+        this.token = token;
+        this.platform = platform;
+        this.appVersion = appVersion;
+        this.locale = locale;
+        this.deviceId = deviceId;
+        this.active = active;
+        this.lastSeenAt = LocalDateTime.now();
     }
 }
