@@ -4,10 +4,7 @@ package com.planup.planup.domain.friend.entity.reportEntity;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
@@ -17,7 +14,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @SuperBuilder
 @AllArgsConstructor
-@Builder
 @Table(
         name = "user_report_mapping",
         indexes = {

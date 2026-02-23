@@ -78,6 +78,9 @@ public class GoalServiceImpl implements GoalService{
         Goal goal = GoalConvertor.toGoal(createGoalDto);
         Goal savedGoal = goalRepository.save(goal);
 
+        int goalTime = (createGoalDto.getVerificationType() == VerificationType.TIMER && createGoalDto.getGoalTime() != null)
+                ? createGoalDto.getGoalTime() : 0;
+
         UserGoal userGoal = UserGoal.builder()
                 .user(User.builder().id(userId).build())
                 .goal(savedGoal)
@@ -86,6 +89,7 @@ public class GoalServiceImpl implements GoalService{
                 .isActive(true)
                 .isPublic(true)
                 .verificationCount(0)
+                .goalTime(goalTime)
                 .build();
         UserGoal savedUserGoal = userGoalRepository.save(userGoal);
 
@@ -188,7 +192,7 @@ public class GoalServiceImpl implements GoalService{
         Integer goalTime = null;
         if (goal.getVerificationType() == VerificationType.TIMER) {
             UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
-            if (userGoal != null && !userGoal.getTimerVerifications().isEmpty()) {
+            if (userGoal != null) {
                 goalTime = userGoal.getGoalTime();
             }
         }

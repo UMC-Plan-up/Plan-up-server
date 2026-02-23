@@ -36,6 +36,11 @@ spring:
     database-platform: org.hibernate.dialect.MySQLDialect
 
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 50MB
+
   application:
     name: planup
 

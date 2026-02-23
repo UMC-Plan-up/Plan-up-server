@@ -73,6 +73,7 @@ public class PhotoVerificationService implements VerificationService {
             userGoalRepository.save(userGoal);
         }
 
+        imageUploadService.deleteImage(verification.getPhotoImg());
         photoVerificationRepository.delete(verification);
     }
 }

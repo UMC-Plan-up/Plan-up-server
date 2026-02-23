@@ -62,9 +62,7 @@ public class GoalConvertor {
         Integer goalTime = null;
 
         if (goal.getVerificationType() == VerificationType.TIMER) {
-            if (!userGoal.getTimerVerifications().isEmpty()) {
-                goalTime = userGoal.getGoalTime();
-            }
+            goalTime = userGoal.getGoalTime();
         }
 
         return GoalResponseDto.GoalCreateListDto.builder()
