@@ -10,6 +10,9 @@ public interface DeviceTokenRepository  {
 
     DeviceToken findByToken(String token);
     List<DeviceToken> findActiveByUserId(Long userId);
+
+    DeviceToken findByUserIdAndDeviceId(Long userId, String deviceId);
+
     void save(DeviceToken token);
     void saveAll(Collection<DeviceToken> tokens);
 

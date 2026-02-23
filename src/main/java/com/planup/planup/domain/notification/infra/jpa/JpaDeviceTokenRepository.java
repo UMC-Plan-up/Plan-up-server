@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -25,6 +25,11 @@ public class JpaDeviceTokenRepository implements DeviceTokenRepository {
     @Override
     public List<DeviceToken> findActiveByUserId(Long userId) {
         return jpa.findByUserIdAndActiveTrue(userId).stream().map(JpaMapper::toDomain).toList();
+    }
+
+    @Override
+    public DeviceToken findByUserIdAndDeviceId(Long userId, String deviceId) {
+        return jpa.findByUserIdAndDeviceId(userId, deviceId).map(JpaMapper::toDomain).orElse(null);
     }
 
     @Override @Transactional
@@ -59,7 +64,7 @@ public class JpaDeviceTokenRepository implements DeviceTokenRepository {
 
     static class JpaMapper {
         static DeviceToken toDomain(DeviceTokenJpa e) {
-            var d = new DeviceToken(e.getUserId(), e.getToken(), e.getPlatform(), e.getAppVersion(), e.getLocale());
+            var d = new DeviceToken(e.getUserId(), e.getToken(), e.getPlatform(), e.getAppVersion(), e.getLocale(), e.getDeviceId());
             // id/active/시간 등 동기화
             try { var idField = DeviceToken.class.getDeclaredField("id"); idField.setAccessible(true); idField.set(d, e.getId()); } catch (Exception ignored) {}
             d.touch(); // 간단히 업데이트 표시(필요시 정확 매핑)
@@ -74,9 +79,9 @@ public class JpaDeviceTokenRepository implements DeviceTokenRepository {
                     .appVersion(d.getAppVersion())
                     .locale(d.getLocale())
                     .active(true)
-                    .lastSeenAt(Instant.now())
-                    .createdAt(Instant.now())
-                    .updatedAt(Instant.now())
+                    .lastSeenAt(LocalDateTime.now())
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
                     .build();
         }
     }

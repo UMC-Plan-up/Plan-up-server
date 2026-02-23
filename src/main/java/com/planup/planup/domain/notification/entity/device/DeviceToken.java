@@ -17,16 +17,20 @@ public class DeviceToken {
     private String appVersion;
     private String locale;          //사용자 (언어 - 국가) 정보
     private boolean active = true;
+
+    private String deviceId;
+
     private Instant createdAt = Instant.now();
     private Instant updatedAt = Instant.now();
 
     // 생성자/게터/세터
-    public DeviceToken(Long userId, String token, Platform platform, String appVersion, String locale) {
+    public DeviceToken(Long userId, String token, Platform platform, String appVersion, String locale, String deviceId) {
         this.userId = userId;
         this.token = token;
         this.platform = platform;
         this.appVersion = appVersion;
         this.locale = locale;
+        this.deviceId = deviceId;
     }
 
     public void touch() {

@@ -1,12 +1,18 @@
 package com.planup.planup.domain.notification.entity.device;
 
+import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 토큰 관련 정보를 실재로 데이터 베이스에 저장하기 위해 사용하는 클래스
@@ -17,14 +23,14 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "device_token", indexes = {
-        @Index(name = "ix_device_token_user", columnList = "userId"),
+        @Index(name = "ix_device_token_user", columnList = "userId, deviceId"),
         @Index(name = "ix_device_token_active", columnList = "active")
 }, uniqueConstraints = @UniqueConstraint(name = "ux_device_token_token", columnNames = "token"))
 @Getter
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DeviceTokenJpa {
+public class DeviceTokenJpa extends BaseTimeEntity {
 
     @Id
     @GeneratedValue
@@ -38,34 +44,39 @@ public class DeviceTokenJpa {
     @Enumerated(EnumType.STRING)
     private Platform platform;     // ANDROID/IOS/WEB 등
 
+    @OneToMany(mappedBy = "deviceToken", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<DeviceTokenPreference> preferences = new ArrayList<>();
+
     private String appVersion;
     private String locale;
 
-    private boolean active = true;
-    private Instant lastSeenAt = Instant.now();
-    private Instant createdAt = Instant.now();
-    private Instant updatedAt = Instant.now();
+    private String deviceId;
 
-    public DeviceTokenJpa(Long userId, String token, Platform platform, String appVersion, String locale) {
+    private boolean active = true;
+    private LocalDateTime lastSeenAt = LocalDateTime.now();
+
+    public DeviceTokenJpa(Long userId, String token, Platform platform, String appVersion, String locale, String deviceId) {
         this.userId = userId;
         this.token = token;
         this.platform = platform;
         this.appVersion = appVersion;
         this.locale = locale;
+        this.deviceId = deviceId;
     }
 
     public void touch() {
-        this.lastSeenAt = Instant.now();
-        this.updatedAt = Instant.now();
+        this.lastSeenAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void deactivate() {
         this.active = false;
-        this.updatedAt = Instant.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void activate() {
         this.active = false;
-        this.updatedAt = Instant.now();
+        this.updatedAt = LocalDateTime.now();
     }
 }

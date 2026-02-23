@@ -14,8 +14,9 @@ public class DeviceTokenService {
 
     private final DeviceTokenRepository repo;
 
-    public void upsert(Long userId, String token, Platform platform, String appVersion, String locale) {
+    public void upsert(Long userId, String token, Platform platform, String appVersion, String locale, String deviceId) {
         var existing = repo.findByToken(token);
+        //이미 존재한다면 기존의 토큰 사용.
         if (existing != null) {
             existing.setUserId(userId);
             existing.activate();
@@ -23,7 +24,13 @@ public class DeviceTokenService {
             repo.save(existing);
             return;
         }
-        repo.save(new DeviceToken(userId, token, platform, appVersion, locale));
+
+        //만약 같은 아이디, 같은 디바이스에 대한 토큰이 있다면 제거한다.
+        DeviceToken deviceToken = repo.findByUserIdAndDeviceId(userId, deviceId);
+        if (deviceToken != null) {
+            repo.deactivateByToken(deviceToken.getToken());
+        }
+        repo.save(new DeviceToken(userId, token, platform, appVersion, locale, deviceId));
     }
 
     public void deactivateByToken(String token) { repo.deactivateByToken(token); }
