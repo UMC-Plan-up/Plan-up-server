@@ -28,9 +28,11 @@ public class DeviceTokenService {
         //만약 같은 아이디, 같은 디바이스에 대한 토큰이 있다면 제거한다.
         DeviceToken deviceToken = repo.findByUserIdAndDeviceId(userId, deviceId);
         if (deviceToken != null) {
-            repo.deactivateByToken(deviceToken.getToken());
+            deviceToken.updateNewToken(token);
+            repo.save(deviceToken);
+            return;
         }
-        repo.save(new DeviceToken(userId, token, platform, appVersion, locale, deviceId));
+        repo.save(new DeviceToken(null, userId, token, platform, appVersion, locale, deviceId));
     }
 
     public void deactivateByToken(String token) { repo.deactivateByToken(token); }

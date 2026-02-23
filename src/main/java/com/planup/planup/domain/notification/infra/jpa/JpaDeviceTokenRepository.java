@@ -29,7 +29,7 @@ public class JpaDeviceTokenRepository implements DeviceTokenRepository {
 
     @Override
     public DeviceToken findByUserIdAndDeviceId(Long userId, String deviceId) {
-        return jpa.findByUserIdAndDeviceId(userId, deviceId).map(JpaMapper::toDomain).orElse(null);
+        return jpa.findByUserIdAndDeviceIdAndActiveTrue(userId, deviceId).map(JpaMapper::toDomain).orElse(null);
     }
 
     @Override @Transactional
@@ -64,7 +64,7 @@ public class JpaDeviceTokenRepository implements DeviceTokenRepository {
 
     static class JpaMapper {
         static DeviceToken toDomain(DeviceTokenJpa e) {
-            var d = new DeviceToken(e.getUserId(), e.getToken(), e.getPlatform(), e.getAppVersion(), e.getLocale(), e.getDeviceId());
+            var d = new DeviceToken(e.getId(), e.getUserId(), e.getToken(), e.getPlatform(), e.getAppVersion(), e.getLocale(), e.getDeviceId());
             // id/active/시간 등 동기화
             try { var idField = DeviceToken.class.getDeclaredField("id"); idField.setAccessible(true); idField.set(d, e.getId()); } catch (Exception ignored) {}
             d.touch(); // 간단히 업데이트 표시(필요시 정확 매핑)

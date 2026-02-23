@@ -3,6 +3,7 @@ package com.planup.planup.domain.notification.entity.device;
 import lombok.Getter;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 /**
  * 비지니스 로직에서 사용하기 위해서 만든 DeviceToken 관련 클래스
@@ -10,6 +11,9 @@ import java.time.Instant;
 
 @Getter
 public class DeviceToken {
+
+    //jpa entity의 id
+    private Long id;
 
     private Long userId;
     private String token;
@@ -20,11 +24,12 @@ public class DeviceToken {
 
     private String deviceId;
 
-    private Instant createdAt = Instant.now();
-    private Instant updatedAt = Instant.now();
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     // 생성자/게터/세터
-    public DeviceToken(Long userId, String token, Platform platform, String appVersion, String locale, String deviceId) {
+    public DeviceToken(Long id, Long userId, String token, Platform platform, String appVersion, String locale, String deviceId) {
+        this.id = id;
         this.userId = userId;
         this.token = token;
         this.platform = platform;
@@ -34,17 +39,22 @@ public class DeviceToken {
     }
 
     public void touch() {
-        Instant lastSeenAt = Instant.now();
-        this.updatedAt = Instant.now();
+        LocalDateTime lastSeenAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
     public void deactivate() {
         this.active = false;
-        this.updatedAt = Instant.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void activate() {
         this.active = true;
-        this.updatedAt = Instant.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updateNewToken(String token) {
+        activate();
+        this.token = token;
     }
 
     public void setUserId(Long id) {

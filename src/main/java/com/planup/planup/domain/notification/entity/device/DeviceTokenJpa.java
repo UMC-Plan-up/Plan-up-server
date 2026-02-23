@@ -25,7 +25,8 @@ import java.util.List;
 @Table(name = "device_token", indexes = {
         @Index(name = "ix_device_token_user", columnList = "userId, deviceId"),
         @Index(name = "ix_device_token_active", columnList = "active")
-}, uniqueConstraints = @UniqueConstraint(name = "ux_device_token_token", columnNames = "token"))
+}, uniqueConstraints =
+        @UniqueConstraint(name = "ux_device_token_token", columnNames = "token"))
 @Getter
 @SuperBuilder
 @AllArgsConstructor
@@ -76,7 +77,7 @@ public class DeviceTokenJpa extends BaseTimeEntity {
     }
 
     public void activate() {
-        this.active = false;
+        this.active = true;
         this.updatedAt = LocalDateTime.now();
     }
 }
