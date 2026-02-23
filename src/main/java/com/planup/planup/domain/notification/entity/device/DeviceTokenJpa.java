@@ -83,6 +83,7 @@ public class DeviceTokenJpa extends BaseTimeEntity {
         this.platform = platform;
         this.appVersion = appVersion;
         this.locale = locale;
+        touch();
     }
 
     public void updateInfo(

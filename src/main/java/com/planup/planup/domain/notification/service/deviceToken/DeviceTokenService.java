@@ -25,7 +25,7 @@ public class DeviceTokenService {
             return;
         }
 
-        //만약 같은 아이디, 같은 디바이스에 대한 토큰이 있다면 제거한다.
+        //만약 같은 아이디, 같은 디바이스에 대한 토큰이 있다면 업데이트한다.
         DeviceToken deviceToken = repo.findByUserIdAndDeviceId(userId, deviceId);
         if (deviceToken != null) {
             deviceToken.updateNewToken(token);
