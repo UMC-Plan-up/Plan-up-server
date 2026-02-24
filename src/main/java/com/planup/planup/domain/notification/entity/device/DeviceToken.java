@@ -2,7 +2,6 @@ package com.planup.planup.domain.notification.entity.device;
 
 import lombok.Getter;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 
 /**

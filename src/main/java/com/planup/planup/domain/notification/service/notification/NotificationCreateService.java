@@ -2,6 +2,7 @@ package com.planup.planup.domain.notification.service.notification;
 
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.notification.entity.notification.NotificationGroup;
 import com.planup.planup.domain.notification.entity.notification.NotificationType;
 import com.planup.planup.domain.notification.entity.notification.TargetType;
 import com.planup.planup.domain.user.entity.User;
@@ -42,14 +43,14 @@ public class NotificationCreateService {
     public void createChallengeStartNoti(User user, User friend, Challenge challenge) {
 
         if (challenge.isRePenalty()) {
-            notificationService.createNotification(friend.getId(), user.getId(), NotificationType.PENALTY_ACCEPTED, TargetType.CHALLENGE, challenge.getId());
+            notificationService.createNotification(friend.getId(), user.getId(), NotificationType.PENALTY_ACCEPTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.GOAL);
 
         } else {
-            notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_REQUEST_ACCEPTED, TargetType.CHALLENGE, challenge.getId());
+            notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_REQUEST_ACCEPTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.GOAL);
         }
 
-        notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_STARTED, TargetType.CHALLENGE, challenge.getId());
-        notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_STARTED, TargetType.CHALLENGE, challenge.getId());
+        notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_STARTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.GOAL);
+        notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_STARTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.GOAL);
 
     }
 
@@ -62,7 +63,8 @@ public class NotificationCreateService {
                     creatorId,
                     NotificationType.FRIEND_GOAL_CREATED,
                     TargetType.GOAL,
-                    goalId
+                    goalId,
+                    NotificationGroup.GOAL
             );
         }
     }
