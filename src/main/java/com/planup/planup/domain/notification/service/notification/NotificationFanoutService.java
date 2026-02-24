@@ -15,12 +15,12 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class NotificationCreateService {
+public class NotificationFanoutService {
 
     private final NotificationCommandService notificationService;
     private final UserQueryService userQueryService;
 
-    public void createChallengeNotification(Challenge challenge) {
+    public void createChallengeEndNotification(Challenge challenge) {
         List<UserGoal> userGoals = challenge.getUserGoals();
 
         if (userGoals == null) {
@@ -67,5 +67,27 @@ public class NotificationCreateService {
                     NotificationGroup.GOAL
             );
         }
+    }
+
+    public void createChallengeRequestSentAndReceive(Long creator, Long target, Challenge challenge) {
+        notificationService.createNotification(creator, target, NotificationType.CHALLENGE_REQUEST_SENT, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.CHALLENGE);
+        notificationService.createNotification(target, creator, NotificationType.CHALLENGE_REQUEST_RECEIVED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.CHALLENGE);
+    }
+
+    public void createChallengeRejected(Long creator, Long target, Challenge challenge) {
+        if (challenge.isRePenalty()) {
+            notificationService.createNotification(target, creator, NotificationType.PENALTY_REJECTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.CHALLENGE);
+        } else {
+            notificationService.createNotification(target, creator, NotificationType.CHALLENGE_REQUEST_REJECTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.CHALLENGE);
+        }
+    }
+
+    public void createRemindPenalty(Long creator, Long target, Challenge challenge) {
+        notificationService.createNotification(target, creator, NotificationType.PENALTY_REMINDER_SENT, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.CHALLENGE);
+
+    }
+
+    public void createReRequestPenalty(Long creator, Long target, Challenge challenge) {
+        notificationService.createNotification(creator, target, NotificationType.PENALTY_PROPOSAL_RECEIVED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.CHALLENGE);
     }
 }

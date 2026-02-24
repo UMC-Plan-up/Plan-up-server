@@ -19,8 +19,7 @@ import com.planup.planup.domain.goal.repository.TimeChallengeRepository;
 import com.planup.planup.domain.notification.entity.notification.NotificationGroup;
 import com.planup.planup.domain.notification.entity.notification.NotificationType;
 import com.planup.planup.domain.notification.entity.notification.TargetType;
-import com.planup.planup.domain.notification.service.notification.NotificationCreateService;
-import com.planup.planup.domain.notification.service.notification.NotificationCommandService;
+import com.planup.planup.domain.notification.service.notification.NotificationFanoutService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.query.UserQueryService;
 import com.planup.planup.domain.verification.service.PhotoVerificationReadService;
@@ -45,8 +44,7 @@ public class ChallengeServiceImpl implements ChallengeService {
     @Lazy
     private final GoalService goalService;
     private final UserGoalService userGoalService;
-    private final NotificationCreateService notificationCreateService;
-    private final NotificationCommandService notificationService;
+    private final NotificationFanoutService notificationFanoutService;
     private final AchievementCalculationService achievementCalculationService;
     private final PhotoVerificationReadService photoVerificationReadService;
     private final TimerVerificationReadService timerVerificationReadService;
@@ -93,10 +91,7 @@ public class ChallengeServiceImpl implements ChallengeService {
             myUserGoal.setActive(false, user);
 
             //상대방의 userGoal은 아직 생성하지 않는다.
-//            userGoalService.joinGoal(friend.getId(), save.getId());
-            notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_REQUEST_SENT, TargetType.CHALLENGE, save.getId(), NotificationGroup.CHALLENGE);
-            notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_REQUEST_RECEIVED, TargetType.CHALLENGE, save.getId(), NotificationGroup.CHALLENGE);
-
+            notificationFanoutService.createChallengeRequestSentAndReceive(user.getId(), friend.getId(), save);
             return save;
         }
 
@@ -113,11 +108,11 @@ public class ChallengeServiceImpl implements ChallengeService {
 
             userGoalService.joinGoal(user.getId(), save.getId());
             userGoalService.joinGoal(friend.getId(), save.getId());
-            notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_REQUEST_SENT, TargetType.CHALLENGE, save.getId(), NotificationGroup.CHALLENGE);
-            notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_REQUEST_RECEIVED, TargetType.CHALLENGE, save.getId(), NotificationGroup.CHALLENGE);
 
+            notificationFanoutService.createChallengeRequestSentAndReceive(user.getId(), friend.getId(), save);
             return save;
         }
+
 
         throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_TYPE);
     }
@@ -172,11 +167,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         User friend = getOtherMember(user, challenge);
 
-        if (challenge.isRePenalty()) {
-            notificationService.createNotification(friend.getId(), userId, NotificationType.PENALTY_REJECTED, TargetType.CHALLENGE, challengeId, NotificationGroup.CHALLENGE);
-        } else {
-            notificationService.createNotification(friend.getId(), userId, NotificationType.CHALLENGE_REQUEST_REJECTED, TargetType.CHALLENGE, challengeId, NotificationGroup.CHALLENGE);
-        }
+        notificationFanoutService.createChallengeRejected(userId, friend.getId(), challenge);
 
     }
 
@@ -196,7 +187,7 @@ public class ChallengeServiceImpl implements ChallengeService {
         User friend = getOtherMember(user, challenge);
 
         //알림 전송
-        notificationCreateService.createChallengeStartNoti(user, friend, challenge);
+        notificationFanoutService.createChallengeStartNoti(user, friend, challenge);
     }
 
     //챌린지에 대한 새로운 패널티 제안
@@ -220,7 +211,7 @@ public class ChallengeServiceImpl implements ChallengeService {
         User otherMember = getOtherMember(user, challenge);
 
         //관련된 알림
-        notificationService.createNotification(otherMember.getId(), userId, NotificationType.PENALTY_PROPOSAL_RECEIVED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.CHALLENGE);
+        notificationFanoutService.createReRequestPenalty(otherMember.getId(), userId, challenge);
     }
 
     @Override
@@ -339,7 +330,7 @@ public class ChallengeServiceImpl implements ChallengeService {
         challenge.setInActive();
 
         //관련 알림 전송
-        notificationCreateService.createChallengeNotification(challenge);
+        notificationFanoutService.createChallengeEndNotification(challenge);
     }
 
     @Override
@@ -349,6 +340,6 @@ public class ChallengeServiceImpl implements ChallengeService {
         Challenge challenge = getChallengeById(challengeId);
         User otherMember = getOtherMember(user, challenge);
 
-        notificationService.createNotification(otherMember.getId(), userId, NotificationType.PENALTY_REMINDER_SENT, TargetType.CHALLENGE, challengeId, NotificationGroup.CHALLENGE);
+        notificationFanoutService.createRemindPenalty(user.getId(), otherMember.getId(), challenge);
     }
 }

@@ -3,7 +3,7 @@ package com.planup.planup.domain.goal.service;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.repository.GoalRepository;
-import com.planup.planup.domain.notification.service.notification.NotificationCreateService;
+import com.planup.planup.domain.notification.service.notification.NotificationFanoutService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ public class GoalLifeService {
     private final GoalRepository goalRepository;
     @Lazy
     private final ChallengeService challengeService;
-    private final NotificationCreateService notificationCreateService;
+    private final NotificationFanoutService notificationCreateService;
 
     @Transactional
     public void disableExpiredGoals(Date date) {
@@ -30,7 +30,7 @@ public class GoalLifeService {
         goal.stream()
                 .filter(Goal::isChallenge)
                 .map(g -> (Challenge) g)
-                .forEach(notificationCreateService::createChallengeNotification);
+                .forEach(notificationCreateService::createChallengeEndNotification);
     }
 }
 

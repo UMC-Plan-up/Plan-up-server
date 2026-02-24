@@ -16,7 +16,7 @@ import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.GoalMemo;
 import com.planup.planup.domain.goal.repository.CommentRepository;
 import com.planup.planup.domain.goal.repository.GoalMemoRepository;
-import com.planup.planup.domain.notification.service.notification.NotificationCreateService;
+import com.planup.planup.domain.notification.service.notification.NotificationFanoutService;
 import com.planup.planup.domain.reaction.domain.ReactionTargetType;
 import com.planup.planup.domain.reaction.domain.ReactionType;
 import com.planup.planup.domain.reaction.repository.ReactionRepository;
@@ -60,7 +60,7 @@ public class GoalServiceImpl implements GoalService{
     private final FriendReadService friendService;
     private final GoalMemoRepository goalMemoRepository;
     private final TimerVerificationReadService timerVerificationReadService;
-    private final NotificationCreateService notificationCreateService;
+    private final NotificationFanoutService notificationCreateService;
     private final ReactionCommandService reactionCommandService;
     private final ReactionRepository reactionRepository;
     //목표 생성
