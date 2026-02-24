@@ -1,8 +1,13 @@
 package com.planup.planup.domain.notification.service;
 
+import com.planup.planup.domain.notification.entity.notification.NotificationGroup;
+import com.planup.planup.domain.notification.repository.NotificationPreferenceRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
 @Service
 @RequiredArgsConstructor
-public class DeviceTokenPreferenceServiceRepository {
+public class NotificationPreferenceServiceRepository {
 
     private final NotificationPreferenceRepository prefRepo;
 

@@ -8,8 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +45,7 @@ public class DeviceTokenJpa extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "deviceToken", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<DeviceTokenPreference> preferences = new ArrayList<>();
+    private List<NotificationTokenPreference> preferences = new ArrayList<>();
 
     private String appVersion;
     private String locale;

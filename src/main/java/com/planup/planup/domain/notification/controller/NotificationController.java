@@ -3,9 +3,8 @@ package com.planup.planup.domain.notification.controller;
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.notification.entity.notification.NotificationGroup;
-import com.planup.planup.domain.notification.entity.notification.NotificationType;
-import com.planup.planup.domain.notification.service.notification.NotificationServiceRead;
-import com.planup.planup.domain.notification.service.notification.NotificationServiceWrite;
+import com.planup.planup.domain.notification.service.notification.NotificationQueryService;
+import com.planup.planup.domain.notification.service.notification.NotificationCommandService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +15,8 @@ import java.util.List;
 @RequestMapping("/notifications")
 public class NotificationController {
 
-    private final NotificationServiceRead notificationServiceRead;
-    private final NotificationServiceWrite notificationServiceWrite;
+    private final NotificationQueryService notificationServiceRead;
+    private final NotificationCommandService notificationServiceWrite;
 
     @PatchMapping("/{notificationId}")
     public ApiResponse<Void> patchNotificationRead(Long userId, Long notificationId) {

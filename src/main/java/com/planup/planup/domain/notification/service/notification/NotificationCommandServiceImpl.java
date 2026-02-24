@@ -20,7 +20,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class NotificationServiceWriteImpl implements NotificationServiceWrite {
+public class NotificationCommandServiceImpl implements NotificationCommandService {
 
     private final NotificationRepository notificationRepository;
     private final UserQueryService userService;

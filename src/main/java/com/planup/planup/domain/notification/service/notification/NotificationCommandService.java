@@ -6,7 +6,7 @@ import com.planup.planup.domain.notification.entity.notification.TargetType;
 
 import java.util.List;
 
-public interface NotificationServiceWrite {
+public interface NotificationCommandService {
     //새로운 알림을 만든다.
     Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId);
 

@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class NotificationServiceReadImpl implements NotificationServiceRead {
+public class NotificationQueryServiceImpl implements NotificationQueryService {
 
     private final NotificationRepository notificationRepository;
     private final UserQueryService userService;

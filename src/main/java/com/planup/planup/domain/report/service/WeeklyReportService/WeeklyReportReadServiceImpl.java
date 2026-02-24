@@ -6,7 +6,7 @@ import com.planup.planup.domain.bedge.entity.BadgeType;
 import com.planup.planup.domain.global.message.EncouragementService;
 import com.planup.planup.domain.global.message.MessageResponse;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
-import com.planup.planup.domain.notification.service.notification.NotificationServiceRead;
+import com.planup.planup.domain.notification.service.notification.NotificationQueryService;
 import com.planup.planup.domain.report.converter.WeeklyReportResponseConverter;
 import com.planup.planup.domain.report.dto.WeeklyReportResponseDTO;
 import com.planup.planup.domain.report.entity.WeeklyReport;
@@ -29,7 +29,7 @@ import java.util.List;
 public class WeeklyReportReadServiceImpl implements WeeklyReportReadService {
 
     private final UserBadgeQueryService userBadgeQueryService;
-    private final NotificationServiceRead notificationService;
+    private final NotificationQueryService notificationService;
     private final EncouragementService encouragementService;
     private final UserQueryService userQueryService;
     private final WeeklyReportRepository weeklyReportRepository;

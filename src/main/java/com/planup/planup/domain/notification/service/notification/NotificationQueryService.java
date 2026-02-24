@@ -3,12 +3,11 @@ package com.planup.planup.domain.notification.service.notification;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.notification.entity.notification.Notification;
 import com.planup.planup.domain.notification.entity.notification.NotificationGroup;
-import com.planup.planup.domain.notification.entity.notification.NotificationType;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-public interface NotificationServiceRead {
+public interface NotificationQueryService {
     //유저의 읽지 않은 알림을 시간 순 대로 가져온다
     @Transactional(readOnly = true)
     List<NotificationResponseDTO.NotificationDTO> getUnreadNotifications(Long receiverId);
