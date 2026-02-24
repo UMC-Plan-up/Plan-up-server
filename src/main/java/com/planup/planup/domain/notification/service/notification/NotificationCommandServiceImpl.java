@@ -2,11 +2,14 @@ package com.planup.planup.domain.notification.service.notification;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.NotificationError;
+import com.planup.planup.domain.notification.entity.device.NotificationTokenPreference;
 import com.planup.planup.domain.notification.entity.notification.Notification;
+import com.planup.planup.domain.notification.entity.notification.NotificationGroup;
 import com.planup.planup.domain.notification.entity.notification.NotificationType;
 import com.planup.planup.domain.notification.entity.notification.TargetType;
 import com.planup.planup.domain.notification.entity.device.NotificationCreatedEvent;
 import com.planup.planup.domain.notification.repository.NotificationRepository;
+import com.planup.planup.domain.notification.service.NotificationPreferenceService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.query.UserQueryService;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,13 +28,17 @@ public class NotificationCommandServiceImpl implements NotificationCommandServic
     private final NotificationRepository notificationRepository;
     private final UserQueryService userService;
     private final ApplicationEventPublisher eventPublisher;
+    private final NotificationPreferenceService preference;
 
     //새로운 알림을 만든다.
     @Override
-    public Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId) {
+    public Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId, NotificationGroup group) {
 
         User receiver = userService.getUserByUserId(receiverId);
         User sender = userService.getUserByUserId(senderId);
+
+        //수신 설정 되어있는지 확인
+        boolean enabled = preference.isEnabled(receiverId, group);
 
         Notification notification = Notification.builder()
                 .receiver(receiver)
@@ -43,20 +50,26 @@ public class NotificationCommandServiceImpl implements NotificationCommandServic
 
         Notification savedNotification = notificationRepository.save(notification);
 
-        eventPublisher.publishEvent(new NotificationCreatedEvent(
-                savedNotification.getId(), receiverId, notificationType, targetType, targetId, sender.getNickname(), receiver.getNickname(), null
-                ));
+        //수신 동의 된 사람에게 전송 (동의 안해도 일단 저장은 한다.)
+        if (enabled) {
+            eventPublisher.publishEvent(new NotificationCreatedEvent(
+                    savedNotification.getId(), receiverId, notificationType, targetType, targetId, sender.getNickname(), receiver.getNickname(), null, group
+            ));
+        }
 
         return savedNotification;
     }
 
     @Override
-    public Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId, List<String> updatedParts) {
+    public Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId, NotificationGroup group, List<String> updatedParts) {
 
         String updatedPartsStr = String.join(", ", updatedParts);
 
         User receiver = userService.getUserByUserId(receiverId);
         User sender = userService.getUserByUserId(senderId);
+
+        //수신 설정 되어있는지 확인
+        boolean enabled = preference.isEnabled(receiverId, group);
 
         Notification notification = Notification.builder()
                 .receiver(receiver)
@@ -69,9 +82,12 @@ public class NotificationCommandServiceImpl implements NotificationCommandServic
 
         Notification savedNotification = notificationRepository.save(notification);
 
-        eventPublisher.publishEvent(new NotificationCreatedEvent(
-                        savedNotification.getId(), receiverId, notificationType, targetType, targetId, sender.getNickname(), receiver.getNickname(), savedNotification.getUpdatedGoalInfo()
-                ));
+        //수신 동의 된 사람에게 전송 (동의 안해도 일단 저장은 한다.)
+        if (enabled) {
+            eventPublisher.publishEvent(new NotificationCreatedEvent(
+                    savedNotification.getId(), receiverId, notificationType, targetType, targetId, sender.getNickname(), receiver.getNickname(), savedNotification.getUpdatedGoalInfo(), group
+            ));
+        }
 
         return savedNotification;
     }

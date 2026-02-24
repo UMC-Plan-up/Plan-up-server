@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class NotificationPreferenceServiceRepository {
+public class NotificationPreferenceService {
 
     private final NotificationPreferenceRepository prefRepo;
 
