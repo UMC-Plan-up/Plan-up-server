@@ -9,6 +9,7 @@ import com.planup.planup.apiPayload.exception.custom.PushSendException;
 import com.planup.planup.domain.notification.entity.device.PushSender;
 import com.planup.planup.domain.notification.service.deviceToken.DeviceTokenService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.validator.internal.xml.mapping.MappingXmlParser;
 import org.springframework.stereotype.Component;
 import com.google.firebase.messaging.Notification;
 
@@ -27,6 +28,8 @@ import java.util.Map;
 public class FirebasePushSender implements PushSender{
 
     private final DeviceTokenService deviceTokenService;
+    private final int MAX_RETRIES = 2;
+    private final int SLEEP_TIME = 300;
 
     /**단일 토큰(기기)에 하나의 메시지를 보낸다. (제목/본문을 보낸다) */
     @Override
@@ -62,48 +65,59 @@ public class FirebasePushSender implements PushSender{
     @Override
     public MulticastResult sendMulticast(Collection<String> tokensCollection, String title, String body) {
         ArrayList<String> tokens = new ArrayList<>(tokensCollection);
+        int totalSuccess = 0;
 
-        //전송 시도 1차
-        SendAttempt firstAttempt = attempt(tokens, title, body);
+        // 누적 실패(최종 보고용)
+        List<PushSender.TokenFailure> finalFailures = new ArrayList<>();
 
-        //다시 시도할 토큰만 추출
-        List<String> retryTokens = firstAttempt.failures.stream()
-                .filter(f -> isRetryableError(f.errorCode()))
-                .map(TokenFailure::token)
-                .toList();
+        // 이번 라운드에 보낼 대상
+        List<String> pending = tokens;
 
-        //다시 시도해도 의미 없는 토큰들은 제시도 하지 않고 바로 비활성화
-        List<PushSender.TokenFailure> permanentFailure = firstAttempt.failures.stream()
-                .filter(f -> isPermanent(f.errorCode()))
-                .toList();
+        for (int attemptNo = 0; attemptNo <= MAX_RETRIES; attemptNo++) {
+            if (pending.isEmpty()) break;
 
-        List<String> permanentFailureToken = permanentFailure.stream()
-                .map(TokenFailure::token)
-                .toList();
+            //첫 번째는 바로 가고 두번째부터 대기 시간 가진다.
+            if (attemptNo > 0) {
+                sleepBackoff(SLEEP_TIME);
+            }
 
-        deactivateTokens(permanentFailureToken);
+            SendAttempt attempt = attempt(pending, title, body);
+            totalSuccess += attempt.successCount;
 
-        List<PushSender.TokenFailure> retryFails = List.of();
-        int retrySuccess = 0;
+            //실패한 것들 조회
+            List<TokenFailure> failures = attempt.failures();
 
-        if (!retryTokens.isEmpty()) {
-            sleepBackoff(300);
-            SendAttempt secondAttempt = attempt(retryTokens, title, body);
-            List<TokenFailure> failures = secondAttempt.failures;
-            retrySuccess = secondAttempt.successCount;
-            retryFails = secondAttempt.failures;
+            //영구적인 실패는 바로 처리
+            List<PushSender.TokenFailure> permanent = failures.stream()
+                    .filter(f -> isPermanent(f.errorCode()))
+                    .toList();
 
-            //재시도에도 불구하고 에러가 난다면 비활성화 처리한다.
-            deactivateTokens(failures.stream().map(TokenFailure::token).toList());
+            if (!permanent.isEmpty()) {
+                deactivateTokens(permanent.stream().map(TokenFailure::token).toList());
+                finalFailures.addAll(permanent);
+            }
+
+            //다시 시도할 토큰들 정리
+            List<PushSender.TokenFailure> retryable = failures.stream()
+                    .filter(f -> isRetryableError(f.errorCode()))
+                    .toList();
+
+            //둘 다 아닌 것들은 재시도 안함
+            List<PushSender.TokenFailure> other = failures.stream()
+                    .filter(f -> !isPermanent(f.errorCode()) && !isRetryableError(f.errorCode()))
+                    .toList();
+            finalFailures.addAll(other);
+
+            //다음 시도에 할 토큰들 정리
+            pending = retryable.stream().map(TokenFailure::token).toList();
+
+            //마지막 시도라면: 그냥 다 실패로 처리
+            if (attemptNo == MAX_RETRIES && !pending.isEmpty()) {
+                finalFailures.addAll(retryable);
+            }
         }
 
-        int totalSuccessCnt = firstAttempt.successCount + retrySuccess;
-        int totalFailure = permanentFailure.size() + retryFails.size();
-        ArrayList<TokenFailure> tokenFailures = new ArrayList<>();
-        tokenFailures.addAll(permanentFailure);
-        tokenFailures.addAll(retryFails);
-
-        return new MulticastResult(totalSuccessCnt, totalFailure, tokenFailures);
+        return new MulticastResult(totalSuccess, finalFailures.size(), finalFailures);
     }
 
     //전송을 시도한다.
@@ -133,17 +147,20 @@ public class FirebasePushSender implements PushSender{
 
             return new SendAttempt(res.getSuccessCount(), failures);
         } catch (FirebaseMessagingException e) {
-            throw new PushSendException(ErrorStatus.PushSendError);
+            //에러가 발생하면 에러를 담아서 반환한다. 다음 시도 때 같이 할 수 있도록
+            String code = (e.getErrorCode() != null) ? e.getErrorCode().toString() : "INTERNAL";
+            List<TokenFailure> failures = tokens.stream().map(t -> new TokenFailure(t, code, e.getMessage())).toList();
+            return new SendAttempt(0, failures);
         }
     }
 
     private boolean isRetryableError(String code) {
-        return code.equals("UNREGISTERED") || code.equals("INVALID_ARGUMENT");
+        return code.equals("UNAVAILABLE") || code.equals("INTERNAL")|| code.equals("DEADLINE_EXCEEDED")|| code.equals("INVALID_ARGUMENT");
     }
 
     //재시도가 불가능한 토큰들
     private boolean isPermanent(String code) {
-        return code.equals("UNREGISTERED") || code.equals("INVALID_ARGUMENT");
+        return code.equals("UNREGISTERED") || code.equals("INVALID_ARGUMENT") ||code.equals("SENDER_ID_MISMATCH") || code.equals("RESOURCE_EXHAUSTED");
     }
 
     private void deactivateTokens(List<String> tokens) {
