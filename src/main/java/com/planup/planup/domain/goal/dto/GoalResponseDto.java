@@ -2,6 +2,8 @@ package com.planup.planup.domain.goal.dto;
 
 import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.*;
+import com.planup.planup.domain.user.entity.User;
+import com.planup.planup.domain.user.enums.UserLevel;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -90,6 +92,10 @@ public class GoalResponseDto {
         private int oneDose;
         private boolean isPublic;
         private List<Comment> commentList;
+        private String goalAmount;
+        private int frequency;
+        private GoalPeriod period;
+        private VerificationType verificationType;
     }
 
     //랭킹 Dto
@@ -226,5 +232,21 @@ public class GoalResponseDto {
 
         @Schema(description = "업데이트된 반응 정보")
         private GoalReactionDto reactionData;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(name = "UserLevelResponse")
+    public static class UserLevelInfo {
+        @Schema(description = "유저 레벨", example = "LEVEL_1")
+        private UserLevel userLevel;
+
+        public static UserLevelInfo from(User user) {
+            return UserLevelInfo.builder()
+                    .userLevel(user.getUserLevel())
+                    .build();
+        }
     }
 }

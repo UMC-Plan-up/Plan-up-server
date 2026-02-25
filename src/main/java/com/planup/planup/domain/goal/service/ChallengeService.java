@@ -5,10 +5,7 @@ import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
-import com.planup.planup.domain.user.entity.User;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 public interface ChallengeService {
     @Transactional
@@ -26,7 +23,7 @@ public interface ChallengeService {
 
     String getChallengeName(Long userId, Long challengeId);
 
-    ChallengeResponseDTO.ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId);
+    ChallengeResponseDTO.ChallengeResultDTO getChallengeResult(Long userId, Long challengeId);
 
     void checkChallengeFin(UserGoal userGoal);
 

@@ -6,22 +6,25 @@ import com.planup.planup.domain.user.enums.Gender;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class UserRequestDTO {
 
     @Getter
     @Setter
+    @Schema(name = "UserLoginRequest")
     public static class Login {
-        @NotBlank @Email @Schema(description = "이메일", example = "june5355@naver.com")
+        @NotBlank @Email @Schema(description = "이메일", example = "user10@test.com")
         private String email;
 
-        @NotBlank @Schema(description = "비밀번호", example = "test1234!")
+        @NotBlank @Schema(description = "비밀번호", example = "pw")
         private String password;
     }
 
     @Getter
     @Setter
+    @Schema(name = "UserPasswordChangeEmailRequest")
     public static class PasswordChangeEmail {
         @NotBlank(message = "이메일은 필수입니다.")
         @Email(message = "유효한 이메일 형식이 아닙니다.")
@@ -32,6 +35,7 @@ public class UserRequestDTO {
 
     @Getter
     @Setter
+    @Schema(name = "UserSignupRequest")
     public static class Signup {
         @Schema(description = "이메일", example = "user@planup.com")
         @NotBlank
@@ -54,6 +58,14 @@ public class UserRequestDTO {
         @Pattern(regexp = "^[가-힣a-zA-Z0-9 ]+$", message = "닉네임은 한글, 영문, 숫자, 공백만 가능합니다.")
         private String nickname;
 
+        @Schema(description = "이름", example = "김라미")
+        @NotBlank(message = "이름은 필수입니다.")
+        private String name;
+
+        @Schema(description = "생년월일", example = "2000-01-01")
+        @NotNull(message = "생년월일은 필수입니다.")
+        private LocalDate birthDate;
+
         @Schema(description = "성별 (MALE: 남성, FEMALE: 여성)", example = "FEMALE")
         @NotNull(message = "성별은 필수입니다.")
         private Gender gender;
@@ -68,7 +80,11 @@ public class UserRequestDTO {
 
     @Getter
     @Setter
-    public static class PasswordChange {
+    @Schema(name = "UserPasswordChangeWithTokenRequest")
+    public static class PasswordChangeWithToken {
+        @NotBlank(message = "인증 토큰은 필수입니다.")
+        private String token;
+
         @NotBlank(message = "새 비밀번호는 필수입니다.")
         @Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다.")
         private String newPassword;
@@ -76,6 +92,7 @@ public class UserRequestDTO {
 
     @Getter
     @Setter
+    @Schema(name = "UserWithdrawalRequest")
     public static class Withdrawal {
         @Schema(description = "탈퇴 이유", example = "서비스 불만족")
         @NotBlank(message = "탈퇴 이유를 입력해주세요.")
@@ -85,11 +102,20 @@ public class UserRequestDTO {
 
     @Getter
     @Setter
+    @Schema(name = "UserUpdateNicknameRequest")
     public static class UpdateNickname {
         @NotBlank(message = "닉네임은 비어 있을 수 없습니다.")
         @Schema(example = "닉네임")
         @Size(max = 20, message = "닉네임은 공백 포함 20자 이하여야 합니다.")
         @Pattern(regexp = "^[가-힣a-zA-Z0-9 ]+$", message = "닉네임은 한글, 영문, 숫자, 공백만 가능합니다.")
         private String nickname;
+    }
+
+    @Getter
+    @Setter
+    public static class PasswordChange {
+        @NotBlank(message = "새 비밀번호는 필수입니다.")
+        @Size(min = 8, message = "비밀번호는 최소 8자 이상이어야 합니다.")
+        private String newPassword;
     }
 }

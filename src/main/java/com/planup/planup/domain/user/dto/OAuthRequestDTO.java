@@ -1,33 +1,47 @@
 package com.planup.planup.domain.user.dto;
 
+import com.planup.planup.domain.user.enums.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class OAuthRequestDTO {
 
     @Getter
     @Setter
+    @Schema(name = "OAuthKakaoAuthRequest")
     public static class KakaoAuth {
-        @NotBlank(message = "카카오 인가코드는 필수입니다")
-        private String code;
+        @NotBlank(message = "이메일은 필수입니다")
+        @Email(message = "이메일 형식이 올바르지 않습니다")
+        @Schema(description = "카카오이메일", example = "test@planup.com")
+        private String email;
+
+        @NotBlank(message = "카카오 액세스 토큰은 필수입니다")
+        @Schema(description = "카카오에서 발급받은 액세스 토큰")
+        private String kakaoAccessToken;
     }
 
     @Getter
     @Setter
+    @Schema(name = "OAuthKakaoLinkRequest")
     public static class KaKaoLink {
-        @NotBlank(message = "카카오 인가코드는 필수입니다")
-        private String code;
+        @NotBlank(message = "이메일은 필수입니다")
+        @Email(message = "이메일 형식이 올바르지 않습니다")
+        @Schema(description = "카카오이메일", example = "test@planup.com")
+        private String email;
+
+        @NotBlank(message = "카카오 액세스 토큰은 필수입니다")
+        @Schema(description = "카카오에서 발급받은 액세스 토큰")
+        private String kakaoAccessToken;
     }
 
     @Getter
     @Setter
-    @Schema(description = "카카오 회원가입 완료 요청")
+    @Schema(name = "OAuthKakaoSignupRequest", description = "카카오 회원가입 완료 요청")
     public static class KaKaoSignup {
 
         @NotBlank(message = "임시 사용자 ID는 필수입니다")
@@ -40,11 +54,22 @@ public class OAuthRequestDTO {
         @Schema(description = "사용자 닉네임", example = "테스트유저")
         private String nickname;
 
+        @Schema(description = "이름", example = "김라미")
+        @NotBlank(message = "이름은 필수입니다.")
+        private String name;
+
+        @Schema(description = "생년월일", example = "2000-01-01")
+        @NotNull(message = "생년월일은 필수입니다.")
+        private LocalDate birthDate;
+        
+        @NotNull(message = "성별은 필수입니다.")
+        @Schema(description = "성별 (MALE/FEMALE/UNKNOWN)", example = "MALE")
+        private Gender gender;
+
         @Schema(description = "프로필 이미지 URL")
         private String profileImg;
 
         @Schema(description = "약관 동의 정보", example = "[{\"termsId\": 1, \"isAgreed\": true}, {\"termsId\": 2, \"isAgreed\": true}]")
         private List<AuthRequestDTO.TermsAgreement> agreements;
-
     }
 }

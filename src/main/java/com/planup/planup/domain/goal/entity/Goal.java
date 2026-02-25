@@ -13,7 +13,6 @@ import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -23,6 +22,12 @@ import java.util.List;
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "goal_type")
+@Table(
+        name = "goal",
+        indexes = {
+                @Index(name = "idx_goal_active_enddate", columnList = "is_active, end_date")
+        }
+)
 public class Goal extends BaseTimeEntity {
 
     @Id
@@ -70,6 +75,7 @@ public class Goal extends BaseTimeEntity {
     private int limitFriendCount;
 
     @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Comment> commentList = new ArrayList<>();
 
 

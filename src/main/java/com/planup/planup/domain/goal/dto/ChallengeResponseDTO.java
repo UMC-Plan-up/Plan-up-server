@@ -3,14 +3,9 @@ package com.planup.planup.domain.goal.dto;
 import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.Builder;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public class ChallengeResponseDTO {
 
@@ -45,7 +40,7 @@ public class ChallengeResponseDTO {
     ) {}
 
     @Builder
-    public record ChallengeResultResponseDTO(
+    public record ChallengeResultDTO(
             @Schema(description = "id", example = "1")
             Long id,
 

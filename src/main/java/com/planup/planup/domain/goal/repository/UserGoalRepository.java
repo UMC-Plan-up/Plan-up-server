@@ -6,6 +6,7 @@ import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.user.dto.UserDailySummaryDTO;
 import com.planup.planup.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,10 +22,22 @@ import java.util.Optional;
 @Repository
 public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     //Query Service
-    UserGoal findByGoalIdAndStatus(Long goalId, Status status);
+    Optional<UserGoal> findByGoalIdAndStatus(Long goalId, Status status);
     List<UserGoal> findByGoalId(Long goalId);
 
-    UserGoal findByGoalIdAndUserId(Long goalId, Long userId);
+    Optional<UserGoal> findByGoalIdAndUserId(Long goalId, Long userId);
+
+    @Query("""
+    select ug
+    from UserGoal ug
+    join fetch ug.goal g
+    where g.id = :goalId
+      and ug.user.id = :userId
+    """)
+    Optional<UserGoal> findByGoalIdAndUserIdWithGoal(
+            @Param("goalId") Long goalId,
+            @Param("userId") Long userId
+    );
 
     List<UserGoal> findByUserId(Long userId);
 
@@ -55,6 +68,8 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     Optional<UserGoal> findByUserAndGoal(User user, Goal goal);
 
     List<UserGoal> findAllByGoal(Goal goal);
+
+    List<UserGoal> findAllByGoalId(Long goalId);
 
     List<UserGoal> findAllByUserAndGoal(User user, Goal goal);
 
@@ -93,19 +108,40 @@ public interface UserGoalRepository extends JpaRepository<UserGoal, Long> {
     Integer countByUserId(@Param("userId") Long userId);
 
     @Query("""
-select new com.planup.planup.domain.goal.dto.UserWithGoalCountDTO(
-    ug.user, count(ug)
-)
-from UserGoal ug
-join ug.goal g
-where ug.user.id = :userId
-  and g.goalType in :challengeTypes
-group by ug.user
-""")
+    select new com.planup.planup.domain.goal.dto.UserWithGoalCountDTO(
+        ug.user, count(ug)
+    )
+    from UserGoal ug
+    join ug.goal g
+    where ug.user.id = :userId
+      and g.goalType in :challengeTypes
+    group by ug.user
+    """)
     List<UserWithGoalCountDTO> getUserByChallengesAndUserId(@Param("userId") Long userId,
                                                             @Param("challengeTypes") List<GoalType> challengeTypes);
 
-
+    @Query("""
+    select new com.planup.planup.domain.user.dto.UserDailySummaryDTO (
+        u.id,
+        u.nickname,
+        u.profileImg,
+        coalesce(sum(tv.spentTimeSeconds), 0L)
+    )
+    from User u
+    left join TimerVerification tv
+        on tv.userGoal.user.id = u.id
+        and tv.userGoal.goal.id = :goalId
+       and tv.endTime >= :start
+       and tv.endTime < :end
+    where u.id in :userIds
+    group by u.id, u.nickname, u.profileImg
+    """)
+    List<UserDailySummaryDTO> findUserDailySummary(
+            @Param("userIds") List<Long> userIds,
+            @Param("goalId") Long goalId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 }
 
 

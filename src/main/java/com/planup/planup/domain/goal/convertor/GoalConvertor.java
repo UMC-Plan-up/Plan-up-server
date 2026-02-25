@@ -62,9 +62,7 @@ public class GoalConvertor {
         Integer goalTime = null;
 
         if (goal.getVerificationType() == VerificationType.TIMER) {
-            if (!userGoal.getTimerVerifications().isEmpty()) {
-                goalTime = userGoal.getGoalTime();
-            }
+            goalTime = userGoal.getGoalTime();
         }
 
         return GoalResponseDto.GoalCreateListDto.builder()
@@ -115,16 +113,17 @@ public class GoalConvertor {
     }
 
     //세부 목표 조회 DTO 변환
-    public static GoalResponseDto.MyGoalDetailDto toMyGoalDetailsDto(
-            UserGoal userGoal) {
-
-        Goal goal = userGoal.getGoal();
+    public static GoalResponseDto.MyGoalDetailDto toMyGoalDetailsDto(UserGoal userGoal, Goal goal) {
 
         return GoalResponseDto.MyGoalDetailDto.builder()
                 .goalId(goal.getId())
                 .goalName(goal.getGoalName())
                 .oneDose(goal.getOneDose())
                 .isPublic(userGoal.isPublic())
+                .goalAmount(goal.getGoalAmount())
+                .frequency(goal.getFrequency())
+                .period(goal.getPeriod())
+                .verificationType(goal.getVerificationType())
                 .build();
     }
 

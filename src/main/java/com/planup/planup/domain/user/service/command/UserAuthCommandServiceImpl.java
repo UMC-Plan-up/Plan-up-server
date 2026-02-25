@@ -2,6 +2,7 @@ package com.planup.planup.domain.user.service.command;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.AuthException;
+import com.planup.planup.apiPayload.exception.custom.FriendException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.domain.friend.entity.Friend;
@@ -20,6 +21,7 @@ import com.planup.planup.domain.user.entity.UserTerms;
 import com.planup.planup.domain.user.entity.UserWithdrawal;
 import com.planup.planup.domain.user.enums.Gender;
 import com.planup.planup.domain.user.enums.UserActivate;
+import com.planup.planup.domain.user.enums.UserStatus;
 import com.planup.planup.domain.user.repository.*;
 import com.planup.planup.domain.user.service.external.KaKaoService;
 import com.planup.planup.domain.user.service.query.UserQueryService;
@@ -82,7 +84,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     // ========== 회원가입/로그인 ==========
 
     @Override
-    public UserResponseDTO.Signup signup(UserRequestDTO.Signup request) {
+    public UserResponseDTO.AuthResponseDTO signup(UserRequestDTO.Signup request) {
         userQueryService.checkEmail(request.getEmail());
 
         if (!request.getPassword().equals(request.getPasswordCheck())) {
@@ -123,7 +125,8 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
         log.info("회원가입 완료: userId={}, email={}", savedUser.getId(), savedUser.getEmail());
 
-        return userAuthConverter.toSignupResponseDTO(savedUser,
+        return userAuthConverter.toAuthResponseDTO(savedUser,
+                UserStatus.SIGNUP_SUCCESS,
                 tokenResponse.getAccessToken(),
                 tokenResponse.getRefreshToken(),
                 tokenResponse.getExpiresIn()
@@ -131,7 +134,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     }
 
     @Override
-    public UserResponseDTO.Login login(UserRequestDTO.Login request) {
+    public UserResponseDTO.AuthResponseDTO login(UserRequestDTO.Login request) {
         User user = userRepository.findByEmailAndUserActivate(request.getEmail(), UserActivate.ACTIVE)
                 .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
 
@@ -139,9 +142,14 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             throw new UserException(ErrorStatus.INVALID_CREDENTIALS);
         }
 
-        String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().toString(), user.getId());
+        // 토큰 발급 (액세스 토큰 + 리프레시 토큰)
+        TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
-        return userAuthConverter.toLoginResponseDTO(user, accessToken);
+        return userAuthConverter.toAuthResponseDTO(user,
+                UserStatus.LOGIN_SUCCESS,
+                tokenResponse.getAccessToken(),
+                tokenResponse.getRefreshToken(),
+                tokenResponse.getExpiresIn());
     }
 
     @Override
@@ -172,12 +180,11 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     private void cleanupUserData(User user) {
         try {
             // 친구 관계 삭제
-            List<Friend> userFriends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
-                    FriendStatus.ACCEPTED, user.getId(), FriendStatus.ACCEPTED, user.getId());
+            List<Friend> userFriends = friendRepository.findFriendsOfUser(FriendStatus.ACCEPTED, user.getId());
             friendRepository.deleteAll(userFriends);
 
             // 친구 요청 삭제
-            List<Friend> friendRequests = friendRepository.findByStatusAndFriend_IdOrderByCreatedAtDesc(
+            List<Friend> friendRequests = friendRepository.findByStatusAndFriendIdOrderByCreatedAt(
                     FriendStatus.REQUESTED, user.getId());
             friendRepository.deleteAll(friendRequests);
 
@@ -189,20 +196,73 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     // ========== 카카오 OAuth ==========
 
     @Override
-    public OAuthResponseDTO.KakaoAuth kakaoAuth(OAuthRequestDTO.KakaoAuth request) {
-        KakaoUserInfo kakaoUserInfo = kakaoService.getUserInfo(request.getCode());
-        if (kakaoUserInfo == null) {
+    public UserResponseDTO.AuthResponseDTO kakaoAuth(OAuthRequestDTO.KakaoAuth request) {
+        // 카카오 유저 정보 조회 (액세스 토큰 사용)
+        KakaoUserInfo kakaoUserInfo = kakaoService.getUserInfo(request.getKakaoAccessToken());
+
+        if (kakaoUserInfo == null || kakaoUserInfo.getKakaoAccount() == null) {
             throw new AuthException(ErrorStatus.KAKAO_USER_INFO_FAILED);
         }
-        String email = Optional.ofNullable(kakaoUserInfo.getKakaoAccount())
-                .map(account -> account.getEmail())
-                .orElseThrow(() -> new AuthException(ErrorStatus.KAKAO_USER_INFO_FAILED));
 
-        return handleKakaoAuth(kakaoUserInfo, email);
+        String kakaoEmail = kakaoUserInfo.getKakaoAccount().getEmail();
+
+        // 이메일 일치 여부 검증
+        if (!kakaoEmail.equals(request.getEmail())) {
+            throw new AuthException(ErrorStatus.KAKAO_EMAIL_MISMATCH);
+        }
+
+        // 이메일로 유저 조회
+        Optional<User> existingUser = userRepository.findByEmail(kakaoEmail);
+
+        if (existingUser.isPresent()) {
+            User user = existingUser.get();
+
+            // SocialType 확인
+            if (user.getSocialType() == AuthProvideerEnum.EMAIL) {
+                // 일반 이메일 가입 유저가 카카오 로그인 시도 시 차단 -> 상태값 반환으로 변경
+                return userAuthConverter.toAuthResponseDTO(
+                        UserStatus.ACCOUNT_CONFLICT,
+                        userAuthConverter.toUserInfo(user)
+                );
+            }
+
+            // 로그인 진행 (KAKAO 타입인 경우)
+            if (user.getUserActivate() != UserActivate.ACTIVE) {
+                throw new UserException(ErrorStatus.USER_INACTIVE);
+            }
+
+            TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
+
+            return userAuthConverter.toAuthResponseDTO(
+                    user,
+                    UserStatus.LOGIN_SUCCESS,
+                    tokenResponse.getAccessToken(),
+                    tokenResponse.getRefreshToken(),
+                    tokenResponse.getExpiresIn()
+            );
+        } else {
+            // 신규 회원가입 진행
+            String tempUserId = UUID.randomUUID().toString();
+            String redisKey = TEMP_USER_PREFIX + tempUserId;
+
+            try {
+                // Redis 저장 시도
+                objectRedisTemplate.opsForValue().set(
+                        redisKey,
+                        kakaoUserInfo,
+                        Duration.ofMinutes(TEMP_USER_EXPIRE_MINUTES)
+                );
+
+            } catch (Exception e) {
+                // Redis 연결 실패 등을 잡아서 처리
+                throw new AuthException(ErrorStatus.REDIS_SAVE_FAILED);
+            }
+            return userAuthConverter.toAuthResponseDTO(UserStatus.SIGNUP_REQUIRED, tempUserId, kakaoUserInfo);
+        }
     }
 
     @Override
-    public UserResponseDTO.Signup kakaoSignupComplete(OAuthRequestDTO.KaKaoSignup request) {
+    public UserResponseDTO.AuthResponseDTO kakaoSignupComplete(OAuthRequestDTO.KaKaoSignup request) {
         // Redis에서 임시 유저 정보 조회
         String redisKey = TEMP_USER_PREFIX + request.getTempUserId();
         KakaoUserInfo kakaoUserInfo;
@@ -234,7 +294,8 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         // 토큰 발급 및 응답
         TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
 
-        return userAuthConverter.toSignupResponseDTO(user,
+        return userAuthConverter.toAuthResponseDTO(user,
+                UserStatus.SIGNUP_SUCCESS,
                 tokenResponse.getAccessToken(),
                 tokenResponse.getRefreshToken(),
                 tokenResponse.getExpiresIn()
@@ -243,79 +304,42 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
     @Override
     public OAuthResponseDTO.KaKaoLink linkKakaoAccount(Long userId, OAuthRequestDTO.KaKaoLink request) {
-        KakaoUserInfo kakaoUserInfo = kakaoService.getUserInfo(request.getCode());
-        if (kakaoUserInfo == null) {
+        // 카카오 유저 정보 조회
+        KakaoUserInfo kakaoUserInfo = kakaoService.getUserInfo(request.getKakaoAccessToken());
+        if (kakaoUserInfo == null || kakaoUserInfo.getKakaoAccount() == null) {
             throw new AuthException(ErrorStatus.KAKAO_USER_INFO_FAILED);
         }
 
-        String email = Optional.ofNullable(kakaoUserInfo.getKakaoAccount())
-                .map(account -> account.getEmail())
+        String kakaoEmail = Optional.ofNullable(kakaoUserInfo.getKakaoAccount().getEmail())
                 .orElseThrow(() -> new AuthException(ErrorStatus.KAKAO_EMAIL_NOT_FOUND));
+
+        // 이메일 일치 여부 검증
+        if (!kakaoEmail.equals(request.getEmail())) {
+            throw new AuthException(ErrorStatus.KAKAO_EMAIL_MISMATCH);
+        }
 
         User user = userQueryService.getUserByUserId(userId);
 
         // 이미 연동되어 있는지 확인
         boolean isAlreadyLinked = oAuthAccountRepository.existsByUserAndProvider(user, AuthProvideerEnum.KAKAO);
-
         if (isAlreadyLinked) {
             throw new UserException(ErrorStatus.KAKAO_ACCOUNT_ALREADY_LINKED);
         }
 
-        // 이미 다른 유저와 연동되었는지 확인
+        // 해당 카카오 계정이 다른 유저에게 연동되었는지 확인
         Optional<OAuthAccount> otherUserOAuth = oAuthAccountRepository
-                .findByEmailAndProvider(email, AuthProvideerEnum.KAKAO);
-
+                .findByEmailAndProvider(kakaoEmail, AuthProvideerEnum.KAKAO);
         if (otherUserOAuth.isPresent()) {
             throw new UserException(ErrorStatus.KAKAO_ACCOUNT_ALREADY_USED);
         }
 
         // 연동 정보 저장
-        OAuthAccount oAuthAccount = userAuthConverter.toOAuthAccountEntity(user, email, AuthProvideerEnum.KAKAO);
+        OAuthAccount oAuthAccount = userAuthConverter.toOAuthAccountEntity(user, kakaoEmail, AuthProvideerEnum.KAKAO);
         oAuthAccountRepository.save(oAuthAccount);
 
-        log.info("카카오 계정 연동 성공 (User ID: {}, Email: {})", userId, email);
+        log.info("카카오 계정 연동 성공 (User ID: {}, Email: {})", userId, kakaoEmail);
 
-        return userAuthConverter.toKakaoLinkResponseDTO(true, "카카오 계정 연동이 완료되었습니다", email, userAuthConverter.toUserInfoResponseDTO(user));
-    }
-
-    private OAuthResponseDTO.KakaoAuth handleKakaoAuth(KakaoUserInfo kakaoUserInfo, String email) {
-        Optional<OAuthAccount> existingOAuth = oAuthAccountRepository
-                .findByEmailAndProvider(email, AuthProvideerEnum.KAKAO);
-
-        if (existingOAuth.isPresent()) {
-            User user = existingOAuth.get().getUser();
-
-            if (user.getUserActivate() != UserActivate.ACTIVE) {
-                throw new UserException(ErrorStatus.USER_INACTIVE);
-            }
-
-            TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
-
-            return userAuthConverter.toKakaoAuthResponseDTO(
-                    false,
-                    tokenResponse.getAccessToken(),
-                    tokenResponse.getRefreshToken(),
-                    tokenResponse.getExpiresIn(),
-                    UserResponseDTO.UserInfo.from(user)
-            );
-        } else {
-            String tempUserId = UUID.randomUUID().toString();
-            String redisKey = TEMP_USER_PREFIX + tempUserId;
-
-            try {
-                // Redis 저장 시도
-                objectRedisTemplate.opsForValue().set(
-                        redisKey,
-                        kakaoUserInfo,
-                        Duration.ofMinutes(TEMP_USER_EXPIRE_MINUTES)
-                );
-
-            } catch (Exception e) {
-                // Redis 연결 실패 등을 잡아서 처리
-                throw new AuthException(ErrorStatus.REDIS_SAVE_FAILED);
-            }
-            return userAuthConverter.toKakaoAuthResponseDTO(true, tempUserId);
-        }
+        return userAuthConverter.toKakaoLinkResponseDTO(true, "카카오 계정 연동이 완료되었습니다", kakaoEmail, userAuthConverter.toUserInfo(user));
     }
 
     private User createBasicKakaoUser(KakaoUserInfo kakaoUserInfo, OAuthRequestDTO.KaKaoSignup request) {
@@ -367,9 +391,11 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         User inviterUser = userQueryService.getUserByUserId(inviterId);
 
         // 이미 친구인지 확인
-        boolean alreadyFriend = friendRepository.existsByUserAndFriendAndStatus(currentUser, inviterUser, FriendStatus.ACCEPTED);
+        Boolean alreadyFriend = friendRepository.existsByUserAndFriendAndStatus(currentUser, inviterUser, FriendStatus.ACCEPTED);
 
-        if (alreadyFriend) {
+        if (alreadyFriend == null) {
+            throw new FriendException(ErrorStatus.INTERNAL_FRIEND_ERROR);
+        } else if (alreadyFriend) {
             throw new UserException(ErrorStatus.ALREADY_FRIEND);
         }
 
@@ -399,6 +425,11 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
     @Override
     public AuthResponseDTO.EmailSend sendEmailVerification(String email) {
+        // 이미 인증된 이메일인지 확인 (재발송 로직 통합)
+        if (userQueryService.isEmailVerified(email)) {
+            throw new UserException(ErrorStatus.EMAIL_ALREADY_VERIFIED);
+        }
+
         userQueryService.checkEmail(email);
 
         String verificationToken = UUID.randomUUID().toString();
@@ -427,15 +458,6 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         }
 
         return userAuthConverter.toEmailSendResponseDTO(email, verificationToken, "인증 메일이 발송되었습니다");
-    }
-
-    @Override
-    public AuthResponseDTO.EmailSend resendEmailVerification(String email) {
-        if (userQueryService.isEmailVerified(email)) {
-            throw new UserException(ErrorStatus.EMAIL_ALREADY_VERIFIED);
-        }
-
-        return sendEmailVerification(email);
     }
 
     @Override
@@ -472,8 +494,13 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                     TimeUnit.MINUTES
             );
 
-            // 사용한 인증 토큰은 삭제 (재사용 방지)
-            redisTemplate.delete("email-verification:" + verificationToken);
+            // 토큰을 삭제하지 않고 인증 완료 상태로 변경 (60분 유효, 프론트엔드 상태 확인용)
+            redisTemplate.opsForValue().set(
+                    "email-verification:" + verificationToken,
+                    "VERIFIED:" + email,
+                    60,
+                    TimeUnit.MINUTES
+            );
 
             return email;
 
@@ -603,20 +630,12 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         return parts;
     }
 
-    private void cleanupUsedTokens(String token, String email) {
-        try {
-            // 사용한 토큰 삭제
-            redisTemplate.delete("password-change:" + token);
-            // 인증 마킹 삭제
-            redisTemplate.delete("password-change-verified:" + email);
-        } catch (Exception e) {
-            log.warn("비밀번호 변경 후 Redis 정리 실패 (데이터 불일치 아님): {}", e.getMessage());
-        }
-    }
-
     // ========== 약관 동의 ==========
 
     private void validateRequiredTerms(List<AuthRequestDTO.TermsAgreement> agreements) {
+        if (agreements == null) {
+            throw new UserException(ErrorStatus.REQUIRED_TERMS_NOT_AGREED);
+        }
         List<Terms> requiredTerms = termsRepository.findByIsRequiredTrue();
 
         Set<Long> agreedTermsIds = agreements.stream()
@@ -632,18 +651,17 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     }
 
     private void addTermsAgreements(User user, List<AuthRequestDTO.TermsAgreement> agreements) {
+        if (agreements == null) return;
         List<Long> termsIds = agreements.stream()
                 .map(AuthRequestDTO.TermsAgreement::getTermsId)
                 .toList();
 
-        // 약관 엔티티 한 번에 조회
         List<Terms> foundTerms = termsRepository.findAllById(termsIds);
 
         if (foundTerms.size() != termsIds.size()) {
             throw new UserException(ErrorStatus.NOT_FOUND_TERMS);
         }
 
-        // 매핑 편의를 위해 (ID -> Terms) 맵 생성
         Map<Long, Terms> termsMap = foundTerms.stream()
                 .collect(Collectors.toMap(Terms::getId, terms -> terms));
 
@@ -654,55 +672,10 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                 })
                 .toList();
 
-        // 한 번에 저장 (Batch Insert) - N+1 문제 방지
         userTermsRepository.saveAll(userTermsList);
     }
 
     // ========== Private 헬퍼 메서드 ==========
-
-    // 프로필 이미지 URL 결정
-    private String determineProfileImageUrl(String email, String requestProfileImg) {
-        // Redis에서 업로드된 임시 이미지 확인
-        String uploadedImageUrl = getUploadedProfileImageSafely(email);
-        if (uploadedImageUrl != null) {
-            return uploadedImageUrl;
-        }
-
-        // 요청에 포함된 이미지 URL 확인
-        if (requestProfileImg != null && !requestProfileImg.trim().isEmpty()) {
-            return requestProfileImg.trim();
-        }
-
-        // 둘 다 없으면 null
-        return null;
-    }
-
-    // Redis에서 업로드된 프로필 이미지 조회
-    private String getUploadedProfileImageSafely(String email) {
-        try {
-            Object obj = objectRedisTemplate.opsForValue().get(TEMP_PROFILE_PREFIX + email);
-            return (obj != null) ? (String) obj : null;
-        } catch (Exception e) {
-            log.warn("Redis 임시 프로필 이미지 조회 실패(회원가입은 계속 진행): email={}", email, e);
-            return null;
-        }
-    }
-
-    // [일반 회원가입용] 정리 작업
-    private void cleanupAfterSignup(String email) {
-        // 이메일 인증 토큰 삭제
-        try {
-            clearVerificationToken(email);
-        } catch (Exception e) {
-            log.warn("인증 토큰 삭제 실패: email={}", email, e);
-        }
-        // Redis 임시 프로필 이미지 삭제
-        try {
-            objectRedisTemplate.delete(TEMP_PROFILE_PREFIX + email);
-        } catch (Exception e) {
-            log.warn("Redis 임시 프로필 이미지 삭제 실패 (무시): email={}", email, e);
-        }
-    }
 
     private void processProfileImage(User user, String email, String requestProfileImg) {
         String finalProfileUrl = determineProfileImageUrl(email, requestProfileImg);
@@ -713,7 +686,40 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         }
     }
 
-    // [카카오 회원가입용] 정리 작업
+    private String determineProfileImageUrl(String email, String requestProfileImg) {
+        String uploadedImageUrl = getUploadedProfileImageSafely(email);
+        if (uploadedImageUrl != null) {
+            return uploadedImageUrl;
+        }
+        if (requestProfileImg != null && !requestProfileImg.trim().isEmpty()) {
+            return requestProfileImg.trim();
+        }
+        return null;
+    }
+
+    private String getUploadedProfileImageSafely(String email) {
+        try {
+            Object obj = objectRedisTemplate.opsForValue().get(TEMP_PROFILE_PREFIX + email);
+            return (obj != null) ? (String) obj : null;
+        } catch (Exception e) {
+            log.warn("Redis 임시 프로필 이미지 조회 실패(회원가입은 계속 진행): email={}", email, e);
+            return null;
+        }
+    }
+
+    private void cleanupAfterSignup(String email) {
+        try {
+            clearVerificationToken(email);
+        } catch (Exception e) {
+            log.warn("인증 토큰 삭제 실패: email={}", email, e);
+        }
+        try {
+            objectRedisTemplate.delete(TEMP_PROFILE_PREFIX + email);
+        } catch (Exception e) {
+            log.warn("Redis 임시 프로필 이미지 삭제 실패 (무시): email={}", email, e);
+        }
+    }
+    
     private void cleanupRedisData(String userInfoKey, String email) {
         try {
             objectRedisTemplate.delete(userInfoKey); // 카카오 유저 정보 삭제

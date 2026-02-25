@@ -10,6 +10,7 @@ import com.planup.planup.domain.user.dto.AuthResponseDTO;
 import com.planup.planup.domain.user.dto.OAuthResponseDTO;
 import com.planup.planup.domain.user.dto.UserResponseDTO;
 import com.planup.planup.domain.user.entity.*;
+import com.planup.planup.domain.user.enums.TokenStatus;
 import com.planup.planup.domain.user.enums.UserActivate;
 import com.planup.planup.domain.user.repository.*;
 import com.planup.planup.domain.oauth.repository.OAuthAccountRepository;
@@ -61,7 +62,7 @@ public class UserQueryServiceImpl implements UserQueryService {
     @Override
     public UserResponseDTO.UserInfo getUserInfo(Long userId) {
         User user = getUserByUserId(userId);
-        return userAuthConverter.toUserInfoResponseDTO(user);
+        return userAuthConverter.toUserInfo(user);
     }
 
     // ========== 이메일 검증 ==========
@@ -108,41 +109,26 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     @Override
     public UserResponseDTO.RandomNickname generateRandomNickname() {
-        List<Adjective> adjectives = adjectiveRepository.findAll();
-        List<Noun> nouns = nounRepository.findAll();
+        Adjective adjective = adjectiveRepository.findRandomAdjective()
+                .orElseThrow(() -> new UserException(ErrorStatus.NICKNAME_DATA_NOT_FOUND));
+        Noun noun = nounRepository.findRandomNoun()
+                .orElseThrow(() -> new UserException(ErrorStatus.NICKNAME_DATA_NOT_FOUND));
 
-        if (adjectives.isEmpty() || nouns.isEmpty()) {
-            log.error("형용사 또는 명사 데이터가 없습니다. adjectives: {}, nouns: {}", adjectives.size(), nouns.size());
-            throw new UserException(ErrorStatus.NICKNAME_DATA_NOT_FOUND);
+        String baseNickname = adjective.getWord() + noun.getWord();
+
+        if (!userRepository.existsByNickname(baseNickname)) {
+            return UserProfileConverter.toRandomNicknameResponseDTO(baseNickname);
         }
 
-        RandomNickname randomNickname = generateNickname(adjectives, nouns);
+        // 중복이면 숫자 suffix 붙여서 재시도
+        for (int i = 1; i < 1000 ; i++) {
+            String candidate = baseNickname + i;
 
-        return UserResponseDTO.RandomNickname.builder()
-                .nickname(randomNickname.getFullNickname())
-                .build();
-    }
-
-    private RandomNickname generateNickname(List<Adjective> adjectives, List<Noun> nouns) {
-        int maxAttempts = 10;
-
-        for (int attempt = 0; attempt < maxAttempts; attempt++) {
-            Adjective adjective = adjectives.get(random.nextInt(adjectives.size()));
-            Noun noun = nouns.get(random.nextInt(nouns.size()));
-
-            String fullNickname = adjective.getWord() + noun.getWord();
-
-            if (fullNickname.length() > 20) {
-                continue;
-            }
-
-            if (!userRepository.existsByNickname(fullNickname)) {
-                return RandomNickname.of(adjective.getWord(), noun.getWord());
+            if (!userRepository.existsByNickname(candidate)) {
+                return UserProfileConverter.toRandomNicknameResponseDTO(candidate);
             }
         }
-
-        log.warn("랜덤 닉네임 생성 중 중복이 많아 기본 닉네임을 반환합니다.");
-        return RandomNickname.of("행복한", "사용자");
+        throw new UserException(ErrorStatus.NICKNAME_GENERATION_FAILED);
     }
 
     // ========== 인증 상태 조회 ==========
@@ -173,9 +159,22 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     @Override
     public AuthResponseDTO.EmailVerificationStatus getEmailVerificationStatus(String token) {
-        String email = getEmailByToken(token);
-        boolean verified = isEmailVerified(email);
-        return userAuthConverter.toEmailVerificationStatusResponseDTO(email, verified);
+        String tokenValue = redisTemplate.opsForValue().get("email-verification:" + token);
+        
+        if (tokenValue == null) {
+            // 토큰이 없거나 만료된 경우
+            return userAuthConverter.toEmailVerificationStatusResponseDTO(null, false, TokenStatus.EXPIRED_OR_INVALID);
+        }
+        
+        // 토큰 값에서 이메일과 인증 상태 추출
+        boolean verified = tokenValue.startsWith("VERIFIED:");
+        String email = verified ? tokenValue.substring(9) : tokenValue; // "VERIFIED:" 제거
+        
+        // 인증 완료된 경우 verified: true, VALID 반환
+        // 인증 미완료인 경우 verified: false, VALID 반환
+        TokenStatus tokenStatus = TokenStatus.VALID;
+        
+        return userAuthConverter.toEmailVerificationStatusResponseDTO(email, verified, tokenStatus);
     }
 
     @Override
@@ -186,11 +185,12 @@ public class UserQueryServiceImpl implements UserQueryService {
     }
 
     private String getEmailByToken(String token) {
-        String email = redisTemplate.opsForValue().get("email-verification:" + token);
-        if (email == null) {
+        String tokenValue = redisTemplate.opsForValue().get("email-verification:" + token);
+        if (tokenValue == null) {
             throw new AuthException(ErrorStatus.INVALID_EMAIL_TOKEN);
         }
-        return email;
+        // VERIFIED: 접두사가 있으면 제거하고 이메일만 반환
+        return tokenValue.startsWith("VERIFIED:") ? tokenValue.substring(9) : tokenValue;
     }
 
     // ========== 관계 조회 ==========
@@ -198,9 +198,8 @@ public class UserQueryServiceImpl implements UserQueryService {
     @Override
     public List<User> getFriendsByUserId(Long userId) {
         User user = getUserByUserId(userId);
-        List<Friend> friends = friendRepository.findByStatusAndUserIdOrStatusAndFriendIdOrderByCreatedAtDesc(
-                FriendStatus.ACCEPTED, user.getId(), FriendStatus.ACCEPTED, user.getId()
-        );
+        List<Friend> friends = friendRepository.findFriendsOfUser(FriendStatus.ACCEPTED, user.getId());
+
         return friends.stream()
                 .map(Friend::getFriend)
                 .toList();
@@ -268,9 +267,9 @@ public class UserQueryServiceImpl implements UserQueryService {
     // ========== 약관 조회 ==========
 
     @Override
-    public List<AuthResponseDTO.TermsList> getTermsList() {
+    public AuthResponseDTO.TermsList getTermsList() {
         List<Terms> termsList = termsRepository.findAllByOrderByOrderAsc();
-        return TermsConverter.toTermsListResponseList(termsList);
+        return TermsConverter.toTermsListResponse(termsList);
     }
 
     @Override

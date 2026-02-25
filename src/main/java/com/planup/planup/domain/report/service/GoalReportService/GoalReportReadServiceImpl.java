@@ -8,6 +8,7 @@ import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.report.converter.GoalReportConverter;
 import com.planup.planup.domain.report.dto.GoalReportResponseDTO;
 import com.planup.planup.domain.report.entity.GoalReport;
+import com.planup.planup.domain.report.entity.ReportUser;
 import com.planup.planup.domain.report.repository.GoalReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,7 +45,7 @@ public class GoalReportReadServiceImpl implements GoalReportReadService {
         return CommentConverter.toResponseDtoList(commentList, goalReport.getUserId());
     }
 
-    //가장 최근의 리포트 2개를 반환한다.
+    //목표 아이디 기준 가장 최근의 리포트 2개를 반환한다.
     @Override
     public List<GoalReport> findTop2RecentByGoalId(Long id) {
         return goalReportRepository.findTop2ByGoalIdOrderByCreatedAt(id);

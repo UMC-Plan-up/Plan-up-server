@@ -6,8 +6,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
+@Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class KakaoUserInfo {
+
+    private Long id;
 
     @JsonProperty("kakao_account")
     private KakaoAccount kakaoAccount;
@@ -20,6 +23,7 @@ public class KakaoUserInfo {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class KakaoAccount {
         private String email;
+        private String gender;
     }
 
     @Getter
@@ -27,6 +31,8 @@ public class KakaoUserInfo {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Properties {
         private String nickname;
+        @JsonProperty("profile_image_url")
+        private String profileImageUrl;
     }
 
     public String getNickname() {

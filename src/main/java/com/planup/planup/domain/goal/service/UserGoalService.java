@@ -18,6 +18,9 @@ public interface UserGoalService {
     UserGoal getUserGoalByUserAndGoal(User user, Goal goal);
     List<UserGoal> getUserGoalListByGoal(Goal goal);
 
+    @Transactional(readOnly = true)
+    List<UserGoal> getUserGoalListByGoalId(Long goalId);
+
     VerificationType checkVerificationType(UserGoal userGoal);
 
     //Command Service
@@ -29,9 +32,18 @@ public interface UserGoalService {
     UserGoal getByGoalIdAndUserId(Long goalId, Long userId);
 
     @Transactional(readOnly = true)
+    UserGoal getByGoalIdAndUserIdWithGoal(Long goalId, Long userId);
+
+    @Transactional(readOnly = true)
     boolean existUserGoal(Long goalId, Long userId);
+
+    @Transactional
+    UserGoal joinGoalWithEntity(Long userId, Long goalId);
 
     int calculateDailyAchievement(Long userId, LocalDate targetDate);
     UserGoalResponseDto.GoalTotalAchievementDto calculateGoalTotalAchievement(Long goalId, Long userId);
     List<UserGoal> getActiveUserGoalsByUser(Long userId, LocalDate targetDate);
-    }
+
+    @Transactional(readOnly = true)
+    UserGoalResponseDto.TimerGoalAchievementWithFriendDto getTimerAchievementWithFriendInDate(Long userId,Long goalId, LocalDate date);
+}

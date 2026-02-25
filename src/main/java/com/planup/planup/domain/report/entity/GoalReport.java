@@ -14,6 +14,13 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @SuperBuilder
+@Table(
+        name = "goal_report",
+        indexes = {
+                @Index(name = "idx_goal_report_goal_created_at", columnList = "goal_id, created_at"),
+                @Index(name = "idx_goal_report_user_created_at", columnList = "user_id, created_at")
+        }
+)
 public class GoalReport extends BaseTimeEntity {
 
     @Id
@@ -32,9 +39,9 @@ public class GoalReport extends BaseTimeEntity {
     @Embedded
     private DailyAchievementRate dailyAchievementRate;
 
+    @Builder.Default
     @OneToMany(mappedBy = "goalReport", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ReportUser> reportUsers;
-
+    private List<ReportUser> reportUsers = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private ReportType reportType;
@@ -44,6 +51,7 @@ public class GoalReport extends BaseTimeEntity {
     private WeeklyReport weeklyReport;
 
     @OneToMany(mappedBy = "goalReport", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Comment> commentList = new ArrayList<>();
 
 

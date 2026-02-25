@@ -15,9 +15,12 @@ import lombok.experimental.SuperBuilder;
 public class Challenge extends Goal {
 
     @Enumerated(EnumType.STRING)
-    private ChallengeStatus status;  // 거절/수락 상태
+    @Builder.Default
+    private ChallengeStatus status = ChallengeStatus.REQUESTED;  // 거절/수락 상태
 
     private String penalty;
+
+    @Builder.Default
     private boolean isRePenalty = false;
 
     public void setChallengeStatus(ChallengeStatus status) {

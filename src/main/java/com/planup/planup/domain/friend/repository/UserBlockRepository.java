@@ -18,7 +18,7 @@ public interface UserBlockRepository extends JpaRepository<UserBlock, Long> {
       where (b.blocker.id = :u1 and b.blocked.id = :u2)
          or (b.blocker.id = :u2 and b.blocked.id = :u1)
     """)
-    boolean existsEitherDirection(Long u1, Long u2);
+    boolean existsEitherDirection(@Param("u1") Long u1, @Param("u2") Long u2);
 
     @Query("""
         select b
@@ -28,7 +28,7 @@ public interface UserBlockRepository extends JpaRepository<UserBlock, Long> {
         where (b.blocker.id = :blockerId)
         and (b.active = true)
     """)
-    List<UserBlock> findBlockedByBlockerId(Long blockerId);
+    List<UserBlock> findBlockedByBlockerId(@Param("blockerId")Long blockerId);
 
     Optional<UserBlock> findByBlockerIdAndBlockedId(Long userId, Long friendId);
 
