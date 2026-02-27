@@ -155,12 +155,17 @@ public class FirebasePushSender implements PushSender{
     }
 
     private boolean isRetryableError(String code) {
-        return code.equals("UNAVAILABLE") || code.equals("INTERNAL")|| code.equals("DEADLINE_EXCEEDED")|| code.equals("INVALID_ARGUMENT");
+        return switch (code) {
+            case "UNAVAILABLE", "INTERNAL", "DEADLINE_EXCEEDED", "RESOURCE_EXHAUSTED" -> true;
+            default -> false;
+        };
     }
 
-    //재시도가 불가능한 토큰들
     private boolean isPermanent(String code) {
-        return code.equals("UNREGISTERED") || code.equals("INVALID_ARGUMENT") ||code.equals("SENDER_ID_MISMATCH") || code.equals("RESOURCE_EXHAUSTED");
+        return switch (code) {
+            case "UNREGISTERED", "INVALID_ARGUMENT", "SENDER_ID_MISMATCH", "THIRD_PARTY_AUTH_ERROR" -> true;
+            default -> false;
+        };
     }
 
     private void deactivateTokens(List<String> tokens) {
