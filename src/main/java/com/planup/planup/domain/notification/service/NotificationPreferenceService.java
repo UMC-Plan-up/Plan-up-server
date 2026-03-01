@@ -17,6 +17,6 @@ public class NotificationPreferenceService {
 
         return prefRepo.findByUserIdAndGroup(userId, group)
                 .map(p -> p.isEnabled())
-                .orElse(true);
+                .orElse(false);
     }
 }
