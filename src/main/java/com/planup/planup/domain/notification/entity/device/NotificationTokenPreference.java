@@ -6,12 +6,15 @@ import lombok.*;
 
 @Entity
 @Table(
-        name = "notification_preference",
+        name = "notification_token_preference",
         uniqueConstraints = {
-                @UniqueConstraint(name = "ux_pref_user_group", columnNames = {"userId", "groupName"})
+                @UniqueConstraint(
+                        name = "ux_pref_user_group",
+                        columnNames = {"user_id", "group_name"}
+                )
         },
         indexes = {
-                @Index(name = "ix_pref_user", columnList = "userId")
+                @Index(name = "ix_pref_user", columnList = "user_id")
         }
 )
 @Getter
@@ -27,7 +30,7 @@ public class NotificationTokenPreference {
     private Long userId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(name = "group_name", nullable = false, length = 30)
     private NotificationGroup group;
 
     @Column(nullable = false)

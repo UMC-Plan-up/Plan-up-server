@@ -4,6 +4,7 @@ import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.notification.entity.device.NotificationTokenPreference;
 import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
 import com.planup.planup.domain.report.entity.WeeklyReport;
@@ -127,6 +128,10 @@ public class User extends BaseTimeEntity {
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, optional = false)
     @JoinColumn(name = "user_stat_id", nullable = false)
     private UserStat userStat;
+
+    @OneToMany(mappedBy = "deviceToken", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<NotificationTokenPreference> preferences = new ArrayList<>();
 
     public void verifyEmail() {
         this.emailVerified = true;

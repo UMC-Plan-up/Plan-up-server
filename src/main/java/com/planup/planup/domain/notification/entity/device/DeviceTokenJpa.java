@@ -43,9 +43,6 @@ public class DeviceTokenJpa extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private Platform platform;     // ANDROID/IOS/WEB 등
 
-    @OneToMany(mappedBy = "deviceToken", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<NotificationTokenPreference> preferences = new ArrayList<>();
 
     private String appVersion;
     private String locale;
