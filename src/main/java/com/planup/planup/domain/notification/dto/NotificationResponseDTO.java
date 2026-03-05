@@ -1,5 +1,6 @@
 package com.planup.planup.domain.notification.dto;
 
+import com.planup.planup.domain.notification.entity.TargetType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
@@ -19,6 +20,12 @@ public class NotificationResponseDTO {
             String url,
 
             @Schema(description = "알림 일자", example = "2025-01-52")
-            LocalDateTime createdAt
+            LocalDateTime createdAt,
+
+            @Schema(description = "알림 대상 종류 ex) challenge, goal", example = "challenge")
+            TargetType type,
+
+            @Schema(description = "알림의 대상의 아이디", example = "1")
+            Long targeId
     ) {}
 }
