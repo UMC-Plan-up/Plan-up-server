@@ -18,6 +18,8 @@ public class NotificationConverter {
                 .url(notification.getNotificationUrl())
                 .id(notification.getId())
                 .createdAt(notification.getCreatedAt())
+                .targeId(notification.getTargetId())
+                .type(notification.getTargetType())
                 .build();
     }
 }
