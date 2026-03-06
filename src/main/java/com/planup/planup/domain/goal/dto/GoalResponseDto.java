@@ -4,6 +4,7 @@ import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.*;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.enums.UserLevel;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
@@ -62,6 +63,8 @@ public class GoalResponseDto {
         private GoalType goalType;
         private int frequency;
         private int oneDose;
+        @JsonProperty("isActive")
+        private boolean isActive;
     }
 
     //친구 목표 조회 리스트 Dto

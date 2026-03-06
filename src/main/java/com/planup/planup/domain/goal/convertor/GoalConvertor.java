@@ -91,6 +91,7 @@ public class GoalConvertor {
                 .goalType(goal.getGoalType())
                 .frequency(goal.getFrequency())
                 .oneDose(goal.getOneDose())
+                .isActive(userGoal.isActive())
                 .build();
     }
 
