@@ -208,16 +208,6 @@ public class UserAuthConverter {
                 .build();
     }
 
-    // ======= 약관동의 =======
-    public UserTerms toUserTermsEntity(User user, Terms terms, AuthRequestDTO.TermsAgreement agreement) {
-        return UserTerms.builder()
-                .user(user)
-                .terms(terms)
-                .isAgreed(agreement.isAgreed())
-                .agreedAt(agreement.isAgreed() ? LocalDateTime.now() : null)
-                .build();
-    }
-
     // ======= OAuth/카카오 =======
     public OAuthAccount toOAuthAccountEntity(User user, String email, AuthProvideerEnum provider) {
         return OAuthAccount.builder()

@@ -70,6 +70,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     private final UserAuthConverter userAuthConverter;
     private final UserQueryService userQueryService;
     private final FriendWriteService friendWriteService;
+    private final UserTermsService userTermService;
 
     @Qualifier("objectRedisTemplate")
     private final RedisTemplate<String, Object> objectRedisTemplate;
@@ -95,7 +96,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             throw new UserException(ErrorStatus.GENDER_INVALID);
         }
 
-        validateRequiredTerms(request.getAgreements());
+        userTermService.validateRequiredTerms(request.getAgreements());
 
         if (!userQueryService.isEmailVerified(request.getEmail())) {
             throw new UserException(ErrorStatus.EMAIL_VERIFICATION_REQUIRED);
@@ -115,7 +116,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         User savedUser = userRepository.save(user);
 
         // 약관 저장
-        addTermsAgreements(savedUser, request.getAgreements());
+        userTermService.addTermsAgreements(savedUser, request.getAgreements());
 
         // 토큰 발급
         TokenResponseDTO tokenResponse = tokenService.generateTokens(savedUser);
@@ -285,7 +286,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         }
 
         if (request.getAgreements() != null) {
-            addTermsAgreements(user, request.getAgreements()); // 약관 동의 저장
+            userTermService.addTermsAgreements(user, request.getAgreements()); // 약관 동의 저장
         }
 
         // Redis 데이터 정리
@@ -344,7 +345,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
     private User createBasicKakaoUser(KakaoUserInfo kakaoUserInfo, OAuthRequestDTO.KaKaoSignup request) {
         if (request.getAgreements() != null) {
-            validateRequiredTerms(request.getAgreements());
+            userTermService.validateRequiredTerms(request.getAgreements());
         }
         User user =  userAuthConverter.toKakaoUserEntity(kakaoUserInfo, request);
 
@@ -628,51 +629,6 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         }
 
         return parts;
-    }
-
-    // ========== 약관 동의 ==========
-
-    private void validateRequiredTerms(List<AuthRequestDTO.TermsAgreement> agreements) {
-        if (agreements == null) {
-            throw new UserException(ErrorStatus.REQUIRED_TERMS_NOT_AGREED);
-        }
-        List<Terms> requiredTerms = termsRepository.findByIsRequiredTrue();
-
-        Set<Long> agreedTermsIds = agreements.stream()
-                .filter(AuthRequestDTO.TermsAgreement::isAgreed)
-                .map(AuthRequestDTO.TermsAgreement::getTermsId)
-                .collect(Collectors.toSet());
-
-        for (Terms requiredTerm : requiredTerms) {
-            if (!agreedTermsIds.contains(requiredTerm.getId())) {
-                throw new UserException(ErrorStatus.REQUIRED_TERMS_NOT_AGREED);
-            }
-        }
-    }
-
-    private void addTermsAgreements(User user, List<AuthRequestDTO.TermsAgreement> agreements) {
-        if (agreements == null) return;
-        List<Long> termsIds = agreements.stream()
-                .map(AuthRequestDTO.TermsAgreement::getTermsId)
-                .toList();
-
-        List<Terms> foundTerms = termsRepository.findAllById(termsIds);
-
-        if (foundTerms.size() != termsIds.size()) {
-            throw new UserException(ErrorStatus.NOT_FOUND_TERMS);
-        }
-
-        Map<Long, Terms> termsMap = foundTerms.stream()
-                .collect(Collectors.toMap(Terms::getId, terms -> terms));
-
-        List<UserTerms> userTermsList = agreements.stream()
-                .map(agreement -> {
-                    Terms terms = termsMap.get(agreement.getTermsId());
-                    return userAuthConverter.toUserTermsEntity(user, terms, agreement);
-                })
-                .toList();
-
-        userTermsRepository.saveAll(userTermsList);
     }
 
     // ========== Private 헬퍼 메서드 ==========
