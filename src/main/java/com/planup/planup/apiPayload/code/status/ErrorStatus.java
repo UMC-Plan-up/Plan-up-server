@@ -52,6 +52,9 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_EMAIL_FORMAT(HttpStatus.BAD_REQUEST, "USER4009", "이메일 형식이 올바르지 않거나 비어있습니다."),
     PASSWORD_TOKEN_INVALID(BAD_REQUEST, "AUTH4002", "만료되거나 유효하지 않은 비밀번호 변경 토큰입니다."),
     DUPLICATE_EMAIL_ACCOUNT(HttpStatus.CONFLICT, "USER4010", "이미 일반 계정으로 가입된 이메일입니다"),
+    USER_SUSPENDED(HttpStatus.FORBIDDEN, "USER4011", "정지된 계정입니다."),
+    USER_SANCTIONED_DELETED(HttpStatus.FORBIDDEN, "USER4012", "삭제된 계정입니다."),
+    EMAIL_BLOCKED_BY_SANCTION(HttpStatus.FORBIDDEN, "USER4013", "제재로 인해 해당 이메일로 가입할 수 없습니다."),
 
     //Challenge 에러
     MISSING_TIME_CHALLENGE_INFO(HttpStatus.BAD_REQUEST, "CHALLENGE4001", "시간 챌린지 정보가 필요합니다."),
