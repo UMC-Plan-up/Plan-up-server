@@ -129,10 +129,6 @@ public class User extends BaseTimeEntity {
     @JoinColumn(name = "user_stat_id", nullable = false)
     private UserStat userStat;
 
-    @OneToMany(mappedBy = "deviceToken", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<NotificationTokenPreference> preferences = new ArrayList<>();
-
     public void verifyEmail() {
         this.emailVerified = true;
         this.emailVerifiedAt = LocalDateTime.now();
@@ -173,7 +169,4 @@ public class User extends BaseTimeEntity {
         return userStat;
     }
 
-    public void addPreferences(NotificationTokenPreference preference) {
-        this.preferences.add(preference);
-    }
 }

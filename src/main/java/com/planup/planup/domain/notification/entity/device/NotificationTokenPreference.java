@@ -1,6 +1,7 @@
 package com.planup.planup.domain.notification.entity.device;
 
 import com.planup.planup.domain.notification.entity.notification.NotificationGroup;
+import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,8 +27,9 @@ public class NotificationTokenPreference {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "group_name", nullable = false, length = 30)

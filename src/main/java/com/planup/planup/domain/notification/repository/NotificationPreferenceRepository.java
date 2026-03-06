@@ -8,4 +8,6 @@ import java.util.Optional;
 
 public interface NotificationPreferenceRepository extends JpaRepository<NotificationTokenPreference, Long> {
     Optional<NotificationTokenPreference> findByUserIdAndGroup(Long userId, NotificationGroup group);
+
+    boolean existsByUserIdAndGroup(Long userId, NotificationGroup group);
 }

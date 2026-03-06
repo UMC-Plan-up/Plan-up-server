@@ -32,6 +32,11 @@ public class NotificationPreferenceService {
     }
 
     private void createNotificationPreference(User user, NotificationGroup group, boolean enable) {
+
+        if (!prefRepo.existsByUserIdAndGroup(user.getId(), group)) {
+            createNotificationPreference(user, group, true);
+        }
+
         NotificationTokenPreference NP = NotificationTokenPreference.builder()
                 .userId(user.getId())
                 .group(group)
