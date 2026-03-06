@@ -2,6 +2,7 @@ package com.planup.planup.domain.user.service.command;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
+import com.planup.planup.domain.notification.service.NotificationPreferenceService;
 import com.planup.planup.domain.user.converter.UserTermsConvertor;
 import com.planup.planup.domain.user.dto.AuthRequestDTO;
 import com.planup.planup.domain.user.entity.Terms;
@@ -28,6 +29,7 @@ public class UserTermServiceImpl implements UserTermsService {
     private final TermsRepository termsRepository;
     private final UserTermsRepository userTermsRepository;
     private final UserTermsConvertor userTermsConvertor;
+    private final NotificationPreferenceService notificationPreferenceService;
 
 
     @Override
@@ -73,5 +75,6 @@ public class UserTermServiceImpl implements UserTermsService {
                 .toList();
 
         userTermsRepository.saveAll(userTermsList);
+        notificationPreferenceService.addNotificationPreference(foundTerms, user);
     }
 }
