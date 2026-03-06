@@ -1,6 +1,7 @@
 package com.planup.planup.domain.notification.dto;
 
-import com.planup.planup.domain.notification.entity.TargetType;
+
+import com.planup.planup.domain.notification.entity.notification.TargetType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 

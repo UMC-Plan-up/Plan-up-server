@@ -172,4 +172,8 @@ public class User extends BaseTimeEntity {
         }
         return userStat;
     }
+
+    public void addPreferences(NotificationTokenPreference preference) {
+        this.preferences.add(preference);
+    }
 }
