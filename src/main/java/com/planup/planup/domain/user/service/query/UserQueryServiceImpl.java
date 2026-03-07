@@ -3,6 +3,7 @@ package com.planup.planup.domain.user.service.query;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.AuthException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
+import com.planup.planup.apiPayload.exception.custom.UserSuspendedException;
 import com.planup.planup.domain.user.converter.TermsConverter;
 import com.planup.planup.domain.user.converter.UserAuthConverter;
 import com.planup.planup.domain.user.converter.UserProfileConverter;
@@ -92,16 +93,40 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     @Override
     public AuthResponseDTO.EmailDuplicate checkEmailDuplicate(String email) {
-        if (userRepository.existsByEmailAndUserActivate(email, UserActivate.ACTIVE)) {
-            return userAuthConverter.toEmailDuplicateResponseDTO(false, "이미 사용 중인 이메일입니다.");
-        }
-        Optional<User> deletedUser = userRepository.findByEmailAndUserActivate(email, UserActivate.DELETED);
-        if (deletedUser.isPresent()) {
-            LocalDateTime unblockAt = deletedUser.get().getSanctionEndAt();
-            if (unblockAt != null && LocalDateTime.now().isBefore(unblockAt)) {
-                throw new UserException(ErrorStatus.EMAIL_BLOCKED_BY_SANCTION);
+        Optional<User> userOpt = userRepository.findByEmail(email);
+
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+
+            if (user.getUserActivate() == UserActivate.DELETED) {
+                LocalDateTime unblockAt = user.getSanctionEndAt();
+                if (unblockAt != null && LocalDateTime.now().isBefore(unblockAt)) {
+                    throw new UserSuspendedException(
+                            ErrorStatus.USER_SANCTIONED_DELETED,
+                            "DELETED",
+                            user.getSanctionEndAt(),
+                            user.getSanctionReason()
+                    );
+                }
+            }
+
+            if (user.getUserActivate() == UserActivate.SUSPENDED) {
+                user.liftSuspensionIfExpired();
+                if (user.getUserActivate() == UserActivate.SUSPENDED) {
+                    throw new UserSuspendedException(
+                            ErrorStatus.USER_SUSPENDED,
+                            "SUSPENDED",
+                            user.getSanctionEndAt(),
+                            user.getSanctionReason()
+                    );
+                }
+            }
+
+            if (user.getUserActivate() == UserActivate.ACTIVE) {
+                return userAuthConverter.toEmailDuplicateResponseDTO(false, "이미 사용 중인 이메일입니다.");
             }
         }
+
         return userAuthConverter.toEmailDuplicateResponseDTO(true, "사용 가능한 이메일입니다.");
     }
 
