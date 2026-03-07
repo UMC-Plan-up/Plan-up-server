@@ -39,7 +39,22 @@ public class UserReportMappingServiceImpl implements UserReportMappingService {
                 .status(ReportStatus.PENDING)
                 .build();
 
-        userReportMappingRepository.save(userReport);
+        userReportMappingRepository.saveAndFlush(userReport);
+
+        reported.incrementReportCount();
+
+        String topReason = userReportMappingRepository
+                .findTopReasonByReportedId(reported.getId())
+                .orElse(reason);
+
+        if (reported.getReportCount() >= 5) {
+            reported.applyDeletion(topReason);
+        } else if (reported.getReportCount() >= 3) {
+            reported.applySuspension(topReason);
+        } else {
+            reported.updateSanctionReason(topReason);
+        }
+
         return true;
     }
 }

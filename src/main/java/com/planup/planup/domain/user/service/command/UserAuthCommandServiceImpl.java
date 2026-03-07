@@ -4,6 +4,7 @@ import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.AuthException;
 import com.planup.planup.apiPayload.exception.custom.FriendException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
+import com.planup.planup.apiPayload.exception.custom.UserSuspendedException;
 import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
@@ -135,8 +136,14 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
     @Override
     public UserResponseDTO.AuthResponseDTO login(UserRequestDTO.Login request) {
-        User user = userRepository.findByEmailAndUserActivate(request.getEmail(), UserActivate.ACTIVE)
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UserException(ErrorStatus.NOT_FOUND_USER));
+
+        checkSanction(user);
+
+        if (user.getUserActivate() != UserActivate.ACTIVE) {
+            throw new UserException(ErrorStatus.NOT_FOUND_USER);
+        }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new UserException(ErrorStatus.INVALID_CREDENTIALS);
@@ -175,6 +182,22 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
         log.info("사용자 {} 회원 탈퇴 완료. 이유: {}", user.getNickname(), request.getReason());
         return userAuthConverter.toWithdrawalResponseDTO(true, "회원 탈퇴가 완료되었습니다.", LocalDateTime.now().toString());
+    }
+
+    private void checkSanction(User user) {
+        if (user.getUserActivate() == UserActivate.DELETED) {
+            throw new UserException(ErrorStatus.USER_SANCTIONED_DELETED);
+        }
+        if (user.getUserActivate() == UserActivate.SUSPENDED) {
+            user.liftSuspensionIfExpired();
+            if (user.getUserActivate() == UserActivate.SUSPENDED) {
+                throw new UserSuspendedException(
+                        ErrorStatus.USER_SUSPENDED,
+                        user.getSanctionEndAt(),
+                        user.getSanctionReason()
+                );
+            }
+        }
     }
 
     private void cleanupUserData(User user) {
@@ -227,6 +250,8 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             }
 
             // 로그인 진행 (KAKAO 타입인 경우)
+            checkSanction(user);
+
             if (user.getUserActivate() != UserActivate.ACTIVE) {
                 throw new UserException(ErrorStatus.USER_INACTIVE);
             }

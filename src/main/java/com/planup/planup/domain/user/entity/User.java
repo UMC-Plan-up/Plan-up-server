@@ -94,6 +94,14 @@ public class User extends BaseTimeEntity {
     @Column(name = "email_verified_at")
     private LocalDateTime emailVerifiedAt;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private int reportCount = 0;
+
+    private LocalDateTime sanctionEndAt;
+
+    private String sanctionReason;
+
     // 연관 관계
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
@@ -166,5 +174,35 @@ public class User extends BaseTimeEntity {
             userStat.setUser(this);
         }
         return userStat;
+    }
+
+    public void incrementReportCount() {
+        this.reportCount++;
+    }
+
+    public void applySuspension(String reason) {
+        this.userActivate = UserActivate.SUSPENDED;
+        this.sanctionEndAt = LocalDateTime.now().plusDays(14);
+        this.sanctionReason = reason;
+    }
+
+    public void applyDeletion(String reason) {
+        this.userActivate = UserActivate.DELETED;
+        this.sanctionEndAt = LocalDateTime.now().plusDays(90);
+        this.sanctionReason = reason;
+    }
+
+    public void liftSuspensionIfExpired() {
+        if (this.userActivate == UserActivate.SUSPENDED
+                && this.sanctionEndAt != null
+                && LocalDateTime.now().isAfter(this.sanctionEndAt)) {
+            this.userActivate = UserActivate.ACTIVE;
+            this.sanctionEndAt = null;
+            this.sanctionReason = null;
+        }
+    }
+
+    public void updateSanctionReason(String reason) {
+        this.sanctionReason = reason;
     }
 }
