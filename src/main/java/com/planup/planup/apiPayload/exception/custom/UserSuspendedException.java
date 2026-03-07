@@ -12,10 +12,10 @@ public class UserSuspendedException extends GeneralException {
 
     private final UserResponseDTO.SanctionInfo sanctionInfo;
 
-    public UserSuspendedException(BaseErrorCode code, LocalDateTime sanctionEndAt, String sanctionReason) {
+    public UserSuspendedException(BaseErrorCode code, String sanctionStatus, LocalDateTime sanctionEndAt, String sanctionReason) {
         super(code);
         this.sanctionInfo = UserResponseDTO.SanctionInfo.builder()
-                .sanctionStatus("SUSPENDED")
+                .sanctionStatus(sanctionStatus)
                 .sanctionEndAt(sanctionEndAt)
                 .sanctionReason(sanctionReason)
                 .build();

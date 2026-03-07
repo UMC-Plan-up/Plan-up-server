@@ -186,13 +186,19 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
     private void checkSanction(User user) {
         if (user.getUserActivate() == UserActivate.DELETED) {
-            throw new UserException(ErrorStatus.USER_SANCTIONED_DELETED);
+            throw new UserSuspendedException(
+                    ErrorStatus.USER_SANCTIONED_DELETED,
+                    "DELETED",
+                    user.getSanctionEndAt(),
+                    user.getSanctionReason()
+            );
         }
         if (user.getUserActivate() == UserActivate.SUSPENDED) {
             user.liftSuspensionIfExpired();
             if (user.getUserActivate() == UserActivate.SUSPENDED) {
                 throw new UserSuspendedException(
                         ErrorStatus.USER_SUSPENDED,
+                        "SUSPENDED",
                         user.getSanctionEndAt(),
                         user.getSanctionReason()
                 );
