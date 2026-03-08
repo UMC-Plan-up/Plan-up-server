@@ -63,7 +63,21 @@ public class FriendController {
         return ApiResponse.onSuccess(result);
     }
 
-    @Operation(summary = "친구 신고", description = "친구 또는 차단된 친구를 신고하고 필요시 차단합니다")
+    @Operation(
+            summary = "친구 신고",
+            description = """
+                    유저를 신고합니다. 신고 누적 시 자동으로 제재가 적용됩니다.
+                    (3회 누적: 14일 정지 / 5회 누적: 90일 이용 제한)
+
+                    신고 상세 사유 (reason)
+                    - ABUSE_OR_HATE_SPEECH: 욕설/비방/혐오 표현 사용
+                    - SEXUAL_CONTENT: 음란물/선정적 내용
+                    - SPAM_OR_ADVERTISING: 스팸/광고
+                    - INAPPROPRIATE_CONTENT: 불쾌하거나 부적절한 내용
+                    - FRAUD_OR_IMPERSONATION: 거짓 정보 및 사칭
+                    - OTHER: 기타
+                    """
+    )
     @PostMapping("/report")
     public ApiResponse<Boolean> reportFriend(@RequestBody FriendReportRequestDTO request, @CurrentUser Long userId) {
         boolean result = userReportMappingService.createReportUser(request, userId);

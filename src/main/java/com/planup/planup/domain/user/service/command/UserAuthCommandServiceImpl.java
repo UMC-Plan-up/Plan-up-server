@@ -5,6 +5,8 @@ import com.planup.planup.apiPayload.exception.custom.AuthException;
 import com.planup.planup.apiPayload.exception.custom.FriendException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.apiPayload.exception.custom.UserSuspendedException;
+import com.planup.planup.domain.user.enums.SanctionDetailReason;
+import com.planup.planup.domain.user.enums.SanctionReason;
 import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
@@ -190,7 +192,9 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                     ErrorStatus.USER_SANCTIONED_DELETED,
                     "DELETED",
                     user.getSanctionEndAt(),
-                    user.getSanctionReason()
+                    user.getSanctionReason(),
+                    user.getSanctionDetailReason(),
+                    user.getReportCount()
             );
         }
         if (user.getUserActivate() == UserActivate.SUSPENDED) {
@@ -200,7 +204,9 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                         ErrorStatus.USER_SUSPENDED,
                         "SUSPENDED",
                         user.getSanctionEndAt(),
-                        user.getSanctionReason()
+                        user.getSanctionReason(),
+                        user.getSanctionDetailReason(),
+                        user.getReportCount()
                 );
             }
         }

@@ -3,6 +3,8 @@ package com.planup.planup.domain.user.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.enums.Gender;
+import com.planup.planup.domain.user.enums.SanctionDetailReason;
+import com.planup.planup.domain.user.enums.SanctionReason;
 import com.planup.planup.domain.user.enums.UserStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -113,8 +115,14 @@ public class UserResponseDTO {
         @Schema(description = "제재 종료일")
         private LocalDateTime sanctionEndAt;
 
-        @Schema(description = "제재 사유")
-        private String sanctionReason;
+        @Schema(description = "제재 사유", example = "USER_REPORT")
+        private SanctionReason sanctionReason;
+
+        @Schema(description = "제재 세부 사유", example = "INAPPROPRIATE_CONTENT")
+        private SanctionDetailReason sanctionDetailReason;
+
+        @Schema(description = "누적 신고 횟수", example = "3")
+        private Integer reportCount;
     }
 
     @Getter

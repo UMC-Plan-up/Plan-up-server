@@ -9,6 +9,8 @@ import com.planup.planup.domain.oauth.entity.OAuthAccount;
 import com.planup.planup.domain.report.entity.WeeklyReport;
 import com.planup.planup.domain.user.enums.Gender;
 import com.planup.planup.domain.user.enums.Role;
+import com.planup.planup.domain.user.enums.SanctionDetailReason;
+import com.planup.planup.domain.user.enums.SanctionReason;
 import com.planup.planup.domain.user.enums.UserActivate;
 import com.planup.planup.domain.user.enums.UserLevel;
 import jakarta.persistence.*;
@@ -100,7 +102,11 @@ public class User extends BaseTimeEntity {
 
     private LocalDateTime sanctionEndAt;
 
-    private String sanctionReason;
+    @Enumerated(EnumType.STRING)
+    private SanctionReason sanctionReason;
+
+    @Enumerated(EnumType.STRING)
+    private SanctionDetailReason sanctionDetailReason;
 
     // 연관 관계
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
@@ -180,16 +186,18 @@ public class User extends BaseTimeEntity {
         this.reportCount++;
     }
 
-    public void applySuspension(String reason) {
+    public void applySuspension(SanctionDetailReason detailReason) {
         this.userActivate = UserActivate.SUSPENDED;
         this.sanctionEndAt = LocalDateTime.now().plusDays(14);
-        this.sanctionReason = reason;
+        this.sanctionReason = SanctionReason.USER_REPORT;
+        this.sanctionDetailReason = detailReason;
     }
 
-    public void applyDeletion(String reason) {
+    public void applyDeletion(SanctionDetailReason detailReason) {
         this.userActivate = UserActivate.DELETED;
         this.sanctionEndAt = LocalDateTime.now().plusDays(90);
-        this.sanctionReason = reason;
+        this.sanctionReason = SanctionReason.USER_REPORT;
+        this.sanctionDetailReason = detailReason;
     }
 
     public void liftSuspensionIfExpired() {
@@ -199,10 +207,12 @@ public class User extends BaseTimeEntity {
             this.userActivate = UserActivate.ACTIVE;
             this.sanctionEndAt = null;
             this.sanctionReason = null;
+            this.sanctionDetailReason = null;
         }
     }
 
-    public void updateSanctionReason(String reason) {
-        this.sanctionReason = reason;
+    public void updateSanctionReason(SanctionDetailReason detailReason) {
+        this.sanctionReason = SanctionReason.USER_REPORT;
+        this.sanctionDetailReason = detailReason;
     }
 }

@@ -1,6 +1,7 @@
 package com.planup.planup.domain.friend.repository;
 
 import com.planup.planup.domain.friend.entity.reportEntity.UserReportMapping;
+import com.planup.planup.domain.user.enums.SanctionDetailReason;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,8 +15,8 @@ public interface UserReportMappingRepository extends JpaRepository<UserReportMap
             FROM UserReportMapping r
             WHERE r.reported.id = :reportedId AND r.reason IS NOT NULL
             GROUP BY r.reason
-            ORDER BY COUNT(r.reason) DESC
+            ORDER BY COUNT(r.reason) DESC, MAX(r.createdAt) DESC
             LIMIT 1
             """)
-    Optional<String> findTopReasonByReportedId(@Param("reportedId") Long reportedId);
+    Optional<SanctionDetailReason> findTopReasonByReportedId(@Param("reportedId") Long reportedId);
 }
