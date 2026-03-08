@@ -4,6 +4,8 @@ import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.AuthException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.apiPayload.exception.custom.UserSuspendedException;
+import com.planup.planup.domain.user.enums.SanctionDetailReason;
+import com.planup.planup.domain.user.enums.SanctionReason;
 import com.planup.planup.domain.user.converter.TermsConverter;
 import com.planup.planup.domain.user.converter.UserAuthConverter;
 import com.planup.planup.domain.user.converter.UserProfileConverter;
@@ -106,6 +108,7 @@ public class UserQueryServiceImpl implements UserQueryService {
                             "DELETED",
                             user.getSanctionEndAt(),
                             user.getSanctionReason(),
+                            user.getSanctionDetailReason(),
                             user.getReportCount()
                     );
                 }
@@ -119,6 +122,7 @@ public class UserQueryServiceImpl implements UserQueryService {
                             "SUSPENDED",
                             user.getSanctionEndAt(),
                             user.getSanctionReason(),
+                            user.getSanctionDetailReason(),
                             user.getReportCount()
                     );
                 }

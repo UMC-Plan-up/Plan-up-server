@@ -3,6 +3,7 @@ package com.planup.planup.domain.friend.entity.reportEntity;
 
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.user.entity.User;
+import com.planup.planup.domain.user.enums.SanctionDetailReason;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -35,7 +36,8 @@ public class UserReportMapping extends BaseTimeEntity {
     @JoinColumn(name = "reported_id", nullable = false)
     private User reported;
 
-    private String reason;
+    @Enumerated(EnumType.STRING)
+    private SanctionDetailReason reason;
 
     private boolean blocked;
 
