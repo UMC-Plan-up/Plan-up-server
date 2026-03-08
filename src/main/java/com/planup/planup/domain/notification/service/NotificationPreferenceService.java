@@ -1,14 +1,19 @@
 package com.planup.planup.domain.notification.service;
 
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.notification.entity.device.NotificationTokenPreference;
 import com.planup.planup.domain.notification.entity.notification.NotificationGroup;
 import com.planup.planup.domain.notification.repository.NotificationPreferenceRepository;
 import com.planup.planup.domain.user.entity.Terms;
 import com.planup.planup.domain.user.entity.User;
+import com.planup.planup.domain.user.repository.TermsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.GenericDeclaration;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -17,6 +22,7 @@ import java.util.stream.Collectors;
 public class NotificationPreferenceService {
 
     private final NotificationPreferenceRepository prefRepo;
+    private final TermsRepository termsRepository;
 
     //약관별 아이디 값
     private static final long SERVICE_TERMS_ID = 4L;
@@ -31,19 +37,18 @@ public class NotificationPreferenceService {
                 .orElse(false);
     }
 
-    private void createNotificationPreference(User user, NotificationGroup group, boolean enable) {
+    private NotificationTokenPreference createNotificationPreference(User user, NotificationGroup group, boolean enable) {
 
         if (!prefRepo.existsByUserIdAndGroup(user.getId(), group)) {
             createNotificationPreference(user, group, true);
         }
 
         NotificationTokenPreference NP = NotificationTokenPreference.builder()
-                .userId(user.getId())
+                .user(user)
                 .group(group)
                 .enabled(enable)
                 .build();
-        NotificationTokenPreference save = prefRepo.save(NP);
-        user.addPreferences(save);
+        return prefRepo.save(NP);
     }
 
     public void addNotificationPreference(List<Terms> terms, User user) {
@@ -59,5 +64,42 @@ public class NotificationPreferenceService {
         if (agreedTermIds.contains(MARKETING_TERMS_ID)) {
             createNotificationPreference(user, NotificationGroup.MARKETING, true);
         }
+    }
+
+    public boolean updatePreferenceService(User user) {
+        return updatePreference(user, SERVICE_TERMS_ID, true);
+    }
+
+    public boolean updatePreferenceMarketing(User user) {
+        return updatePreference(user, MARKETING_TERMS_ID, true);
+    }
+
+    public boolean updatePreference(User user, Long termId, boolean enable) {
+        Terms terms = termsRepository.findById(termId)
+                .orElseThrow(() -> new UserException(ErrorStatus.REQUIRED_TERMS_NOT_AGREED));
+
+        NotificationGroup group = mapTermsToGroup(terms.getId());
+
+        NotificationTokenPreference preference = prefRepo.findByUserIdAndGroup(user.getId(), group)
+                .map(np -> {
+                    np.toggleEnable(); // 또는 np.updateEnable(enable);
+                    return np;
+                })
+                .orElseGet(() -> createNotificationPreference(user, group, enable));
+
+        return preference.isEnabled();
+    }
+
+    private NotificationGroup mapTermsToGroup(Long termsId) {
+
+        if (termsId == 4L) {
+            return NotificationGroup.SERVICE;
+        }
+
+        if (termsId == 5L) {
+            return NotificationGroup.MARKETING;
+        }
+
+        throw new IllegalArgumentException("지원하지 않는 약관입니다.");
     }
 }

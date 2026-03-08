@@ -15,9 +15,7 @@ import com.planup.planup.domain.oauth.repository.OAuthAccountRepository;
 import com.planup.planup.domain.user.converter.UserAuthConverter;
 import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.dto.external.KakaoUserInfo;
-import com.planup.planup.domain.user.entity.Terms;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.entity.UserTerms;
 import com.planup.planup.domain.user.entity.UserWithdrawal;
 import com.planup.planup.domain.user.enums.Gender;
 import com.planup.planup.domain.user.enums.UserActivate;
@@ -61,8 +59,6 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     private final TokenService tokenService;
     private final JavaMailSender mailSender;
     private final RedisTemplate<String, String> redisTemplate;
-    private final TermsRepository termsRepository;
-    private final UserTermsRepository userTermsRepository;
     private final OAuthAccountRepository oAuthAccountRepository;
     private final FriendRepository friendRepository;
     private final UserWithdrawalRepository userWithdrawalRepository;

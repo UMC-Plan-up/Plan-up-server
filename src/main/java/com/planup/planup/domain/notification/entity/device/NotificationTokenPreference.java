@@ -42,4 +42,6 @@ public class NotificationTokenPreference {
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
+
+    public void toggleEnable() {this.enabled = !this.isEnabled();}
 }

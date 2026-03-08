@@ -1,7 +1,9 @@
 package com.planup.planup.domain.user.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
+import com.planup.planup.domain.notification.service.NotificationPreferenceService;
 import com.planup.planup.domain.user.dto.*;
+import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.command.UserAuthCommandService;
 import com.planup.planup.domain.user.service.command.UserProfileCommandService;
 import com.planup.planup.domain.user.service.query.UserQueryService;
@@ -27,6 +29,7 @@ public class UserProfileController {
     private final UserAuthCommandService userAuthCommandService;
     private final UserProfileCommandService userProfileCommandService;
     private final UserQueryService userQueryService;
+    private final NotificationPreferenceService notificationPreferenceService;
 
     // HTML 응답을 생성하는 공통 메서드
     private ResponseEntity<String> createHtmlResponse(String html) {
@@ -101,15 +104,15 @@ public class UserProfileController {
 
     @Operation(summary = "서비스 알림 동의 변경", description = "서비스 알림 동의가 되어있다면 비활성화, 동의가 안되어있으면 동의로 변경")
     @PatchMapping("/mypage/notification/service")
-    public ApiResponse<Boolean> updateServiceNotificationAllow(@Parameter(hidden = true) @CurrentUser Long userId) {
-        boolean result = userProfileCommandService.updateServiceNotificationAllow(userId);
+    public ApiResponse<Boolean> updateServiceNotificationAllow(@CurrentUser User user) {
+        boolean result = notificationPreferenceService.updatePreferenceService(user);
         return ApiResponse.onSuccess(result);
     }
 
     @Operation(summary = "혜택 및 마케팅 동의 변경", description = "혜택 및 마케팅 알림 동의가 되어있다면 비활성화, 동의가 안되어있으면 동의로 변경")
     @PatchMapping("/mypage/notification/marketing")
-    public ApiResponse<Boolean> updateMarketingNotificationAllow(@Parameter(hidden = true) @CurrentUser Long userId) {
-        boolean result = userProfileCommandService.updateMarketingNotificationAllow(userId);
+    public ApiResponse<Boolean> updateMarketingNotificationAllow(@CurrentUser User user) {
+        boolean result = notificationPreferenceService.updatePreferenceMarketing(user);
         return ApiResponse.onSuccess(result);
     }
 

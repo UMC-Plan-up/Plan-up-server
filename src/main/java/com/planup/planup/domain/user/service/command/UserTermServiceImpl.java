@@ -2,6 +2,7 @@ package com.planup.planup.domain.user.service.command;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.UserException;
+import com.planup.planup.domain.notification.entity.notification.NotificationGroup;
 import com.planup.planup.domain.notification.service.NotificationPreferenceService;
 import com.planup.planup.domain.user.converter.UserTermsConvertor;
 import com.planup.planup.domain.user.dto.AuthRequestDTO;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 

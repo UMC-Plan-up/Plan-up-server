@@ -112,7 +112,6 @@ public class User extends BaseTimeEntity {
     @Builder.Default
     private List<Friend> friendList = new ArrayList<>();
 
-
     @OneToMany(mappedBy = "user")
     @Builder.Default
     private List<WeeklyReport> weeklyReportList = new ArrayList<>();
