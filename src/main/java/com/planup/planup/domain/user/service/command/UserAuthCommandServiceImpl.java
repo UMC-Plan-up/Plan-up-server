@@ -190,7 +190,8 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                     ErrorStatus.USER_SANCTIONED_DELETED,
                     "DELETED",
                     user.getSanctionEndAt(),
-                    user.getSanctionReason()
+                    user.getSanctionReason(),
+                    user.getReportCount()
             );
         }
         if (user.getUserActivate() == UserActivate.SUSPENDED) {
@@ -200,7 +201,8 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                         ErrorStatus.USER_SUSPENDED,
                         "SUSPENDED",
                         user.getSanctionEndAt(),
-                        user.getSanctionReason()
+                        user.getSanctionReason(),
+                        user.getReportCount()
                 );
             }
         }

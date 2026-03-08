@@ -115,6 +115,9 @@ public class UserResponseDTO {
 
         @Schema(description = "제재 사유")
         private String sanctionReason;
+
+        @Schema(description = "누적 신고 횟수", example = "3")
+        private Integer reportCount;
     }
 
     @Getter

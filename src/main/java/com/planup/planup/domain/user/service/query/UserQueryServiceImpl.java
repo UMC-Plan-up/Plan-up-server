@@ -105,7 +105,8 @@ public class UserQueryServiceImpl implements UserQueryService {
                             ErrorStatus.USER_SANCTIONED_DELETED,
                             "DELETED",
                             user.getSanctionEndAt(),
-                            user.getSanctionReason()
+                            user.getSanctionReason(),
+                            user.getReportCount()
                     );
                 }
             }
@@ -117,7 +118,8 @@ public class UserQueryServiceImpl implements UserQueryService {
                             ErrorStatus.USER_SUSPENDED,
                             "SUSPENDED",
                             user.getSanctionEndAt(),
-                            user.getSanctionReason()
+                            user.getSanctionReason(),
+                            user.getReportCount()
                     );
                 }
             }
