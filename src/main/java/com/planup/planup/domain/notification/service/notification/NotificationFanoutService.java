@@ -43,14 +43,14 @@ public class NotificationFanoutService {
     public void createChallengeStartNoti(User user, User friend, Challenge challenge) {
 
         if (challenge.isRePenalty()) {
-            notificationService.createNotification(friend.getId(), user.getId(), NotificationType.PENALTY_ACCEPTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.GOAL);
+            notificationService.createNotification(friend.getId(), user.getId(), NotificationType.PENALTY_ACCEPTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.SERVICE);
 
         } else {
-            notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_REQUEST_ACCEPTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.GOAL);
+            notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_REQUEST_ACCEPTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.SERVICE);
         }
 
-        notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_STARTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.GOAL);
-        notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_STARTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.GOAL);
+        notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_STARTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.SERVICE);
+        notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_STARTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.SERVICE);
 
     }
 
@@ -64,30 +64,30 @@ public class NotificationFanoutService {
                     NotificationType.FRIEND_GOAL_CREATED,
                     TargetType.GOAL,
                     goalId,
-                    NotificationGroup.GOAL
+                    NotificationGroup.SERVICE
             );
         }
     }
 
     public void createChallengeRequestSentAndReceive(Long creator, Long target, Challenge challenge) {
-        notificationService.createNotification(creator, target, NotificationType.CHALLENGE_REQUEST_SENT, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.CHALLENGE);
-        notificationService.createNotification(target, creator, NotificationType.CHALLENGE_REQUEST_RECEIVED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.CHALLENGE);
+        notificationService.createNotification(creator, target, NotificationType.CHALLENGE_REQUEST_SENT, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.SERVICE);
+        notificationService.createNotification(target, creator, NotificationType.CHALLENGE_REQUEST_RECEIVED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.SERVICE);
     }
 
     public void createChallengeRejected(Long creator, Long target, Challenge challenge) {
         if (challenge.isRePenalty()) {
-            notificationService.createNotification(target, creator, NotificationType.PENALTY_REJECTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.CHALLENGE);
+            notificationService.createNotification(target, creator, NotificationType.PENALTY_REJECTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.SERVICE);
         } else {
-            notificationService.createNotification(target, creator, NotificationType.CHALLENGE_REQUEST_REJECTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.CHALLENGE);
+            notificationService.createNotification(target, creator, NotificationType.CHALLENGE_REQUEST_REJECTED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.SERVICE);
         }
     }
 
     public void createRemindPenalty(Long creator, Long target, Challenge challenge) {
-        notificationService.createNotification(target, creator, NotificationType.PENALTY_REMINDER_SENT, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.CHALLENGE);
+        notificationService.createNotification(target, creator, NotificationType.PENALTY_REMINDER_SENT, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.SERVICE);
 
     }
 
     public void createReRequestPenalty(Long creator, Long target, Challenge challenge) {
-        notificationService.createNotification(creator, target, NotificationType.PENALTY_PROPOSAL_RECEIVED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.CHALLENGE);
+        notificationService.createNotification(creator, target, NotificationType.PENALTY_PROPOSAL_RECEIVED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.SERVICE);
     }
 }
