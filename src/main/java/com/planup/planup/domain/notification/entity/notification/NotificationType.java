@@ -8,32 +8,32 @@ public enum NotificationType {
      * 예를들어, 나를 팔로우한 경우, 내 글에 댓글을 단 경우, 팀원이 목표를 달성한 경
      */
 
-    RANK_DOWN(NotificationGroup.GOAL),
-    GOAL_REMINDER(NotificationGroup.GOAL),
+    RANK_DOWN(NotificationGroup.SERVICE),
+    GOAL_REMINDER(NotificationGroup.SERVICE),
 
-    FRIEND_GOAL_COMPLETED(NotificationGroup.GOAL),
-    FRIEND_GOAL_CREATED(NotificationGroup.GOAL),
-    GOAL_PART_UPDATED(NotificationGroup.GOAL),
+    FRIEND_GOAL_COMPLETED(NotificationGroup.SERVICE),
+    FRIEND_GOAL_CREATED(NotificationGroup.SERVICE),
+    GOAL_PART_UPDATED(NotificationGroup.SERVICE),
 
-    COMMENT_ON_VERIFICATION(NotificationGroup.FEEDBACK),
-    FEEDBACK_CHEERED(NotificationGroup.FEEDBACK),
-    FEEDBACK_ENCOURAGED(NotificationGroup.FEEDBACK),
+    COMMENT_ON_VERIFICATION(NotificationGroup.SERVICE),
+    FEEDBACK_CHEERED(NotificationGroup.SERVICE),
+    FEEDBACK_ENCOURAGED(NotificationGroup.SERVICE),
 
-    FRIEND_REQUEST_SENT(NotificationGroup.GOAL),
-    FRIEND_REQUEST_ACCEPTED(NotificationGroup.GOAL),
-    FRIEND_REQUEST_REJECTED(NotificationGroup.GOAL),
+    FRIEND_REQUEST_SENT(NotificationGroup.SERVICE),
+    FRIEND_REQUEST_ACCEPTED(NotificationGroup.SERVICE),
+    FRIEND_REQUEST_REJECTED(NotificationGroup.SERVICE),
 
-    CHALLENGE_REQUEST_SENT(NotificationGroup.CHALLENGE),
-    CHALLENGE_REQUEST_RECEIVED(NotificationGroup.CHALLENGE),
-    CHALLENGE_REQUEST_ACCEPTED(NotificationGroup.CHALLENGE),
-    CHALLENGE_REQUEST_REJECTED(NotificationGroup.CHALLENGE),
-    PENALTY_PROPOSAL_SENT(NotificationGroup.CHALLENGE),
-    PENALTY_PROPOSAL_RECEIVED(NotificationGroup.CHALLENGE),
-    PENALTY_ACCEPTED(NotificationGroup.CHALLENGE),
-    PENALTY_REJECTED(NotificationGroup.CHALLENGE),
-    CHALLENGE_STARTED(NotificationGroup.CHALLENGE),
-    CHALLENGE_ENDED(NotificationGroup.CHALLENGE),
-    PENALTY_REMINDER_SENT(NotificationGroup.CHALLENGE);
+    CHALLENGE_REQUEST_SENT(NotificationGroup.SERVICE),
+    CHALLENGE_REQUEST_RECEIVED(NotificationGroup.SERVICE),
+    CHALLENGE_REQUEST_ACCEPTED(NotificationGroup.SERVICE),
+    CHALLENGE_REQUEST_REJECTED(NotificationGroup.SERVICE),
+    PENALTY_PROPOSAL_SENT(NotificationGroup.SERVICE),
+    PENALTY_PROPOSAL_RECEIVED(NotificationGroup.SERVICE),
+    PENALTY_ACCEPTED(NotificationGroup.SERVICE),
+    PENALTY_REJECTED(NotificationGroup.SERVICE),
+    CHALLENGE_STARTED(NotificationGroup.SERVICE),
+    CHALLENGE_ENDED(NotificationGroup.SERVICE),
+    PENALTY_REMINDER_SENT(NotificationGroup.SERVICE);
 
     private final NotificationGroup group;
 
