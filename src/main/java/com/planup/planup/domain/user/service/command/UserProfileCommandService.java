@@ -7,8 +7,6 @@ import org.springframework.web.multipart.MultipartFile;
 public interface UserProfileCommandService {
     // 기본 정보 수정
     String updateNickname(Long userId, String nickname);
-    boolean updateMarketingNotificationAllow(Long userId);
-    boolean updateServiceNotificationAllow(Long userId);
 
     // 프로필 이미지
     FileResponseDTO.ImageUpload uploadProfileImage(MultipartFile file, String email);

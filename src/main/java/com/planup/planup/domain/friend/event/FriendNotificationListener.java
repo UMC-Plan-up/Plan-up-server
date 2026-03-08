@@ -23,24 +23,24 @@ public class FriendNotificationListener {
     public void onFriendRequestSent(FriendRequestSentEvent e) {
         notificationService.createNotification(
                 e.receiverId(), e.senderId(),
-                NotificationType.FRIEND_REQUEST_SENT, TargetType.USER, e.senderId(), NotificationGroup.FRIEND);
+                NotificationType.FRIEND_REQUEST_SENT, TargetType.USER, e.senderId(), NotificationGroup.SERVICE);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onFriendRequestAccepted(FriendRequestAcceptedEvent e) {
         notificationService.createNotification(
                 e.senderId(), e.receiverId(),
-                NotificationType.FRIEND_REQUEST_ACCEPTED, TargetType.USER, e.receiverId(), NotificationGroup.FRIEND);
+                NotificationType.FRIEND_REQUEST_ACCEPTED, TargetType.USER, e.receiverId(), NotificationGroup.SERVICE);
 
         notificationService.createNotification(
                 e.receiverId(), e.senderId(),
-                NotificationType.FRIEND_REQUEST_ACCEPTED, TargetType.USER, e.senderId(), NotificationGroup.FRIEND);
+                NotificationType.FRIEND_REQUEST_ACCEPTED, TargetType.USER, e.senderId(), NotificationGroup.SERVICE);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onFriendRequestSent(FriendRejectSentEvent e) {
         notificationService.createNotification(
                 e.receiverId(), e.senderId(),
-                NotificationType.FRIEND_REQUEST_SENT, TargetType.USER, e.senderId(), NotificationGroup.FRIEND);
+                NotificationType.FRIEND_REQUEST_SENT, TargetType.USER, e.senderId(), NotificationGroup.SERVICE);
     }
 }

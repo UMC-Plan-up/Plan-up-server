@@ -12,5 +12,4 @@ public interface NotificationPreferenceRepository extends JpaRepository<Notifica
 
     boolean existsByUserIdAndGroup(Long userId, NotificationGroup group);
 
-    Optional<NotificationTokenPreference> findByUserIdAndTermsId
 }
