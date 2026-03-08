@@ -19,13 +19,13 @@ import java.time.LocalDateTime;
 @Component
 public class UserAuthConverter {
 
-    public UserResponseDTO.AuthResponseDTO toAuthResponseDTO(User user, UserStatus status, String accessToken, String refreshToken, Long expiresIn) {
+    public UserResponseDTO.AuthResponseDTO toAuthResponseDTO(User user, UserStatus status, String accessToken, String refreshToken, Long expiresIn, boolean isServiceNotifi, boolean isMarketingNotifi) {
         return UserResponseDTO.AuthResponseDTO.builder()
                 .userStatus(status)
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .expiresIn(expiresIn)
-                .userInfo(toUserInfo(user))
+                .userInfo(toUserInfo(user, isServiceNotifi, isMarketingNotifi))
                 .build();
     }
 
@@ -44,7 +44,7 @@ public class UserAuthConverter {
                 .build();
     }
 
-    public UserInfo toUserInfo(User user) {
+    public UserInfo toUserInfo(User user, boolean isServiceNotifi, boolean isMarketingNotifi) {
         if (user == null) return null;
         return UserInfo.builder()
                 .id(user.getId())
@@ -54,8 +54,8 @@ public class UserAuthConverter {
                 .birthDate(user.getBirthDate())
                 .gender(user.getGender())
                 .profileImg(user.getProfileImg())
-                .serviceNotificationAllow(user.getServiceNotificationAllow())
-                .marketingNotificationAllow(user.getMarketingNotificationAllow())
+                .serviceNotificationAllow(isServiceNotifi)
+                .marketingNotificationAllow(isMarketingNotifi)
                 .build();
     }
 
@@ -98,8 +98,6 @@ public class UserAuthConverter {
                 .userActivate(UserActivate.ACTIVE)
                 .userLevel(UserLevel.LEVEL_1)
                 .socialType(AuthProvideerEnum.EMAIL)
-                .serviceNotificationAllow(true)
-                .marketingNotificationAllow(true)
                 .profileImg(profileImgUrl)
                 .emailVerified(true)
                 .emailVerifiedAt(LocalDateTime.now())
@@ -131,8 +129,6 @@ public class UserAuthConverter {
                 .userActivate(UserActivate.ACTIVE)
                 .userLevel(UserLevel.LEVEL_1)
                 .socialType(AuthProvideerEnum.KAKAO)
-                .serviceNotificationAllow(true)
-                .marketingNotificationAllow(true)
                 .profileImg(signupRequest.getProfileImg())
                 .emailVerified(true)
                 .emailVerifiedAt(LocalDateTime.now())

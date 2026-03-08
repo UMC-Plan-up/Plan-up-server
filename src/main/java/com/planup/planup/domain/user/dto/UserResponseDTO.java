@@ -74,7 +74,7 @@ public class UserResponseDTO {
         @Schema(description = "마케팅 알림 동의 여부", example = "false")
         private Boolean marketingNotificationAllow;
 
-        public static UserInfo from(User user) {
+        public static UserInfo from(User user, boolean isServiceNotifi, boolean isMarketingNotifi) {
             return UserInfo.builder()
                     .id(user.getId())
                     .email(user.getEmail())
@@ -83,8 +83,8 @@ public class UserResponseDTO {
                     .birthDate(user.getBirthDate())
                     .gender(user.getGender())
                     .profileImg(user.getProfileImg())
-                    .serviceNotificationAllow(user.getServiceNotificationAllow())
-                    .marketingNotificationAllow(user.getMarketingNotificationAllow())
+                    .serviceNotificationAllow(isServiceNotifi)
+                    .marketingNotificationAllow(isMarketingNotifi)
                     .build();
         }
     }

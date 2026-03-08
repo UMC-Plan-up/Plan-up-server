@@ -3,6 +3,7 @@ package com.planup.planup.domain.user.service.query;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.AuthException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
+import com.planup.planup.domain.notification.service.NotificationPreferenceService;
 import com.planup.planup.domain.user.converter.TermsConverter;
 import com.planup.planup.domain.user.converter.UserAuthConverter;
 import com.planup.planup.domain.user.converter.UserProfileConverter;
@@ -42,8 +43,9 @@ public class UserQueryServiceImpl implements UserQueryService {
     private final OAuthAccountRepository oAuthAccountRepository;
     private final FriendRepository friendRepository;
     private final TermsRepository termsRepository;
-    private final Random random = new Random();
     private final UserAuthConverter userAuthConverter;
+    private final NotificationPreferenceService notificationPreferenceService;
+
 
     // ========== 기본 정보 조회 ==========
 
@@ -62,7 +64,10 @@ public class UserQueryServiceImpl implements UserQueryService {
     @Override
     public UserResponseDTO.UserInfo getUserInfo(Long userId) {
         User user = getUserByUserId(userId);
-        return userAuthConverter.toUserInfo(user);
+        boolean isServiceNotifi = notificationPreferenceService.agreeServiceNotification(userId);
+        boolean isMarketingNotifi = notificationPreferenceService.agreeMarketingNotification(userId);
+
+        return userAuthConverter.toUserInfo(user, isServiceNotifi, isMarketingNotifi);
     }
 
     // ========== 이메일 검증 ==========

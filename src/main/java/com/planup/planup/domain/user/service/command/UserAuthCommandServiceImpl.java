@@ -9,6 +9,7 @@ import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.friend.service.FriendWriteService;
+import com.planup.planup.domain.notification.service.NotificationPreferenceService;
 import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
 import com.planup.planup.domain.oauth.repository.OAuthAccountRepository;
@@ -67,6 +68,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     private final UserQueryService userQueryService;
     private final FriendWriteService friendWriteService;
     private final UserTermsService userTermService;
+    private final NotificationPreferenceService notificationPreferenceService;
 
     @Qualifier("objectRedisTemplate")
     private final RedisTemplate<String, Object> objectRedisTemplate;
@@ -126,7 +128,9 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                 UserStatus.SIGNUP_SUCCESS,
                 tokenResponse.getAccessToken(),
                 tokenResponse.getRefreshToken(),
-                tokenResponse.getExpiresIn()
+                tokenResponse.getExpiresIn(),
+                notificationPreferenceService.agreeServiceNotification(user.getId()),
+                notificationPreferenceService.agreeMarketingNotification(user.getId())
         );
     }
 
@@ -146,7 +150,10 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                 UserStatus.LOGIN_SUCCESS,
                 tokenResponse.getAccessToken(),
                 tokenResponse.getRefreshToken(),
-                tokenResponse.getExpiresIn());
+                tokenResponse.getExpiresIn(),
+                notificationPreferenceService.agreeServiceNotification(user.getId()),
+                notificationPreferenceService.agreeMarketingNotification(user.getId())
+        );
     }
 
     @Override
@@ -219,7 +226,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                 // 일반 이메일 가입 유저가 카카오 로그인 시도 시 차단 -> 상태값 반환으로 변경
                 return userAuthConverter.toAuthResponseDTO(
                         UserStatus.ACCOUNT_CONFLICT,
-                        userAuthConverter.toUserInfo(user)
+                        userQueryService.getUserInfo(user.getId())
                 );
             }
 
@@ -235,7 +242,9 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                     UserStatus.LOGIN_SUCCESS,
                     tokenResponse.getAccessToken(),
                     tokenResponse.getRefreshToken(),
-                    tokenResponse.getExpiresIn()
+                    tokenResponse.getExpiresIn(),
+                    notificationPreferenceService.agreeServiceNotification(user.getId()),
+                    notificationPreferenceService.agreeMarketingNotification(user.getId())
             );
         } else {
             // 신규 회원가입 진행
@@ -295,7 +304,9 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                 UserStatus.SIGNUP_SUCCESS,
                 tokenResponse.getAccessToken(),
                 tokenResponse.getRefreshToken(),
-                tokenResponse.getExpiresIn()
+                tokenResponse.getExpiresIn(),
+                notificationPreferenceService.agreeServiceNotification(user.getId()),
+                notificationPreferenceService.agreeMarketingNotification(user.getId())
         );
     }
 
@@ -336,7 +347,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
         log.info("카카오 계정 연동 성공 (User ID: {}, Email: {})", userId, kakaoEmail);
 
-        return userAuthConverter.toKakaoLinkResponseDTO(true, "카카오 계정 연동이 완료되었습니다", kakaoEmail, userAuthConverter.toUserInfo(user));
+        return userAuthConverter.toKakaoLinkResponseDTO(true, "카카오 계정 연동이 완료되었습니다", kakaoEmail, userQueryService.getUserInfo(userId));
     }
 
     private User createBasicKakaoUser(KakaoUserInfo kakaoUserInfo, OAuthRequestDTO.KaKaoSignup request) {

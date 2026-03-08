@@ -102,4 +102,17 @@ public class NotificationPreferenceService {
 
         throw new IllegalArgumentException("지원하지 않는 약관입니다.");
     }
+
+    // ======== 알림 동의 내역 확인 =========
+    public boolean agreeServiceNotification(Long userId) {
+        Optional<NotificationTokenPreference> byUserIdAndGroup = prefRepo.findByUserIdAndGroup(userId, NotificationGroup.SERVICE);
+
+        return byUserIdAndGroup.map(NotificationTokenPreference::isEnabled).orElse(false);
+    }
+
+    public boolean agreeMarketingNotification(Long userId) {
+        Optional<NotificationTokenPreference> byUserIdAndGroup = prefRepo.findByUserIdAndGroup(userId, NotificationGroup.MARKETING);
+
+        return byUserIdAndGroup.map(NotificationTokenPreference::isEnabled).orElse(false);
+    }
 }
