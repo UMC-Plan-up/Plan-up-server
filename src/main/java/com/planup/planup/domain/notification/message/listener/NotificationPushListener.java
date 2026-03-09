@@ -7,12 +7,15 @@ import com.planup.planup.domain.notification.entity.device.PushSender;
 import com.planup.planup.domain.notification.message.MessageContext;
 import com.planup.planup.domain.notification.message.NotificationMessageProvider;
 import lombok.RequiredArgsConstructor;
+import org.antlr.v4.runtime.misc.MultiMap;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -27,7 +30,10 @@ public class NotificationPushListener {
 
         if (tokens.isEmpty()) return;
 
-        String generatedMessage = NotificationMessageProvider.generate(new MessageContext(event.notificationType(), event.senderName(), event.receiverName(), event.targetId(), event.updatedPartsStr(), null));
+        String generatedMessage = NotificationMessageProvider.generate(
+                new MessageContext(event.notificationType(), event.senderName(), event.receiverName(), event.targetId(), event.updatedPartsStr(), null));
+
+        Map<String, String> data = new HashMap<>();
 
         PushSender.MulticastResult multicastResult = pushSender.sendMulticast(tokens, generatedMessage, "클릭해 확인해 보세요!");
     }

@@ -4,12 +4,9 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.MulticastMessage;
-import com.planup.planup.apiPayload.code.status.ErrorStatus;
-import com.planup.planup.apiPayload.exception.custom.PushSendException;
 import com.planup.planup.domain.notification.entity.device.PushSender;
 import com.planup.planup.domain.notification.service.deviceToken.DeviceTokenService;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.validator.internal.xml.mapping.MappingXmlParser;
 import org.springframework.stereotype.Component;
 import com.google.firebase.messaging.Notification;
 
@@ -63,7 +60,7 @@ public class FirebasePushSender implements PushSender{
     }
 
     @Override
-    public MulticastResult sendMulticast(Collection<String> tokensCollection, String title, String body) {
+    public MulticastResult sendMulticast(Collection<String> tokensCollection, String title, String body, Map<String, String> data) {
         ArrayList<String> tokens = new ArrayList<>(tokensCollection);
         int totalSuccess = 0;
 
