@@ -87,14 +87,9 @@ public class ChallengeServiceImpl implements ChallengeService {
             challengeRepository.flush();
 
             //UserGoal을 생성한다.
-            UserGoal myUserGoal = userGoalService.joinGoalWithEntity(user.getId(), save.getId());
-            myUserGoal.setStatus(Status.ADMIN);
-            myUserGoal.setActive(false, user);
+            makingMyUserGoal(user, save.getId());
 
-            //상대방의 userGoal은 아직 생성하지 않는다.
-//            userGoalService.joinGoal(friend.getId(), save.getId());
-            notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_REQUEST_SENT, TargetType.CHALLENGE, save.getId());
-            notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_REQUEST_RECEIVED, TargetType.CHALLENGE, save.getId());
+            makingNotificationAboutCreateChallenge(user, friend, save);
 
             return save;
         }
@@ -110,15 +105,26 @@ public class ChallengeServiceImpl implements ChallengeService {
 
             challengeRepository.flush();
 
-            userGoalService.joinGoal(user.getId(), save.getId());
-            userGoalService.joinGoal(friend.getId(), save.getId());
-            notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_REQUEST_SENT, TargetType.CHALLENGE, save.getId());
-            notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_REQUEST_RECEIVED, TargetType.CHALLENGE, save.getId());
+            //UserGoal을 생성한다.
+            makingMyUserGoal(user, save.getId());
+
+            makingNotificationAboutCreateChallenge(friend, user, save);
 
             return save;
         }
 
         throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_TYPE);
+    }
+
+    private void makingNotificationAboutCreateChallenge(User friend, User user, Challenge save) {
+        notificationService.createNotification(user.getId(), friend.getId(), NotificationType.CHALLENGE_REQUEST_SENT, TargetType.CHALLENGE, save.getId());
+        notificationService.createNotification(friend.getId(), user.getId(), NotificationType.CHALLENGE_REQUEST_RECEIVED, TargetType.CHALLENGE, save.getId());
+    }
+
+    private void makingMyUserGoal(User user, Long save) {
+        UserGoal myUserGoal = userGoalService.joinGoalWithEntity(user.getId(), save);
+        myUserGoal.setStatus(Status.ADMIN);
+        myUserGoal.setActive(false, user);
     }
 
     private static void isTestUser(User friend, User user, Challenge save) {
