@@ -66,11 +66,11 @@ public class NotificationPreferenceService {
     }
 
     public boolean updatePreferenceServiceToggle(User user) {
-        return updatePreference(user, SERVICE_TERMS_ID, null);
+        return togglePreference(user, SERVICE_TERMS_ID);
     }
 
     public boolean updatePreferenceMarketingToggle(User user) {
-        return updatePreference(user, MARKETING_TERMS_ID, null);
+        return togglePreference(user, MARKETING_TERMS_ID);
     }
 
     public boolean setPreference(User user, Long termId, boolean enabled) {

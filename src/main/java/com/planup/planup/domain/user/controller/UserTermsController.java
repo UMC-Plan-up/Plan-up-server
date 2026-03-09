@@ -25,7 +25,7 @@ public class UserTermsController {
             @CurrentUser User user,
             @RequestBody NotificationPreferenceRequest request
     ) {
-        notificationPreferenceService.updatePreference(user, request.termsId(), request.enabled());
+        notificationPreferenceService.setPreference(user, request.termsId(), request.enabled());
         return ApiResponse.onSuccess(null);
     }
 }
