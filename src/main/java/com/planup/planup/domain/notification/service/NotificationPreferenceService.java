@@ -82,7 +82,7 @@ public class NotificationPreferenceService {
 
         NotificationTokenPreference preference = prefRepo.findByUserIdAndGroup(user.getId(), group)
                 .map(np -> {
-                    np.toggleEnable(); // 또는 np.updateEnable(enable);
+                    np.toggleEnable();
                     return np;
                 })
                 .orElseGet(() -> createNotificationPreference(user, group, enable));
@@ -92,11 +92,11 @@ public class NotificationPreferenceService {
 
     private NotificationGroup mapTermsToGroup(Long termsId) {
 
-        if (termsId == 4L) {
+        if (termsId == SERVICE_TERMS_ID) {
             return NotificationGroup.SERVICE;
         }
 
-        if (termsId == 5L) {
+        if (termsId == MARKETING_TERMS_ID) {
             return NotificationGroup.MARKETING;
         }
 
