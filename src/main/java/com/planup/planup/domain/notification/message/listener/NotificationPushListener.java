@@ -33,8 +33,14 @@ public class NotificationPushListener {
         String generatedMessage = NotificationMessageProvider.generate(
                 new MessageContext(event.notificationType(), event.senderName(), event.receiverName(), event.targetId(), event.updatedPartsStr(), null));
 
-        Map<String, String> data = new HashMap<>();
+        Map<String, String> data = Map.of(
+                "notificationId", String.valueOf(event.notificationId()),
+                "type", event.notificationType().name(),
+                "targetType", event.targetType().name(),
+                "targetId", String.valueOf(event.targetId())
+        );
 
-        PushSender.MulticastResult multicastResult = pushSender.sendMulticast(tokens, generatedMessage, "클릭해 확인해 보세요!");
+
+        PushSender.MulticastResult multicastResult = pushSender.sendMulticast(tokens, generatedMessage, "클릭해 확인해 보세요!", data);
     }
 }
