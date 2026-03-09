@@ -11,7 +11,6 @@ import com.planup.planup.domain.user.repository.TermsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.GenericDeclaration;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -66,17 +65,33 @@ public class NotificationPreferenceService {
         }
     }
 
-    public boolean updatePreferenceService(User user) {
-        return updatePreference(user, SERVICE_TERMS_ID, true);
+    public boolean updatePreferenceServiceToggle(User user) {
+        return updatePreference(user, SERVICE_TERMS_ID, null);
     }
 
-    public boolean updatePreferenceMarketing(User user) {
-        return updatePreference(user, MARKETING_TERMS_ID, true);
+    public boolean updatePreferenceMarketingToggle(User user) {
+        return updatePreference(user, MARKETING_TERMS_ID, null);
     }
 
-    public boolean updatePreference(User user, Long termId, boolean enable) {
+    public boolean setPreference(User user, Long termId, boolean enabled) {
         Terms terms = termsRepository.findById(termId)
-                .orElseThrow(() -> new UserException(ErrorStatus.REQUIRED_TERMS_NOT_AGREED));
+                .orElseThrow(() -> new UserException(ErrorStatus.TERMS_NOT_FOUND));
+
+        NotificationGroup group = mapTermsToGroup(terms.getId());
+
+        NotificationTokenPreference preference = prefRepo.findByUserIdAndGroup(user.getId(), group)
+                .map(np -> {
+                    np.setEnabled(enabled);
+                    return np;
+                })
+                .orElseGet(() -> createNotificationPreference(user, group, enabled));
+
+        return preference.isEnabled();
+    }
+
+    public boolean togglePreference(User user, Long termId) {
+        Terms terms = termsRepository.findById(termId)
+                .orElseThrow(() -> new UserException(ErrorStatus.TERMS_NOT_FOUND));
 
         NotificationGroup group = mapTermsToGroup(terms.getId());
 
@@ -85,7 +100,7 @@ public class NotificationPreferenceService {
                     np.toggleEnable();
                     return np;
                 })
-                .orElseGet(() -> createNotificationPreference(user, group, enable));
+                .orElseGet(() -> createNotificationPreference(user, group, true));
 
         return preference.isEnabled();
     }
