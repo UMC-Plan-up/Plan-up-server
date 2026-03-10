@@ -53,7 +53,7 @@ public class ChallengeRequestDTO {
 
             @NotNull
             @Schema(description = "주기(며칠마다 1회)", example = "WEEK")
-            GoalPeriod period,
+            Long referencePeriod,
 
             @Min(1)
             @Schema(description = "기간 내 수행 빈도", example = "3")

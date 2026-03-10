@@ -28,7 +28,7 @@ public class ChallengeConverter {
                 .limitFriendCount(1)
                 .status(dto.status())
                 .penalty(dto.penalty())
-                .period(dto.period())
+                .referencePeriod(dto.referencePeriod())
                 .frequency(dto.frequency())
                 .verificationType(VerificationType.PHOTO)
                 .build();
@@ -46,6 +46,8 @@ public class ChallengeConverter {
                 .status(dto.status())
                 .penalty(dto.penalty())
                 .targetTime(dto.timeChallenge().targetTime())
+                .referencePeriod(dto.referencePeriod())
+                .frequency(dto.frequency())
                 .verificationType(VerificationType.TIMER)
                 .build();
     }
