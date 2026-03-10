@@ -52,26 +52,15 @@ public class ChallengeRequestDTO {
             Long friendId,
 
             @NotNull
-            @Schema(description = "주기(며칠마다 1회)", example = "WEEK")
+            @Min(1) @Max(7)
+            @Schema(description = "주기(며칠마다 1회)", example = "")
             Long referencePeriod,
 
             @Min(1)
-            @Schema(description = "기간 내 수행 빈도", example = "3")
-            int frequency,
-
-            //선택 필듣
-            @Valid @Nullable createTime timeChallenge
-
-    ) {}
-
-
-    @Builder
-    @Schema(description = "시간 챌린지 생성 요청")
-    public record createTime(
             @NotNull
-            @Positive
-            @Schema(description = "목표 시간 (초 단위)", example = "7200")
-            Long targetTime
+            @Schema(description = "기간 내 수행 빈도 또는 시간", example = "3")
+            int frequency
+
     ) {}
 
     @Builder

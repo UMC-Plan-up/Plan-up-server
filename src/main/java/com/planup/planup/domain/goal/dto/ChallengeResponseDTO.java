@@ -39,13 +39,10 @@ public class ChallengeResponseDTO {
             Long friendId,
             @Schema(description = "주기(며칠마다 1회)", example = "WEEK")
             GoalPeriod period,
-            @Schema(description = "기간 내 수행 빈도", example = "3")
+            @Schema(description = "기간 내 수행 빈도 또는 타깃 시간", example = "3")
             int frequency,
 
-            VerificationType verificationType,
-
-            //선택 필듣
-            Long targetTime
+            VerificationType verificationType
 
     ) {}
 

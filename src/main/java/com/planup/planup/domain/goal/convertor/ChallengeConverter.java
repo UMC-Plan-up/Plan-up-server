@@ -5,15 +5,11 @@ import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.GoalType;
-import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
-import com.planup.planup.domain.goal.entity.TimeChallenge;
-import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.List;
 
 public class ChallengeConverter {
 
@@ -25,7 +21,7 @@ public class ChallengeConverter {
                 .goalType(dto.goalType())
                 .oneDose(dto.oneDose())
                 .endDate(dto.endDate().toLocalDate())
-                .limitFriendCount(1)
+                .limitFriendCount(2)
                 .status(dto.status())
                 .penalty(dto.penalty())
                 .referencePeriod(dto.referencePeriod())
@@ -34,8 +30,8 @@ public class ChallengeConverter {
                 .build();
     }
 
-    public static TimeChallenge toTimeChallenge(ChallengeRequestDTO.create dto) {
-        return TimeChallenge.builder()
+    public static Challenge toTimeChallenge(ChallengeRequestDTO.create dto) {
+        return Challenge.builder()
                 .goalName(dto.goalName())
                 .goalAmount(dto.goalAmount())
                 .goalCategory(GoalCategory.CHALLENGE)
@@ -45,7 +41,6 @@ public class ChallengeConverter {
                 .limitFriendCount(2)
                 .status(dto.status())
                 .penalty(dto.penalty())
-                .targetTime(dto.timeChallenge().targetTime())
                 .referencePeriod(dto.referencePeriod())
                 .frequency(dto.frequency())
                 .verificationType(VerificationType.TIMER)
@@ -67,24 +62,24 @@ public class ChallengeConverter {
                 .build();
     }
 
-    public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoPhotoVer(Challenge photoChallenge) {
+    public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoPhotoVer(Challenge challenge) {
 
        return ChallengeResponseDTO.ChallengeResponseInfo.builder()
-               .id(photoChallenge.getId())
-               .goalName(photoChallenge.getGoalName())
-               .goalAmount(photoChallenge.getGoalAmount())
+               .id(challenge.getId())
+               .goalName(challenge.getGoalName())
+               .goalAmount(challenge.getGoalAmount())
                .goalCategory(GoalCategory.CHALLENGE)
                .goalType(GoalType.CHALLENGE_PHOTO)
-               .oneDose(photoChallenge.getOneDose())
-               .endDate(photoChallenge.getEndDate().atStartOfDay())
-               .status(photoChallenge.getStatus())
-               .penalty(photoChallenge.getPenalty())
-               .targetTime(null)
+               .oneDose(challenge.getOneDose())
+               .endDate(challenge.getEndDate().atStartOfDay())
+               .status(challenge.getStatus())
+               .penalty(challenge.getPenalty())
+               .frequency(challenge.getFrequency())
                .verificationType(VerificationType.PHOTO)
                .build();
     }
 
-    public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoTimeVer(TimeChallenge timeChallenge) {
+    public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoTimeVer(Challenge timeChallenge) {
 
         return ChallengeResponseDTO.ChallengeResponseInfo.builder()
                 .id(timeChallenge.getId())
@@ -96,7 +91,7 @@ public class ChallengeConverter {
                 .endDate(timeChallenge.getEndDate().atStartOfDay())
                 .status(timeChallenge.getStatus())
                 .penalty(timeChallenge.getPenalty())
-                .targetTime(timeChallenge.getTargetTime())
+                .frequency(timeChallenge.getFrequency())
                 .verificationType(VerificationType.TIMER)
                 .build();
     }
