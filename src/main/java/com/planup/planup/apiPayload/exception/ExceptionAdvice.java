@@ -4,6 +4,8 @@ import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.apiPayload.code.ErrorReasonDTO;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.TokenException;
+import com.planup.planup.apiPayload.exception.custom.UserSuspendedException;
+import com.planup.planup.domain.user.dto.UserResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +71,16 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException e, HttpServletRequest request) {
         return handleExceptionInternalConstraint(e, ErrorStatus.INVALID_EMAIL_TOKEN, HttpHeaders.EMPTY, new ServletWebRequest(request));
+    }
+
+    @ExceptionHandler(value = UserSuspendedException.class)
+    public ResponseEntity<Object> handleUserSuspendedException(UserSuspendedException ex, HttpServletRequest request) {
+        ErrorReasonDTO reason = ex.getErrorReasonHttpStatus();
+        ApiResponse<UserResponseDTO.SanctionInfo> body = ApiResponse.onFailure(
+                reason.getCode(), reason.getMessage(), ex.getSanctionInfo()
+        );
+        WebRequest webRequest = new ServletWebRequest(request);
+        return super.handleExceptionInternal(ex, body, null, reason.getHttpStatus(), webRequest);
     }
 
     @ExceptionHandler(value = TokenException.class)

@@ -5,6 +5,7 @@ import com.planup.planup.domain.friend.entity.reportEntity.ReportStatus;
 import com.planup.planup.domain.friend.entity.reportEntity.UserReportMapping;
 import com.planup.planup.domain.friend.repository.UserReportMappingRepository;
 import com.planup.planup.domain.user.entity.User;
+import com.planup.planup.domain.user.enums.SanctionDetailReason;
 import com.planup.planup.domain.user.service.query.UserQueryService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +26,7 @@ public class UserReportMappingServiceImpl implements UserReportMappingService {
     public boolean createReportUser(FriendReportRequestDTO request, Long userId) {
 
         Long friendId= request.getFriendId();
-        String reason = request.getReason();
+        SanctionDetailReason reason = request.getReason();
         boolean block = request.isBlock();
 
         User reporter = userService.getUserByUserId(userId);
@@ -39,7 +40,22 @@ public class UserReportMappingServiceImpl implements UserReportMappingService {
                 .status(ReportStatus.PENDING)
                 .build();
 
-        userReportMappingRepository.save(userReport);
+        userReportMappingRepository.saveAndFlush(userReport);
+
+        reported.incrementReportCount();
+
+        SanctionDetailReason topReason = userReportMappingRepository
+                .findTopReasonByReportedId(reported.getId())
+                .orElse(reason);
+
+        if (reported.getReportCount() >= 5) {
+            reported.applyDeletion(topReason);
+        } else if (reported.getReportCount() >= 3) {
+            reported.applySuspension(topReason);
+        } else {
+            reported.updateSanctionReason(topReason);
+        }
+
         return true;
     }
 }

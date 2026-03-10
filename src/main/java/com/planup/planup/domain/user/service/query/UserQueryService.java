@@ -16,7 +16,6 @@ public interface UserQueryService {
     // 이메일 검증
     void checkEmail(String email);  // 회원가입용 중복 체크
     void checkEmailExists(String email);  // 비밀번호 변경용 존재 확인
-    boolean isEmailAvailable(String email);
     AuthResponseDTO.EmailDuplicate checkEmailDuplicate(String email);
 
     // 닉네임

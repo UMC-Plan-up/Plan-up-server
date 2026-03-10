@@ -10,6 +10,8 @@ import com.planup.planup.domain.oauth.entity.OAuthAccount;
 import com.planup.planup.domain.report.entity.WeeklyReport;
 import com.planup.planup.domain.user.enums.Gender;
 import com.planup.planup.domain.user.enums.Role;
+import com.planup.planup.domain.user.enums.SanctionDetailReason;
+import com.planup.planup.domain.user.enums.SanctionReason;
 import com.planup.planup.domain.user.enums.UserActivate;
 import com.planup.planup.domain.user.enums.UserLevel;
 import jakarta.persistence.*;
@@ -77,7 +79,7 @@ public class User extends BaseTimeEntity {
     private String profileImg;
 
     private String socialEmail;
-    
+
     private String inviteCode;
 
     @Column(name = "email_verified", nullable = false)
@@ -86,6 +88,18 @@ public class User extends BaseTimeEntity {
 
     @Column(name = "email_verified_at")
     private LocalDateTime emailVerifiedAt;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private int reportCount = 0;
+
+    private LocalDateTime sanctionEndAt;
+
+    @Enumerated(EnumType.STRING)
+    private SanctionReason sanctionReason;
+
+    @Enumerated(EnumType.STRING)
+    private SanctionDetailReason sanctionDetailReason;
 
     // 연관 관계
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
@@ -103,6 +117,7 @@ public class User extends BaseTimeEntity {
     @OneToMany(mappedBy = "user")
     @Builder.Default
     private List<Friend> friendList = new ArrayList<>();
+
 
     @OneToMany(mappedBy = "user")
     @Builder.Default
@@ -150,4 +165,37 @@ public class User extends BaseTimeEntity {
         return userStat;
     }
 
+    public void incrementReportCount() {
+        this.reportCount++;
+    }
+
+    public void applySuspension(SanctionDetailReason detailReason) {
+        this.userActivate = UserActivate.SUSPENDED;
+        this.sanctionEndAt = LocalDateTime.now().plusDays(14);
+        this.sanctionReason = SanctionReason.USER_REPORT;
+        this.sanctionDetailReason = detailReason;
+    }
+
+    public void applyDeletion(SanctionDetailReason detailReason) {
+        this.userActivate = UserActivate.DELETED;
+        this.sanctionEndAt = LocalDateTime.now().plusDays(90);
+        this.sanctionReason = SanctionReason.USER_REPORT;
+        this.sanctionDetailReason = detailReason;
+    }
+
+    public void liftSuspensionIfExpired() {
+        if (this.userActivate == UserActivate.SUSPENDED
+                && this.sanctionEndAt != null
+                && LocalDateTime.now().isAfter(this.sanctionEndAt)) {
+            this.userActivate = UserActivate.ACTIVE;
+            this.sanctionEndAt = null;
+            this.sanctionReason = null;
+            this.sanctionDetailReason = null;
+        }
+    }
+
+    public void updateSanctionReason(SanctionDetailReason detailReason) {
+        this.sanctionReason = SanctionReason.USER_REPORT;
+        this.sanctionDetailReason = detailReason;
+    }
 }
