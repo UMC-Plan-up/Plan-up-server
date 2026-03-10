@@ -127,13 +127,16 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
         log.info("회원가입 완료: userId={}, email={}", savedUser.getId(), savedUser.getEmail());
 
+        boolean serviceEnabled = notificationPreferenceService.agreeServiceNotification(user.getId());
+        boolean marketingEnabled = notificationPreferenceService.agreeMarketingNotification(user.getId());
+
         return userAuthConverter.toAuthResponseDTO(savedUser,
                 UserStatus.SIGNUP_SUCCESS,
                 tokenResponse.getAccessToken(),
                 tokenResponse.getRefreshToken(),
                 tokenResponse.getExpiresIn(),
-                notificationPreferenceService.agreeServiceNotification(user.getId()),
-                notificationPreferenceService.agreeMarketingNotification(user.getId())
+                serviceEnabled,
+                marketingEnabled
         );
     }
 
@@ -154,14 +157,16 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
         // 토큰 발급 (액세스 토큰 + 리프레시 토큰)
         TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
+        boolean serviceEnabled = notificationPreferenceService.agreeServiceNotification(user.getId());
+        boolean marketingEnabled = notificationPreferenceService.agreeMarketingNotification(user.getId());
 
         return userAuthConverter.toAuthResponseDTO(user,
                 UserStatus.LOGIN_SUCCESS,
                 tokenResponse.getAccessToken(),
                 tokenResponse.getRefreshToken(),
                 tokenResponse.getExpiresIn(),
-                notificationPreferenceService.agreeServiceNotification(user.getId()),
-                notificationPreferenceService.agreeMarketingNotification(user.getId())
+                serviceEnabled,
+                marketingEnabled
         );
     }
 

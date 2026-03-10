@@ -19,13 +19,13 @@ import java.time.LocalDateTime;
 @Component
 public class UserAuthConverter {
 
-    public UserResponseDTO.AuthResponseDTO toAuthResponseDTO(User user, UserStatus status, String accessToken, String refreshToken, Long expiresIn, boolean isServiceNotifi, boolean isMarketingNotifi) {
+    public UserResponseDTO.AuthResponseDTO toAuthResponseDTO(User user, UserStatus status, String accessToken, String refreshToken, Long expiresIn, boolean isServiceNotification, boolean isMarketingNotifi) {
         return UserResponseDTO.AuthResponseDTO.builder()
                 .userStatus(status)
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .expiresIn(expiresIn)
-                .userInfo(toUserInfo(user, isServiceNotifi, isMarketingNotifi))
+                .userInfo(toUserInfo(user, isServiceNotification, isMarketingNotifi))
                 .build();
     }
 
