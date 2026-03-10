@@ -34,7 +34,7 @@ public class ChallengeRequestDTO {
 
             @Positive
             @Schema(description = "1회 기준량", example = "250")
-            int oneDose,
+            Integer oneDose,
 
             @NotNull
             @Schema(description = "목표 종료일", example = "2025-08-01T00:00:00.000Z")
@@ -59,7 +59,7 @@ public class ChallengeRequestDTO {
             @Min(1)
             @NotNull
             @Schema(description = "기간 내 수행 빈도 또는 시간", example = "3")
-            int frequency
+            Integer frequency
 
     ) {}
 
