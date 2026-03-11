@@ -21,7 +21,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "goal_type")
 @Table(
         name = "goal",
         indexes = {
@@ -97,12 +96,5 @@ public class Goal extends BaseTimeEntity {
         this.endDate = dto.getEndDate();
         this.verificationType = dto.getVerificationType();
         this.limitFriendCount = dto.getLimitFriendCount();
-    }
-
-    public boolean isChallenge() {
-        if (this.getGoalType().equals(GoalType.CHALLENGE_PHOTO) || this.getGoalType().equals(GoalType.CHALLENGE_TIME)) {
-            return true;
-        }
-        return false;
     }
 }
