@@ -37,8 +37,8 @@ public class ChallengeResponseDTO {
             String penalty,
             @Schema(description = "같이 할 친구 선택", example = "1")
             Long friendId,
-            @Schema(description = "주기(며칠마다 1회)", example = "WEEK")
-            GoalPeriod period,
+            @Schema(description = "주기(며칠마다 1회)", example = "")
+            Long referencePeriod,
             @Schema(description = "기간 내 수행 빈도 또는 타깃 시간", example = "3")
             int frequency,
 
