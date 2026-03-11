@@ -97,4 +97,10 @@ public class Goal extends BaseTimeEntity {
         this.verificationType = dto.getVerificationType();
         this.limitFriendCount = dto.getLimitFriendCount();
     }
+
+    public boolean isChallenge() {
+        if (goalType == GoalType.CHALLENGE_PHOTO || goalType == GoalType.CHALLENGE_TIME) return true;
+
+        return false;
+    }
 }
