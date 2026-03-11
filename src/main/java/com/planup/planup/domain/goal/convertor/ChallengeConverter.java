@@ -80,20 +80,21 @@ public class ChallengeConverter {
                .build();
     }
 
-    public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoTimeVer(Challenge timeChallenge) {
+    public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoTimeVer(Challenge challenge) {
 
         return ChallengeResponseDTO.ChallengeResponseInfo.builder()
-                .id(timeChallenge.getId())
-                .goalName(timeChallenge.getGoalName())
-                .goalAmount(timeChallenge.getGoalAmount())
+                .id(challenge.getId())
+                .goalName(challenge.getGoalName())
+                .goalAmount(challenge.getGoalAmount())
                 .goalCategory(GoalCategory.CHALLENGE)
                 .goalType(GoalType.CHALLENGE_TIME)
-                .oneDose(timeChallenge.getOneDose())
-                .endDate(timeChallenge.getEndDate().atStartOfDay())
-                .status(timeChallenge.getStatus())
-                .penalty(timeChallenge.getPenalty())
-                .frequency(timeChallenge.getFrequency())
+                .oneDose(challenge.getOneDose())
+                .endDate(challenge.getEndDate().atStartOfDay())
+                .status(challenge.getStatus())
+                .penalty(challenge.getPenalty())
+                .frequency(challenge.getFrequency())
                 .verificationType(VerificationType.TIMER)
+                .referencePeriod(challenge.getReferencePeriod())
                 .build();
     }
 
