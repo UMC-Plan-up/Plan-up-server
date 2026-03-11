@@ -1,42 +1,49 @@
 package com.planup.planup.domain.goal.dto;
 
-import com.planup.planup.domain.goal.entity.Enum.GoalPeriod;
-import com.planup.planup.domain.goal.entity.Enum.GoalType;
+import com.planup.planup.domain.goal.entity.Enum.*;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.annotation.Nullable;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Builder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class ChallengeResponseDTO {
 
     @Builder
     public record ChallengeResponseInfo(
-            @Schema(description = "id", example = "1")
+
             Long id,
-
-            @Schema(description = "요청한 사람 이름", example = "홍길도")
-            String name,
-
             @Schema(description = "목표 이름", example = "매일 물 2L 마시기")
             String goalName,
-
             @Schema(description = "목표 달성량", example = "2000ml")
-            int oneDose,
-
-            @Schema(description = "목표 유형", example = "TIME")
+            String goalAmount,
+            @Schema(description = "목표 달성 방법", example = "CHALLENGE")
+            GoalCategory goalCategory,
+            @Schema(description = "목표 유형", example = "CHALLENGE_TIME")
             GoalType goalType,
-
+            @Schema(description = "1회 기준량", example = "250")
+            int oneDose,
             @Schema(description = "목표 종료일", example = "2025-08-01T00:00:00.000Z")
-            LocalDate endDate,
-
-            @Schema(description = "주기(종료일까지 몇일 해야하는지)", example = "7")
+            LocalDateTime endDate,
+            @Schema(description = "챌린지 상태", example = "REQUESTED")
+            ChallengeStatus status,
+            @Schema(description = "챌린지 실패 시 벌칙", example = "물 4L 마시기")
+            String penalty,
+            @Schema(description = "같이 할 친구 선택", example = "1")
+            Long friendId,
+            @Schema(description = "주기(며칠마다 1회)", example = "WEEK")
             GoalPeriod period,
-
-            @Schema(description = "기간 내 수행 빈도", example = "3")
+            @Schema(description = "기간 내 수행 빈도 또는 타깃 시간", example = "3")
             int frequency,
 
-            @Schema(description = "목표 시간 (초 단위)", example = "7200")
-            Long targetTime
+            VerificationType verificationType
+
     ) {}
 
     @Builder

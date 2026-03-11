@@ -3,7 +3,7 @@ package com.planup.planup.domain.notification.controller;
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.notification.controller.docs.DeviceControllerDocs;
 import com.planup.planup.domain.notification.dto.DeviceTokenRequestDTO;
-import com.planup.planup.domain.notification.service.deviceTokenService.DeviceTokenService;
+import com.planup.planup.domain.notification.service.deviceToken.DeviceTokenService;
 import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
