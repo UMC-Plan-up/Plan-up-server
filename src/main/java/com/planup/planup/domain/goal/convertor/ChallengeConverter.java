@@ -76,6 +76,7 @@ public class ChallengeConverter {
                .penalty(challenge.getPenalty())
                .frequency(challenge.getFrequency())
                .verificationType(VerificationType.PHOTO)
+               .referencePeriod(challenge.getReferencePeriod())
                .build();
     }
 
