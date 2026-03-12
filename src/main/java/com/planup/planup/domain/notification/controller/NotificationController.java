@@ -8,6 +8,7 @@ import com.planup.planup.domain.notification.service.NotificationServiceRead;
 import com.planup.planup.domain.notification.service.NotificationServiceWrite;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.validation.annotation.CurrentUser;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,18 +22,30 @@ public class NotificationController {
     private final NotificationServiceRead notificationServiceRead;
     private final NotificationServiceWrite notificationServiceWrite;
 
+    @Operation(
+            summary = "단일 알림 읽음 처리",
+            description = "특정 알림 1개를 읽음 상태로 변경합니다."
+    )
     @PatchMapping("/{notificationId}")
-    public ApiResponse<Void> patchNotificationRead(@CurrentUser Long userId, Long notificationId) {
+    public ApiResponse<Void> patchNotificationRead(@CurrentUser Long userId, @PathVariable Long notificationId) {
         notificationServiceWrite.markAsRead(notificationId, userId);
         return ApiResponse.onSuccess(null);
     }
 
-    @PatchMapping("/{notificationId}/list")
+    @Operation(
+            summary = "여러 알림 읽음 처리",
+            description = "알림 ID 목록을 받아 여러 알림을 한 번에 읽음 상태로 변경합니다."
+    )
+    @PatchMapping("/list")
     public ApiResponse<Void> patchNotificationListRead(@CurrentUser Long userId, @RequestBody NotificationReadRequest request) {
         notificationServiceWrite.markAsRead(request, userId);
         return ApiResponse.onSuccess(null);
     }
 
+    @Operation(
+            summary = "읽지 않은 알림 조회",
+            description = "현재 로그인한 사용자의 읽지 않은 알림 목록을 조회합니다."
+    )
     @GetMapping("/unread")
     public ApiResponse<List<NotificationResponseDTO.NotificationDTO>> getUnreadNotifications(
             @CurrentUser Long receiverId) {
@@ -43,7 +56,12 @@ public class NotificationController {
         return ApiResponse.onSuccess(unreadNotifications);
     }
 
-    @GetMapping("/unread/{receiverId}/{type}")
+
+    @Operation(
+            summary = "타입별 읽지 않은 알림 조회",
+            description = "현재 로그인한 사용자의 읽지 않은 알림을 그룹 타입별로 조회합니다."
+    )
+    @GetMapping("/unread/{type}")
     public ApiResponse<List<NotificationResponseDTO.NotificationDTO>> getUnreadNotificationsWithType(
             @PathVariable Long receiverId,
             @PathVariable NotificationType.NotificationGroup type) {
@@ -54,6 +72,11 @@ public class NotificationController {
         return ApiResponse.onSuccess(unreadNotifications);
     }
 
+
+    @Operation(
+            summary = "전체 알림 조회",
+            description = "현재 로그인한 사용자의 전체 알림 목록을 조회합니다."
+    )
     @GetMapping("/{userId}")
     public ApiResponse<List<NotificationResponseDTO.NotificationDTO>> getNotificationByUserId(@CurrentUser User user) {
         List<NotificationResponseDTO.NotificationDTO> notificationDTOS = notificationServiceRead.getAllNotifications(user);
