@@ -18,21 +18,10 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<Notification> findByReceiverAndIsReadFalseOrderByCreatedAtDesc(User receiver);
 
     // 전체 알림 조회 (읽은 것 포함)
-    List<Notification> findByReceiverIdOrderByCreatedAtDesc(User receiver);
+    List<Notification> findByReceiverOrderByCreatedAtDesc(User receiver);
 
     //최근 3개의 알림 - 유저별
     List<Notification> findTop3ByReceiverOrderByCreatedAtDesc(User receiver);
-
-    @Query("""
-      SELECT n
-      FROM Notification n
-      WHERE n.receiver = :receiver
-        AND n.isRead = false
-      ORDER BY n.createdAt DESC
-""")
-    List<Notification> findUnreadByReceiverAndType(
-            @Param("receiver") User receiver
-    );
 
     List<Notification> findByReceiverAndIsReadFalseAndTypeIn(User receiver, List<NotificationType> types);
 

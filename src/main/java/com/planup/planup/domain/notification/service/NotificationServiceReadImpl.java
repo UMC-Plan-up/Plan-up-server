@@ -54,7 +54,7 @@ public class NotificationServiceReadImpl implements NotificationServiceRead {
     //유저의 모든 알림을 조회한다. (시간 순대로)
     @Override
     public List<NotificationResponseDTO.NotificationDTO> getAllNotifications(User user) {
-        return NotificationConverter.toNotificationDTOs(notificationRepository.findByReceiverIdOrderByCreatedAtDesc(user));
+        return NotificationConverter.toNotificationDTOs(notificationRepository.findByReceiverOrderByCreatedAtDesc(user));
     }
 
     //유저에 따라 가장 최근의 5개 알림을 반환한다. (읽음 여부와 상관없이)
