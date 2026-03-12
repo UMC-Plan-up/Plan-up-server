@@ -5,6 +5,7 @@ import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.service.NotificationServiceRead;
 import com.planup.planup.domain.notification.service.NotificationServiceWrite;
+import com.planup.planup.validation.annotation.CurrentUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,13 +20,13 @@ public class NotificationController {
     private final NotificationServiceWrite notificationServiceWrite;
 
     @PatchMapping("/{notificationId}")
-    public ApiResponse<Void> patchNotificationRead(Long userId, Long notificationId) {
+    public ApiResponse<Void> patchNotificationRead(@CurrentUser Long userId, Long notificationId) {
         notificationServiceWrite.markAsRead(notificationId, userId);
         return ApiResponse.onSuccess(null);
     }
 
-    @PatchMapping("/{notificationId}")
-    public ApiResponse<Void> patchNotificationListRead(Long userId, List<Long> notificationIdList) {
+    @PatchMapping("/{notificationId}/list")
+    public ApiResponse<Void> patchNotificationListRead(@CurrentUser Long userId, List<Long> notificationIdList) {
         notificationServiceWrite.markAsRead(notificationIdList, userId);
         return ApiResponse.onSuccess(null);
     }
