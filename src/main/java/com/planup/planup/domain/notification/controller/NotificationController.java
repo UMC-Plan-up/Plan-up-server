@@ -6,6 +6,7 @@ import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.service.NotificationServiceRead;
 import com.planup.planup.domain.notification.service.NotificationServiceWrite;
+import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.validation.annotation.CurrentUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -54,8 +55,8 @@ public class NotificationController {
     }
 
     @GetMapping("/{userId}")
-    public ApiResponse<List<NotificationResponseDTO.NotificationDTO>> getNotificationByUserId(@PathVariable Long userId) {
-        List<NotificationResponseDTO.NotificationDTO> notificationDTOS = notificationServiceRead.getAllNotifications(userId);
+    public ApiResponse<List<NotificationResponseDTO.NotificationDTO>> getNotificationByUserId(@CurrentUser User user) {
+        List<NotificationResponseDTO.NotificationDTO> notificationDTOS = notificationServiceRead.getAllNotifications(user);
         return ApiResponse.onSuccess(notificationDTOS);
     }
 }
