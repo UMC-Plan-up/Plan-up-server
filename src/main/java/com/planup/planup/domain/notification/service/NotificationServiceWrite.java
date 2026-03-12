@@ -1,5 +1,6 @@
 package com.planup.planup.domain.notification.service;
 
+import com.planup.planup.domain.notification.dto.NotificationReadRequest;
 import com.planup.planup.domain.notification.entity.Notification;
 import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.entity.TargetType;
@@ -14,5 +15,5 @@ public interface NotificationServiceWrite {
 
     void markAsRead(Long notificationId, Long userId);
 
-    void markAsRead(List<Long> notificationList, Long userId);
+    void markAsRead(NotificationReadRequest request, Long userId);
 }

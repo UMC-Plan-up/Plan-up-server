@@ -2,6 +2,7 @@ package com.planup.planup.domain.notification.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.NotificationError;
+import com.planup.planup.domain.notification.dto.NotificationReadRequest;
 import com.planup.planup.domain.notification.entity.Notification;
 import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.entity.TargetType;
@@ -87,8 +88,8 @@ public class NotificationServiceWriteImpl implements NotificationServiceWrite {
     }
 
     @Override
-    public void markAsRead(List<Long> notificationList, Long userId) {
-        for (Long notificationId : notificationList) {
+    public void markAsRead(NotificationReadRequest request, Long userId) {
+        for (Long notificationId : request.notificationIdList()) {
             markAsRead(notificationId, userId);
         }
     }

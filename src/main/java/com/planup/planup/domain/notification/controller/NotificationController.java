@@ -1,6 +1,7 @@
 package com.planup.planup.domain.notification.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
+import com.planup.planup.domain.notification.dto.NotificationReadRequest;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.notification.entity.NotificationType;
 import com.planup.planup.domain.notification.service.NotificationServiceRead;
@@ -26,8 +27,8 @@ public class NotificationController {
     }
 
     @PatchMapping("/{notificationId}/list")
-    public ApiResponse<Void> patchNotificationListRead(@CurrentUser Long userId, List<Long> notificationIdList) {
-        notificationServiceWrite.markAsRead(notificationIdList, userId);
+    public ApiResponse<Void> patchNotificationListRead(@CurrentUser Long userId, @RequestBody NotificationReadRequest request) {
+        notificationServiceWrite.markAsRead(request, userId);
         return ApiResponse.onSuccess(null);
     }
 
