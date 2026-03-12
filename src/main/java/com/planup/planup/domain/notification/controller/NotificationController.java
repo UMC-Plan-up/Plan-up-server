@@ -33,9 +33,9 @@ public class NotificationController {
         return ApiResponse.onSuccess(null);
     }
 
-    @GetMapping("/unread/{receiverId}")
+    @GetMapping("/unread")
     public ApiResponse<List<NotificationResponseDTO.NotificationDTO>> getUnreadNotifications(
-            @PathVariable Long receiverId) {
+            @CurrentUser Long receiverId) {
 
         List<NotificationResponseDTO.NotificationDTO> unreadNotifications =
                 notificationServiceRead.getUnreadNotifications(receiverId);
