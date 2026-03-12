@@ -63,7 +63,7 @@ public class NotificationController {
     )
     @GetMapping("/unread/{type}")
     public ApiResponse<List<NotificationResponseDTO.NotificationDTO>> getUnreadNotificationsWithType(
-            @PathVariable Long receiverId,
+            @CurrentUser Long receiverId,
             @PathVariable NotificationType.NotificationGroup type) {
 
         List<NotificationResponseDTO.NotificationDTO> unreadNotifications =
@@ -77,7 +77,7 @@ public class NotificationController {
             summary = "전체 알림 조회",
             description = "현재 로그인한 사용자의 전체 알림 목록을 조회합니다."
     )
-    @GetMapping("/{userId}")
+    @GetMapping()
     public ApiResponse<List<NotificationResponseDTO.NotificationDTO>> getNotificationByUserId(@CurrentUser User user) {
         List<NotificationResponseDTO.NotificationDTO> notificationDTOS = notificationServiceRead.getAllNotifications(user);
         return ApiResponse.onSuccess(notificationDTOS);
