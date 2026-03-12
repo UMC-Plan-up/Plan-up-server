@@ -24,6 +24,12 @@ public class NotificationController {
         return ApiResponse.onSuccess(null);
     }
 
+    @PatchMapping("/{notificationId}")
+    public ApiResponse<Void> patchNotificationListRead(Long userId, List<Long> notificationIdList) {
+        notificationServiceWrite.markAsRead(notificationIdList, userId);
+        return ApiResponse.onSuccess(null);
+    }
+
     @GetMapping("/unread/{receiverId}")
     public ApiResponse<List<NotificationResponseDTO.NotificationDTO>> getUnreadNotifications(
             @PathVariable Long receiverId) {

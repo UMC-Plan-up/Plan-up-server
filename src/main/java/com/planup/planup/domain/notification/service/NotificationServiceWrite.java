@@ -13,4 +13,6 @@ public interface NotificationServiceWrite {
     Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId, List<String> updatedParts);
 
     void markAsRead(Long notificationId, Long userId);
+
+    void markAsRead(List<Long> notificationList, Long userId);
 }
