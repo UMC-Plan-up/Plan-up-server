@@ -61,7 +61,7 @@ public class NotificationServiceReadImpl implements NotificationServiceRead {
     @Override
     public List<NotificationResponseDTO.NotificationDTO> getTop5RecentByUser(Long userId) {
         User receiver = userService.getUserByUserId(userId);
-        List<Notification> notificationList = notificationRepository.findTop3ByReceiverOrderByCreatedAtDesc(receiver);
+        List<Notification> notificationList = notificationRepository.findTop5ByReceiverOrderByCreatedAtDesc(receiver);
         return NotificationConverter.toNotificationDTOs(notificationList);
     }
 
