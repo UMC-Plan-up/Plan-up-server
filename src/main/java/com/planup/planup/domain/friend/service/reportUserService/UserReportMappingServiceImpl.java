@@ -42,20 +42,51 @@ public class UserReportMappingServiceImpl implements UserReportMappingService {
 
         userReportMappingRepository.saveAndFlush(userReport);
 
-        reported.incrementReportCount();
+        reported.incrementComplaintCount();
 
         SanctionDetailReason topReason = userReportMappingRepository
                 .findTopReasonByReportedId(reported.getId())
                 .orElse(reason);
 
-        if (reported.getReportCount() >= 5) {
+        if (reported.getComplaintCount() >= 5) {
             reported.applyDeletion(topReason);
-        } else if (reported.getReportCount() >= 3) {
+        } else if (reported.getComplaintCount() >= 3) {
             reported.applySuspension(topReason);
         } else {
             reported.updateSanctionReason(topReason);
         }
 
         return true;
+    }
+
+    @Override
+    @Transactional
+    public void createSystemReportUser(Long reporterId, Long targetUserId, SanctionDetailReason reason) {
+        User reporter = userService.getUserByUserId(reporterId);
+        User reported = userService.getUserByUserId(targetUserId);
+
+        UserReportMapping userReport = UserReportMapping.builder()
+                .reporter(reporter)
+                .reported(reported)
+                .reason(reason)
+                .blocked(false)
+                .status(ReportStatus.PENDING)
+                .build();
+
+        userReportMappingRepository.saveAndFlush(userReport);
+
+        reported.incrementComplaintCount();
+
+        SanctionDetailReason topReason = userReportMappingRepository
+                .findTopReasonByReportedId(reported.getId())
+                .orElse(reason);
+
+        if (reported.getComplaintCount() >= 5) {
+            reported.applyDeletion(topReason);
+        } else if (reported.getComplaintCount() >= 3) {
+            reported.applySuspension(topReason);
+        } else {
+            reported.updateSanctionReason(topReason);
+        }
     }
 }
