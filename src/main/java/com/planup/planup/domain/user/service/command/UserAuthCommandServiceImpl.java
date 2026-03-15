@@ -194,7 +194,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                     user.getSanctionEndAt(),
                     user.getSanctionReason(),
                     user.getSanctionDetailReason(),
-                    user.getReportCount()
+                    user.getComplaintCount()
             );
         }
         if (user.getUserActivate() == UserActivate.SUSPENDED) {
@@ -206,7 +206,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                         user.getSanctionEndAt(),
                         user.getSanctionReason(),
                         user.getSanctionDetailReason(),
-                        user.getReportCount()
+                        user.getComplaintCount()
                 );
             }
         }
