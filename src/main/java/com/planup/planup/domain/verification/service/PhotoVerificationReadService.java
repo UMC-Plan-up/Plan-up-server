@@ -51,8 +51,10 @@ public class PhotoVerificationReadService {
 
     private static Map<LocalDate, Integer> calcVerificationLocalDate(List<PhotoVerification> verifications) {
         Map<LocalDate, Integer> dailyCount = new HashMap<>();
-        // 날짜별 인증 수 카운팅
+        // 날짜별 인증 수 카운팅 (신고 삭제된 사진 제외)
         for (PhotoVerification photoVerification : verifications) {
+            if (photoVerification.isDeleted()) continue;
+
             LocalDate date = photoVerification.getCreatedAt().toLocalDate();
 
             int photoCount = photoVerification.getPhotoImgs() != null ? photoVerification.getPhotoImgs().size() : 0;
