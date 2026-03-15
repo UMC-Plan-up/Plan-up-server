@@ -5,6 +5,7 @@ import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.apiPayload.exception.custom.UserGoalException;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
+import com.planup.planup.domain.complaint.repository.GoalComplaintMappingRepository;
 import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
@@ -63,6 +64,7 @@ public class GoalServiceImpl implements GoalService{
     private final NotificationCreateService notificationCreateService;
     private final ReactionCommandService reactionCommandService;
     private final ReactionRepository reactionRepository;
+    private final GoalComplaintMappingRepository goalComplaintMappingRepository;
     //목표 생성
     @Transactional
     public GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto createGoalDto){
@@ -103,9 +105,11 @@ public class GoalServiceImpl implements GoalService{
     public List<GoalResponseDto.GoalCreateListDto> getFriendGoalsByCategory(Long userId, GoalCategory goalCategory) {
         userQueryService.getUserByUserId(userId);
 
+        List<Long> reportedGoalIds = goalComplaintMappingRepository.findReportedGoalIdsByReporterId(userId);
         List<UserGoal> friendGoals = userGoalRepository.findFriendGoalsByCategory(userId, goalCategory);
 
         return friendGoals.stream()
+                .filter(userGoal -> !reportedGoalIds.contains(userGoal.getGoal().getId()))
                 .map(userGoal -> {
                     User creator = userGoalRepository.findByGoalIdAndStatus(
                             userGoal.getGoal().getId(), Status.ADMIN).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL)).getUser();
@@ -118,10 +122,12 @@ public class GoalServiceImpl implements GoalService{
 
     //목표 리스트 조회(목표 생성시 -> 세부 내용 조회X) 카테고리별 커뮤니티 목표
     @Transactional(readOnly = true)
-    public List<GoalResponseDto.GoalCreateListDto> getCommunityGoalsByCategory(GoalCategory goalCategory) {
+    public List<GoalResponseDto.GoalCreateListDto> getCommunityGoalsByCategory(Long userId, GoalCategory goalCategory) {
+        List<Long> reportedGoalIds = goalComplaintMappingRepository.findReportedGoalIdsByReporterId(userId);
         List<UserGoal> communityGoals = userGoalRepository.findCommunityGoalsByCategory(goalCategory);
 
         return communityGoals.stream()
+                .filter(userGoal -> !reportedGoalIds.contains(userGoal.getGoal().getId()))
                 .map(userGoal -> {
                     User creator = userGoalRepository.findByGoalIdAndStatus(
                             userGoal.getGoal().getId(), Status.ADMIN).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL)).getUser();
@@ -152,9 +158,11 @@ public class GoalServiceImpl implements GoalService{
 
         friendService.isFriend(userId, friendsId);
 
+        List<Long> reportedGoalIds = goalComplaintMappingRepository.findReportedGoalIdsByReporterId(userId);
         List<UserGoal> userGoals = userGoalRepository.findByUserIdAndIsPublicTrue(friendsId);
 
         return userGoals.stream()
+                .filter(userGoal -> !reportedGoalIds.contains(userGoal.getGoal().getId()))
                 .map(GoalConvertor::toFriendGoalListDto)
                 .collect(Collectors.toList());
     }

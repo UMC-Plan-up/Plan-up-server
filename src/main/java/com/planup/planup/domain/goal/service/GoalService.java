@@ -17,7 +17,7 @@ public interface GoalService {
     //Command Service
     GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto dto);
     List<GoalResponseDto.GoalCreateListDto> getFriendGoalsByCategory(Long userId, GoalCategory goalCategory);
-    List<GoalResponseDto.GoalCreateListDto> getCommunityGoalsByCategory(GoalCategory goalCategory);
+    List<GoalResponseDto.GoalCreateListDto> getCommunityGoalsByCategory(Long userId, GoalCategory goalCategory);
 
     GoalResponseDto.MyGoalDetailDto getMyGoalDetails(Long goalId, Long userId);
     void updatePublicGoal(Long goalId, Long userId);

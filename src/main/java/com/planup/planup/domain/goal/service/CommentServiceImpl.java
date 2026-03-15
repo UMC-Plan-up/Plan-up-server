@@ -8,6 +8,7 @@ import com.planup.planup.domain.goal.entity.Comment;
 import com.planup.planup.domain.goal.entity.Enum.CommentStatus;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.complaint.repository.CommentComplaintMappingRepository;
 import com.planup.planup.domain.goal.repository.CommentRepository;
 import com.planup.planup.domain.goal.repository.GoalRepository;
 import com.planup.planup.domain.report.entity.GoalReport;
@@ -30,6 +31,7 @@ public class CommentServiceImpl implements CommentService {
     private final UserGoalService userGoalService;
     private final GoalReportReadService goalReportService;
     private final UserQueryService userQueryService;
+    private final CommentComplaintMappingRepository commentComplaintMappingRepository;
 
     @Override
     @Transactional
@@ -85,9 +87,11 @@ public class CommentServiceImpl implements CommentService {
     public List<CommentResponseDto.CommentDto> getComments(Long goalId, Long userId) {
         validateUserGoalParticipation(goalId, userId);
 
+        List<Long> reportedCommentIds = commentComplaintMappingRepository.findReportedCommentIdsByReporterId(userId);
         List<Comment> comments = commentRepository.findByGoalIdAndStatusOrderByCreatedAtAsc(goalId, CommentStatus.ACTIVE);
 
         return comments.stream()
+                .filter(comment -> !reportedCommentIds.contains(comment.getId()))
                 .map(comment -> CommentConverter.toResponseDto(comment, userId))
                 .collect(Collectors.toList());
     }
