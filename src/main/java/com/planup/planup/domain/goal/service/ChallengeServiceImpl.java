@@ -62,19 +62,9 @@ public class ChallengeServiceImpl implements ChallengeService {
         User user = userQueryService.getUserByUserId(users);
 
         //challenge가 아니다.
-        if (dto.goalType() != GoalType.CHALLENGE_PHOTO &&
-                dto.goalType() != GoalType.CHALLENGE_TIME) {
-            throw new ChallengeException(ErrorStatus.INVALID_HTTP_CHALLENGE_METHOD);
-        }
+        isNotChallengeThrow(dto);
 
-        VerificationType verificationType;
-
-        if (dto.goalType() == GoalType.CHALLENGE_TIME) {
-            verificationType = VerificationType.TIMER;
-        } else if (dto.goalType() == GoalType.CHALLENGE_PHOTO) {
-            verificationType = VerificationType.PHOTO;
-        }
-
+        VerificationType verificationType = getVerificationType(dto);
 
         Challenge timeChallenge = ChallengeConverter.toChallenge(dto, verificationType);
         Challenge save = challengeRepository.save(timeChallenge);
@@ -90,9 +80,22 @@ public class ChallengeServiceImpl implements ChallengeService {
         notificationFanoutService.createChallengeRequestSentAndReceive(user.getId(), friend.getId(), save);
 
         return save;
+    }
 
+    private static void isNotChallengeThrow(ChallengeRequestDTO.create dto) {
+        if (dto.goalType() != GoalType.CHALLENGE_PHOTO && dto.goalType() != GoalType.CHALLENGE_TIME) {
+            throw new ChallengeException(ErrorStatus.INVALID_HTTP_CHALLENGE_METHOD);
+        }
+    }
 
-        throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_TYPE);
+    private static VerificationType getVerificationType(ChallengeRequestDTO.create dto) {
+        if (dto.goalType() == GoalType.CHALLENGE_TIME) {
+            return VerificationType.TIMER;
+        } else if (dto.goalType() == GoalType.CHALLENGE_PHOTO) {
+            return VerificationType.PHOTO;
+        }
+
+        throw new ChallengeException(ErrorStatus.INVALID_HTTP_CHALLENGE_METHOD);
     }
 
     private void makingMyUserGoal(User user, Long save) {
@@ -141,10 +144,6 @@ public class ChallengeServiceImpl implements ChallengeService {
     public void rejectChallengeRequest(Long userId, Long challengeId) {
         User user = userQueryService.getUserByUserId(userId);
         Challenge challenge = getChallengeById(challengeId);
-
-        if (!challenge.getStatus().equals(ChallengeStatus.REQUESTED)) {
-            throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_STATUS);
-        }
 
         //챌린지 상태를 거절로 업데이트 한다.
         challenge.setChallengeStatus(ChallengeStatus.REJECTED);
