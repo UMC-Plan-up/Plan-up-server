@@ -45,7 +45,7 @@ public class Notification extends BaseTimeEntity {
     private User sender;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "group_name", nullable = false)
     private NotificationGroup group;
 
     @Enumerated(EnumType.STRING)
