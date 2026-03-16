@@ -3,7 +3,7 @@ package com.planup.planup.domain.notification.controller;
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.notification.dto.NotificationReadRequest;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
-import com.planup.planup.domain.notification.entity.notification.NotificationGroup;
+import com.planup.planup.domain.notification.entity.notification.TargetType;
 import com.planup.planup.domain.notification.service.notification.NotificationQueryService;
 import com.planup.planup.domain.notification.service.notification.NotificationCommandService;
 import com.planup.planup.domain.user.entity.User;
@@ -59,10 +59,10 @@ public class NotificationController {
     @GetMapping("/unread/{receiverId}/{type}")
     public ApiResponse<List<NotificationResponseDTO.NotificationDTO>> getUnreadNotificationsWithType(
             @PathVariable Long receiverId,
-            @PathVariable NotificationGroup type) {
+            @PathVariable TargetType type) {
 
         List<NotificationResponseDTO.NotificationDTO> unreadNotifications =
-                notificationServiceRead.getUnreadNotificationsWithType(receiverId, type);
+                notificationServiceRead.getUnreadNotificationsWithTargetType(receiverId, type);
 
         return ApiResponse.onSuccess(unreadNotifications);
     }
