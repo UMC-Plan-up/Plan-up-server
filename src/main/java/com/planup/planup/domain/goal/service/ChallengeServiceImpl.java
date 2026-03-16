@@ -67,43 +67,30 @@ public class ChallengeServiceImpl implements ChallengeService {
             throw new ChallengeException(ErrorStatus.INVALID_HTTP_CHALLENGE_METHOD);
         }
 
-        //Time 케이스
+        VerificationType verificationType;
+
         if (dto.goalType() == GoalType.CHALLENGE_TIME) {
-
-            Challenge timeChallenge = ChallengeConverter.toTimeChallenge(dto);
-            Challenge save = challengeRepository.save(timeChallenge);
-
-            //TODO: 실제 운영 서버에서 제거
-            isTestUser(friend, user, save);
-
-            challengeRepository.flush();
-
-            //UserGoal을 생성한다.
-            makingMyUserGoal(user, save.getId());
-
-            notificationFanoutService.createChallengeRequestSentAndReceive(user.getId(), friend.getId(), save);
-
-            return save;
+            verificationType = VerificationType.TIMER;
+        } else if (dto.goalType() == GoalType.CHALLENGE_PHOTO) {
+            verificationType = VerificationType.PHOTO;
         }
 
-        //photo 케이스
-        if (dto.goalType() == GoalType.CHALLENGE_PHOTO) {
 
-            Challenge photoChallenge = ChallengeConverter.toPhotoChallenge(dto);
-            Challenge save = challengeRepository.save(photoChallenge);
+        Challenge timeChallenge = ChallengeConverter.toChallenge(dto, verificationType);
+        Challenge save = challengeRepository.save(timeChallenge);
 
-            //TODO: 실제 운영 서버에서 제거
-            isTestUser(friend, user, save);
+        //TODO: 실제 운영 서버에서 제거
+        isTestUser(friend, user, save);
 
-            challengeRepository.flush();
+        challengeRepository.flush();
 
-            //UserGoal을 생성한다.
-            makingMyUserGoal(user, save.getId());
+        //UserGoal을 생성한다.
+        makingMyUserGoal(user, save.getId());
 
-            notificationFanoutService.createChallengeRequestSentAndReceive(user.getId(), friend.getId(), save);
+        notificationFanoutService.createChallengeRequestSentAndReceive(user.getId(), friend.getId(), save);
 
-            return save;
-        }
+        return save;
+
 
         throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_TYPE);
     }
