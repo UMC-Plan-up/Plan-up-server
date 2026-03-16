@@ -3,8 +3,6 @@ package com.planup.planup.domain.notification.service.notification;
 import com.planup.planup.domain.notification.converter.NotificationConverter;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
 import com.planup.planup.domain.notification.entity.notification.Notification;
-import com.planup.planup.domain.notification.entity.notification.NotificationGroup;
-import com.planup.planup.domain.notification.entity.notification.NotificationType;
 import com.planup.planup.domain.notification.entity.notification.TargetType;
 import com.planup.planup.domain.notification.repository.NotificationRepository;
 import com.planup.planup.domain.user.entity.User;
@@ -13,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,7 +43,7 @@ public class NotificationQueryServiceImpl implements NotificationQueryService {
 
         // DB에서 바로 필터링해서 가져오기
         List<Notification> notifications =
-                notificationRepository.findByReceiverAndReadFalseAndTargetType(receiver, type);
+                notificationRepository.findByReceiverAndIsReadFalseAndTargetType(receiver, type);
 
         return notifications.stream()
                 .map(NotificationConverter::toNotificationDTO)
