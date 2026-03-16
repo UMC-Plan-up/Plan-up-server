@@ -9,7 +9,7 @@ public enum TargetType {
      * 팀원이 목표를 달성한 경우, 목표
      */
 
-    GOAL, USER, REPORT,
+    GOAL, USER, REPORT, REACTION,
 
     CHALLENGE
 }

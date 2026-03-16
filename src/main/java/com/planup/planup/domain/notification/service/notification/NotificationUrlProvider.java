@@ -19,6 +19,7 @@ public class NotificationUrlProvider {
             case USER -> "/users/" + targetId;
             case REPORT -> "/reports/" + targetId;
             case CHALLENGE -> "/goals/" + targetId;
+            case REACTION -> "/reaction/" + targetId;
         };
 
     }
