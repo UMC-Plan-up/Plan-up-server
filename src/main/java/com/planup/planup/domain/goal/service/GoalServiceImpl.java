@@ -470,7 +470,7 @@ public class GoalServiceImpl implements GoalService{
 
     @Override
     public Goal getGoalById(Long id) {
-        return goalRepository.findById(id).orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
+        return goalRepository.findById(id).orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_GOAL));
     }
 
     @Override
