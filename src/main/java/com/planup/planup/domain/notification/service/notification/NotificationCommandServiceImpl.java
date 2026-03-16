@@ -7,9 +7,6 @@ import com.planup.planup.domain.notification.entity.notification.NotificationGro
 import com.planup.planup.domain.notification.entity.notification.NotificationType;
 import com.planup.planup.domain.notification.entity.notification.TargetType;
 import com.planup.planup.domain.notification.dto.NotificationReadRequest;
-import com.planup.planup.domain.notification.entity.Notification;
-import com.planup.planup.domain.notification.entity.NotificationType;
-import com.planup.planup.domain.notification.entity.TargetType;
 import com.planup.planup.domain.notification.entity.device.NotificationCreatedEvent;
 import com.planup.planup.domain.notification.repository.NotificationRepository;
 import com.planup.planup.domain.notification.service.NotificationPreferenceService;
