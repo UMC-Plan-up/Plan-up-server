@@ -134,9 +134,9 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_REFRESH_TOKEN(BAD_REQUEST, "TOKEN4005", "유효하지 않은 리프레시 토큰입니다."),
     // 로그아웃
     LOGOUT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN5002", "로그아웃 처리 중 오류가 발생했습니다."),
-    TOKEN_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "TOKEN4006", "잘못된 토큰 형식이거나 토큰 헤더가 누락되었습니다.")
+    TOKEN_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "TOKEN4006", "잘못된 토큰 형식이거나 토큰 헤더가 누락되었습니다."),
 
-    ;
+    TERMS_NOT_FOUND(HttpStatus.NOT_FOUND , "TERMS4001", "해당하지 않는 약관 아이디입니다.");
 
 
 

@@ -6,15 +6,16 @@ import com.planup.planup.domain.notification.entity.device.NotificationCreatedEv
 import com.planup.planup.domain.notification.entity.device.PushSender;
 import com.planup.planup.domain.notification.message.MessageContext;
 import com.planup.planup.domain.notification.message.NotificationMessageProvider;
-import com.planup.planup.domain.notification.repository.NotificationRepository;
-import com.planup.planup.domain.notification.service.NotificationServiceRead;
 import lombok.RequiredArgsConstructor;
+import org.antlr.v4.runtime.misc.MultiMap;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -29,15 +30,17 @@ public class NotificationPushListener {
 
         if (tokens.isEmpty()) return;
 
-//        switch (event.notificationType().getGroup()) {
-//            case GOAL -> "";
-//            case CHALLENGE -> "";
-//            case FEEDBACK -> "";
-//            case ETC -> "";
-//        }
+        String generatedMessage = NotificationMessageProvider.generate(
+                new MessageContext(event.notificationType(), event.senderName(), event.receiverName(), event.targetId(), event.updatedPartsStr(), null));
 
-        String generatedMessage = NotificationMessageProvider.generate(new MessageContext(event.notificationType(), event.senderName(), event.receiverName(), event.targetId(), event.updatedPartsStr(), null));
+        Map<String, String> data = Map.of(
+                "notificationId", String.valueOf(event.notificationId()),
+                "type", event.notificationType().name(),
+                "targetType", event.targetType().name(),
+                "targetId", String.valueOf(event.targetId())
+        );
 
-        PushSender.MulticastResult multicastResult = pushSender.sendMulticast(tokens, generatedMessage, "클릭해 확인해 보세요!");
+
+        PushSender.MulticastResult multicastResult = pushSender.sendMulticast(tokens, generatedMessage, "클릭해 확인해 보세요!", data);
     }
 }

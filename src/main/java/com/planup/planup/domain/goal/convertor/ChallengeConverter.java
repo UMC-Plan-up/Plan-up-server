@@ -13,7 +13,7 @@ import java.util.Date;
 
 public class ChallengeConverter {
 
-    public static Challenge toPhotoChallenge(ChallengeRequestDTO.create dto) {
+    public static Challenge toChallenge(ChallengeRequestDTO.create dto, VerificationType verificationType) {
         return Challenge.builder()
                 .goalName(dto.goalName())
                 .goalAmount(dto.goalAmount())
@@ -26,24 +26,7 @@ public class ChallengeConverter {
                 .penalty(dto.penalty())
                 .referencePeriod(dto.referencePeriod())
                 .frequency(dto.frequency())
-                .verificationType(VerificationType.PHOTO)
-                .build();
-    }
-
-    public static Challenge toTimeChallenge(ChallengeRequestDTO.create dto) {
-        return Challenge.builder()
-                .goalName(dto.goalName())
-                .goalAmount(dto.goalAmount())
-                .goalCategory(GoalCategory.CHALLENGE)
-                .goalType(dto.goalType())
-                .oneDose(dto.oneDose())
-                .endDate(dto.endDate().toLocalDate())
-                .limitFriendCount(2)
-                .status(dto.status())
-                .penalty(dto.penalty())
-                .referencePeriod(dto.referencePeriod())
-                .frequency(dto.frequency())
-                .verificationType(VerificationType.TIMER)
+                .verificationType(verificationType)
                 .build();
     }
 

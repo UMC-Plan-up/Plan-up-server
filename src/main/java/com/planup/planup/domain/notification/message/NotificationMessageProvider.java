@@ -3,8 +3,8 @@ package com.planup.planup.domain.notification.message;
 import com.planup.planup.domain.global.SpringContext;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.service.GoalService;
-import com.planup.planup.domain.notification.entity.Notification;
-import com.planup.planup.domain.notification.entity.NotificationType;
+import com.planup.planup.domain.notification.entity.notification.Notification;
+import com.planup.planup.domain.notification.entity.notification.NotificationType;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 

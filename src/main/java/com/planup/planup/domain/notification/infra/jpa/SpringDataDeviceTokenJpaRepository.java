@@ -12,4 +12,6 @@ public interface SpringDataDeviceTokenJpaRepository extends JpaRepository<Device
 
     Optional<DeviceTokenJpa> findByToken(String token);
     List<DeviceTokenJpa> findByUserIdAndActiveTrue(Long userId);
+
+    Optional<DeviceTokenJpa> findByUserIdAndDeviceIdAndActiveTrue(Long userId, String deviceId);
 }

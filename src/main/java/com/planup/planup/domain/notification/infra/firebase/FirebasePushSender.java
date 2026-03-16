@@ -4,14 +4,15 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.MulticastMessage;
-import com.planup.planup.apiPayload.code.status.ErrorStatus;
-import com.planup.planup.apiPayload.exception.custom.PushSendException;
 import com.planup.planup.domain.notification.entity.device.PushSender;
+import com.planup.planup.domain.notification.service.deviceToken.DeviceTokenService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import com.google.firebase.messaging.Notification;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 
@@ -20,7 +21,12 @@ import java.util.Map;
  * 여기서 사용 중인 Notification은 우리가 프로젝트 안에서 정의한 Notification 아님. fireBase 내부적으로 사용되는 클래스
  */
 @Component
+@RequiredArgsConstructor
 public class FirebasePushSender implements PushSender{
+
+    private final DeviceTokenService deviceTokenService;
+    private final int MAX_RETRIES = 2;
+    private final int SLEEP_TIME = 300;
 
     /**단일 토큰(기기)에 하나의 메시지를 보낸다. (제목/본문을 보낸다) */
     @Override
@@ -54,7 +60,65 @@ public class FirebasePushSender implements PushSender{
     }
 
     @Override
-    public MulticastResult sendMulticast(Collection<String> tokens, String title, String body) {
+    public MulticastResult sendMulticast(Collection<String> tokensCollection, String title, String body, Map<String, String> data) {
+        ArrayList<String> tokens = new ArrayList<>(tokensCollection);
+        int totalSuccess = 0;
+
+        // 누적 실패(최종 보고용)
+        List<PushSender.TokenFailure> finalFailures = new ArrayList<>();
+
+        // 이번 라운드에 보낼 대상
+        List<String> pending = tokens;
+
+        for (int attemptNo = 0; attemptNo <= MAX_RETRIES; attemptNo++) {
+            if (pending.isEmpty()) break;
+
+            //첫 번째는 바로 가고 두번째부터 대기 시간 가진다.
+            if (attemptNo > 0) {
+                sleepBackoff(SLEEP_TIME);
+            }
+
+            SendAttempt attempt = attempt(pending, title, body);
+            totalSuccess += attempt.successCount;
+
+            //실패한 것들 조회
+            List<TokenFailure> failures = attempt.failures();
+
+            //영구적인 실패는 바로 처리
+            List<PushSender.TokenFailure> permanent = failures.stream()
+                    .filter(f -> isPermanent(f.errorCode()))
+                    .toList();
+
+            if (!permanent.isEmpty()) {
+                deactivateTokens(permanent.stream().map(TokenFailure::token).toList());
+                finalFailures.addAll(permanent);
+            }
+
+            //다시 시도할 토큰들 정리
+            List<PushSender.TokenFailure> retryable = failures.stream()
+                    .filter(f -> isRetryableError(f.errorCode()))
+                    .toList();
+
+            //둘 다 아닌 것들은 재시도 안함
+            List<PushSender.TokenFailure> other = failures.stream()
+                    .filter(f -> !isPermanent(f.errorCode()) && !isRetryableError(f.errorCode()))
+                    .toList();
+            finalFailures.addAll(other);
+
+            //다음 시도에 할 토큰들 정리
+            pending = retryable.stream().map(TokenFailure::token).toList();
+
+            //마지막 시도라면: 그냥 다 실패로 처리
+            if (attemptNo == MAX_RETRIES && !pending.isEmpty()) {
+                finalFailures.addAll(retryable);
+            }
+        }
+
+        return new MulticastResult(totalSuccess, finalFailures.size(), finalFailures);
+    }
+
+    //전송을 시도한다.
+    private SendAttempt attempt(List<String> tokens, String title, String body) {
         try {
             var message = MulticastMessage.builder()
                     .setNotification(Notification.builder().setTitle(title).setBody(body).build())
@@ -77,11 +141,42 @@ public class FirebasePushSender implements PushSender{
                 }
                 i++;
             }
-            return new MulticastResult(res.getSuccessCount(), res.getFailureCount(), failures);
-        } catch (FirebaseMessagingException e) {
-            throw new PushSendException(ErrorStatus.PushSendError);
-        }
 
+            return new SendAttempt(res.getSuccessCount(), failures);
+        } catch (FirebaseMessagingException e) {
+            //에러가 발생하면 에러를 담아서 반환한다. 다음 시도 때 같이 할 수 있도록
+            String code = (e.getErrorCode() != null) ? e.getErrorCode().toString() : "INTERNAL";
+            List<TokenFailure> failures = tokens.stream().map(t -> new TokenFailure(t, code, e.getMessage())).toList();
+            return new SendAttempt(0, failures);
+        }
+    }
+
+    private boolean isRetryableError(String code) {
+        return switch (code) {
+            case "UNAVAILABLE", "INTERNAL", "DEADLINE_EXCEEDED", "RESOURCE_EXHAUSTED" -> true;
+            default -> false;
+        };
+    }
+
+    private boolean isPermanent(String code) {
+        return switch (code) {
+            case "UNREGISTERED", "INVALID_ARGUMENT", "SENDER_ID_MISMATCH", "THIRD_PARTY_AUTH_ERROR" -> true;
+            default -> false;
+        };
+    }
+
+    private void deactivateTokens(List<String> tokens) {
+        for (String token : tokens) {
+            deviceTokenService.deactivateByToken(token);
+        }
+    }
+
+    private record SendAttempt(int successCount, List<PushSender.TokenFailure> failures) {}
+
+    private void sleepBackoff(long ms) {
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException ignore) {}
     }
 }
 

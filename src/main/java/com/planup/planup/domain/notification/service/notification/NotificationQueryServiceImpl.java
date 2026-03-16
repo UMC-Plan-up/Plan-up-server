@@ -1,9 +1,10 @@
-package com.planup.planup.domain.notification.service;
+package com.planup.planup.domain.notification.service.notification;
 
 import com.planup.planup.domain.notification.converter.NotificationConverter;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
-import com.planup.planup.domain.notification.entity.Notification;
-import com.planup.planup.domain.notification.entity.NotificationType;
+import com.planup.planup.domain.notification.entity.notification.Notification;
+import com.planup.planup.domain.notification.entity.notification.NotificationGroup;
+import com.planup.planup.domain.notification.entity.notification.NotificationType;
 import com.planup.planup.domain.notification.repository.NotificationRepository;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.query.UserQueryService;
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class NotificationServiceReadImpl implements NotificationServiceRead {
+public class NotificationQueryServiceImpl implements NotificationQueryService {
 
     private final NotificationRepository notificationRepository;
     private final UserQueryService userService;
@@ -33,7 +34,7 @@ public class NotificationServiceReadImpl implements NotificationServiceRead {
 
     //읽지 않은 알림을 알림의 타입에 따라 가져온다
     @Override
-    public List<NotificationResponseDTO.NotificationDTO> getUnreadNotificationsWithType(Long receiverId, NotificationType.NotificationGroup type) {
+    public List<NotificationResponseDTO.NotificationDTO> getUnreadNotificationsWithType(Long receiverId, NotificationGroup type) {
         //받는 사람 조회
         User receiver = userService.getUserByUserId(receiverId);
 

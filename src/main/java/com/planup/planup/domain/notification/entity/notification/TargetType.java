@@ -1,4 +1,4 @@
-package com.planup.planup.domain.notification.entity;
+package com.planup.planup.domain.notification.entity.notification;
 
 public enum TargetType {
     /**
