@@ -40,13 +40,7 @@ public class NotificationCommandServiceImpl implements NotificationCommandServic
         //수신 설정 되어있는지 확인
         boolean enabled = preference.isEnabled(receiverId, group);
 
-        Notification notification = Notification.builder()
-                .receiver(receiver)
-                .sender(sender)
-                .type(notificationType)
-                .targetType(targetType)
-                .targetId(targetId)
-                .build();
+        Notification notification = Notification.create(sender, receiver, group, notificationType, targetType, targetId);
 
         Notification savedNotification = notificationRepository.save(notification);
 
@@ -71,14 +65,7 @@ public class NotificationCommandServiceImpl implements NotificationCommandServic
         //수신 설정 되어있는지 확인
         boolean enabled = preference.isEnabled(receiverId, group);
 
-        Notification notification = Notification.builder()
-                .receiver(receiver)
-                .sender(sender)
-                .type(notificationType)
-                .targetType(targetType)
-                .targetId(targetId)
-                .updatedGoalInfo(updatedPartsStr)
-                .build();
+        Notification notification = Notification.create(sender, receiver, group, notificationType, targetType, targetId);
 
         Notification savedNotification = notificationRepository.save(notification);
 
