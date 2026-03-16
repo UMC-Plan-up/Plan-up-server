@@ -22,7 +22,7 @@ public class UserStatCommandServiceImpl {
     private final UserStatRepository userStatRepository;
     private final UserStatQueryServiceImpl userStatQueryService;
     private final GoalService goalService;
-    private final UserQueryService userQueryService;
+
     private final SpecificGoalDaysRepository specificGoalDaysRepository;
 
     //특정 목표 기록

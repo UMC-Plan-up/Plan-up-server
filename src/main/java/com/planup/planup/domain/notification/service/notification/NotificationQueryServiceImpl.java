@@ -46,7 +46,7 @@ public class NotificationQueryServiceImpl implements NotificationQueryService {
 
         // DB에서 바로 필터링해서 가져오기
         List<Notification> notifications =
-                notificationRepository.findByReceiverAndIdAndReadFalseAndTargetType(receiver, type);
+                notificationRepository.findByReceiverAndReadFalseAndTargetType(receiver, type);
 
         return notifications.stream()
                 .map(NotificationConverter::toNotificationDTO)
