@@ -4,8 +4,6 @@ import com.planup.planup.domain.notification.entity.notification.Notification;
 import com.planup.planup.domain.notification.entity.notification.NotificationType;
 import com.planup.planup.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,21 +15,10 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<Notification> findByReceiverAndIsReadFalseOrderByCreatedAtDesc(User receiver);
 
     // 전체 알림 조회 (읽은 것 포함)
-    List<Notification> findByReceiverIdOrderByCreatedAtDesc(User receiver);
+    List<Notification> findByReceiverOrderByCreatedAtDesc(User receiver);
 
     //최근 3개의 알림 - 유저별
-    List<Notification> findTop3ByReceiverOrderByCreatedAtDesc(User receiver);
-
-    @Query("""
-      SELECT n
-      FROM Notification n
-      WHERE n.receiver = :receiver
-        AND n.isRead = false
-      ORDER BY n.createdAt DESC
-""")
-    List<Notification> findUnreadByReceiverAndType(
-            @Param("receiver") User receiver
-    );
+    List<Notification> findTop5ByReceiverOrderByCreatedAtDesc(User receiver);
 
     List<Notification> findByReceiverAndIsReadFalseAndTypeIn(User receiver, List<NotificationType> types);
 

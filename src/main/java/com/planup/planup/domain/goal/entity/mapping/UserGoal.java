@@ -128,4 +128,5 @@ public class UserGoal extends BaseTimeEntity {
     public void setGoalTime(int time) {
         this.goalTime = time;
     }
+
 }

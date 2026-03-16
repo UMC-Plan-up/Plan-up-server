@@ -12,13 +12,8 @@ import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
-import com.planup.planup.domain.goal.entity.TimeChallenge;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.ChallengeRepository;
-import com.planup.planup.domain.goal.repository.TimeChallengeRepository;
-import com.planup.planup.domain.notification.entity.notification.NotificationGroup;
-import com.planup.planup.domain.notification.entity.notification.NotificationType;
-import com.planup.planup.domain.notification.entity.notification.TargetType;
 import com.planup.planup.domain.notification.service.notification.NotificationFanoutService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.query.UserQueryService;
@@ -39,7 +34,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ChallengeServiceImpl implements ChallengeService {
 
-    private final TimeChallengeRepository timeChallengeRepository;
     private final ChallengeRepository challengeRepository;
     @Lazy
     private final GoalService goalService;
@@ -49,6 +43,7 @@ public class ChallengeServiceImpl implements ChallengeService {
     private final PhotoVerificationReadService photoVerificationReadService;
     private final TimerVerificationReadService timerVerificationReadService;
     private final UserQueryService userQueryService;
+
     @Override
     @Transactional
     public User getOtherMember(User user, Challenge challenge) {
@@ -66,19 +61,17 @@ public class ChallengeServiceImpl implements ChallengeService {
         User friend = userQueryService.getUserByUserId(dto.friendId());
         User user = userQueryService.getUserByUserId(users);
 
-        //challenge type이 아닌 경우 예외 처리
-        if (dto.goalType() == GoalType.FRIEND || dto.goalType() == GoalType.COMMUNITY) {
+        //challenge가 아니다.
+        if (dto.goalType() != GoalType.CHALLENGE_PHOTO &&
+                dto.goalType() != GoalType.CHALLENGE_TIME) {
             throw new ChallengeException(ErrorStatus.INVALID_HTTP_CHALLENGE_METHOD);
         }
 
         //Time 케이스
         if (dto.goalType() == GoalType.CHALLENGE_TIME) {
-            if (dto.timeChallenge() == null) {
-                throw new ChallengeException(ErrorStatus.MISSING_TIME_CHALLENGE_INFO);
-            }
 
-            TimeChallenge timeChallenge = ChallengeConverter.toTimeChallenge(dto);
-            TimeChallenge save = timeChallengeRepository.save(timeChallenge);
+            Challenge timeChallenge = ChallengeConverter.toTimeChallenge(dto);
+            Challenge save = challengeRepository.save(timeChallenge);
 
             //TODO: 실제 운영 서버에서 제거
             isTestUser(friend, user, save);
@@ -86,12 +79,10 @@ public class ChallengeServiceImpl implements ChallengeService {
             challengeRepository.flush();
 
             //UserGoal을 생성한다.
-            UserGoal myUserGoal = userGoalService.joinGoalWithEntity(user.getId(), save.getId());
-            myUserGoal.setStatus(Status.ADMIN);
-            myUserGoal.setActive(false, user);
+            makingMyUserGoal(user, save.getId());
 
-            //상대방의 userGoal은 아직 생성하지 않는다.
             notificationFanoutService.createChallengeRequestSentAndReceive(user.getId(), friend.getId(), save);
+
             return save;
         }
 
@@ -106,15 +97,21 @@ public class ChallengeServiceImpl implements ChallengeService {
 
             challengeRepository.flush();
 
-            userGoalService.joinGoal(user.getId(), save.getId());
-            userGoalService.joinGoal(friend.getId(), save.getId());
+            //UserGoal을 생성한다.
+            makingMyUserGoal(user, save.getId());
 
             notificationFanoutService.createChallengeRequestSentAndReceive(user.getId(), friend.getId(), save);
+
             return save;
         }
 
-
         throw new ChallengeException(ErrorStatus.INVALID_CHALLENGE_TYPE);
+    }
+
+    private void makingMyUserGoal(User user, Long save) {
+        UserGoal myUserGoal = userGoalService.joinGoalWithEntity(user.getId(), save);
+        myUserGoal.setStatus(Status.ADMIN);
+        myUserGoal.setActive(false, user);
     }
 
     private static void isTestUser(User friend, User user, Challenge save) {
@@ -128,13 +125,13 @@ public class ChallengeServiceImpl implements ChallengeService {
         Goal goal = goalService.getGoalById(challengeId);
 
         if (goal.getGoalType() == GoalType.CHALLENGE_PHOTO) {
-            if (goal instanceof Challenge photoChallenge) {
-                return ChallengeConverter.toChallengeResponseInfoPhotoVer(photoChallenge);
+            if (goal instanceof Challenge challenge) {
+                return ChallengeConverter.toChallengeResponseInfoPhotoVer(challenge);
 
             }
         } else if (goal.getGoalType() == GoalType.CHALLENGE_TIME) {
-            if (goal instanceof TimeChallenge timeChallenge) {
-                return ChallengeConverter.toChallengeResponseInfoTimeVer(timeChallenge);
+            if (goal instanceof Challenge challenge) {
+                return ChallengeConverter.toChallengeResponseInfoTimeVer(challenge);
             }
         }
 

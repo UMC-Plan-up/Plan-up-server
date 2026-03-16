@@ -4,15 +4,12 @@ import com.planup.planup.domain.goal.dto.ChallengeRequestDTO;
 import com.planup.planup.domain.goal.dto.ChallengeResponseDTO;
 import com.planup.planup.domain.goal.entity.Challenge;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
-import com.planup.planup.domain.goal.entity.Enum.Status;
+import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
-import com.planup.planup.domain.goal.entity.TimeChallenge;
-import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.List;
 
 public class ChallengeConverter {
 
@@ -24,17 +21,17 @@ public class ChallengeConverter {
                 .goalType(dto.goalType())
                 .oneDose(dto.oneDose())
                 .endDate(dto.endDate().toLocalDate())
-                .limitFriendCount(1)
+                .limitFriendCount(2)
                 .status(dto.status())
                 .penalty(dto.penalty())
-                .period(dto.period())
+                .referencePeriod(dto.referencePeriod())
                 .frequency(dto.frequency())
                 .verificationType(VerificationType.PHOTO)
                 .build();
     }
 
-    public static TimeChallenge toTimeChallenge(ChallengeRequestDTO.create dto) {
-        return TimeChallenge.builder()
+    public static Challenge toTimeChallenge(ChallengeRequestDTO.create dto) {
+        return Challenge.builder()
                 .goalName(dto.goalName())
                 .goalAmount(dto.goalAmount())
                 .goalCategory(GoalCategory.CHALLENGE)
@@ -44,7 +41,8 @@ public class ChallengeConverter {
                 .limitFriendCount(2)
                 .status(dto.status())
                 .penalty(dto.penalty())
-                .targetTime(dto.timeChallenge().targetTime())
+                .referencePeriod(dto.referencePeriod())
+                .frequency(dto.frequency())
                 .verificationType(VerificationType.TIMER)
                 .build();
     }
@@ -64,32 +62,39 @@ public class ChallengeConverter {
                 .build();
     }
 
-    public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoPhotoVer(Challenge photoChallenge) {
+    public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoPhotoVer(Challenge challenge) {
 
        return ChallengeResponseDTO.ChallengeResponseInfo.builder()
-                .id(photoChallenge.getId())
-                .goalName(photoChallenge.getGoalName())
-                .goalType(photoChallenge.getGoalType())
-               .oneDose(photoChallenge.getOneDose())
-                .endDate(photoChallenge.getEndDate())
-                .period(photoChallenge.getPeriod())
-                .frequency(photoChallenge.getFrequency())
-                .targetTime(null)
-                .build();
+               .id(challenge.getId())
+               .goalName(challenge.getGoalName())
+               .goalAmount(challenge.getGoalAmount())
+               .goalCategory(GoalCategory.CHALLENGE)
+               .goalType(GoalType.CHALLENGE_PHOTO)
+               .oneDose(challenge.getOneDose())
+               .endDate(challenge.getEndDate().atStartOfDay())
+               .status(challenge.getStatus())
+               .penalty(challenge.getPenalty())
+               .frequency(challenge.getFrequency())
+               .verificationType(VerificationType.PHOTO)
+               .referencePeriod(challenge.getReferencePeriod())
+               .build();
     }
 
-    public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoTimeVer(TimeChallenge timeChallenge) {
+    public static ChallengeResponseDTO.ChallengeResponseInfo toChallengeResponseInfoTimeVer(Challenge challenge) {
 
         return ChallengeResponseDTO.ChallengeResponseInfo.builder()
-                .id(timeChallenge.getId())
-//                .name(userGoal.getUser().getNickname())
-                .goalName(timeChallenge.getGoalName())
-                .goalType(timeChallenge.getGoalType())
-                .oneDose(timeChallenge.getOneDose())
-                .endDate(timeChallenge.getEndDate())
-                    .period(timeChallenge.getPeriod())
-                    .frequency(0)
-                    .targetTime(timeChallenge.getTargetTime())
+                .id(challenge.getId())
+                .goalName(challenge.getGoalName())
+                .goalAmount(challenge.getGoalAmount())
+                .goalCategory(GoalCategory.CHALLENGE)
+                .goalType(GoalType.CHALLENGE_TIME)
+                .oneDose(challenge.getOneDose())
+                .endDate(challenge.getEndDate().atStartOfDay())
+                .status(challenge.getStatus())
+                .penalty(challenge.getPenalty())
+                .frequency(challenge.getFrequency())
+                .verificationType(VerificationType.TIMER)
+                .referencePeriod(challenge.getReferencePeriod())
                 .build();
     }
 

@@ -19,6 +19,7 @@ public class Challenge extends Goal {
     private ChallengeStatus status = ChallengeStatus.REQUESTED;  // 거절/수락 상태
 
     private String penalty;
+    private Long referencePeriod;
 
     @Builder.Default
     private boolean isRePenalty = false;
@@ -30,5 +31,9 @@ public class Challenge extends Goal {
     public void setPenalty(String penalty) {
         this.penalty = penalty;
         this.isRePenalty = true;
+    }
+
+    public Long getReferencePeriod() {
+        return referencePeriod;
     }
 }

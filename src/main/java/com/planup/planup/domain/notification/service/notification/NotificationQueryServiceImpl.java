@@ -54,16 +54,15 @@ public class NotificationQueryServiceImpl implements NotificationQueryService {
 
     //유저의 모든 알림을 조회한다. (시간 순대로)
     @Override
-    public List<NotificationResponseDTO.NotificationDTO> getAllNotifications(Long receiverId) {
-        User receiver = userService.getUserByUserId(receiverId);
-        return NotificationConverter.toNotificationDTOs(notificationRepository.findByReceiverIdOrderByCreatedAtDesc(receiver));
+    public List<NotificationResponseDTO.NotificationDTO> getAllNotifications(User user) {
+        return NotificationConverter.toNotificationDTOs(notificationRepository.findByReceiverOrderByCreatedAtDesc(user));
     }
 
     //유저에 따라 가장 최근의 5개 알림을 반환한다. (읽음 여부와 상관없이)
     @Override
     public List<NotificationResponseDTO.NotificationDTO> getTop5RecentByUser(Long userId) {
         User receiver = userService.getUserByUserId(userId);
-        List<Notification> notificationList = notificationRepository.findTop3ByReceiverOrderByCreatedAtDesc(receiver);
+        List<Notification> notificationList = notificationRepository.findTop5ByReceiverOrderByCreatedAtDesc(receiver);
         return NotificationConverter.toNotificationDTOs(notificationList);
     }
 
