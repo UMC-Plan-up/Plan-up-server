@@ -52,6 +52,8 @@ public class DeviceTokenJpa extends BaseTimeEntity {
     private boolean active = true;
     private LocalDateTime lastSeenAt = LocalDateTime.now();
 
+    private LocalDateTime deactivatedAt;
+
     public DeviceTokenJpa(Long userId, String token, Platform platform, String appVersion, String locale, String deviceId) {
         this.userId = userId;
         this.token = token;
@@ -67,6 +69,7 @@ public class DeviceTokenJpa extends BaseTimeEntity {
 
     public void deactivate() {
         this.active = false;
+        deactivatedAt = LocalDateTime.now();
     }
 
     public void activate() {
