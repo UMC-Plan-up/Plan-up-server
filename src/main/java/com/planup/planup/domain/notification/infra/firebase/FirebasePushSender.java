@@ -10,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import com.google.firebase.messaging.Notification;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -25,8 +22,8 @@ import java.util.Map;
 public class FirebasePushSender implements PushSender{
 
     private final DeviceTokenService deviceTokenService;
-    private final int MAX_RETRIES = 2;
-    private final int SLEEP_TIME = 300;
+    private static final int MAX_RETRIES = 2;
+    private static final int SLEEP_TIME = 300;
 
     /**단일 토큰(기기)에 하나의 메시지를 보낸다. (제목/본문을 보낸다) */
     @Override
@@ -44,7 +41,7 @@ public class FirebasePushSender implements PushSender{
      * setNotification 설정 안함 -> 알림이 안갈 수 있음. 조용한 안내 */
     @Override
     public String sendDataOnly(String token, Map<String, String> data) throws FirebaseMessagingException {
-        var msg = Message.builder().setToken(token).putAllData(data).build();
+        var msg = Message.builder().setToken(token).putAllData(data == null ? Map.of() : data).build();
         return FirebaseMessaging.getInstance().send(msg);
     }
 
@@ -61,11 +58,24 @@ public class FirebasePushSender implements PushSender{
 
     @Override
     public MulticastResult sendMulticast(Collection<String> tokensCollection, String title, String body, Map<String, String> data) {
-        ArrayList<String> tokens = new ArrayList<>(tokensCollection);
         int totalSuccess = 0;
 
         // 누적 실패(최종 보고용)
         List<PushSender.TokenFailure> finalFailures = new ArrayList<>();
+
+        if (tokensCollection == null || tokensCollection.isEmpty()) {
+            return new MulticastResult(0, 0, List.of());
+        }
+
+        List<String> tokens = tokensCollection.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        if (tokens.isEmpty()) {
+            return new MulticastResult(0, 0, List.of());
+        }
+
 
         // 이번 라운드에 보낼 대상
         List<String> pending = tokens;
@@ -78,8 +88,8 @@ public class FirebasePushSender implements PushSender{
                 sleepBackoff(SLEEP_TIME);
             }
 
-            SendAttempt attempt = attempt(pending, title, body);
-            totalSuccess += attempt.successCount;
+            SendAttempt attempt = attempt(pending, title, body, data);
+            totalSuccess += attempt.successCount();
 
             //실패한 것들 조회
             List<TokenFailure> failures = attempt.failures();
@@ -114,15 +124,18 @@ public class FirebasePushSender implements PushSender{
             }
         }
 
+        //최종적으로 실패한 토큰들을 비활성화한다.
+        deactivateTokens(finalFailures.stream().map(TokenFailure::token).toList());
         return new MulticastResult(totalSuccess, finalFailures.size(), finalFailures);
     }
 
     //전송을 시도한다.
-    private SendAttempt attempt(List<String> tokens, String title, String body) {
+    private SendAttempt attempt(List<String> tokens, String title, String body, Map<String, String> data) {
         try {
             var message = MulticastMessage.builder()
                     .setNotification(Notification.builder().setTitle(title).setBody(body).build())
                     .addAllTokens(tokens)
+                    .putAllData(data == null ? Map.of() : data)
                     .build();
             var res = FirebaseMessaging.getInstance().sendMulticast(message);
 
@@ -134,7 +147,7 @@ public class FirebasePushSender implements PushSender{
                     var ex = r.getException();
                     String code = ex.getErrorCode().toString();
                     failures.add(new PushSender.TokenFailure(
-                            new ArrayList<>(tokens).get(i),
+                            tokens.get(i),
                             code,
                             ex.getMessage()
                     ));
@@ -166,6 +179,8 @@ public class FirebasePushSender implements PushSender{
     }
 
     private void deactivateTokens(List<String> tokens) {
+        if (tokens == null) return;
+
         for (String token : tokens) {
             deviceTokenService.deactivateByToken(token);
         }
@@ -176,7 +191,9 @@ public class FirebasePushSender implements PushSender{
     private void sleepBackoff(long ms) {
         try {
             Thread.sleep(ms);
-        } catch (InterruptedException ignore) {}
+        } catch (InterruptedException ignore) {
+            Thread.currentThread().interrupt();
+        }
     }
 }
 

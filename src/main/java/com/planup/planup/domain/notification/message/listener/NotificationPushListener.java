@@ -33,12 +33,18 @@ public class NotificationPushListener {
         String generatedMessage = NotificationMessageProvider.generate(
                 new MessageContext(event.notificationType(), event.senderName(), event.receiverName(), event.targetId(), event.updatedPartsStr(), null));
 
-        Map<String, String> data = Map.of(
-                "notificationId", String.valueOf(event.notificationId()),
-                "type", event.notificationType().name(),
-                "targetType", event.targetType().name(),
-                "targetId", String.valueOf(event.targetId())
-        );
+        Map<String, String> data = new HashMap<>();
+        data.put("notificationId", String.valueOf(event.notificationId()));
+        data.put("receiverId", String.valueOf(event.receiverId()));
+        data.put("group", event.group() != null ? event.group().name() : "");
+        data.put("notificationType", event.notificationType() != null ? event.notificationType().name() : "");
+        data.put("targetType", event.targetType() != null ? event.targetType().name() : "");
+        data.put("targetId", event.targetId() != null ? String.valueOf(event.targetId()) : "");
+        data.put("senderId", event.senderId() != null ? String.valueOf(event.senderId()) : "");
+        data.put("senderName", event.senderName() != null ? event.senderName() : "");
+        data.put("senderProfile", event.senderProfile() != null ? event.senderProfile() : "");
+        data.put("receiverName", event.receiverName() != null ? event.receiverName() : "");
+        data.put("updatedPartsStr", event.updatedPartsStr() != null ? event.updatedPartsStr() : "");
 
 
         PushSender.MulticastResult multicastResult = pushSender.sendMulticast(tokens, generatedMessage, "클릭해 확인해 보세요!", data);

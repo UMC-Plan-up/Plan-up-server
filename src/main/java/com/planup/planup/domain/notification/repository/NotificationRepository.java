@@ -23,6 +23,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     List<Notification> findByReceiverAndIsReadFalseAndTypeIn(User receiver, List<NotificationType> types);
 
-    List<Notification> findByReceiverAndIsReadFalseAndTargetType(User receiver, TargetType type);
+    List<Notification> findByReceiverAndIsReadFalseAndTargetTypeOrderByCreatedAtDesc(User receiver, TargetType type);
 
 }

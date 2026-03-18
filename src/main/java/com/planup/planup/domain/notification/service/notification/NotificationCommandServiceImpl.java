@@ -47,7 +47,7 @@ public class NotificationCommandServiceImpl implements NotificationCommandServic
         //수신 동의 된 사람에게 전송 (동의 안해도 일단 저장은 한다.)
         if (enabled) {
             eventPublisher.publishEvent(new NotificationCreatedEvent(
-                    savedNotification.getId(), receiverId, notificationType, targetType, targetId, sender.getNickname(), receiver.getNickname(), null, group
+                    savedNotification.getId(), receiverId, notificationType, targetType, targetId, sender.getNickname(), senderId, sender.getProfileImg(), receiver.getNickname(), null, group
             ));
         }
 
@@ -72,7 +72,7 @@ public class NotificationCommandServiceImpl implements NotificationCommandServic
         //수신 동의 된 사람에게 전송 (동의 안해도 일단 저장은 한다.)
         if (enabled) {
             eventPublisher.publishEvent(new NotificationCreatedEvent(
-                    savedNotification.getId(), receiverId, notificationType, targetType, targetId, sender.getNickname(), receiver.getNickname(), savedNotification.getUpdatedGoalInfo(), group
+                    savedNotification.getId(), receiverId, notificationType, targetType, targetId, sender.getNickname(), senderId, sender.getProfileImg(), receiver.getNickname(), savedNotification.getUpdatedGoalInfo(), group
             ));
         }
 

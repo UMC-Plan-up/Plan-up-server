@@ -12,6 +12,11 @@ public record NotificationCreatedEvent(
         Long targetId,
 
         String senderName,
+
+        Long senderId,
+
+        String senderProfile,
+
         String receiverName,
         String updatedPartsStr,
 

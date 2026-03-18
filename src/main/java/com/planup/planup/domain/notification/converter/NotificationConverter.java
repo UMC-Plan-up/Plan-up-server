@@ -13,13 +13,25 @@ public class NotificationConverter {
     }
 
     public static NotificationResponseDTO.NotificationDTO toNotificationDTO(Notification notification) {
-        return NotificationResponseDTO.NotificationDTO.builder()
-                .notificationText(notification.getNotificationMessage())
-                .url(notification.getNotificationUrl())
-                .id(notification.getId())
-                .createdAt(notification.getCreatedAt())
-                .targeId(notification.getTargetId())
-                .type(notification.getTargetType())
-                .build();
+        return new NotificationResponseDTO.NotificationDTO(
+                notification.getId(),
+                notification.getNotificationMessage(),
+                notification.getNotificationUrl(),
+                notification.getCreatedAt(),
+
+                notification.getTargetId(),
+                notification.getTargetType(),
+
+                notification.getType(),
+                notification.getGroup(),
+
+                notification.getSender() != null ? notification.getSender().getId() : null,
+                notification.getSender() != null ? notification.getSender().getNickname() : null,
+                notification.getSender() != null ? notification.getSender().getProfileImg() : null,
+
+                notification.getUpdatedGoalInfo(),
+
+                notification.isRead()
+        );
     }
 }
