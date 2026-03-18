@@ -10,6 +10,7 @@ import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.CommentRepository;
 import com.planup.planup.domain.goal.repository.GoalRepository;
+import com.planup.planup.domain.notification.service.notification.NotificationFanoutService;
 import com.planup.planup.domain.report.entity.GoalReport;
 import com.planup.planup.domain.report.service.GoalReportService.GoalReportReadService;
 import com.planup.planup.domain.user.entity.User;
@@ -30,6 +31,7 @@ public class CommentServiceImpl implements CommentService {
     private final UserGoalService userGoalService;
     private final GoalReportReadService goalReportService;
     private final UserQueryService userQueryService;
+    private final NotificationFanoutService notificationFanoutService;
 
     @Override
     @Transactional
@@ -54,7 +56,14 @@ public class CommentServiceImpl implements CommentService {
                 requestDto.getContent(), writer, goal, parentComment);
         Comment savedComment = commentRepository.save(comment);
 
+        notificationFanoutService.createdByCreatedComment(userId, participantUserIds(goal, userId), savedComment, goal);
+
         return CommentConverter.toResponseDto(savedComment, userId);
+    }
+
+    private static List<Long> participantUserIds(Goal goal, Long excludeId) {
+        return goal.getUserGoals().stream().map(ug -> ug.getUser().getId())
+                .filter(userId -> !userId.equals(excludeId)).toList();
     }
 
     @Override

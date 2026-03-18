@@ -94,21 +94,17 @@ public class NotificationFanoutService {
     }
 
     //랭킹 자리를 빼앗긴 경우
+    //FIXME: 아직 구현 안됨
     public void createByRankingInterrupt(Long sender, Long receiver, Goal goal) {
         notificationService.createNotification(receiver, sender, NotificationType.RANK_DOWN, TargetType.GOAL, goal.getId(), NotificationGroup.SERVICE);
     }
 
     //목표 실천 알림
+    //FIXME: 아직 구현 안됨
     public void createByTimeToDo(Long receiver, Goal goal) {
 //        notificationService.createNotification(receiver, )
     }
 
-    //친구가 새로운 목표를 추가한 경우
-    public void createByFriendAddNewGoal( Long sender, List<Long> receivers, Goal goal) {
-        for (Long receiver : receivers) {
-            notificationService.createNotification(receiver, sender, NotificationType.FRIEND_GOAL_CREATED, TargetType.GOAL, goal.getId(), NotificationGroup.SERVICE);
-        }
-    }
 
     //참여자가 목표를 수정한 경우
     public void createdByEditedByParticipant(Long sender, List<Long> receivers, Goal goal) {
@@ -118,8 +114,10 @@ public class NotificationFanoutService {
     }
 
     //댓글단 경우
-    public void createdByCreatedComment(Long sender, Long receiver, Comment comment, Goal goal) {
-        notificationService.createNotification(receiver, sender, NotificationType.COMMENT_ON_VERIFICATION, TargetType.GOAL, goal.getId(), NotificationGroup.SERVICE);
+    public void createdByCreatedComment(Long sender, List<Long> receivers, Comment comment, Goal goal) {
+        for (Long receiver : receivers) {
+            notificationService.createNotification(receiver, sender, NotificationType.COMMENT_ON_VERIFICATION, TargetType.GOAL, goal.getId(), NotificationGroup.SERVICE);
+        }
     }
 
     //응원해요 받은 경우

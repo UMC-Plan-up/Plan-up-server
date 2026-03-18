@@ -63,6 +63,8 @@ public class GoalServiceImpl implements GoalService{
     private final NotificationFanoutService notificationCreateService;
     private final ReactionCommandService reactionCommandService;
     private final ReactionRepository reactionRepository;
+
+    private final NotificationFanoutService notificationFanoutService;
     //목표 생성
     @Transactional
     public GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto createGoalDto){
@@ -212,6 +214,14 @@ public class GoalServiceImpl implements GoalService{
                 userGoal.setGoalTime(dto.getGoalTime());
             }
         }
+
+        //수정 알림
+        notificationFanoutService.createdByEditedByParticipant(userId, participantUserIds(goal, userId), goal);
+    }
+
+    private static List<Long> participantUserIds(Goal goal, Long excludeId) {
+        return goal.getUserGoals().stream().map(ug -> ug.getUser().getId())
+                .filter(userId -> !userId.equals(excludeId)).toList();
     }
 
     //목표 삭제
