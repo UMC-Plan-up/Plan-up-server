@@ -22,6 +22,10 @@ public class NotificationFanoutService {
     private final NotificationCommandService notificationService;
     private final UserQueryService userQueryService;
 
+    /**
+     * 친구의 신청/수락/거절과 관련된 메서드 들은 FriendListener에 있음
+     */
+
     public void createChallengeEndNotification(Challenge challenge) {
         List<UserGoal> userGoals = challenge.getUserGoals();
 
