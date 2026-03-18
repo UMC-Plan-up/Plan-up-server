@@ -29,21 +29,20 @@ public class NotificationFanoutService {
     public void createChallengeEndNotification(Challenge challenge) {
         List<UserGoal> userGoals = challenge.getUserGoals();
 
-        if (userGoals == null || userGoals.isEmpty()) {
+        List<Long> nicknameList = new ArrayList<>();
+
+        if (userGoals == null || userGoals.size() < 2) {
             return;
         }
 
-        List<Long> nicknameList = new ArrayList<>();
+        Long user1 = userGoals.get(0).getUser().getId();
+        Long user2 = userGoals.get(1).getUser().getId();
 
-        for (UserGoal ug : userGoals) {
-            nicknameList.add(ug.getUser().getId());
-        }
-
-        notificationService.createNotification(nicknameList.get(0), nicknameList.get(1),
-                NotificationType.CHALLENGE_ENDED, TargetType.CHALLENGE, challenge.getId(), null);
-        notificationService.createNotification(nicknameList.get(1), nicknameList.get(0),
+        notificationService.createNotification(user1, user2,
                 NotificationType.CHALLENGE_ENDED, TargetType.CHALLENGE, challenge.getId(), null);
 
+        notificationService.createNotification(user2, user1,
+                NotificationType.CHALLENGE_ENDED, TargetType.CHALLENGE, challenge.getId(), null);
     }
 
     public void createChallengeStartNoti(User user, User friend, Challenge challenge) {
