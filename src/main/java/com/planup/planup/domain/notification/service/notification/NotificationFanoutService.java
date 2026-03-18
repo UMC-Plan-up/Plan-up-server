@@ -121,13 +121,17 @@ public class NotificationFanoutService {
     }
 
     //응원해요 받은 경우
-    public void createdByReactionCHEERToMyGoal(Long sender, Long receiver, Goal goal) {
-        notificationService.createNotification(receiver, sender, NotificationType.FEEDBACK_CHEERED, TargetType.REACTION, goal.getId(), NotificationGroup.SERVICE);
+    public void createdByReactionCHEERToMyGoal(Long sender, List<Long> receivers, Goal goal) {
+        for (Long receiver : receivers) {
+            notificationService.createNotification(receiver, sender, NotificationType.FEEDBACK_CHEERED, TargetType.REACTION, goal.getId(), NotificationGroup.SERVICE);
+        }
     }
 
     //분발해요 받은 경우
-    public void createdByReactionENCOURAGEToMyGoal(Long sender, Long receiver, Goal goal) {
-        notificationService.createNotification(receiver, sender, NotificationType.FEEDBACK_ENCOURAGED, TargetType.REACTION, goal.getId(), NotificationGroup.SERVICE);
+    public void createdByReactionENCOURAGEToMyGoal(Long sender, List<Long> receivers, Goal goal) {
+        for (Long receiver : receivers) {
+            notificationService.createNotification(receiver, sender, NotificationType.FEEDBACK_ENCOURAGED, TargetType.REACTION, goal.getId(), NotificationGroup.SERVICE);
+        }
     }
 
 }
