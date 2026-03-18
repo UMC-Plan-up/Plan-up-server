@@ -10,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import com.google.firebase.messaging.Notification;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -61,11 +58,24 @@ public class FirebasePushSender implements PushSender{
 
     @Override
     public MulticastResult sendMulticast(Collection<String> tokensCollection, String title, String body, Map<String, String> data) {
-        ArrayList<String> tokens = new ArrayList<>(tokensCollection);
         int totalSuccess = 0;
 
         // 누적 실패(최종 보고용)
         List<PushSender.TokenFailure> finalFailures = new ArrayList<>();
+
+        if (tokensCollection == null || tokensCollection.isEmpty()) {
+            return new MulticastResult(0, 0, List.of());
+        }
+
+        List<String> tokens = tokensCollection.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        if (tokens.isEmpty()) {
+            return new MulticastResult(0, 0, List.of());
+        }
+
 
         // 이번 라운드에 보낼 대상
         List<String> pending = tokens;
@@ -123,6 +133,7 @@ public class FirebasePushSender implements PushSender{
             var message = MulticastMessage.builder()
                     .setNotification(Notification.builder().setTitle(title).setBody(body).build())
                     .addAllTokens(tokens)
+                    .putAllData(data == null ? Map.of() : data)
                     .build();
             var res = FirebaseMessaging.getInstance().sendMulticast(message);
 
@@ -134,7 +145,7 @@ public class FirebasePushSender implements PushSender{
                     var ex = r.getException();
                     String code = ex.getErrorCode().toString();
                     failures.add(new PushSender.TokenFailure(
-                            new ArrayList<>(tokens).get(i),
+                            tokens.get(i),
                             code,
                             ex.getMessage()
                     ));
@@ -166,6 +177,8 @@ public class FirebasePushSender implements PushSender{
     }
 
     private void deactivateTokens(List<String> tokens) {
+        if (tokens == null) return;
+
         for (String token : tokens) {
             deviceTokenService.deactivateByToken(token);
         }
