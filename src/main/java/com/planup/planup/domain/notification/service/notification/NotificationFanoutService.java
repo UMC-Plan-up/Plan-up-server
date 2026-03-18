@@ -29,7 +29,7 @@ public class NotificationFanoutService {
     public void createChallengeEndNotification(Challenge challenge) {
         List<UserGoal> userGoals = challenge.getUserGoals();
 
-        if (userGoals == null) {
+        if (userGoals == null || userGoals.isEmpty()) {
             return;
         }
 
