@@ -12,9 +12,7 @@ import com.planup.planup.domain.goal.dto.UserWithGoalCountDTO;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.repository.UserGoalRepository;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.service.query.UserQueryService;
 import com.planup.planup.domain.verification.repository.TimerVerificationRepository;
-import com.planup.planup.domain.verification.service.TimerVerificationReadService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,11 +32,9 @@ import static com.planup.planup.domain.friend.entity.FriendStatus.ACCEPTED;
 public class FriendReadServiceImpl implements FriendReadService {
 
     private final FriendRepository friendRepository;
-    private final UserQueryService userService;
     private final FriendConverter friendConverter;
     private final UserGoalRepository userGoalRepository;
     private final FriendSummaryAssembler friendSummaryAssembler;
-    private final TimerVerificationReadService timerVerificationReadService;
     private final TimerVerificationRepository timerVerificationRepository;
 
     @Override

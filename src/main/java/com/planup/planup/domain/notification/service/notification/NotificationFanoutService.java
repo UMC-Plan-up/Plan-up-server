@@ -1,6 +1,8 @@
 package com.planup.planup.domain.notification.service.notification;
 
 import com.planup.planup.domain.goal.entity.Challenge;
+import com.planup.planup.domain.goal.entity.Comment;
+import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.notification.entity.notification.NotificationGroup;
 import com.planup.planup.domain.notification.entity.notification.NotificationType;
@@ -90,4 +92,44 @@ public class NotificationFanoutService {
     public void createReRequestPenalty(Long creator, Long target, Challenge challenge) {
         notificationService.createNotification(creator, target, NotificationType.PENALTY_PROPOSAL_RECEIVED, TargetType.CHALLENGE, challenge.getId(), NotificationGroup.SERVICE);
     }
+
+    //랭킹 자리를 빼앗긴 경우
+    public void createByRankingInterrupt(Long sender, Long receiver, Goal goal) {
+        notificationService.createNotification(receiver, sender, NotificationType.RANK_DOWN, TargetType.GOAL, goal.getId(), NotificationGroup.SERVICE);
+    }
+
+    //목표 실천 알림
+    public void createByTimeToDo(Long receiver, Goal goal) {
+//        notificationService.createNotification(receiver, )
+    }
+
+    //친구가 새로운 목표를 추가한 경우
+    public void createByFriendAddNewGoal( Long sender, List<Long> receivers, Goal goal) {
+        for (Long receiver : receivers) {
+            notificationService.createNotification(receiver, sender, NotificationType.FRIEND_GOAL_CREATED, TargetType.GOAL, goal.getId(), NotificationGroup.SERVICE);
+        }
+    }
+
+    //참여자가 목표를 수정한 경우
+    public void createdByEditedByParticipant(Long sender, List<Long> receivers, Goal goal) {
+        for (Long receiver : receivers) {
+            notificationService.createNotification(receiver, sender, NotificationType.GOAL_PART_UPDATED, TargetType.GOAL, goal.getId(), NotificationGroup.SERVICE);
+        }
+    }
+
+    //댓글단 경우
+    public void createdByCreatedComment(Long sender, Long receiver, Comment comment, Goal goal) {
+        notificationService.createNotification(receiver, sender, NotificationType.COMMENT_ON_VERIFICATION, TargetType.GOAL, goal.getId(), NotificationGroup.SERVICE);
+    }
+
+    //응원해요 받은 경우
+    public void createdByReactionCHEERToMyGoal(Long sender, Long receiver, Goal goal) {
+        notificationService.createNotification(receiver, sender, NotificationType.FEEDBACK_CHEERED, TargetType.REACTION, goal.getId(), NotificationGroup.SERVICE);
+    }
+
+    //분발해요 받은 경우
+    public void createdByReactionENCOURAGEToMyGoal(Long sender, Long receiver, Goal goal) {
+        notificationService.createNotification(receiver, sender, NotificationType.FEEDBACK_ENCOURAGED, TargetType.REACTION, goal.getId(), NotificationGroup.SERVICE);
+    }
+
 }
