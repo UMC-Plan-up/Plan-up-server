@@ -78,7 +78,7 @@ public class FirebasePushSender implements PushSender{
                 sleepBackoff(SLEEP_TIME);
             }
 
-            SendAttempt attempt = attempt(pending, title, body);
+            SendAttempt attempt = attempt(pending, title, body, data);
             totalSuccess += attempt.successCount;
 
             //실패한 것들 조회
@@ -118,7 +118,7 @@ public class FirebasePushSender implements PushSender{
     }
 
     //전송을 시도한다.
-    private SendAttempt attempt(List<String> tokens, String title, String body) {
+    private SendAttempt attempt(List<String> tokens, String title, String body, Map<String, String> data) {
         try {
             var message = MulticastMessage.builder()
                     .setNotification(Notification.builder().setTitle(title).setBody(body).build())
@@ -142,12 +142,12 @@ public class FirebasePushSender implements PushSender{
                 i++;
             }
 
-            return new SendAttempt(res.getSuccessCount(), failures);
+            return new SendAttempt(res.getSuccessCount(), failures, data);
         } catch (FirebaseMessagingException e) {
             //에러가 발생하면 에러를 담아서 반환한다. 다음 시도 때 같이 할 수 있도록
             String code = (e.getErrorCode() != null) ? e.getErrorCode().toString() : "INTERNAL";
             List<TokenFailure> failures = tokens.stream().map(t -> new TokenFailure(t, code, e.getMessage())).toList();
-            return new SendAttempt(0, failures);
+            return new SendAttempt(0, failures, data);
         }
     }
 
@@ -171,7 +171,7 @@ public class FirebasePushSender implements PushSender{
         }
     }
 
-    private record SendAttempt(int successCount, List<PushSender.TokenFailure> failures) {}
+    private record SendAttempt(int successCount, List<PushSender.TokenFailure> failures, Map<String, String> map) {}
 
     private void sleepBackoff(long ms) {
         try {
