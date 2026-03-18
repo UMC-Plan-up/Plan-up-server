@@ -38,9 +38,9 @@ public class FriendNotificationListener {
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onFriendRequestSent(FriendRejectSentEvent e) {
+    public void onFriendRejectSent(FriendRejectSentEvent e) {
         notificationService.createNotification(
                 e.receiverId(), e.senderId(),
-                NotificationType.FRIEND_REQUEST_SENT, TargetType.USER, e.senderId(), NotificationGroup.SERVICE);
+                NotificationType.FRIEND_REQUEST_REJECTED, TargetType.USER, e.senderId(), NotificationGroup.SERVICE);
     }
 }

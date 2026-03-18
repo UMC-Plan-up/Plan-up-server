@@ -7,6 +7,7 @@ import com.google.firebase.messaging.MulticastMessage;
 import com.planup.planup.domain.notification.entity.device.PushSender;
 import com.planup.planup.domain.notification.service.deviceToken.DeviceTokenService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import com.google.firebase.messaging.Notification;
 
@@ -19,6 +20,7 @@ import java.util.*;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class FirebasePushSender implements PushSender{
 
     private final DeviceTokenService deviceTokenService;
@@ -63,7 +65,15 @@ public class FirebasePushSender implements PushSender{
         // 누적 실패(최종 보고용)
         List<PushSender.TokenFailure> finalFailures = new ArrayList<>();
 
+        int requestedTokenCount = tokensCollection == null ? 0 : tokensCollection.size();
+        log.info("FCM multicast requested. requestedTokenCount={}, title={}, bodyLength={}, dataKeys={}",
+                requestedTokenCount,
+                title,
+                body == null ? 0 : body.length(),
+                data == null ? List.of() : data.keySet());
+
         if (tokensCollection == null || tokensCollection.isEmpty()) {
+            log.info("FCM multicast skipped. reason=empty_tokens");
             return new MulticastResult(0, 0, List.of());
         }
 
@@ -72,7 +82,10 @@ public class FirebasePushSender implements PushSender{
                 .distinct()
                 .toList();
 
+        log.info("FCM multicast normalized. distinctTokenCount={}", tokens.size());
+
         if (tokens.isEmpty()) {
+            log.info("FCM multicast skipped. reason=no_valid_tokens");
             return new MulticastResult(0, 0, List.of());
         }
 
@@ -81,85 +94,162 @@ public class FirebasePushSender implements PushSender{
         List<String> pending = tokens;
 
         for (int attemptNo = 0; attemptNo <= MAX_RETRIES; attemptNo++) {
-            if (pending.isEmpty()) break;
+            if (pending.isEmpty()) {
+                log.info("FCM multicast loop ended early. reason=no_pending_tokens, attemptNo={}", attemptNo);
+                break;
+            }
 
             //첫 번째는 바로 가고 두번째부터 대기 시간 가진다.
             if (attemptNo > 0) {
+                log.info("FCM multicast retry wait. attemptNo={}, sleepMs={}", attemptNo, SLEEP_TIME);
                 sleepBackoff(SLEEP_TIME);
             }
+
+            log.info("FCM multicast attempt started. attemptNo={}, pendingCount={}, pendingTokens={}",
+                    attemptNo, pending.size(), maskTokens(pending));
+
 
             SendAttempt attempt = attempt(pending, title, body, data);
             totalSuccess += attempt.successCount();
 
-            //실패한 것들 조회
             List<TokenFailure> failures = attempt.failures();
 
-            //영구적인 실패는 바로 처리
             List<PushSender.TokenFailure> permanent = failures.stream()
                     .filter(f -> isPermanent(f.errorCode()))
                     .toList();
 
-            if (!permanent.isEmpty()) {
-                deactivateTokens(permanent.stream().map(TokenFailure::token).toList());
-                finalFailures.addAll(permanent);
-            }
-
-            //다시 시도할 토큰들 정리
             List<PushSender.TokenFailure> retryable = failures.stream()
                     .filter(f -> isRetryableError(f.errorCode()))
                     .toList();
 
-            //둘 다 아닌 것들은 재시도 안함
             List<PushSender.TokenFailure> other = failures.stream()
                     .filter(f -> !isPermanent(f.errorCode()) && !isRetryableError(f.errorCode()))
                     .toList();
-            finalFailures.addAll(other);
 
-            //다음 시도에 할 토큰들 정리
+            log.info("FCM multicast attempt finished. attemptNo={}, successCount={}, failureCount={}, permanentCount={}, retryableCount={}, otherCount={}",
+                    attemptNo,
+                    attempt.successCount(),
+                    failures.size(),
+                    permanent.size(),
+                    retryable.size(),
+                    other.size());
+
+            if (!permanent.isEmpty()) {
+                log.warn("FCM permanent token failures. attemptNo={}, tokens={}, errorCodes={}",
+                        attemptNo,
+                        maskTokens(permanent.stream().map(TokenFailure::token).toList()),
+                        permanent.stream().map(TokenFailure::errorCode).distinct().toList());
+
+                deactivateTokens(permanent.stream().map(TokenFailure::token).toList());
+                finalFailures.addAll(permanent);
+            }
+
+            if (!other.isEmpty()) {
+                log.warn("FCM non-retryable token failures. attemptNo={}, tokens={}, errorCodes={}",
+                        attemptNo,
+                        maskTokens(other.stream().map(TokenFailure::token).toList()),
+                        other.stream().map(TokenFailure::errorCode).distinct().toList());
+                finalFailures.addAll(other);
+            }
+
             pending = retryable.stream().map(TokenFailure::token).toList();
 
-            //마지막 시도라면: 그냥 다 실패로 처리
+            if (!pending.isEmpty()) {
+                log.warn("FCM retryable token failures queued for retry. nextAttemptNo={}, retryCount={}, tokens={}, errorCodes={}",
+                        attemptNo + 1,
+                        pending.size(),
+                        maskTokens(pending),
+                        retryable.stream().map(TokenFailure::errorCode).distinct().toList());
+            }
+
             if (attemptNo == MAX_RETRIES && !pending.isEmpty()) {
+                log.error("FCM retries exhausted. retryableFailuresPromotedToFinal. retryCount={}, tokens={}",
+                        pending.size(),
+                        maskTokens(pending));
                 finalFailures.addAll(retryable);
             }
         }
 
-        //최종적으로 실패한 토큰들을 비활성화한다.
-        deactivateTokens(finalFailures.stream().map(TokenFailure::token).toList());
+        List<String> finalFailureTokens = finalFailures.stream().map(TokenFailure::token).toList();
+        if (!finalFailureTokens.isEmpty()) {
+            log.warn("FCM final failures deactivated. count={}, tokens={}",
+                    finalFailureTokens.size(),
+                    maskTokens(finalFailureTokens));
+            deactivateTokens(finalFailureTokens);
+        }
+
+        log.info("FCM multicast completed. totalSuccess={}, totalFailure={}, requestedTokenCount={}",
+                totalSuccess, finalFailures.size(), requestedTokenCount);
+
         return new MulticastResult(totalSuccess, finalFailures.size(), finalFailures);
     }
 
     //전송을 시도한다.
     private SendAttempt attempt(List<String> tokens, String title, String body, Map<String, String> data) {
         try {
+            log.debug("Calling Firebase sendMulticast. tokenCount={}, tokens={}, title={}, bodyLength={}, data={}",
+                    tokens.size(),
+                    maskTokens(tokens),
+                    title,
+                    body == null ? 0 : body.length(),
+                    data == null ? Map.of() : data);
+
             var message = MulticastMessage.builder()
                     .setNotification(Notification.builder().setTitle(title).setBody(body).build())
                     .addAllTokens(tokens)
                     .putAllData(data == null ? Map.of() : data)
                     .build();
+
             var res = FirebaseMessaging.getInstance().sendMulticast(message);
 
             var failures = new ArrayList<PushSender.TokenFailure>();
             var responses = res.getResponses();
             int i = 0;
+
             for (var r : responses) {
                 if (!r.isSuccessful()) {
                     var ex = r.getException();
-                    String code = ex.getErrorCode().toString();
+                    String code = ex.getErrorCode() != null ? ex.getErrorCode().toString() : "UNKNOWN";
+
+                    log.warn("FCM token send failed. token={}, errorCode={}, message={}",
+                            maskToken(tokens.get(i)),
+                            code,
+                            ex.getMessage());
+
                     failures.add(new PushSender.TokenFailure(
                             tokens.get(i),
                             code,
                             ex.getMessage()
                     ));
+                } else {
+                    log.debug("FCM token send success. token={}, messageId={}",
+                            maskToken(tokens.get(i)),
+                            r.getMessageId());
                 }
                 i++;
             }
 
+            log.info("Firebase sendMulticast response received. requestedCount={}, successCount={}, failureCount={}",
+                    tokens.size(),
+                    res.getSuccessCount(),
+                    res.getFailureCount());
+
             return new SendAttempt(res.getSuccessCount(), failures);
+
         } catch (FirebaseMessagingException e) {
-            //에러가 발생하면 에러를 담아서 반환한다. 다음 시도 때 같이 할 수 있도록
             String code = (e.getErrorCode() != null) ? e.getErrorCode().toString() : "INTERNAL";
-            List<TokenFailure> failures = tokens.stream().map(t -> new TokenFailure(t, code, e.getMessage())).toList();
+
+            log.error("Firebase sendMulticast exception. tokenCount={}, tokens={}, errorCode={}, message={}",
+                    tokens.size(),
+                    maskTokens(tokens),
+                    code,
+                    e.getMessage(),
+                    e);
+
+            List<TokenFailure> failures = tokens.stream()
+                    .map(t -> new TokenFailure(t, code, e.getMessage()))
+                    .toList();
+
             return new SendAttempt(0, failures);
         }
     }
@@ -194,6 +284,22 @@ public class FirebasePushSender implements PushSender{
         } catch (InterruptedException ignore) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    private String maskToken(String token) {
+        if (token == null) {
+            return "null";
+        }
+        if (token.length() < 12) {
+            return token.substring(0, Math.min(4, token.length())) + "...";
+        }
+        return token.substring(0, 6) + "..." + token.substring(token.length() - 4);
+    }
+
+    private List<String> maskTokens(Collection<String> tokens) {
+        return tokens.stream()
+                .map(this::maskToken)
+                .toList();
     }
 }
 

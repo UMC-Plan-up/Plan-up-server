@@ -63,6 +63,8 @@ public class GoalServiceImpl implements GoalService{
     private final NotificationFanoutService notificationCreateService;
     private final ReactionCommandService reactionCommandService;
     private final ReactionRepository reactionRepository;
+
+    private final NotificationFanoutService notificationFanoutService;
     //목표 생성
     @Transactional
     public GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto createGoalDto){
@@ -212,6 +214,14 @@ public class GoalServiceImpl implements GoalService{
                 userGoal.setGoalTime(dto.getGoalTime());
             }
         }
+
+        //수정 알림
+        notificationFanoutService.createdByEditedByParticipant(userId, participantUserIds(goal, userId), goal);
+    }
+
+    private static List<Long> participantUserIds(Goal goal, Long excludeId) {
+        return goal.getUserGoals().stream().map(ug -> ug.getUser().getId())
+                .filter(userId -> !userId.equals(excludeId)).toList();
     }
 
     //목표 삭제
@@ -449,6 +459,12 @@ public class GoalServiceImpl implements GoalService{
         boolean result = reactionCommandService.toggleReaction(userId, ReactionTargetType.GOAL, goalId, ReactionType.CHEER);
         GoalResponseDto.GoalReactionDto reactionData = getGoalReactions(goalId, userId);
 
+        if (result) {
+            Goal targetGoal = getGoalById(goalId);
+            List<Long> participantUserIds = participantUserIds(targetGoal, userId);
+            notificationFanoutService.createdByReactionCHEERToMyGoal(userId, participantUserIds, targetGoal);
+        }
+
         if (result) return GoalConvertor.toSuccessReactionResult("응원이 등록되었습니다.", reactionData);
         else throw new GoalException(ErrorStatus.REACTION_ADD_FAILED);
     }
@@ -457,6 +473,12 @@ public class GoalServiceImpl implements GoalService{
     public GoalResponseDto.ReactionResultDto addEncourage(Long goalId, Long userId) {
         boolean result = reactionCommandService.toggleReaction(userId, ReactionTargetType.GOAL, goalId, ReactionType.ENCOURAGE);
         GoalResponseDto.GoalReactionDto reactionData = getGoalReactions(goalId, userId);
+
+        if (result) {
+            Goal targetGoal = getGoalById(goalId);
+            List<Long> participantUserIds = participantUserIds(targetGoal, userId);
+            notificationFanoutService.createdByReactionENCOURAGEToMyGoal(userId, participantUserIds, targetGoal);
+        }
 
         if (result) return GoalConvertor.toSuccessReactionResult("응원이 등록되었습니다.", reactionData);
         else throw new GoalException(ErrorStatus.REACTION_ADD_FAILED);
