@@ -8,12 +8,14 @@ import com.planup.planup.domain.notification.entity.notification.NotificationTyp
 import com.planup.planup.domain.notification.entity.notification.TargetType;
 import com.planup.planup.domain.notification.service.notification.NotificationCommandService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class FriendNotificationListener {
 
     private final NotificationCommandService notificationService;
@@ -21,6 +23,8 @@ public class FriendNotificationListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onFriendRequestSent(FriendRequestSentEvent e) {
+        log.info("[FriendRequestSent] senderId={}, receiverId={}", e.senderId(), e.receiverId());
+
         notificationService.createNotification(
                 e.receiverId(), e.senderId(),
                 NotificationType.FRIEND_REQUEST_SENT, TargetType.USER, e.senderId(), NotificationGroup.SERVICE);
@@ -28,6 +32,8 @@ public class FriendNotificationListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onFriendRequestAccepted(FriendRequestAcceptedEvent e) {
+        log.info("[FriendRequestAccepted] senderId={}, receiverId={}", e.senderId(), e.receiverId());
+
         notificationService.createNotification(
                 e.senderId(), e.receiverId(),
                 NotificationType.FRIEND_REQUEST_ACCEPTED, TargetType.USER, e.receiverId(), NotificationGroup.SERVICE);
@@ -39,6 +45,8 @@ public class FriendNotificationListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onFriendRejectSent(FriendRejectSentEvent e) {
+        log.info("[FriendRequestRejected] senderId={}, receiverId={}", e.senderId(), e.receiverId());
+
         notificationService.createNotification(
                 e.receiverId(), e.senderId(),
                 NotificationType.FRIEND_REQUEST_REJECTED, TargetType.USER, e.senderId(), NotificationGroup.SERVICE);

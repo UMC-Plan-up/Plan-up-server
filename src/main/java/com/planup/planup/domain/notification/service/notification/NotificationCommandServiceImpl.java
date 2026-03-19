@@ -14,6 +14,7 @@ import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.query.UserQueryService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class NotificationCommandServiceImpl implements NotificationCommandService {
 
     private final NotificationRepository notificationRepository;
@@ -31,49 +33,72 @@ public class NotificationCommandServiceImpl implements NotificationCommandServic
     private final NotificationPreferenceService preference;
 
     //새로운 알림을 만든다.
+
     @Override
-    public Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId, NotificationGroup group) {
+    public Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType,
+                                           TargetType targetType, Long targetId, NotificationGroup group) {
+
+        log.info("[NotificationCreate] start - receiverId={}, senderId={}, type={}, targetType={}, targetId={}, group={}",
+                receiverId, senderId, notificationType, targetType, targetId, group);
 
         User receiver = userService.getUserByUserId(receiverId);
         User sender = userService.getUserByUserId(senderId);
 
-        //수신 설정 되어있는지 확인
         boolean enabled = preference.isEnabled(receiverId, group);
+        log.info("[NotificationCreate] preference - receiverId={}, enabled={}", receiverId, enabled);
 
         Notification notification = Notification.create(sender, receiver, group, notificationType, targetType, targetId);
-
         Notification savedNotification = notificationRepository.save(notification);
 
-        //수신 동의 된 사람에게 전송 (동의 안해도 일단 저장은 한다.)
+        log.info("[NotificationCreate] saved - notificationId={}", savedNotification.getId());
+
         if (enabled) {
+            log.info("[NotificationCreate] event publish - notificationId={}, receiverId={}",
+                    savedNotification.getId(), receiverId);
+
             eventPublisher.publishEvent(new NotificationCreatedEvent(
-                    savedNotification.getId(), receiverId, notificationType, targetType, targetId, sender.getNickname(), senderId, sender.getProfileImg(), receiver.getNickname(), null, group
+                    savedNotification.getId(), receiverId, notificationType, targetType, targetId,
+                    sender.getNickname(), senderId, sender.getProfileImg(),
+                    receiver.getNickname(), null, group
             ));
+        } else {
+            log.info("[NotificationCreate] skip push (disabled) - receiverId={}", receiverId);
         }
 
         return savedNotification;
     }
 
     @Override
-    public Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType, TargetType targetType, Long targetId, NotificationGroup group, List<String> updatedParts) {
+    public Notification createNotification(Long receiverId, Long senderId, NotificationType notificationType,
+                                           TargetType targetType, Long targetId, NotificationGroup group,
+                                           List<String> updatedParts) {
+
+        log.info("[NotificationCreateWithParts] start - receiverId={}, senderId={}, updatedParts={}",
+                receiverId, senderId, updatedParts);
 
         String updatedPartsStr = String.join(", ", updatedParts);
 
         User receiver = userService.getUserByUserId(receiverId);
         User sender = userService.getUserByUserId(senderId);
 
-        //수신 설정 되어있는지 확인
         boolean enabled = preference.isEnabled(receiverId, group);
+        log.info("[NotificationCreateWithParts] preference - receiverId={}, enabled={}", receiverId, enabled);
 
         Notification notification = Notification.create(sender, receiver, group, notificationType, targetType, targetId);
-
         Notification savedNotification = notificationRepository.save(notification);
 
-        //수신 동의 된 사람에게 전송 (동의 안해도 일단 저장은 한다.)
+        log.info("[NotificationCreateWithParts] saved - notificationId={}", savedNotification.getId());
+
         if (enabled) {
+            log.info("[NotificationCreateWithParts] event publish - notificationId={}", savedNotification.getId());
+
             eventPublisher.publishEvent(new NotificationCreatedEvent(
-                    savedNotification.getId(), receiverId, notificationType, targetType, targetId, sender.getNickname(), senderId, sender.getProfileImg(), receiver.getNickname(), savedNotification.getUpdatedGoalInfo(), group
+                    savedNotification.getId(), receiverId, notificationType, targetType, targetId,
+                    sender.getNickname(), senderId, sender.getProfileImg(),
+                    receiver.getNickname(), savedNotification.getUpdatedGoalInfo(), group
             ));
+        } else {
+            log.info("[NotificationCreateWithParts] skip push (disabled) - receiverId={}", receiverId);
         }
 
         return savedNotification;
