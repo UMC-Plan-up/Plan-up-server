@@ -49,6 +49,7 @@ public class NotificationCommandServiceImpl implements NotificationCommandServic
 
         Notification notification = Notification.create(sender, receiver, group, notificationType, targetType, targetId);
         Notification savedNotification = notificationRepository.save(notification);
+        notificationRepository.flush();
 
         log.info("[NotificationCreate] saved - notificationId={}", savedNotification.getId());
 
@@ -86,6 +87,7 @@ public class NotificationCommandServiceImpl implements NotificationCommandServic
 
         Notification notification = Notification.create(sender, receiver, group, notificationType, targetType, targetId);
         Notification savedNotification = notificationRepository.save(notification);
+        notificationRepository.flush();
 
         log.info("[NotificationCreateWithParts] saved - notificationId={}", savedNotification.getId());
 
