@@ -3,7 +3,6 @@ package com.planup.planup.domain.notification.infra.firebase;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.MulticastMessage;
 import com.planup.planup.domain.notification.entity.device.PushSender;
 import com.planup.planup.domain.notification.service.deviceToken.DeviceTokenService;
 import lombok.RequiredArgsConstructor;
@@ -187,20 +186,20 @@ public class FirebasePushSender implements PushSender{
     //전송을 시도한다.
     private SendAttempt attempt(List<String> tokens, String title, String body, Map<String, String> data) {
         try {
-            log.debug("Calling Firebase sendMulticast. tokenCount={}, tokens={}, title={}, bodyLength={}, data={}",
+            log.debug("Calling Firebase sendEachForMulticast. tokenCount={}, tokens={}, title={}, bodyLength={}, data={}",
                     tokens.size(),
                     maskTokens(tokens),
                     title,
                     body == null ? 0 : body.length(),
                     data == null ? Map.of() : data);
 
-            var message = MulticastMessage.builder()
+            var message = com.google.firebase.messaging.MulticastMessage.builder()
                     .setNotification(Notification.builder().setTitle(title).setBody(body).build())
                     .addAllTokens(tokens)
                     .putAllData(data == null ? Map.of() : data)
                     .build();
 
-            var res = FirebaseMessaging.getInstance().sendMulticast(message);
+            var res = FirebaseMessaging.getInstance().sendEachForMulticast(message);
 
             var failures = new ArrayList<PushSender.TokenFailure>();
             var responses = res.getResponses();
@@ -229,7 +228,7 @@ public class FirebasePushSender implements PushSender{
                 i++;
             }
 
-            log.info("Firebase sendMulticast response received. requestedCount={}, successCount={}, failureCount={}",
+            log.info("Firebase sendEachForMulticast response received. requestedCount={}, successCount={}, failureCount={}",
                     tokens.size(),
                     res.getSuccessCount(),
                     res.getFailureCount());
@@ -239,7 +238,7 @@ public class FirebasePushSender implements PushSender{
         } catch (FirebaseMessagingException e) {
             String code = (e.getErrorCode() != null) ? e.getErrorCode().toString() : "INTERNAL";
 
-            log.error("Firebase sendMulticast exception. tokenCount={}, tokens={}, errorCode={}, message={}",
+            log.error("Firebase sendEachForMulticast exception. tokenCount={}, tokens={}, errorCode={}, message={}",
                     tokens.size(),
                     maskTokens(tokens),
                     code,
@@ -302,4 +301,3 @@ public class FirebasePushSender implements PushSender{
                 .toList();
     }
 }
-
