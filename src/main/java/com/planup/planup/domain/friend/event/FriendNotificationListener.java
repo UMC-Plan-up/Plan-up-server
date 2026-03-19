@@ -9,6 +9,7 @@ import com.planup.planup.domain.notification.entity.notification.TargetType;
 import com.planup.planup.domain.notification.service.notification.NotificationCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -21,7 +22,7 @@ public class FriendNotificationListener {
     private final NotificationCommandService notificationService;
 
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void onFriendRequestSent(FriendRequestSentEvent e) {
         log.info("[FriendRequestSent] senderId={}, receiverId={}", e.senderId(), e.receiverId());
 
@@ -30,7 +31,7 @@ public class FriendNotificationListener {
                 NotificationType.FRIEND_REQUEST_SENT, TargetType.USER, e.senderId(), NotificationGroup.SERVICE);
     }
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void onFriendRequestAccepted(FriendRequestAcceptedEvent e) {
         log.info("[FriendRequestAccepted] senderId={}, receiverId={}", e.senderId(), e.receiverId());
 
@@ -43,7 +44,7 @@ public class FriendNotificationListener {
                 NotificationType.FRIEND_REQUEST_ACCEPTED, TargetType.USER, e.senderId(), NotificationGroup.SERVICE);
     }
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void onFriendRejectSent(FriendRejectSentEvent e) {
         log.info("[FriendRequestRejected] senderId={}, receiverId={}", e.senderId(), e.receiverId());
 

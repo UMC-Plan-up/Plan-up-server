@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.misc.MultiMap;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -27,6 +29,7 @@ public class NotificationPushListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onCreated(NotificationCreatedEvent event) {
         log.info("[NotificationCreatedEvent] received - notificationId={}, receiverId={}, type={}",
                 event.notificationId(), event.receiverId(), event.notificationType());
