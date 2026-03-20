@@ -74,6 +74,7 @@ public class NotificationPushListener {
             data.put("senderProfile", event.senderProfile() != null ? event.senderProfile() : "");
             data.put("receiverName", event.receiverName() != null ? event.receiverName() : "");
             data.put("updatedPartsStr", event.updatedPartsStr() != null ? event.updatedPartsStr() : "");
+            data.put("title", generatedMessage);
 
             log.info("[FCM] send start - receiverId={}, tokenCount={}", event.receiverId(), tokens.size());
 
