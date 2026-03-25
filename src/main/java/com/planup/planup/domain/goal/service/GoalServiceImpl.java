@@ -470,6 +470,11 @@ public class GoalServiceImpl implements GoalService{
     }
 
     @Transactional
+    public Boolean inviteFriend(Long userId, Long goalId, List<Long> friendList) {
+
+    }
+
+    @Transactional
     public GoalResponseDto.ReactionResultDto addEncourage(Long goalId, Long userId) {
         boolean result = reactionCommandService.toggleReaction(userId, ReactionTargetType.GOAL, goalId, ReactionType.ENCOURAGE);
         GoalResponseDto.GoalReactionDto reactionData = getGoalReactions(goalId, userId);

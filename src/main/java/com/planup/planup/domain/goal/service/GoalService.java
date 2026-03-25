@@ -48,4 +48,7 @@ public interface GoalService {
     List<User> getOtherMember(User user, Goal goal);
 
     GoalResponseDto.UserLevelInfo getUserLevel(Long userId);
+
+    Boolean inviteFriend(Long userId, Long goalId, GoalRequestDto.InviteFriendList friendList);
+
 }

@@ -55,7 +55,6 @@ public class UserGoal extends BaseTimeEntity {
     //이 필드 골 로 이동
     private int goalTime;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
