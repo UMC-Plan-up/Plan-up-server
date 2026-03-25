@@ -139,7 +139,13 @@ public enum ErrorStatus implements BaseErrorCode {
     LOGOUT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN5002", "로그아웃 처리 중 오류가 발생했습니다."),
     TOKEN_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "TOKEN4006", "잘못된 토큰 형식이거나 토큰 헤더가 누락되었습니다."),
 
-    TERMS_NOT_FOUND(HttpStatus.NOT_FOUND , "TERMS4001", "해당하지 않는 약관 아이디입니다.");
+    TERMS_NOT_FOUND(HttpStatus.NOT_FOUND , "TERMS4001", "해당하지 않는 약관 아이디입니다."),
+
+    //goalPhoto
+    GOAL_PHOTO_EMPTY(HttpStatus.BAD_REQUEST, "GOAL_PHOTO_4001", "요청된 GOALPHOTO가 비어있습니다"),
+    GOAL_PHOTO_ID(HttpStatus.NOT_FOUND, "GOAL_PHOTO_4041", "요청된 GOAL PHOTO ID 값이 존재하지 않습니다."),
+    INVALID_GOAL_PHOTO_FILE(BAD_REQUEST, "GOAL_PHOTO_4011", "유효하지 않은 GOAL PHOTO 파일입니다."),
+    GOAL_PHOTO_UPLOAD_FAILED(INTERNAL_SERVER_ERROR, "GOAL_PHOTO_5001", "사진 저장에 실패했습니다.");
 
 
 
