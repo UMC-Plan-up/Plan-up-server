@@ -15,6 +15,7 @@ import com.planup.planup.domain.user.service.query.UserQueryService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,11 +39,11 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         // 2. 해당 Friend 엔티티를 삭제한다.
         // 3. 성공적으로 삭제했으면 true, 아니면 false 반환
 
-        Optional<Friend> optinalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(
+        Optional<Friend> optionlFriend = friendRepository.findByUserIdAndFriendIdAndStatus(
                 FriendStatus.ACCEPTED, user.getId(), friendId);
 
-        if (optinalFriend.isPresent()) {
-            friendRepository.delete(optinalFriend.get());
+        if (optionlFriend.isPresent()) {
+            friendRepository.delete(optionlFriend.get());
             return true;
         }
         // 친구를 찾지 못했을 때
@@ -66,7 +67,7 @@ public class FriendWriteServiceImpl implements FriendWriteService {
             return true;
         }
 
-        throw new UserException(ErrorStatus._BAD_REQUEST);
+        throw new UserException(ErrorStatus.NO_REJECTABLE_FRIEND_REQUEST);
     }
 
     @Override
@@ -79,7 +80,7 @@ public class FriendWriteServiceImpl implements FriendWriteService {
             Friend friend = optionalFriend.get();
 
             //셀프 수락 여부 확인
-            friendValidator.isFriendRequester(friend, userId);
+            checkAcceptFriend(userId, friendId, friend);
 
             friend.setStatus(FriendStatus.ACCEPTED);
 
@@ -92,6 +93,12 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         }
 
         throw new UserException(ErrorStatus._BAD_REQUEST);
+    }
+
+    private void checkAcceptFriend(Long userId, Long friendId, Friend friend) {
+        friendValidator.isFriendRequester(friend, userId);
+        userBlockValidator.ensureExistUserBlock(userId, friendId);
+        friendValidator.ensureFriendUser(userId);
     }
 
     @Override
@@ -131,7 +138,11 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         //TODO: 실제 서비스에서 제거
         if (user.getEmail().equals("dummy11@planup.com")) friendRequest.setStatus(FriendStatus.ACCEPTED);
 
-        friendRepository.save(friendRequest);
+        try {
+            friendRepository.save(friendRequest);
+        } catch (DataIntegrityViolationException e) {                               //데이터베이스 제약을 위반한 경우 발생하는 에러
+            throw new UserException(ErrorStatus.ALREADY_REQUESTED_FRIEND);
+        }
 
         publisher.publishEvent(
                 FriendRequestSentEvent.of(friendId, userId)
@@ -143,6 +154,9 @@ public class FriendWriteServiceImpl implements FriendWriteService {
     private void checkRequestSendFriend(Long userId, Long friendId) {
         //이미 친구 관계인지 확인
         friendValidator.ensureNotAlreadyFriend(userId, friendId);
+
+        //지금 친구 신청이 가능한 친구인지 확인
+        friendValidator.ensureFriendUser(userId);
 
         //자기 자신에게 보내는 에러인지 확인
         friendValidator.ensureNotSelfRequest(userId, friendId);
