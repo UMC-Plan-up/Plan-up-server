@@ -230,22 +230,17 @@ public class GoalServiceImpl implements GoalService{
     public void deleteGoal(Long goalId, Long userId) {
         Goal goal = findGoalById(goalId);
 
-        UserGoal adminUserGoal = userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
-        if (adminUserGoal == null) {
-            throw new RuntimeException("목표의 관리자를 찾을 수 없습니다.");
-        }
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
+        if (!userGoal.getStatus().equals(Status.ADMIN)) throw new GoalException(ErrorStatus.NOT_USERGOAL_ADMIN);
 
-        if (!adminUserGoal.getUser().getId().equals(userId)) {
-            throw new RuntimeException("목표를 삭제할 권한이 없습니다.");
-        }
+        deleteGoalRelated(goal);
+    }
 
-        goalMemoRepository.deleteByGoalId(goalId);
-
-        List<UserGoal> allUserGoals = userGoalRepository.findByGoalId(goalId);
+    private void deleteGoalRelated(Goal goal) {
+        List<UserGoal> allUserGoals = userGoalRepository.findByGoalId(goal.getId());
+        goalMemoRepository.deleteByGoalId(goal.getId());
         userGoalRepository.deleteAll(allUserGoals);
-
-        commentRepository.deleteByGoalId(goalId);
-
+        commentRepository.deleteByGoalId(goal.getId());
         goalRepository.delete(goal);
     }
 
