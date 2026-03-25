@@ -95,6 +95,11 @@ public class FriendReadServiceImpl implements FriendReadService {
     }
 
     @Override
+    public boolean isFriendBoolean(Long userId, Long friendId) {
+        return friendRepository.existsByUsersAndStatus(userId, friendId, ACCEPTED);
+    }
+
+    @Override
     public Integer getTodayTotalSecTimeByUserGoal(UserGoal userGoal) {
         if (userGoal == null) {
             return 0;

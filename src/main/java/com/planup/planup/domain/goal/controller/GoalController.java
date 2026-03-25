@@ -3,10 +3,7 @@ package com.planup.planup.domain.goal.controller;
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.friend.service.FriendReadService;
-import com.planup.planup.domain.goal.dto.CommentRequestDto;
-import com.planup.planup.domain.goal.dto.CommentResponseDto;
-import com.planup.planup.domain.goal.dto.GoalRequestDto;
-import com.planup.planup.domain.goal.dto.GoalResponseDto;
+import com.planup.planup.domain.goal.dto.*;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.service.CommentService;
 import com.planup.planup.domain.goal.service.GoalService;
@@ -346,13 +343,13 @@ public class GoalController {
 
     @PostMapping("/{goalId}/invite")
     @Operation(summary = "GOAL에 친구 초대하기")
-    public ApiResponse<Boolean> inviteFrindToGoal(
+    public ApiResponse<InviteFriendResult> inviteFriendToGoal(
             @Parameter(description = "목표 ID", example = "1")
             @PathVariable Long goalId,
             @Valid @RequestBody GoalRequestDto.InviteFriendList friendList,
             @CurrentUser Long userId) {
-        Boolean aBoolean = goalService.inviteFriend(userId, goalId, friendList);
-        return ApiResponse.onSuccess(aBoolean);
+        InviteFriendResult result = goalService.inviteFriend(userId, goalId, friendList);
+        return ApiResponse.onSuccess(result);
     }
 }
 

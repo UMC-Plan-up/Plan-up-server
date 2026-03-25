@@ -9,6 +9,7 @@ import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
+import com.planup.planup.domain.goal.dto.InviteFriendResult;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
@@ -470,13 +471,32 @@ public class GoalServiceImpl implements GoalService{
     }
 
     @Transactional
-    public Boolean inviteFriend(Long userId, Long goalId, GoalRequestDto.InviteFriendList friendList) {
+    public InviteFriendResult inviteFriend(Long userId, Long goalId, GoalRequestDto.InviteFriendList friendList) {
+        List<Long> invited = new ArrayList<>();
+        List<Long> alreadyJoined = new ArrayList<>();
+        List<Long> notFriends = new ArrayList<>();
+
         List<Long> friendIdList = friendList.getFriendIdList();
 
-        for (Long friend : friendList) {
-            notificationFanoutService.createdByInviteFriendToGoal(userId, friend, goalId);
+        Goal goal = getGoalById(goalId);
+
+        for (Long friendId : friendIdList) {
+            if (!friendService.isFriendBoolean(userId, friendId)) {
+                notFriends.add(friendId);
+                continue;
+            }
+
+            if (userGoalRepository.existsUserGoalByGoalIdAndUserId(goalId, friendId)) {
+                alreadyJoined.add(friendId);
+                continue;
+            }
+
+//            challengeInviteService.invite(goalId, userId, friendId);
+            notificationFanoutService.createdByInviteFriendToGoal(userId, friendId, goalId);
+            invited.add(friendId);
         }
-        return true;
+
+        return new InviteFriendResult(invited, alreadyJoined, notFriends);
     }
 
     @Transactional
