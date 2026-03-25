@@ -10,7 +10,7 @@ public interface FriendReadService {
     List<User> getMyFriend(Long userId);
 
     //친구 리스트를 반환한다.
-    FriendResponseDTO.FriendSummaryList getFriendSummeryList(Long userId);
+    FriendResponseDTO.FriendSummaryList getFriendSummaryList(Long userId);
 
     List<FriendResponseDTO.FriendInfoSummary> getRequestedFriends(Long userId);
 

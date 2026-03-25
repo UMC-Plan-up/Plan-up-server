@@ -5,9 +5,9 @@ import com.planup.planup.domain.user.entity.User;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface FriendWriteService {
-    boolean deleteFriend(User user, Long friendId);
+    void deleteFriend(User user, Long friendId);
 
-    boolean rejectFriendRequest(Long userId, Long friendId);
+    void rejectFriendRequest(Long userId, Long friendId);
 
     boolean acceptFriendRequest(Long userId, Long friendId);
 

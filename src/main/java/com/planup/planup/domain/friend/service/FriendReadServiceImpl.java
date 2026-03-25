@@ -46,12 +46,12 @@ public class FriendReadServiceImpl implements FriendReadService {
 
     //친구 리스트를 반환한다.
     @Override
-    public FriendResponseDTO.FriendSummaryList getFriendSummeryList(Long userId) {
+    public FriendResponseDTO.FriendSummaryList getFriendSummaryList(Long userId) {
 
         List<User> friends = getMyFriend(userId);
 
         return FriendConverter.toFriendSummaryList(
-                toFriendSummary(friends)
+                toFriendSummaries(friends)
         );
     }
 
@@ -65,7 +65,7 @@ public class FriendReadServiceImpl implements FriendReadService {
         //friend 리스트 중에서 자신이 아닌 친구의 데이터를 모은다.
         List<User> friendList = getFriends(userId, friendRequests);
 
-        return toFriendSummary(friendList);
+        return toFriendSummaries(friendList);
     }
 
     @Override
@@ -106,7 +106,7 @@ public class FriendReadServiceImpl implements FriendReadService {
                 .toList();
     }
 
-    private List<FriendResponseDTO.FriendInfoSummary> toFriendSummary(List<User> friendList) {
+    private List<FriendResponseDTO.FriendInfoSummary> toFriendSummaries(List<User> friendList) {
         return friendList.stream()
                 .map(friendSummaryAssembler::assemble)
                 .collect(Collectors.toList());

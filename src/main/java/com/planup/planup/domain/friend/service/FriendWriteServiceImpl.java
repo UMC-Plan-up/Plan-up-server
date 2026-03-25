@@ -1,6 +1,7 @@
 package com.planup.planup.domain.friend.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.FriendException;
 import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
@@ -28,84 +29,60 @@ import java.util.Optional;
 public class FriendWriteServiceImpl implements FriendWriteService {
 
     private final FriendRepository friendRepository;
-    private final UserQueryService userService;
+    private final UserQueryService userQueryService ;
     private final FriendValidator friendValidator;
     private final UserBlockValidator userBlockValidator;
     private final ApplicationEventPublisher publisher;
 
     @Override
-    public boolean deleteFriend(User user, Long friendId) {
+    public void deleteFriend(User user, Long friendId) {
         // 1. userId와 friendId로 Friend 엔티티를 찾는다.
         // 2. 해당 Friend 엔티티를 삭제한다.
         // 3. 성공적으로 삭제했으면 true, 아니면 false 반환
 
-        Optional<Friend> optionlFriend = friendRepository.findByUserIdAndFriendIdAndStatus(
-                FriendStatus.ACCEPTED, user.getId(), friendId);
+        Friend friend = findByUserIdAndFriendId(FriendStatus.ACCEPTED, user.getId(), friendId, ErrorStatus.NOT_FRIEND);
 
-        if (optionlFriend.isPresent()) {
-            friendRepository.delete(optionlFriend.get());
-            return true;
-        }
-        // 친구를 찾지 못했을 때
-        throw new UserException(ErrorStatus._BAD_REQUEST);
+        friendRepository.delete(friend);
+        log.info("Delete friend relation. userId={}, friendId={}", user.getId(), friendId);
     }
 
     @Override
-    public boolean rejectFriendRequest(Long userId, Long friendId) {
+    public void rejectFriendRequest(Long userId, Long friendId) {
 
         //나(userId)에게 친구 신청한 친구(friendId)를 찾음
-        Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.REQUESTED, userId, friendId);
+        Friend friend = findByUserIdAndFriendId(FriendStatus.REQUESTED, userId, friendId, ErrorStatus.NO_REJECTABLE_FRIEND_REQUEST);
 
-        if (optionalFriend.isPresent()) {
-            optionalFriend.get().setStatus(FriendStatus.REJECTED);
+        friend.setStatus(FriendStatus.REJECTED);
 
-            //알림 생성
-            publisher.publishEvent(
-                    FriendRejectSentEvent.of(friendId, userId)
-            );
-
-            return true;
-        }
-
-        throw new UserException(ErrorStatus.NO_REJECTABLE_FRIEND_REQUEST);
+        //알림 생성
+        publisher.publishEvent(
+                FriendRejectSentEvent.of(friendId, userId)
+        );
+        log.info("Reject friend request. receiverId={}, senderId={}", userId, friendId);
     }
 
     @Override
     public boolean acceptFriendRequest(Long userId, Long friendId) {
         //나(userId)에게 친구 신청한 친구(friendId)를 찾음
-        Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.REQUESTED, userId, friendId);
+        Friend friend = findByUserIdAndFriendId(FriendStatus.REQUESTED, userId, friendId, ErrorStatus.NO_ACCEPTABLE_FRIEND_REQUEST);
 
-        if (optionalFriend.isPresent()) {
+        //셀프 수락 여부 확인
+        validateAcceptFriendRequest(userId, friendId, friend);
+        friend.setStatus(FriendStatus.ACCEPTED);
 
-            Friend friend = optionalFriend.get();
+        //커밋 이후 알림 생성
+        publisher.publishEvent(
+                FriendRequestAcceptedEvent.of(userId, friendId)
+        );
+        log.info("Accept friend request. receiverId={}, senderId={}", userId, friendId);
 
-            //셀프 수락 여부 확인
-            checkAcceptFriend(userId, friendId, friend);
-
-            friend.setStatus(FriendStatus.ACCEPTED);
-
-            //커밋 이후 알림 생성
-            publisher.publishEvent(
-                    FriendRequestAcceptedEvent.of(userId, friendId)
-            );
-
-            return true;
-        }
-
-        throw new UserException(ErrorStatus._BAD_REQUEST);
-    }
-
-    private void checkAcceptFriend(Long userId, Long friendId, Friend friend) {
-        friendValidator.isFriendRequester(friend, userId);
-        userBlockValidator.ensureExistUserBlock(userId, friendId);
-        friendValidator.ensureFriendUser(userId);
+        return true;
     }
 
     @Override
     public boolean createFriend(User user, User friend) {
         //에러 체크
         checkRequestSendFriend(user.getId(), friend.getId());
-
 
         // Friend 엔티티 생성
         Friend friendRequest = Friend.builder()
@@ -115,7 +92,6 @@ public class FriendWriteServiceImpl implements FriendWriteService {
                 .build();
 
         friendRepository.save(friendRequest);
-
         return true;
     }
 
@@ -125,8 +101,8 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         checkRequestSendFriend(userId, friendId);
 
         // 유저 엔티티 조회
-        User user = userService.getUserByUserId(userId);
-        User friendUser = userService.getUserByUserId(friendId);
+        User user = userQueryService.getUserByUserId(userId);
+        User friendUser = userQueryService.getUserByUserId(friendId);
 
         // Friend 엔티티 생성
         Friend friendRequest = Friend.builder()
@@ -141,12 +117,14 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         try {
             friendRepository.save(friendRequest);
         } catch (DataIntegrityViolationException e) {                               //데이터베이스 제약을 위반한 경우 발생하는 에러
+            log.warn("Duplicate friend request detected. userId={}, friendId={}", userId, friendId);
             throw new UserException(ErrorStatus.ALREADY_REQUESTED_FRIEND);
         }
 
         publisher.publishEvent(
                 FriendRequestSentEvent.of(friendId, userId)
         );
+        log.info("Send friend request. receiverId={}, senderId={}", userId, friendId);
 
         return true;
     }
@@ -168,4 +146,14 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         userBlockValidator.ensureExistUserBlock(userId, friendId);
     }
 
+    private void validateAcceptFriendRequest(Long userId, Long friendId, Friend friend) {
+        friendValidator.ensureFriendRequester(friend, userId);
+        userBlockValidator.ensureExistUserBlock(userId, friendId);
+        friendValidator.ensureFriendUser(userId);
+    }
+
+    private Friend findByUserIdAndFriendId(FriendStatus requested, Long userId, Long friendId, ErrorStatus noRejectableFriendRequest) {
+        return friendRepository.findByUserIdAndFriendIdAndStatus(requested, userId, friendId)
+                .orElseThrow(() -> new FriendException(noRejectableFriendRequest));
+    }
 }
