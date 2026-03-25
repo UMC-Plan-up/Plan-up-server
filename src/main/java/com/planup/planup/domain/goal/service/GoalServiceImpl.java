@@ -478,20 +478,24 @@ public class GoalServiceImpl implements GoalService{
 
         List<Long> friendIdList = friendList.getFriendIdList();
 
+        //해당 목표가 실재로 존재하는지 확인한다.
         Goal goal = getGoalById(goalId);
 
         for (Long friendId : friendIdList) {
+            //친구가 아니라면 제거
             if (!friendService.isFriendBoolean(userId, friendId)) {
                 notFriends.add(friendId);
                 continue;
             }
 
+            //이미 참여중이라면 예외
             if (userGoalRepository.existsUserGoalByGoalIdAndUserId(goalId, friendId)) {
                 alreadyJoined.add(friendId);
                 continue;
             }
 
 //            challengeInviteService.invite(goalId, userId, friendId);
+            //알림을 보낸다.
             notificationFanoutService.createdByInviteFriendToGoal(userId, friendId, goalId);
             invited.add(friendId);
         }
