@@ -235,4 +235,10 @@ public class NotificationFanoutService {
         }
     }
 
+    public void createdByInviteFriendToGoal(Long userId, Long friendId, Long goalId) {
+        notificationService.createNotification(
+                friendId, userId,
+                NotificationType.INVITED_GOAL, TargetType.GOAL, goalId, NotificationGroup.SERVICE);
+    }
+
 }

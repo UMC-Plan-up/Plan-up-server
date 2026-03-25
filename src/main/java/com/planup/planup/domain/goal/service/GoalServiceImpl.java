@@ -470,8 +470,13 @@ public class GoalServiceImpl implements GoalService{
     }
 
     @Transactional
-    public Boolean inviteFriend(Long userId, Long goalId, List<Long> friendList) {
+    public Boolean inviteFriend(Long userId, Long goalId, GoalRequestDto.InviteFriendList friendList) {
+        List<Long> friendIdList = friendList.getFriendIdList();
 
+        for (Long friend : friendList) {
+            notificationFanoutService.createdByInviteFriendToGoal(userId, friend, goalId);
+        }
+        return true;
     }
 
     @Transactional
