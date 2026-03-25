@@ -59,6 +59,11 @@ public class FirebasePushSender implements PushSender{
 
     @Override
     public MulticastResult sendMulticast(Collection<String> tokensCollection, String title, String body, Map<String, String> data) {
+
+        if (tokensCollection == null || tokensCollection.isEmpty()) {
+            return new MulticastResult(0, 0, List.of());
+        }
+
         int totalSuccess = 0;
 
         // 누적 실패(최종 보고용)
@@ -103,10 +108,6 @@ public class FirebasePushSender implements PushSender{
                 log.info("FCM multicast retry wait. attemptNo={}, sleepMs={}", attemptNo, SLEEP_TIME);
                 sleepBackoff(SLEEP_TIME);
             }
-
-            log.info("FCM multicast attempt started. attemptNo={}, pendingCount={}, pendingTokens={}",
-                    attemptNo, pending.size(), maskTokens(pending));
-
 
             SendAttempt attempt = attempt(pending, title, body, data);
             totalSuccess += attempt.successCount();
@@ -209,12 +210,6 @@ public class FirebasePushSender implements PushSender{
                 if (!r.isSuccessful()) {
                     var ex = r.getException();
                     String code = ex.getErrorCode() != null ? ex.getErrorCode().toString() : "UNKNOWN";
-
-                    log.warn("FCM token send failed. token={}, errorCode={}, message={}",
-                            maskToken(tokens.get(i)),
-                            code,
-                            ex.getMessage());
-
                     failures.add(new PushSender.TokenFailure(
                             tokens.get(i),
                             code,
