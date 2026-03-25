@@ -107,7 +107,7 @@ public class UserGoalServiceImpl implements UserGoalService{
 
         Long creatorId = adminUserGoal.getUser().getId();
 
-        friendService.isFriend(userId, creatorId);
+        friendService.ensureFriendRelation(userId, creatorId);
 
     }
 

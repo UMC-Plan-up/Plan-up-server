@@ -16,7 +16,7 @@ public interface FriendReadService {
 
     List<FriendResponseDTO.FriendInfoInChallengeCreate> getFriendListInChallenge(Long userId);
 
-    void isFriend(Long userId, Long friendId);
+    void ensureFriendRelation(Long userId, Long friendId);
 
     Integer getTodayTotalSecTimeByUserGoal(UserGoal userGoal);
 }

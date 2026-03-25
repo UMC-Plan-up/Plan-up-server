@@ -152,7 +152,7 @@ public class GoalServiceImpl implements GoalService{
         User user = userQueryService.getUserByUserId(userId);
         userQueryService.getUserByUserId(friendsId);
 
-        friendService.isFriend(userId, friendsId);
+        friendService.ensureFriendRelation(userId, friendsId);
 
         List<UserGoal> userGoals = userGoalRepository.findByUserIdAndIsPublicTrue(friendsId);
 

@@ -51,7 +51,7 @@ public class UserGoalAggregationServiceImpl implements UserGoalAggregationServic
 
     @Override
     public UserGoalResponseDto.GoalTotalAchievementDto getFriendGoalTotalAchievement(Long userId, Long goalId, Long friendId) {
-        friendService.isFriend(userId, friendId);
+        friendService.ensureFriendRelation(userId, friendId);
 
         String key = generateKeyUserAndGoal(friendId.toString(), goalId.toString());
 
