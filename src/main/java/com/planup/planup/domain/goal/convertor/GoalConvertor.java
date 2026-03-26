@@ -3,6 +3,7 @@ package com.planup.planup.domain.goal.convertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
 import com.planup.planup.domain.goal.entity.Comment;
+import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.GoalMemo;
@@ -125,6 +126,7 @@ public class GoalConvertor {
                 .frequency(goal.getFrequency())
                 .period(goal.getPeriod())
                 .verificationType(goal.getVerificationType())
+                .isAdmin(userGoal.getStatus().equals(Status.ADMIN))
                 .build();
     }
 
