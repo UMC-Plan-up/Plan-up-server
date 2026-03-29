@@ -12,6 +12,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,6 +66,12 @@ public class Goal extends BaseTimeEntity {
     @Builder.Default
     private boolean isActive = true;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private int complaintCount = 0;
+
+    private LocalDateTime sanctionEndAt;
+
     //목표 인증 방식(타이머/사진)
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
@@ -83,6 +90,31 @@ public class Goal extends BaseTimeEntity {
         for (UserGoal userGoal : userGoals) {
             userGoal.setActive(false);
         }
+    }
+
+    public void incrementComplaintCount() {
+        this.complaintCount++;
+    }
+
+    // 3회 누적: 14일 임시 비활성화 (기존 참여자 기록 불가, 신규 합류 불가)
+    public void suspendGoal() {
+        this.isActive = false;
+        this.sanctionEndAt = LocalDateTime.now().plusDays(14);
+    }
+
+    // 5회 누적: 영구 삭제 (모든 UserGoal 포함)
+    public void deleteGoal() {
+        this.isActive = false;
+        this.sanctionEndAt = null;
+        for (UserGoal userGoal : userGoals) {
+            userGoal.setActive(false);
+        }
+    }
+
+    // 14일 정지 기간 만료 후 자동 복구
+    public void restore() {
+        this.isActive = true;
+        this.sanctionEndAt = null;
     }
 
     public void updateFrom(GoalRequestDto.CreateGoalDto dto) {

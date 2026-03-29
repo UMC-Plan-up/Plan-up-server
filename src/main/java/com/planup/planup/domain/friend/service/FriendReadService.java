@@ -18,5 +18,7 @@ public interface FriendReadService {
 
     void ensureFriendRelation(Long userId, Long friendId);
 
+    boolean isFriendBoolean(Long userId, Long friendId);
+
     Integer getTodayTotalSecTimeByUserGoal(UserGoal userGoal);
 }

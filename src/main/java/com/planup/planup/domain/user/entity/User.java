@@ -91,7 +91,7 @@ public class User extends BaseTimeEntity {
 
     @Column(nullable = false)
     @Builder.Default
-    private int reportCount = 0;
+    private int complaintCount = 0;
 
     private LocalDateTime sanctionEndAt;
 
@@ -165,8 +165,8 @@ public class User extends BaseTimeEntity {
         return userStat;
     }
 
-    public void incrementReportCount() {
-        this.reportCount++;
+    public void incrementComplaintCount() {
+        this.complaintCount++;
     }
 
     public void applySuspension(SanctionDetailReason detailReason) {

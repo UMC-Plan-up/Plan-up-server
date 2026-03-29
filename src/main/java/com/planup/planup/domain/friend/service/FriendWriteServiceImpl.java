@@ -84,6 +84,7 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         //에러 체크
         checkRequestSendFriend(user.getId(), friend.getId());
 
+
         // Friend 엔티티 생성
         Friend friendRequest = Friend.builder()
                 .user(user)
@@ -129,7 +130,8 @@ public class FriendWriteServiceImpl implements FriendWriteService {
         return true;
     }
 
-    private void checkRequestSendFriend(Long userId, Long friendId) {
+
+    public void checkRequestSendFriend(Long userId, Long friendId) {
         //이미 친구 관계인지 확인
         friendValidator.ensureNotAlreadyFriend(userId, friendId);
 

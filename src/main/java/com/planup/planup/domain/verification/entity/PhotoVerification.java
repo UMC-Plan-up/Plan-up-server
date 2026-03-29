@@ -34,4 +34,12 @@ public class PhotoVerification extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usergoal_id")
     private UserGoal userGoal;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean isDeleted = false;
+
+    public void markDeleted() {
+        this.isDeleted = true;
+    }
 }

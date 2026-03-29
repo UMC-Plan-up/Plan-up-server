@@ -18,6 +18,7 @@ public class FriendValidator {
 
     private final FriendRepository friendRepository;
     private final UserQueryService userQueryService;
+    private final UserBlockValidator userBlockValidator;
 
     public void ensureNotAlreadyFriend(Long userId, Long friendId) {
         if (friendRepository.existsByUsersAndStatus(userId, friendId, FriendStatus.ACCEPTED)) {

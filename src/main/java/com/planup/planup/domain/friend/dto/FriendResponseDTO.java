@@ -42,7 +42,7 @@ public class FriendResponseDTO {
     ) {}
 
     @Builder
-    @Schema(description = "챌린지 신청 화면에서 친구 요약 정보 DTO")
+    @Schema(description = "챌린지 신청 및 GOAL 초대 화면에서 친구 요약 정보 DTO")
     public record FriendInfoInChallengeCreate(
 
             @Schema(description = "친구 기본키", example = "1")

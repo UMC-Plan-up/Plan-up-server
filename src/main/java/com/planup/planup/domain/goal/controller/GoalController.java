@@ -1,11 +1,9 @@
 package com.planup.planup.domain.goal.controller;
 
 import com.planup.planup.apiPayload.ApiResponse;
+import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.friend.service.FriendReadService;
-import com.planup.planup.domain.goal.dto.CommentRequestDto;
-import com.planup.planup.domain.goal.dto.CommentResponseDto;
-import com.planup.planup.domain.goal.dto.GoalRequestDto;
-import com.planup.planup.domain.goal.dto.GoalResponseDto;
+import com.planup.planup.domain.goal.dto.*;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.service.CommentService;
 import com.planup.planup.domain.goal.service.GoalService;
@@ -28,8 +26,6 @@ import java.util.List;
 public class GoalController {
     private final GoalService goalService;
     private final CommentService commentService;
-    private final UserQueryService userQueryService;
-    private final UserQueryService userService;
     private final FriendReadService friendService;
 
     @GetMapping("/level")
@@ -62,9 +58,10 @@ public class GoalController {
     @GetMapping("/create/list/community")
     @Operation(summary = "카테고리별 커뮤니티 목표 조회 API", description = "선택한 카테고리의 커뮤니티 목표 목록을 조회합니다.")
     public ApiResponse<List<GoalResponseDto.GoalCreateListDto>> getCommunityGoalsByCategory(
-            @RequestParam GoalCategory goalCategory) {
+            @RequestParam GoalCategory goalCategory,
+            @CurrentUser Long userId) {
 
-        List<GoalResponseDto.GoalCreateListDto> result = goalService.getCommunityGoalsByCategory(goalCategory);
+        List<GoalResponseDto.GoalCreateListDto> result = goalService.getCommunityGoalsByCategory(userId, goalCategory);
         return ApiResponse.onSuccess(result);
     }
 
@@ -334,6 +331,24 @@ public class GoalController {
             @CurrentUser Long userId) {
 
         GoalResponseDto.ReactionResultDto result = goalService.addEncourage(goalId, userId);
+        return ApiResponse.onSuccess(result);
+    }
+
+    @GetMapping("/friendInfo")
+    @Operation(summary = "GOAL에 초대하기 위해 친구 정보 가져오기")
+    public ApiResponse<FriendResponseDTO.FriendSummaryList> getFriendList(@CurrentUser Long userId) {
+        FriendResponseDTO.FriendSummaryList friendSummaryList = friendService.getFriendSummeryList(userId);
+        return ApiResponse.onSuccess(friendSummaryList);
+    }
+
+    @PostMapping("/{goalId}/invite")
+    @Operation(summary = "GOAL에 친구 초대하기")
+    public ApiResponse<InviteFriendResult> inviteFriendToGoal(
+            @Parameter(description = "목표 ID", example = "1")
+            @PathVariable Long goalId,
+            @Valid @RequestBody GoalRequestDto.InviteFriendList friendList,
+            @CurrentUser Long userId) {
+        InviteFriendResult result = goalService.inviteFriend(userId, goalId, friendList);
         return ApiResponse.onSuccess(result);
     }
 }

@@ -33,7 +33,9 @@ public enum NotificationType {
     PENALTY_REJECTED(NotificationGroup.SERVICE),
     CHALLENGE_STARTED(NotificationGroup.SERVICE),
     CHALLENGE_ENDED(NotificationGroup.SERVICE),
-    PENALTY_REMINDER_SENT(NotificationGroup.SERVICE);
+    PENALTY_REMINDER_SENT(NotificationGroup.SERVICE),
+
+    INVITED_GOAL(NotificationGroup.SERVICE);
 
     private final NotificationGroup group;
 

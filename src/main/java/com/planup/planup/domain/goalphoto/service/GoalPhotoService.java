@@ -2,6 +2,7 @@ package com.planup.planup.domain.goalphoto.service;
 
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.GoalPhotoException;
+import com.planup.planup.domain.complaint.repository.PhotoComplaintMappingRepository;
 import com.planup.planup.domain.global.service.ImageUploadService;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.service.UserGoalService;
@@ -25,6 +26,7 @@ public class GoalPhotoService {
     private final GoalPhotoRepository goalPhotoRepository;
     private final UserGoalService userGoalService;
     private final ImageUploadService imageUploadService;
+    private final PhotoComplaintMappingRepository photoComplaintMappingRepository;
 
     @Transactional
     public GoalPhotoResponseDto.UploadResultDto uploadGoalPhotos(Long userId, Long goalId, LocalDate date, List<MultipartFile> files) {
@@ -73,9 +75,11 @@ public class GoalPhotoService {
     public GoalPhotoResponseDto.GoalPhotoListDto getGoalPhotosByDate(Long userId, Long goalId, LocalDate date) {
         UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
 
+        List<Long> reportedPhotoIds = photoComplaintMappingRepository.findReportedPhotoIdsByReporterId(userId);
         List<GoalPhoto> photos = goalPhotoRepository.findAllByUserGoalAndDateOrderByCreatedAtDesc(userGoal, date);
 
         List<GoalPhotoResponseDto.GoalPhotoDto> photoDtos = photos.stream()
+                .filter(photo -> !reportedPhotoIds.contains(photo.getId()))
                 .map(photo -> GoalPhotoResponseDto.GoalPhotoDto.builder()
                         .id(photo.getId())
                         .photoUrl(photo.getPhotoUrl())

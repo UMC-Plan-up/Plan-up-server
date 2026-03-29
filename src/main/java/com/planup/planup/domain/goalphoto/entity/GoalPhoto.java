@@ -4,6 +4,7 @@ import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -33,7 +34,23 @@ public class GoalPhoto extends BaseTimeEntity {
     @Column(nullable = false)
     private LocalDate date;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private int complaintCount = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean isDeleted = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_goal_id", nullable = false)
     private UserGoal userGoal;
+
+    public void incrementComplaintCount() {
+        this.complaintCount++;
+    }
+
+    public void markDeleted() {
+        this.isDeleted = true;
+    }
 }

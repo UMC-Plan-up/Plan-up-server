@@ -5,10 +5,12 @@ import com.planup.planup.apiPayload.exception.custom.UserException;
 import com.planup.planup.apiPayload.exception.custom.UserGoalException;
 import com.planup.planup.apiPayload.code.status.ErrorStatus;
 import com.planup.planup.apiPayload.exception.custom.ChallengeException;
+import com.planup.planup.domain.complaint.repository.GoalComplaintMappingRepository;
 import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
+import com.planup.planup.domain.goal.dto.InviteFriendResult;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
@@ -63,8 +65,9 @@ public class GoalServiceImpl implements GoalService{
     private final NotificationFanoutService notificationCreateService;
     private final ReactionCommandService reactionCommandService;
     private final ReactionRepository reactionRepository;
-
+    private final GoalComplaintMappingRepository goalComplaintMappingRepository;
     private final NotificationFanoutService notificationFanoutService;
+
     //목표 생성
     @Transactional
     public GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto createGoalDto){
@@ -105,9 +108,11 @@ public class GoalServiceImpl implements GoalService{
     public List<GoalResponseDto.GoalCreateListDto> getFriendGoalsByCategory(Long userId, GoalCategory goalCategory) {
         userQueryService.getUserByUserId(userId);
 
+        List<Long> reportedGoalIds = goalComplaintMappingRepository.findReportedGoalIdsByReporterId(userId);
         List<UserGoal> friendGoals = userGoalRepository.findFriendGoalsByCategory(userId, goalCategory);
 
         return friendGoals.stream()
+                .filter(userGoal -> !reportedGoalIds.contains(userGoal.getGoal().getId()))
                 .map(userGoal -> {
                     User creator = userGoalRepository.findByGoalIdAndStatus(
                             userGoal.getGoal().getId(), Status.ADMIN).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL)).getUser();
@@ -120,10 +125,12 @@ public class GoalServiceImpl implements GoalService{
 
     //목표 리스트 조회(목표 생성시 -> 세부 내용 조회X) 카테고리별 커뮤니티 목표
     @Transactional(readOnly = true)
-    public List<GoalResponseDto.GoalCreateListDto> getCommunityGoalsByCategory(GoalCategory goalCategory) {
+    public List<GoalResponseDto.GoalCreateListDto> getCommunityGoalsByCategory(Long userId, GoalCategory goalCategory) {
+        List<Long> reportedGoalIds = goalComplaintMappingRepository.findReportedGoalIdsByReporterId(userId);
         List<UserGoal> communityGoals = userGoalRepository.findCommunityGoalsByCategory(goalCategory);
 
         return communityGoals.stream()
+                .filter(userGoal -> !reportedGoalIds.contains(userGoal.getGoal().getId()))
                 .map(userGoal -> {
                     User creator = userGoalRepository.findByGoalIdAndStatus(
                             userGoal.getGoal().getId(), Status.ADMIN).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL)).getUser();
@@ -154,9 +161,11 @@ public class GoalServiceImpl implements GoalService{
 
         friendService.ensureFriendRelation(userId, friendsId);
 
+        List<Long> reportedGoalIds = goalComplaintMappingRepository.findReportedGoalIdsByReporterId(userId);
         List<UserGoal> userGoals = userGoalRepository.findByUserIdAndIsPublicTrue(friendsId);
 
         return userGoals.stream()
+                .filter(userGoal -> !reportedGoalIds.contains(userGoal.getGoal().getId()))
                 .map(GoalConvertor::toFriendGoalListDto)
                 .collect(Collectors.toList());
     }
@@ -229,22 +238,17 @@ public class GoalServiceImpl implements GoalService{
     public void deleteGoal(Long goalId, Long userId) {
         Goal goal = findGoalById(goalId);
 
-        UserGoal adminUserGoal = userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
-        if (adminUserGoal == null) {
-            throw new RuntimeException("목표의 관리자를 찾을 수 없습니다.");
-        }
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
+        if (!userGoal.getStatus().equals(Status.ADMIN)) throw new GoalException(ErrorStatus.NOT_USERGOAL_ADMIN);
 
-        if (!adminUserGoal.getUser().getId().equals(userId)) {
-            throw new RuntimeException("목표를 삭제할 권한이 없습니다.");
-        }
+        deleteGoalRelated(goal);
+    }
 
-        goalMemoRepository.deleteByGoalId(goalId);
-
-        List<UserGoal> allUserGoals = userGoalRepository.findByGoalId(goalId);
+    private void deleteGoalRelated(Goal goal) {
+        List<UserGoal> allUserGoals = userGoalRepository.findByGoalId(goal.getId());
+        goalMemoRepository.deleteByGoalId(goal.getId());
         userGoalRepository.deleteAll(allUserGoals);
-
-        commentRepository.deleteByGoalId(goalId);
-
+        commentRepository.deleteByGoalId(goal.getId());
         goalRepository.delete(goal);
     }
 
@@ -467,6 +471,39 @@ public class GoalServiceImpl implements GoalService{
 
         if (result) return GoalConvertor.toSuccessReactionResult("응원이 등록되었습니다.", reactionData);
         else throw new GoalException(ErrorStatus.REACTION_ADD_FAILED);
+    }
+
+    @Transactional
+    public InviteFriendResult inviteFriend(Long userId, Long goalId, GoalRequestDto.InviteFriendList friendList) {
+        List<Long> invited = new ArrayList<>();
+        List<Long> alreadyJoined = new ArrayList<>();
+        List<Long> notFriends = new ArrayList<>();
+
+        List<Long> friendIdList = friendList.getFriendIdList();
+
+        //해당 목표가 실재로 존재하는지 확인한다.
+        Goal goal = getGoalById(goalId);
+
+        for (Long friendId : friendIdList) {
+            //친구가 아니라면 제거
+            if (!friendService.isFriendBoolean(userId, friendId)) {
+                notFriends.add(friendId);
+                continue;
+            }
+
+            //이미 참여중이라면 예외
+            if (userGoalRepository.existsUserGoalByGoalIdAndUserId(goalId, friendId)) {
+                alreadyJoined.add(friendId);
+                continue;
+            }
+
+//            challengeInviteService.invite(goalId, userId, friendId);
+            //알림을 보낸다.
+            notificationFanoutService.createdByInviteFriendToGoal(userId, friendId, goalId);
+            invited.add(friendId);
+        }
+
+        return new InviteFriendResult(invited, alreadyJoined, notFriends);
     }
 
     @Transactional
