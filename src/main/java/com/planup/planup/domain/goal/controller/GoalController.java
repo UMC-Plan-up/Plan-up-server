@@ -337,7 +337,7 @@ public class GoalController {
     @GetMapping("/friendInfo")
     @Operation(summary = "GOAL에 초대하기 위해 친구 정보 가져오기")
     public ApiResponse<FriendResponseDTO.FriendSummaryList> getFriendList(@CurrentUser Long userId) {
-        FriendResponseDTO.FriendSummaryList friendSummaryList = friendService.getFriendSummeryList(userId);
+        FriendResponseDTO.FriendSummaryList friendSummaryList = friendService.getFriendSummaryList(userId);
         return ApiResponse.onSuccess(friendSummaryList);
     }
 
