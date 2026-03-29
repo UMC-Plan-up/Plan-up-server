@@ -40,22 +40,18 @@ public class FriendReadServiceImpl implements FriendReadService {
     @Override
     public List<User> getMyFriend(Long userId) {
         List<Friend> relations = friendRepository.findListByUserIdWithUsers(ACCEPTED, userId);
-        List<User> friends = relations.stream()
-                .map(relation -> relation.getFriendNotMe(userId))
-                .toList();
+        List<User> friends = getFriends(userId, relations);
         return friends;
     }
 
     //친구 리스트를 반환한다.
     @Override
-    public FriendResponseDTO.FriendSummaryList getFriendSummeryList(Long userId) {
+    public FriendResponseDTO.FriendSummaryList getFriendSummaryList(Long userId) {
 
         List<User> friends = getMyFriend(userId);
 
         return FriendConverter.toFriendSummaryList(
-                friends.stream()
-                        .map(friendSummaryAssembler::assemble)
-                        .collect(Collectors.toList())
+                toFriendSummaries(friends)
         );
     }
 
@@ -67,11 +63,9 @@ public class FriendReadServiceImpl implements FriendReadService {
         if (friendRequests.isEmpty()) return Collections.emptyList();
 
         //friend 리스트 중에서 자신이 아닌 친구의 데이터를 모은다.
-        List<User> friendList = friendRequests.stream().map(f -> f.getFriendNotMe(userId)).toList();
+        List<User> friendList = getFriends(userId, friendRequests);
 
-        return friendList.stream()
-                .map(friendSummaryAssembler::assemble)
-                .collect(Collectors.toList());
+        return toFriendSummaries(friendList);
     }
 
     @Override
@@ -87,10 +81,10 @@ public class FriendReadServiceImpl implements FriendReadService {
     }
 
     @Override
-    public void isFriend(Long userId, Long friendId) {
+    public void ensureFriendRelation(Long userId, Long friendId) {
         Optional<Friend> optionalFriend = friendRepository.findByUserIdAndFriendIdAndStatus(ACCEPTED, userId, friendId);
         if (optionalFriend.isEmpty()) {
-            throw new FriendException(ErrorStatus.NOT_EXIST_USERBLOCK);
+            throw new FriendException(ErrorStatus.NOT_FRIEND);
         }
     }
 
@@ -108,12 +102,19 @@ public class FriendReadServiceImpl implements FriendReadService {
         //리포지토리에서 조건에 맞는 값들을 찾아서 다 더해 반환한다.
         Integer spendTimeInSeconds = timerVerificationRepository.sumTodayVerificationsByUserGoalId(userGoal.getId());
 
-        //예외처리
-        if (spendTimeInSeconds == null) {
-            spendTimeInSeconds = 0;
-        }
+        return spendTimeInSeconds == null ? 0 : spendTimeInSeconds;
+    }
 
-        return spendTimeInSeconds;
+    private static List<User> getFriends(Long userId, List<Friend> relations) {
+        return relations.stream()
+                .map(relation -> relation.getFriendNotMe(userId))
+                .toList();
+    }
+
+    private List<FriendResponseDTO.FriendInfoSummary> toFriendSummaries(List<User> friendList) {
+        return friendList.stream()
+                .map(friendSummaryAssembler::assemble)
+                .collect(Collectors.toList());
     }
 
 }

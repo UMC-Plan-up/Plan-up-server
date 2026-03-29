@@ -1,5 +1,7 @@
 package com.planup.planup.domain.friend.service.userBlockService;
 
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.FriendException;
 import com.planup.planup.domain.friend.converter.FriendConverter;
 import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
 import com.planup.planup.domain.friend.dto.UnblockFriendRequestDTO;
@@ -34,17 +36,15 @@ public class UserBlockServiceImpl implements UserBlockService {
 
     @Override
     public List<BlockedFriendResponseDTO> getBlockedFriends(Long userId) {
-        List<UserBlock> friends = userBlockRepository.findBlockedByBlockerId(userId);
-        List<User> blockedUsers = friends.stream().map(UserBlock::getBlocked).collect(Collectors.toList());
+        List<UserBlock> blockedRelations = userBlockRepository.findBlockedByBlockerId(userId);
+        List<User> blockedUsers = blockedRelations.stream().map(UserBlock::getBlocked).toList();
 
         return friendConverter.toBlockedFriendDTO(userId, blockedUsers);
     }
     @Override
     public UserBlock getBlockedFriend(Long userId, Long friendId) {
-        Optional<UserBlock> optionalUserBlock = userBlockRepository.findByBlockerIdAndBlockedId(userId, friendId);
-        userBlockValidator.ensureExistUserBlock(optionalUserBlock);
-
-        return optionalUserBlock.get();
+        return userBlockRepository.findByBlockerIdAndBlockedId(userId, friendId)
+                .orElseThrow(() -> new FriendException(ErrorStatus.NOT_EXIST_USERBLOCK));
     }
 
     @Override
@@ -52,13 +52,10 @@ public class UserBlockServiceImpl implements UserBlockService {
     public Long unblockFriend(Long userId, UnblockFriendRequestDTO request) {
         Long friendId = request.getFriendId();
 
-        Optional<UserBlock> optionalUserBlock = userBlockRepository.findByUserIdAndFriendIdWithBlocked(userId, friendId);
+        UserBlock blockedFriend = getBlockedFriend(userId, friendId);
+        userBlockRepository.deleteById(blockedFriend.getId());
 
-        userBlockValidator.ensureExistUserBlock(optionalUserBlock);
-
-        userBlockRepository.deleteById(optionalUserBlock.get().getId());
-
-        return optionalUserBlock.get().getId();
+        return blockedFriend.getId();
     }
 
     @Transactional
@@ -80,12 +77,24 @@ public class UserBlockServiceImpl implements UserBlockService {
         userBlockRepository.save(userBlock);
 
         //친구 관계라면 자동 취소
-        Optional<Friend> friends = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.ACCEPTED, friendId, user.getId());
-        friends.ifPresent(friend -> friend.setStatus(FriendStatus.UNFRIENDED));
-
-        Optional<Friend> requestedFriend = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.REQUESTED, friendId, user.getId());
-        requestedFriend.ifPresent(friend -> friend.setStatus(FriendStatus.REJECTED));
-
+        cleanupFriendRelationOnBlock(user, friendId);
+        log.info("Block user. blockerId={}, blockedId={}", user.getId(), friendId);
         return true;
+    }
+
+    private void cleanupFriendRelationOnBlock(User blocker, Long blockedId) {
+        Optional<Friend> acceptedRelation = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.ACCEPTED, blockedId, blocker.getId());
+
+        acceptedRelation.ifPresent(friend -> {
+            friend.setStatus(FriendStatus.UNFRIENDED);
+            log.info("Unfriend due to block. blockerId={}, blockedId={}", blocker.getId(), blockedId);
+        });
+
+        Optional<Friend> pendingRequest = friendRepository.findByUserIdAndFriendIdAndStatus(FriendStatus.REQUESTED, blockedId, blocker.getId());
+
+        pendingRequest.ifPresent(friend -> {
+            friend.setStatus(FriendStatus.REJECTED);
+            log.info("Reject pending friend request due to block. blockerId={}, blockedId={}", blocker.getId(), blockedId);
+        });
     }
 }

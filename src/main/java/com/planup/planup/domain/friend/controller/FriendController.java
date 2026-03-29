@@ -4,11 +4,9 @@ import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.friend.dto.FriendResponseDTO;
 import com.planup.planup.domain.friend.dto.BlockedFriendResponseDTO;
 import com.planup.planup.domain.friend.dto.UnblockFriendRequestDTO;
-import com.planup.planup.domain.friend.repository.UserReportMappingRepository;
 import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.friend.service.FriendWriteService;
 import com.planup.planup.domain.friend.service.reportUserService.UserReportMappingService;
-import com.planup.planup.domain.friend.service.reportUserService.UserReportMappingServiceImpl;
 import com.planup.planup.domain.friend.service.userBlockService.UserBlockService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.validation.annotation.CurrentUser;
@@ -41,7 +39,7 @@ public class FriendController {
     @Operation(summary = "친구 화면 조회", description = "친구 화면에 진입했을 때 필요한 정보 조회")
     @GetMapping("/list")
     public ApiResponse<FriendResponseDTO.FriendSummaryList> getFriendList(@CurrentUser Long userId) {
-        FriendResponseDTO.FriendSummaryList friendSummaryList = friendReadService.getFriendSummeryList(userId);
+        FriendResponseDTO.FriendSummaryList friendSummaryList = friendReadService.getFriendSummaryList(userId);
         return ApiResponse.onSuccess(friendSummaryList);
     }
 
@@ -50,8 +48,8 @@ public class FriendController {
     public ApiResponse<Boolean> deleteFriend(
             @CurrentUser User user,
             @RequestParam("friendId")Long friendId) {
-        boolean result = friendWriteService.deleteFriend(user, friendId);
-        return ApiResponse.onSuccess(result);
+        friendWriteService.deleteFriend(user, friendId);
+        return ApiResponse.onSuccess(true);
     }
 
     @Operation(summary = "친구 차단", description = "친구 차단")
@@ -96,8 +94,8 @@ public class FriendController {
     public ApiResponse<Boolean> rejectFriendRequest(
             @CurrentUser Long userId,
             @RequestParam Long friendId) {
-        boolean result = friendWriteService.rejectFriendRequest(userId, friendId);
-        return ApiResponse.onSuccess(result);
+        friendWriteService.rejectFriendRequest(userId, friendId);
+        return ApiResponse.onSuccess(true);
     }
 
     @Operation(summary = "친구 신청 수락", description = "친구 신청 수락")

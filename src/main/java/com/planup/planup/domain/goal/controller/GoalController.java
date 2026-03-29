@@ -7,7 +7,6 @@ import com.planup.planup.domain.goal.dto.*;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.service.CommentService;
 import com.planup.planup.domain.goal.service.GoalService;
-import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.service.query.UserQueryService;
 import com.planup.planup.domain.verification.dto.PhotoVerificationResponseDto;
 import com.planup.planup.validation.annotation.CurrentUser;
@@ -182,7 +181,7 @@ public class GoalController {
             @PathVariable Long friendId,
             @PathVariable Long goalId,
             @CurrentUser Long userId) {
-        friendService.isFriend(userId, friendId);
+        friendService.ensureFriendRelation(userId, friendId);
 
         List<PhotoVerificationResponseDto.uploadPhotoResponseDto> result =
                 goalService.getGoalPhotos(friendId, goalId);

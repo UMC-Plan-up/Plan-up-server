@@ -81,7 +81,7 @@ public class VerificationController {
             @RequestParam("goalId") Long goalId,
             @Parameter(hidden = true) @CurrentUser Long userId) {
         userQueryService.getUserByUserId(userId);
-        friendService.isFriend(userId, friendId);
+        friendService.ensureFriendRelation(userId, friendId);
 
         UserGoal userGoal = userGoalService.getByGoalIdAndUserId(friendId, goalId);
         LocalTime totalTime = timerVerificationReadService.getTodayTotalTime(userGoal);

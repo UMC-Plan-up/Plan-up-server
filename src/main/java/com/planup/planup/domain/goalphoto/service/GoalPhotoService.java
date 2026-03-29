@@ -1,5 +1,7 @@
 package com.planup.planup.domain.goalphoto.service;
 
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.GoalPhotoException;
 import com.planup.planup.domain.complaint.repository.PhotoComplaintMappingRepository;
 import com.planup.planup.domain.global.service.ImageUploadService;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
@@ -30,10 +32,24 @@ public class GoalPhotoService {
     public GoalPhotoResponseDto.UploadResultDto uploadGoalPhotos(Long userId, Long goalId, LocalDate date, List<MultipartFile> files) {
         UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
 
+        if (files == null || files.isEmpty()) {
+            throw new GoalPhotoException(ErrorStatus.GOAL_PHOTO_EMPTY);
+        }
+
         List<GoalPhotoResponseDto.GoalPhotoDto> uploadedPhotos = new ArrayList<>();
 
         for (MultipartFile file : files) {
-            String photoUrl = imageUploadService.uploadImage(file, "goals/photos");
+
+            if (file == null || file.isEmpty()) {
+                throw new GoalPhotoException(ErrorStatus.INVALID_GOAL_PHOTO_FILE);
+            }
+
+            String photoUrl;
+            try {
+                photoUrl = imageUploadService.uploadImage(file, "goals/photos");
+            } catch (Exception e) {
+                throw new GoalPhotoException(ErrorStatus.GOAL_PHOTO_UPLOAD_FAILED);
+            }
 
             GoalPhoto goalPhoto = GoalPhoto.builder()
                     .photoUrl(photoUrl)
@@ -79,8 +95,7 @@ public class GoalPhotoService {
 
     @Transactional
     public void deleteGoalPhoto(Long userId, Long photoId) {
-        GoalPhoto goalPhoto = goalPhotoRepository.findById(photoId)
-                .orElseThrow(() -> new IllegalArgumentException("사진을 찾을 수 없습니다."));
+        GoalPhoto goalPhoto = getGoalPhotoById(photoId);
 
         UserGoal userGoal = goalPhoto.getUserGoal();
         if (!userGoal.getUser().getId().equals(userId)) {
@@ -89,5 +104,11 @@ public class GoalPhotoService {
 
         imageUploadService.deleteImage(goalPhoto.getPhotoUrl());
         goalPhotoRepository.delete(goalPhoto);
+    }
+
+    private GoalPhoto getGoalPhotoById(Long photoId) {
+        GoalPhoto goalPhoto = goalPhotoRepository.findById(photoId)
+                .orElseThrow(() -> new GoalPhotoException(ErrorStatus.GOAL_PHOTO_ID));
+        return goalPhoto;
     }
 }

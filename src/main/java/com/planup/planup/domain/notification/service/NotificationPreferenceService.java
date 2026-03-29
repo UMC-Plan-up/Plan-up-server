@@ -38,16 +38,16 @@ public class NotificationPreferenceService {
 
     private NotificationTokenPreference createNotificationPreference(User user, NotificationGroup group, boolean enable) {
 
-        if (!prefRepo.existsByUserIdAndGroup(user.getId(), group)) {
-            createNotificationPreference(user, group, true);
-        }
-
-        NotificationTokenPreference NP = NotificationTokenPreference.builder()
-                .user(user)
-                .group(group)
-                .enabled(enable)
-                .build();
-        return prefRepo.save(NP);
+        //이미 존재한다면 찾아서 반환하고 없으면 만들어서 보낸다.
+        return prefRepo.findByUserIdAndGroup(user.getId(), group)
+                .orElseGet(() -> {
+                    NotificationTokenPreference np = NotificationTokenPreference.builder()
+                            .user(user)
+                            .group(group)
+                            .enabled(enable)
+                            .build();
+                    return prefRepo.save(np);
+                });
     }
 
     public void addNotificationPreference(List<Terms> terms, User user) {
