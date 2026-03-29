@@ -9,7 +9,9 @@ import com.planup.planup.domain.user.entity.Terms;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.domain.user.repository.TermsRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
+@Slf4j
 public class NotificationPreferenceService {
 
     private final NotificationPreferenceRepository prefRepo;
@@ -98,9 +102,13 @@ public class NotificationPreferenceService {
         NotificationTokenPreference preference = prefRepo.findByUserIdAndGroup(user.getId(), group)
                 .map(np -> {
                     np.toggleEnable();
+                    log.info("[NotificationToggle] toggled - after={}", np.isEnabled());
                     return np;
                 })
-                .orElseGet(() -> createNotificationPreference(user, group, true));
+                .orElseGet(() -> {
+                    log.info("[NotificationToggle] no preference found → creating new (default=true)");
+                    return createNotificationPreference(user, group, true);
+                });
 
         return preference.isEnabled();
     }
