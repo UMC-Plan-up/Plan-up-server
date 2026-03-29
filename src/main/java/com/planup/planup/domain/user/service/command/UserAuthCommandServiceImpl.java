@@ -12,15 +12,14 @@ import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.friend.entity.FriendStatus;
 import com.planup.planup.domain.friend.repository.FriendRepository;
 import com.planup.planup.domain.friend.service.FriendWriteService;
+import com.planup.planup.domain.notification.service.NotificationPreferenceService;
 import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
 import com.planup.planup.domain.oauth.repository.OAuthAccountRepository;
 import com.planup.planup.domain.user.converter.UserAuthConverter;
 import com.planup.planup.domain.user.dto.*;
 import com.planup.planup.domain.user.dto.external.KakaoUserInfo;
-import com.planup.planup.domain.user.entity.Terms;
 import com.planup.planup.domain.user.entity.User;
-import com.planup.planup.domain.user.entity.UserTerms;
 import com.planup.planup.domain.user.entity.UserWithdrawal;
 import com.planup.planup.domain.user.enums.Gender;
 import com.planup.planup.domain.user.enums.UserActivate;
@@ -64,8 +63,6 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     private final TokenService tokenService;
     private final JavaMailSender mailSender;
     private final RedisTemplate<String, String> redisTemplate;
-    private final TermsRepository termsRepository;
-    private final UserTermsRepository userTermsRepository;
     private final OAuthAccountRepository oAuthAccountRepository;
     private final FriendRepository friendRepository;
     private final UserWithdrawalRepository userWithdrawalRepository;
@@ -73,6 +70,8 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
     private final UserAuthConverter userAuthConverter;
     private final UserQueryService userQueryService;
     private final FriendWriteService friendWriteService;
+    private final UserTermsService userTermService;
+    private final NotificationPreferenceService notificationPreferenceService;
 
     @Qualifier("objectRedisTemplate")
     private final RedisTemplate<String, Object> objectRedisTemplate;
@@ -98,7 +97,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
             throw new UserException(ErrorStatus.GENDER_INVALID);
         }
 
-        validateRequiredTerms(request.getAgreements());
+        userTermService.validateRequiredTerms(request.getAgreements());
 
         if (!userQueryService.isEmailVerified(request.getEmail())) {
             throw new UserException(ErrorStatus.EMAIL_VERIFICATION_REQUIRED);
@@ -118,7 +117,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         User savedUser = userRepository.save(user);
 
         // 약관 저장
-        addTermsAgreements(savedUser, request.getAgreements());
+        userTermService.addTermsAgreements(savedUser, request.getAgreements());
 
         // 토큰 발급
         TokenResponseDTO tokenResponse = tokenService.generateTokens(savedUser);
@@ -128,11 +127,16 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
         log.info("회원가입 완료: userId={}, email={}", savedUser.getId(), savedUser.getEmail());
 
+        boolean serviceEnabled = notificationPreferenceService.agreeServiceNotification(user.getId());
+        boolean marketingEnabled = notificationPreferenceService.agreeMarketingNotification(user.getId());
+
         return userAuthConverter.toAuthResponseDTO(savedUser,
                 UserStatus.SIGNUP_SUCCESS,
                 tokenResponse.getAccessToken(),
                 tokenResponse.getRefreshToken(),
-                tokenResponse.getExpiresIn()
+                tokenResponse.getExpiresIn(),
+                serviceEnabled,
+                marketingEnabled
         );
     }
 
@@ -153,12 +157,17 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
         // 토큰 발급 (액세스 토큰 + 리프레시 토큰)
         TokenResponseDTO tokenResponse = tokenService.generateTokens(user);
+        boolean serviceEnabled = notificationPreferenceService.agreeServiceNotification(user.getId());
+        boolean marketingEnabled = notificationPreferenceService.agreeMarketingNotification(user.getId());
 
         return userAuthConverter.toAuthResponseDTO(user,
                 UserStatus.LOGIN_SUCCESS,
                 tokenResponse.getAccessToken(),
                 tokenResponse.getRefreshToken(),
-                tokenResponse.getExpiresIn());
+                tokenResponse.getExpiresIn(),
+                serviceEnabled,
+                marketingEnabled
+        );
     }
 
     @Override
@@ -257,7 +266,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                 // 일반 이메일 가입 유저가 카카오 로그인 시도 시 차단 -> 상태값 반환으로 변경
                 return userAuthConverter.toAuthResponseDTO(
                         UserStatus.ACCOUNT_CONFLICT,
-                        userAuthConverter.toUserInfo(user)
+                        userQueryService.getUserInfo(user.getId())
                 );
             }
 
@@ -275,7 +284,9 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                     UserStatus.LOGIN_SUCCESS,
                     tokenResponse.getAccessToken(),
                     tokenResponse.getRefreshToken(),
-                    tokenResponse.getExpiresIn()
+                    tokenResponse.getExpiresIn(),
+                    notificationPreferenceService.agreeServiceNotification(user.getId()),
+                    notificationPreferenceService.agreeMarketingNotification(user.getId())
             );
         } else {
             // 신규 회원가입 진행
@@ -322,7 +333,7 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         }
 
         if (request.getAgreements() != null) {
-            addTermsAgreements(user, request.getAgreements()); // 약관 동의 저장
+            userTermService.addTermsAgreements(user, request.getAgreements()); // 약관 동의 저장
         }
 
         // Redis 데이터 정리
@@ -335,7 +346,9 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
                 UserStatus.SIGNUP_SUCCESS,
                 tokenResponse.getAccessToken(),
                 tokenResponse.getRefreshToken(),
-                tokenResponse.getExpiresIn()
+                tokenResponse.getExpiresIn(),
+                notificationPreferenceService.agreeServiceNotification(user.getId()),
+                notificationPreferenceService.agreeMarketingNotification(user.getId())
         );
     }
 
@@ -376,12 +389,12 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
 
         log.info("카카오 계정 연동 성공 (User ID: {}, Email: {})", userId, kakaoEmail);
 
-        return userAuthConverter.toKakaoLinkResponseDTO(true, "카카오 계정 연동이 완료되었습니다", kakaoEmail, userAuthConverter.toUserInfo(user));
+        return userAuthConverter.toKakaoLinkResponseDTO(true, "카카오 계정 연동이 완료되었습니다", kakaoEmail, userQueryService.getUserInfo(userId));
     }
 
     private User createBasicKakaoUser(KakaoUserInfo kakaoUserInfo, OAuthRequestDTO.KaKaoSignup request) {
         if (request.getAgreements() != null) {
-            validateRequiredTerms(request.getAgreements());
+            userTermService.validateRequiredTerms(request.getAgreements());
         }
         User user =  userAuthConverter.toKakaoUserEntity(kakaoUserInfo, request);
 
@@ -665,51 +678,6 @@ public class UserAuthCommandServiceImpl implements UserAuthCommandService {
         }
 
         return parts;
-    }
-
-    // ========== 약관 동의 ==========
-
-    private void validateRequiredTerms(List<AuthRequestDTO.TermsAgreement> agreements) {
-        if (agreements == null) {
-            throw new UserException(ErrorStatus.REQUIRED_TERMS_NOT_AGREED);
-        }
-        List<Terms> requiredTerms = termsRepository.findByIsRequiredTrue();
-
-        Set<Long> agreedTermsIds = agreements.stream()
-                .filter(AuthRequestDTO.TermsAgreement::isAgreed)
-                .map(AuthRequestDTO.TermsAgreement::getTermsId)
-                .collect(Collectors.toSet());
-
-        for (Terms requiredTerm : requiredTerms) {
-            if (!agreedTermsIds.contains(requiredTerm.getId())) {
-                throw new UserException(ErrorStatus.REQUIRED_TERMS_NOT_AGREED);
-            }
-        }
-    }
-
-    private void addTermsAgreements(User user, List<AuthRequestDTO.TermsAgreement> agreements) {
-        if (agreements == null) return;
-        List<Long> termsIds = agreements.stream()
-                .map(AuthRequestDTO.TermsAgreement::getTermsId)
-                .toList();
-
-        List<Terms> foundTerms = termsRepository.findAllById(termsIds);
-
-        if (foundTerms.size() != termsIds.size()) {
-            throw new UserException(ErrorStatus.NOT_FOUND_TERMS);
-        }
-
-        Map<Long, Terms> termsMap = foundTerms.stream()
-                .collect(Collectors.toMap(Terms::getId, terms -> terms));
-
-        List<UserTerms> userTermsList = agreements.stream()
-                .map(agreement -> {
-                    Terms terms = termsMap.get(agreement.getTermsId());
-                    return userAuthConverter.toUserTermsEntity(user, terms, agreement);
-                })
-                .toList();
-
-        userTermsRepository.saveAll(userTermsList);
     }
 
     // ========== Private 헬퍼 메서드 ==========

@@ -2,6 +2,7 @@ package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
+import com.planup.planup.domain.goal.dto.InviteFriendResult;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.user.entity.User;
@@ -48,4 +49,7 @@ public interface GoalService {
     List<User> getOtherMember(User user, Goal goal);
 
     GoalResponseDto.UserLevelInfo getUserLevel(Long userId);
+
+    InviteFriendResult inviteFriend(Long userId, Long goalId, GoalRequestDto.InviteFriendList friendList);
+
 }

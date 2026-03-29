@@ -43,7 +43,10 @@ public class FriendSummaryAssembler {
     private LocalTime calcTodayTotalTime(User user) {
         long totalSeconds = user.getUserGoals().stream()
                 .mapToLong(ug -> {
-                    try { return timerVerificationRepository.sumTodayVerificationsByUserGoalId(ug.getId()); }
+                    try {
+                        Integer seconds = timerVerificationRepository.sumTodayVerificationsByUserGoalId(ug.getId());
+                        return seconds != null ? seconds.longValue() : 0L;
+                    }
                     catch (Exception e) { log.warn("타이머 합계 실패 userGoal={}", ug.getId(), e); return 0L; }
                 }).sum();
         return LocalTime.ofSecondOfDay(totalSeconds);

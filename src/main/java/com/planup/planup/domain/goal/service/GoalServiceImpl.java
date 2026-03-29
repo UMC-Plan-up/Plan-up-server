@@ -10,6 +10,7 @@ import com.planup.planup.domain.friend.service.FriendReadService;
 import com.planup.planup.domain.goal.convertor.GoalConvertor;
 import com.planup.planup.domain.goal.dto.GoalRequestDto;
 import com.planup.planup.domain.goal.dto.GoalResponseDto;
+import com.planup.planup.domain.goal.dto.InviteFriendResult;
 import com.planup.planup.domain.goal.entity.Enum.GoalCategory;
 import com.planup.planup.domain.goal.entity.Enum.Status;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
@@ -17,7 +18,7 @@ import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.entity.GoalMemo;
 import com.planup.planup.domain.goal.repository.CommentRepository;
 import com.planup.planup.domain.goal.repository.GoalMemoRepository;
-import com.planup.planup.domain.notification.service.NotificationCreateService;
+import com.planup.planup.domain.notification.service.notification.NotificationFanoutService;
 import com.planup.planup.domain.reaction.domain.ReactionTargetType;
 import com.planup.planup.domain.reaction.domain.ReactionType;
 import com.planup.planup.domain.reaction.repository.ReactionRepository;
@@ -61,10 +62,12 @@ public class GoalServiceImpl implements GoalService{
     private final FriendReadService friendService;
     private final GoalMemoRepository goalMemoRepository;
     private final TimerVerificationReadService timerVerificationReadService;
-    private final NotificationCreateService notificationCreateService;
+    private final NotificationFanoutService notificationCreateService;
     private final ReactionCommandService reactionCommandService;
     private final ReactionRepository reactionRepository;
     private final GoalComplaintMappingRepository goalComplaintMappingRepository;
+    private final NotificationFanoutService notificationFanoutService;
+
     //목표 생성
     @Transactional
     public GoalResponseDto.GoalResultDto createGoal(Long userId, GoalRequestDto.CreateGoalDto createGoalDto){
@@ -220,6 +223,14 @@ public class GoalServiceImpl implements GoalService{
                 userGoal.setGoalTime(dto.getGoalTime());
             }
         }
+
+        //수정 알림
+        notificationFanoutService.createdByEditedByParticipant(userId, participantUserIds(goal, userId), goal);
+    }
+
+    private static List<Long> participantUserIds(Goal goal, Long excludeId) {
+        return goal.getUserGoals().stream().map(ug -> ug.getUser().getId())
+                .filter(userId -> !userId.equals(excludeId)).toList();
     }
 
     //목표 삭제
@@ -227,22 +238,17 @@ public class GoalServiceImpl implements GoalService{
     public void deleteGoal(Long goalId, Long userId) {
         Goal goal = findGoalById(goalId);
 
-        UserGoal adminUserGoal = userGoalRepository.findByGoalIdAndStatus(goalId, Status.ADMIN).orElseThrow(() -> new UserGoalException(ErrorStatus.NOT_FOUND_USERGOAL));
-        if (adminUserGoal == null) {
-            throw new RuntimeException("목표의 관리자를 찾을 수 없습니다.");
-        }
+        UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
+        if (!userGoal.getStatus().equals(Status.ADMIN)) throw new GoalException(ErrorStatus.NOT_USERGOAL_ADMIN);
 
-        if (!adminUserGoal.getUser().getId().equals(userId)) {
-            throw new RuntimeException("목표를 삭제할 권한이 없습니다.");
-        }
+        deleteGoalRelated(goal);
+    }
 
-        goalMemoRepository.deleteByGoalId(goalId);
-
-        List<UserGoal> allUserGoals = userGoalRepository.findByGoalId(goalId);
+    private void deleteGoalRelated(Goal goal) {
+        List<UserGoal> allUserGoals = userGoalRepository.findByGoalId(goal.getId());
+        goalMemoRepository.deleteByGoalId(goal.getId());
         userGoalRepository.deleteAll(allUserGoals);
-
-        commentRepository.deleteByGoalId(goalId);
-
+        commentRepository.deleteByGoalId(goal.getId());
         goalRepository.delete(goal);
     }
 
@@ -457,14 +463,59 @@ public class GoalServiceImpl implements GoalService{
         boolean result = reactionCommandService.toggleReaction(userId, ReactionTargetType.GOAL, goalId, ReactionType.CHEER);
         GoalResponseDto.GoalReactionDto reactionData = getGoalReactions(goalId, userId);
 
+        if (result) {
+            Goal targetGoal = getGoalById(goalId);
+            List<Long> participantUserIds = participantUserIds(targetGoal, userId);
+            notificationFanoutService.createdByReactionCHEERToMyGoal(userId, participantUserIds, targetGoal);
+        }
+
         if (result) return GoalConvertor.toSuccessReactionResult("응원이 등록되었습니다.", reactionData);
         else throw new GoalException(ErrorStatus.REACTION_ADD_FAILED);
+    }
+
+    @Transactional
+    public InviteFriendResult inviteFriend(Long userId, Long goalId, GoalRequestDto.InviteFriendList friendList) {
+        List<Long> invited = new ArrayList<>();
+        List<Long> alreadyJoined = new ArrayList<>();
+        List<Long> notFriends = new ArrayList<>();
+
+        List<Long> friendIdList = friendList.getFriendIdList();
+
+        //해당 목표가 실재로 존재하는지 확인한다.
+        Goal goal = getGoalById(goalId);
+
+        for (Long friendId : friendIdList) {
+            //친구가 아니라면 제거
+            if (!friendService.isFriendBoolean(userId, friendId)) {
+                notFriends.add(friendId);
+                continue;
+            }
+
+            //이미 참여중이라면 예외
+            if (userGoalRepository.existsUserGoalByGoalIdAndUserId(goalId, friendId)) {
+                alreadyJoined.add(friendId);
+                continue;
+            }
+
+//            challengeInviteService.invite(goalId, userId, friendId);
+            //알림을 보낸다.
+            notificationFanoutService.createdByInviteFriendToGoal(userId, friendId, goalId);
+            invited.add(friendId);
+        }
+
+        return new InviteFriendResult(invited, alreadyJoined, notFriends);
     }
 
     @Transactional
     public GoalResponseDto.ReactionResultDto addEncourage(Long goalId, Long userId) {
         boolean result = reactionCommandService.toggleReaction(userId, ReactionTargetType.GOAL, goalId, ReactionType.ENCOURAGE);
         GoalResponseDto.GoalReactionDto reactionData = getGoalReactions(goalId, userId);
+
+        if (result) {
+            Goal targetGoal = getGoalById(goalId);
+            List<Long> participantUserIds = participantUserIds(targetGoal, userId);
+            notificationFanoutService.createdByReactionENCOURAGEToMyGoal(userId, participantUserIds, targetGoal);
+        }
 
         if (result) return GoalConvertor.toSuccessReactionResult("응원이 등록되었습니다.", reactionData);
         else throw new GoalException(ErrorStatus.REACTION_ADD_FAILED);
@@ -478,7 +529,7 @@ public class GoalServiceImpl implements GoalService{
 
     @Override
     public Goal getGoalById(Long id) {
-        return goalRepository.findById(id).orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_CHALLENGE));
+        return goalRepository.findById(id).orElseThrow(() -> new ChallengeException(ErrorStatus.NOT_FOUND_GOAL));
     }
 
     @Override

@@ -1,9 +1,9 @@
 package com.planup.planup.domain.notification.service;
 
 import com.planup.planup.domain.notification.dto.NotificationReadRequest;
-import com.planup.planup.domain.notification.entity.Notification;
-import com.planup.planup.domain.notification.entity.NotificationType;
-import com.planup.planup.domain.notification.entity.TargetType;
+import com.planup.planup.domain.notification.entity.notification.Notification;
+import com.planup.planup.domain.notification.entity.notification.NotificationType;
+import com.planup.planup.domain.notification.entity.notification.TargetType;
 
 import java.util.List;
 

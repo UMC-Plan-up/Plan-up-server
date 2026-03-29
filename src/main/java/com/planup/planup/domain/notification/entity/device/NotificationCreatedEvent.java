@@ -1,7 +1,8 @@
 package com.planup.planup.domain.notification.entity.device;
 
-import com.planup.planup.domain.notification.entity.NotificationType;
-import com.planup.planup.domain.notification.entity.TargetType;
+import com.planup.planup.domain.notification.entity.notification.NotificationGroup;
+import com.planup.planup.domain.notification.entity.notification.NotificationType;
+import com.planup.planup.domain.notification.entity.notification.TargetType;
 
 public record NotificationCreatedEvent(
         Long notificationId,
@@ -11,7 +12,14 @@ public record NotificationCreatedEvent(
         Long targetId,
 
         String senderName,
+
+        Long senderId,
+
+        String senderProfile,
+
         String receiverName,
-        String updatedPartsStr
+        String updatedPartsStr,
+
+        NotificationGroup group
 ) {
 }

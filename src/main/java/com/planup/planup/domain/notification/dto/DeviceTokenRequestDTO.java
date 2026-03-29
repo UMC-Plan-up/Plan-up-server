@@ -6,6 +6,8 @@ public record DeviceTokenRequestDTO(
         String token,
         Platform platform,
         String appVersion,
-        String local
+        String local,
+
+        String deviceId
 ) {
 }

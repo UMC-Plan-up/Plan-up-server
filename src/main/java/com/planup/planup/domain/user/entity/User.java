@@ -4,6 +4,7 @@ import com.planup.planup.domain.bedge.entity.UserStat;
 import com.planup.planup.domain.friend.entity.Friend;
 import com.planup.planup.domain.global.entity.BaseTimeEntity;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
+import com.planup.planup.domain.notification.entity.device.NotificationTokenPreference;
 import com.planup.planup.domain.oauth.entity.AuthProvideerEnum;
 import com.planup.planup.domain.oauth.entity.OAuthAccount;
 import com.planup.planup.domain.report.entity.WeeklyReport;
@@ -79,14 +80,6 @@ public class User extends BaseTimeEntity {
 
     private String socialEmail;
 
-    @Column(name = "alarm_allow", nullable = false)
-    @Builder.Default
-    private Boolean marketingNotificationAllow = false; // 혜택 및 마케팅 알림 동의
-    
-    @Column(name = "service_notification_allow", nullable = false)
-    @Builder.Default
-    private Boolean serviceNotificationAllow = true; // 서비스 알림 (기본값: true)
-    
     private String inviteCode;
 
     @Column(name = "email_verified", nullable = false)
@@ -149,16 +142,6 @@ public class User extends BaseTimeEntity {
 
     public void setNickname(String nickname) {
         this.nickname = nickname;
-    }
-
-    public Boolean toggleMarketingNotificationAllow() {
-        this.marketingNotificationAllow = !this.marketingNotificationAllow;
-        return this.marketingNotificationAllow;
-    }
-
-    public Boolean toggleServiceNotificationAllow() {
-        this.serviceNotificationAllow = !this.serviceNotificationAllow;
-        return this.serviceNotificationAllow;
     }
 
     public void setPassword(String password) {

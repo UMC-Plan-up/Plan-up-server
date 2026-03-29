@@ -22,7 +22,7 @@ public class DeviceController implements DeviceControllerDocs {
     @Override
     @PostMapping("post")
     public ApiResponse<Boolean> postDeviceTokenFromUser(@RequestBody DeviceTokenRequestDTO dto, @CurrentUser Long userId) {
-        deviceTokenService.upsert(userId, dto.token(), dto.platform(), dto.appVersion(), dto.local());
+        deviceTokenService.upsert(userId, dto.token(), dto.platform(), dto.appVersion(), dto.local(), dto.deviceId());
         return ApiResponse.onSuccess(true);
     }
 
@@ -39,4 +39,5 @@ public class DeviceController implements DeviceControllerDocs {
         deviceTokenService.deactivateAllByUser(userId);
         return ApiResponse.onSuccess(true);
     }
+
 }

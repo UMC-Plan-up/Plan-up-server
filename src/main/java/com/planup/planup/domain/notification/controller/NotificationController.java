@@ -3,9 +3,9 @@ package com.planup.planup.domain.notification.controller;
 import com.planup.planup.apiPayload.ApiResponse;
 import com.planup.planup.domain.notification.dto.NotificationReadRequest;
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
-import com.planup.planup.domain.notification.entity.NotificationType;
-import com.planup.planup.domain.notification.service.NotificationServiceRead;
-import com.planup.planup.domain.notification.service.NotificationServiceWrite;
+import com.planup.planup.domain.notification.entity.notification.TargetType;
+import com.planup.planup.domain.notification.service.notification.NotificationQueryService;
+import com.planup.planup.domain.notification.service.notification.NotificationCommandService;
 import com.planup.planup.domain.user.entity.User;
 import com.planup.planup.validation.annotation.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,8 +19,8 @@ import java.util.List;
 @RequestMapping("/notifications")
 public class NotificationController {
 
-    private final NotificationServiceRead notificationServiceRead;
-    private final NotificationServiceWrite notificationServiceWrite;
+    private final NotificationQueryService notificationServiceRead;
+    private final NotificationCommandService notificationServiceWrite;
 
     @Operation(
             summary = "단일 알림 읽음 처리",
@@ -56,18 +56,13 @@ public class NotificationController {
         return ApiResponse.onSuccess(unreadNotifications);
     }
 
-
-    @Operation(
-            summary = "타입별 읽지 않은 알림 조회",
-            description = "현재 로그인한 사용자의 읽지 않은 알림을 그룹 타입별로 조회합니다."
-    )
-    @GetMapping("/unread/{type}")
+    @GetMapping("/unread/{receiverId}/{type}")
     public ApiResponse<List<NotificationResponseDTO.NotificationDTO>> getUnreadNotificationsWithType(
-            @CurrentUser Long receiverId,
-            @PathVariable NotificationType.NotificationGroup type) {
+            @PathVariable Long receiverId,
+            @PathVariable TargetType type) {
 
         List<NotificationResponseDTO.NotificationDTO> unreadNotifications =
-                notificationServiceRead.getUnreadNotificationsWithType(receiverId, type);
+                notificationServiceRead.getUnreadNotificationsWithTargetType(receiverId, type);
 
         return ApiResponse.onSuccess(unreadNotifications);
     }

@@ -99,6 +99,7 @@ public class GoalResponseDto {
         private int frequency;
         private GoalPeriod period;
         private VerificationType verificationType;
+        private Boolean isAdmin;
     }
 
     //랭킹 Dto

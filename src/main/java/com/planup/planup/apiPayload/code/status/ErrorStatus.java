@@ -1,5 +1,6 @@
 package com.planup.planup.apiPayload.code.status;
 
+import com.google.api.Http;
 import com.planup.planup.apiPayload.code.BaseErrorCode;
 import com.planup.planup.apiPayload.code.ErrorReasonDTO;
 import lombok.AllArgsConstructor;
@@ -118,6 +119,7 @@ public enum ErrorStatus implements BaseErrorCode {
     DUPLICATE_GOAL_NAME(HttpStatus.FORBIDDEN, "GOAL4005", "중복되는 목표 입니다."),
     ALREADY_REACTED(HttpStatus.FORBIDDEN,"GOAL4006", "이미 응원하였습니다."),
     REACTION_ADD_FAILED(HttpStatus.FORBIDDEN,"GOAL4007", "응원 등록 중 오류가 발생했습니다."),
+    NOT_USERGOAL_ADMIN(HttpStatus.UNAUTHORIZED, "GOAL4031", "GOAL을 삭제할 권한이 없습니다"),
 
     // 랜덤 닉네임 관련 에러
     NICKNAME_DATA_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR, "NICKNAME5001", "닉네임 생성에 필요한 데이터가 없습니다."),
@@ -134,9 +136,9 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_REFRESH_TOKEN(BAD_REQUEST, "TOKEN4005", "유효하지 않은 리프레시 토큰입니다."),
     // 로그아웃
     LOGOUT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN5002", "로그아웃 처리 중 오류가 발생했습니다."),
-    TOKEN_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "TOKEN4006", "잘못된 토큰 형식이거나 토큰 헤더가 누락되었습니다.")
+    TOKEN_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "TOKEN4006", "잘못된 토큰 형식이거나 토큰 헤더가 누락되었습니다."),
 
-    ;
+    TERMS_NOT_FOUND(HttpStatus.NOT_FOUND , "TERMS4001", "해당하지 않는 약관 아이디입니다.");
 
 
 

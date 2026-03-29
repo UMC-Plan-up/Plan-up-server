@@ -1,4 +1,4 @@
-package com.planup.planup.domain.notification.entity;
+package com.planup.planup.domain.notification.entity.notification;
 
 public enum TargetType {
     /**
@@ -9,7 +9,7 @@ public enum TargetType {
      * 팀원이 목표를 달성한 경우, 목표
      */
 
-    GOAL, USER, REPORT,
+    GOAL, USER, REPORT, REACTION,
 
     CHALLENGE
 }

@@ -1,5 +1,6 @@
 package com.planup.planup.domain.user.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import com.planup.planup.domain.user.enums.Gender;
@@ -63,6 +64,7 @@ public class UserRequestDTO {
         private String name;
 
         @Schema(description = "생년월일", example = "2000-01-01")
+        @JsonFormat(pattern = "yyyy-MM-dd")
         @NotNull(message = "생년월일은 필수입니다.")
         private LocalDate birthDate;
 

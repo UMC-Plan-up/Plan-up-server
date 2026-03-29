@@ -6,11 +6,13 @@ import com.planup.planup.domain.goal.entity.Enum.GoalType;
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
 
 public class GoalRequestDto {
 
@@ -30,6 +32,15 @@ public class GoalRequestDto {
         VerificationType verificationType;
         int limitFriendCount;
         Integer goalTime;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class InviteFriendList {
+        @NotEmpty
+        List<Long> friendIdList;
     }
 
     @Getter

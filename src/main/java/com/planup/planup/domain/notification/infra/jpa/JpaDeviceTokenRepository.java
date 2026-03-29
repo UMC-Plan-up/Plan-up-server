@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -27,9 +27,40 @@ public class JpaDeviceTokenRepository implements DeviceTokenRepository {
         return jpa.findByUserIdAndActiveTrue(userId).stream().map(JpaMapper::toDomain).toList();
     }
 
+    @Override
+    public DeviceToken findByUserIdAndDeviceId(Long userId, String deviceId) {
+        return jpa.findByUserIdAndDeviceIdAndActiveTrue(userId, deviceId).map(JpaMapper::toDomain).orElse(null);
+    }
+
     @Override @Transactional
     public void save(DeviceToken dt) {
-        jpa.save(JpaMapper.toJpa(dt));
+        DeviceTokenJpa entity;
+
+        //dt에 id 값이 있다 -> 기존에 데이터베이스에 저장된 값이다.
+        if (dt.getId() != null) {
+            entity = jpa.findById(dt.getId())
+                    .orElseThrow(() -> new IllegalStateException("DeviceTokenJpa not found: " + dt.getId()));
+        } else {
+            //기존에 데이터베이스에 저장되지 않은 엔티티라면 token을 기준으로 검색, 없으면 새로운 객체
+            entity = jpa.findByToken(dt.getToken()).orElse(null);
+
+            if (entity == null) {
+                entity = new DeviceTokenJpa();
+            }
+        }
+
+        // 여기서 entity에 dt 값을 반영 (update)
+        entity.updateInfo(
+                dt.getUserId(),
+                dt.getToken(),
+                dt.getPlatform(),
+                dt.getAppVersion(),
+                dt.getLocale(),
+                dt.getDeviceId(),
+                dt.isActive()
+        );
+
+        jpa.save(entity);
     }
 
     @Override @Transactional
@@ -59,7 +90,7 @@ public class JpaDeviceTokenRepository implements DeviceTokenRepository {
 
     static class JpaMapper {
         static DeviceToken toDomain(DeviceTokenJpa e) {
-            var d = new DeviceToken(e.getUserId(), e.getToken(), e.getPlatform(), e.getAppVersion(), e.getLocale());
+            var d = new DeviceToken(e.getId(), e.getUserId(), e.getToken(), e.getPlatform(), e.getAppVersion(), e.getLocale(), e.getDeviceId());
             // id/active/시간 등 동기화
             try { var idField = DeviceToken.class.getDeclaredField("id"); idField.setAccessible(true); idField.set(d, e.getId()); } catch (Exception ignored) {}
             d.touch(); // 간단히 업데이트 표시(필요시 정확 매핑)
@@ -74,9 +105,9 @@ public class JpaDeviceTokenRepository implements DeviceTokenRepository {
                     .appVersion(d.getAppVersion())
                     .locale(d.getLocale())
                     .active(true)
-                    .lastSeenAt(Instant.now())
-                    .createdAt(Instant.now())
-                    .updatedAt(Instant.now())
+                    .lastSeenAt(LocalDateTime.now())
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
                     .build();
         }
     }

@@ -1,20 +1,20 @@
-package com.planup.planup.domain.notification.service;
+package com.planup.planup.domain.notification.service.notification;
 
 import com.planup.planup.domain.notification.dto.NotificationResponseDTO;
-import com.planup.planup.domain.notification.entity.Notification;
-import com.planup.planup.domain.notification.entity.NotificationType;
+import com.planup.planup.domain.notification.entity.notification.Notification;
+import com.planup.planup.domain.notification.entity.notification.TargetType;
 import com.planup.planup.domain.user.entity.User;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-public interface NotificationServiceRead {
+public interface NotificationQueryService {
     //유저의 읽지 않은 알림을 시간 순 대로 가져온다
     @Transactional(readOnly = true)
     List<NotificationResponseDTO.NotificationDTO> getUnreadNotifications(Long receiverId);
 
     @Transactional(readOnly = true)
-    List<NotificationResponseDTO.NotificationDTO> getUnreadNotificationsWithType(Long receiverId, NotificationType.NotificationGroup type);
+    List<NotificationResponseDTO.NotificationDTO> getUnreadNotificationsWithTargetType(Long receiverId, TargetType type);
 
     //유저의 모든 알림을 조회한다. (시간 순대로)
     @Transactional(readOnly = true)

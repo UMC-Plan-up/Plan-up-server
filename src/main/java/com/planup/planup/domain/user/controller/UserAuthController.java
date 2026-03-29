@@ -9,8 +9,6 @@ import com.planup.planup.validation.jwt.dto.TokenRefreshRequestDTO;
 import com.planup.planup.validation.jwt.dto.TokenRefreshResponseDTO;
 import com.planup.planup.validation.jwt.service.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -3,10 +3,11 @@ package com.planup.planup.domain.notification.message;
 import com.planup.planup.domain.global.SpringContext;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.service.GoalService;
-import com.planup.planup.domain.notification.entity.Notification;
-import com.planup.planup.domain.notification.entity.NotificationType;
+import com.planup.planup.domain.notification.entity.notification.Notification;
+import com.planup.planup.domain.notification.entity.notification.NotificationType;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 @Component
 @AllArgsConstructor
@@ -102,6 +103,7 @@ public class NotificationMessageProvider {
                     String.format("[%s]님과의 챌린지가 종료되었어요. 챌린지 결과를 확인해 보세요!", receiverName);
             case PENALTY_REMINDER_SENT ->
                     String.format("[%s]님이 패널티 리마인드를 보냈어요! 챌린지 결과를 자세히 확인해 보세요.", senderName);
+            case INVITED_GOAL -> String.format("[%s]님이 새로운 커뮤니티에 초대했어요", senderName);
         };
     }
 }

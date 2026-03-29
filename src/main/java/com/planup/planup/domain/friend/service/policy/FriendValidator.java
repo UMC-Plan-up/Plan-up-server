@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 public class FriendValidator {
 
     private final FriendRepository friendRepository;
+    private final UserBlockValidator userBlockValidator;
 
     public void ensureNotAlreadyFriend(Long userId, Long friendId) {
         if (friendRepository.existsByUsersAndStatus(userId, friendId, FriendStatus.ACCEPTED)) {

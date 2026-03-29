@@ -1,7 +1,7 @@
 package com.planup.planup.domain.notification.message;
 
-import com.planup.planup.domain.notification.entity.Notification;
-import com.planup.planup.domain.notification.entity.NotificationType;
+import com.planup.planup.domain.notification.entity.notification.Notification;
+import com.planup.planup.domain.notification.entity.notification.NotificationType;
 
 public record MessageContext(
         NotificationType type,
