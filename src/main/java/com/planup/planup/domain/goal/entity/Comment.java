@@ -7,6 +7,7 @@ import com.planup.planup.domain.report.entity.WeeklyReport;
 import com.planup.planup.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -33,6 +34,10 @@ public class Comment extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private CommentStatus status;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private int complaintCount = 0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "writer_id")
     private User writer;
@@ -55,5 +60,9 @@ public class Comment extends BaseTimeEntity {
 
     public void updateStatus(CommentStatus status) {
         this.status = status;
+    }
+
+    public void incrementComplaintCount() {
+        this.complaintCount++;
     }
 }

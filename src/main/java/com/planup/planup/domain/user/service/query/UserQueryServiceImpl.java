@@ -112,7 +112,7 @@ public class UserQueryServiceImpl implements UserQueryService {
                             user.getSanctionEndAt(),
                             user.getSanctionReason(),
                             user.getSanctionDetailReason(),
-                            user.getReportCount()
+                            user.getComplaintCount()
                     );
                 }
             }
@@ -126,7 +126,7 @@ public class UserQueryServiceImpl implements UserQueryService {
                             user.getSanctionEndAt(),
                             user.getSanctionReason(),
                             user.getSanctionDetailReason(),
-                            user.getReportCount()
+                            user.getComplaintCount()
                     );
                 }
             }

@@ -59,9 +59,10 @@ public class GoalController {
     @GetMapping("/create/list/community")
     @Operation(summary = "카테고리별 커뮤니티 목표 조회 API", description = "선택한 카테고리의 커뮤니티 목표 목록을 조회합니다.")
     public ApiResponse<List<GoalResponseDto.GoalCreateListDto>> getCommunityGoalsByCategory(
-            @RequestParam GoalCategory goalCategory) {
+            @RequestParam GoalCategory goalCategory,
+            @CurrentUser Long userId) {
 
-        List<GoalResponseDto.GoalCreateListDto> result = goalService.getCommunityGoalsByCategory(goalCategory);
+        List<GoalResponseDto.GoalCreateListDto> result = goalService.getCommunityGoalsByCategory(userId, goalCategory);
         return ApiResponse.onSuccess(result);
     }
 
