@@ -96,6 +96,9 @@ public class SecurityConfig {
                         .requestMatchers("/report/**").authenticated()          // 리포트
                         .requestMatchers("/notifications/**").authenticated()   // 알림
                         .requestMatchers("/api/encourage/**").authenticated()   // 격려 메시지
+
+                        //토큰 관련 비활성화는 로그아웃 이후에도 가능
+                        .requestMatchers("/deviceToken/deactivate/token/**").permitAll()
                         // 그 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
                 )
