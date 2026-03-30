@@ -81,7 +81,7 @@ public class NotificationMessageProvider {
                     String.format("[%s]님이 친구 신청을 수락하지 않았어요.", senderName);
 
             case CHALLENGE_REQUEST_SENT ->
-                    String.format("[%s]님에게 챌린지 참여 요청을 보냈어요.", receiverName);
+                    String.format("[%s]님에게 챌린지 참여 요청을 보냈어요.", senderName);
             case CHALLENGE_REQUEST_RECEIVED ->
                     String.format("[%s]님이 챌린지 참여를 요청했어요.", senderName);
             case CHALLENGE_REQUEST_ACCEPTED ->
