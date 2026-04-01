@@ -53,6 +53,7 @@ public class DeviceTokenJpa extends BaseTimeEntity {
     private String appVersion;
     private String locale;
 
+    @Column(nullable = false)
     private String deviceId;
 
     private boolean active = true;
