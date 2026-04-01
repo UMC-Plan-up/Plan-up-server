@@ -9,13 +9,10 @@ import com.planup.planup.domain.notification.entity.notification.Notification;
 import com.planup.planup.domain.notification.entity.notification.NotificationType;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 @Component
 @AllArgsConstructor
 public class NotificationMessageProvider {
-
-    private final GoalService goalService;
 
     public String generate(Notification notification) {
         return generate(MessageContext.of(notification));

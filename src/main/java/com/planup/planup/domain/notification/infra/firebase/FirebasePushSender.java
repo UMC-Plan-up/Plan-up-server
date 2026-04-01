@@ -64,27 +64,28 @@ public class FirebasePushSender implements PushSender{
             return new MulticastResult(0, 0, List.of());
         }
 
+        List<String> tokens = tokensCollection.stream()
+                .filter(Objects::nonNull)
+                .filter(token -> !token.isBlank())
+                .distinct()
+                .toList();
+
         int totalSuccess = 0;
 
         // 누적 실패(최종 보고용)
         List<PushSender.TokenFailure> finalFailures = new ArrayList<>();
 
-        int requestedTokenCount = tokensCollection == null ? 0 : tokensCollection.size();
+        int requestedTokenCount = tokens == null ? 0 : tokensCollection.size();
         log.info("FCM multicast requested. requestedTokenCount={}, title={}, bodyLength={}, dataKeys={}",
                 requestedTokenCount,
                 title,
                 body == null ? 0 : body.length(),
                 data == null ? List.of() : data.keySet());
 
-        if (tokensCollection == null || tokensCollection.isEmpty()) {
+        if (tokens == null || tokensCollection.isEmpty()) {
             log.info("FCM multicast skipped. reason=empty_tokens");
             return new MulticastResult(0, 0, List.of());
         }
-
-        List<String> tokens = tokensCollection.stream()
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList();
 
         log.info("FCM multicast normalized. distinctTokenCount={}", tokens.size());
 
@@ -152,7 +153,12 @@ public class FirebasePushSender implements PushSender{
                 finalFailures.addAll(other);
             }
 
-            pending = retryable.stream().map(TokenFailure::token).toList();
+            pending = retryable.stream()
+                    .map(TokenFailure::token)
+                    .filter(Objects::nonNull)
+                    .filter(token -> !token.isBlank())
+                    .distinct()
+                    .toList();
 
             if (!pending.isEmpty()) {
                 log.warn("FCM retryable token failures queued for retry. nextAttemptNo={}, retryCount={}, tokens={}, errorCodes={}",
@@ -166,6 +172,7 @@ public class FirebasePushSender implements PushSender{
                 log.error("FCM retries exhausted. retryableFailuresPromotedToFinal. retryCount={}, tokens={}",
                         pending.size(),
                         maskTokens(pending));
+
                 finalFailures.addAll(retryable);
             }
         }
