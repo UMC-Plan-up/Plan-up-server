@@ -1,5 +1,7 @@
 package com.planup.planup.domain.notification.message;
 
+import com.planup.planup.apiPayload.code.status.ErrorStatus;
+import com.planup.planup.apiPayload.exception.custom.NotificationError;
 import com.planup.planup.domain.global.SpringContext;
 import com.planup.planup.domain.goal.entity.Goal;
 import com.planup.planup.domain.goal.service.GoalService;
@@ -104,6 +106,7 @@ public class NotificationMessageProvider {
             case PENALTY_REMINDER_SENT ->
                     String.format("[%s]님이 패널티 리마인드를 보냈어요! 챌린지 결과를 자세히 확인해 보세요.", senderName);
             case INVITED_GOAL -> String.format("[%s]님이 새로운 커뮤니티에 초대했어요", senderName);
+            default ->  throw new NotificationError(ErrorStatus.NOT_EXIST_NOTIFICATION_TYPE);
         };
     }
 }

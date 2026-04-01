@@ -24,6 +24,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     //Notification 관련 에러
     UNAUTHORIZED_NOTIFICATION_ACCESS(HttpStatus.FORBIDDEN, "NOTIFICATION4001", "알림을 읽을 권한이 없습니다."),
+    NOT_EXIST_NOTIFICATION_TYPE(BAD_REQUEST, "NOTIFICATION4002", "존재하지 않는 타입의 알림 유형입니다."),
 
     //Friend
     ALREADY_FRIEND(BAD_REQUEST, "FRIEND4001", "이미 친구 관계입니다."),
