@@ -4,9 +4,11 @@ import com.planup.planup.domain.notification.entity.device.DeviceToken;
 import com.planup.planup.domain.notification.repository.DeviceTokenRepository;
 import com.planup.planup.domain.notification.entity.device.Platform;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -18,9 +20,9 @@ public class DeviceTokenService {
         var existing = repo.findByToken(token);
         //이미 존재한다면 기존의 토큰 사용.
         if (existing != null) {
-            existing.setUserId(userId);
-            existing.activate();
-            existing.touch();
+            log.warn("Token reassigned. token={}, fromUserId={}, toUserId={}", token, existing.getUserId(), userId);
+            //토큰에 대해 저장된 값을 최신 버전으로 업데이트 한다.
+            existing.refresh(userId, platform, appVersion, locale, deviceId);
             repo.save(existing);
             return;
         }

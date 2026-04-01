@@ -20,11 +20,17 @@ import java.util.List;
  */
 
 @Entity
-@Table(name = "device_token", indexes = {
-        @Index(name = "ix_device_token_user", columnList = "userId, deviceId"),
-        @Index(name = "ix_device_token_active", columnList = "active")
-}, uniqueConstraints =
-        @UniqueConstraint(name = "ux_device_token_token", columnNames = "token"))
+@Table(
+        name = "device_token",
+        indexes = {
+                @Index(name = "ix_device_token_user", columnList = "userId, deviceId"),
+                @Index(name = "ix_device_token_active", columnList = "active")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "ux_device_token_token", columnNames = "token"),
+                @UniqueConstraint(name = "ux_user_device", columnNames = {"userId", "deviceId"})
+        }
+)
 @Getter
 @SuperBuilder
 @AllArgsConstructor

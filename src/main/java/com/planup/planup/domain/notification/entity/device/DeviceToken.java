@@ -59,4 +59,12 @@ public class DeviceToken {
     public void setUserId(Long id) {
         this.userId = id;
     }
+
+    public void refresh(Long userId, Platform platform, String appVersion, String locale, String deviceId) {
+        this.userId = userId;
+        this.platform = platform;
+        this.appVersion = appVersion;
+        this.locale = locale;
+        this.deviceId = deviceId;
+    }
 }
