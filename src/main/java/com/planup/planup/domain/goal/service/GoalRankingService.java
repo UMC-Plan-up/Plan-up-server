@@ -16,6 +16,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.*;
 
+/**
+ * 	특정 목표의 랭킹 점수 갱신
+ * 	전체/일간/주간/월간 랭킹 저장
+ * 	상위 랭킹 조회
+ * 	특정 유저의 순위/점수 조회
+ */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -33,23 +39,35 @@ public class GoalRankingService {
         UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
     }
 
-    public void updateScoreOnTimerVerification(UserGoal userGoal, int verifiedSeconds) {
+    //인증 업데이트에 성공했을 때 Redis에 저장된 값을 변경한다.
+    public void updateScoreOnVerification(UserGoal userGoal, int verifiedCount) {
         Goal goal = userGoal.getGoal();
-        if (goal.getVerificationType() != VerificationType.TIMER) {
-            throw new IllegalArgumentException("타이머 기반 목표가 아닙니다.");
-        }
 
         String member = String.valueOf(userGoal.getId());
         LocalDate now = LocalDate.now();
 
         //TODO: 랭킹 기준 확인 필요
-        incrementScore(RankingKeyGenerator.goalAll(goal.getId()), member, verifiedSeconds);
-        incrementScore(RankingKeyGenerator.goalDaily(goal.getId(), now), member, verifiedSeconds);
-        incrementScore(RankingKeyGenerator.goalWeekly(goal.getId(), now), member, verifiedSeconds);
-        incrementScore(RankingKeyGenerator.goalMonthly(goal.getId(), now), member, verifiedSeconds);
+        incrementScore(RankingKeyGenerator.goalAll(goal.getId()), member, verifiedCount);
+        incrementScore(RankingKeyGenerator.goalDaily(goal.getId(), now), member, verifiedCount);
+        incrementScore(RankingKeyGenerator.goalWeekly(goal.getId(), now), member, verifiedCount);
+        incrementScore(RankingKeyGenerator.goalMonthly(goal.getId(), now), member, verifiedCount);
+    }
+
+    public void deleteScoreOnVerification(UserGoal userGoal, int verifiedCount) {
+        Goal goal = userGoal.getGoal();
+
+        String member = String.valueOf(userGoal.getId());
+        LocalDate now = LocalDate.now();
+
+        //TODO: 랭킹 기준 확인 필요
+        decrementScore(RankingKeyGenerator.goalAll(goal.getId()), member, verifiedCount);
+        decrementScore(RankingKeyGenerator.goalDaily(goal.getId(), now), member, verifiedCount);
+        decrementScore(RankingKeyGenerator.goalWeekly(goal.getId(), now), member, verifiedCount);
+        decrementScore(RankingKeyGenerator.goalMonthly(goal.getId(), now), member, verifiedCount);
     }
 
 
+    //Redis ZSET key에서 점수가 높은 순으로 상위 N명 랭킹을 가져온다
     public List<RankingResult> getTopRankings(String key, int topN) {
         Set<ZSetOperations.TypedTuple<String>> tuples =
                 redisTemplate.opsForZSet().reverseRangeWithScores(key, 0, topN - 1);
@@ -70,17 +88,24 @@ public class GoalRankingService {
         return results;
     }
 
+    //특정 유저(userGoalId)가 해당 랭킹 key에서 현재 몇 등인지 반환한다.
+    // ex. 내순위 보기
     public Long getUserRank(String key, Long userGoalId) {
         Long reverseRank = redisTemplate.opsForZSet().reverseRank(key, String.valueOf(userGoalId));
         return reverseRank == null ? null : reverseRank + 1;
     }
 
+    //특정 유저의 점수를 본다.
     public Double getUserScore(String key, Long userGoalId) {
         return redisTemplate.opsForZSet().score(key, String.valueOf(userGoalId));
     }
 
     private void incrementScore(String key, String member, double score) {
         redisTemplate.opsForZSet().incrementScore(key, member, score);
+    }
+
+    private void decrementScore(String key, String member, double score) {
+        redisTemplate.opsForZSet().incrementScore(key, member, -score);
     }
 
     public record RankingResult(
