@@ -2,6 +2,7 @@ package com.planup.planup.domain.goal.service;
 
 import com.planup.planup.domain.goal.entity.Enum.VerificationType;
 import com.planup.planup.domain.goal.entity.Goal;
+import com.planup.planup.domain.goal.entity.RankingPeriod;
 import com.planup.planup.domain.goal.entity.mapping.UserGoal;
 import com.planup.planup.domain.goal.service.policy.RankingKeyGenerator;
 import com.planup.planup.domain.user.entity.User;
@@ -33,13 +34,24 @@ public class GoalRankingService {
     private final UserGoalService userGoalService;
     private final StringRedisTemplate redisTemplate;
 
+    private String generateKey(Long goalId, RankingPeriod period) {
+        LocalDate now = LocalDate.now();
+
+        return switch (period) {
+            case ALL -> RankingKeyGenerator.goalAll(goalId);
+            case DAILY -> RankingKeyGenerator.goalDaily(goalId, now);
+            case WEEKLY -> RankingKeyGenerator.goalWeekly(goalId, now);
+            case MONTHLY -> RankingKeyGenerator.goalMonthly(goalId, now);
+        };
+    }
+
     public void getRankInGoal( Long userId, Long goalId) {
         User user = userQueryService.getUserByUserId(userId);
         Goal goal = goalService.getGoalById(goalId);
         UserGoal userGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
     }
 
-    //인증 업데이트에 성공했을 때 Redis에 저장된 값을 변경한다.
+    //인증 업데이트에 성공했을 때 Redis에 저장된 값을 증가시킨다.
     public void updateScoreOnVerification(UserGoal userGoal, int verifiedCount) {
         Goal goal = userGoal.getGoal();
 
@@ -90,7 +102,8 @@ public class GoalRankingService {
 
     //특정 유저(userGoalId)가 해당 랭킹 key에서 현재 몇 등인지 반환한다.
     // ex. 내순위 보기
-    public Long getUserRank(String key, Long userGoalId) {
+    public Long getUserRank(String key, Long userGoalId, RankingPeriod period) {
+        generateKey()
         Long reverseRank = redisTemplate.opsForZSet().reverseRank(key, String.valueOf(userGoalId));
         return reverseRank == null ? null : reverseRank + 1;
     }
@@ -98,6 +111,14 @@ public class GoalRankingService {
     //특정 유저의 점수를 본다.
     public Double getUserScore(String key, Long userGoalId) {
         return redisTemplate.opsForZSet().score(key, String.valueOf(userGoalId));
+    }
+
+    public UserRankingInfo getUserRanking(Long goalId, Long userGoalId, RankingPeriod period) {
+
+        Long rank = getUserRank(goalId, userGoalId, period);
+        Double score = getUserScore(goalId, userGoalId, period);
+
+        return new UserRankingInfo(rank, score);
     }
 
     private void incrementScore(String key, String member, double score) {
@@ -112,5 +133,10 @@ public class GoalRankingService {
             int rank,
             Long userGoalId,
             double score
+    ) {}
+
+    public record UserRankingInfo(
+            Long rank,
+            Double score
     ) {}
 }
