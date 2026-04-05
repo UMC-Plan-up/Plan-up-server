@@ -283,10 +283,11 @@ public class GoalServiceImpl implements GoalService{
     //친구 타이머 현황 api
     @Transactional(readOnly = true)
     public List<GoalResponseDto.FriendTimerStatusDto> getFriendTimerStatus(Long goalId, Long userId) {
+
         Goal goal = goalRepository.findById(goalId)
                 .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
 
-        UserGoal myuserGoal = userGoalService.getByGoalIdAndUserId(goalId,userId);
+        UserGoal myuserGoal = userGoalService.getByGoalIdAndUserId(goalId, userId);
 
         List<UserGoal> userGoals = userGoalRepository.findByGoalId(goalId);
 
